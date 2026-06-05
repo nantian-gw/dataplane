@@ -1,7 +1,7 @@
 #[test]
 fn materialized_tls_assets_write_expected_contents_without_temp_files() {
     let asset_dir = std::env::temp_dir()
-        .join("aether-gateway")
+        .join("nantian-gw")
         .join("http-listeners")
         .join(super::listener_plan::unique_asset_dir_name());
     let plan = ListenerPlan {

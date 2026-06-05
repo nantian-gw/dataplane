@@ -30,9 +30,9 @@ fn render_metrics_exposes_endpoint_health_runtime_state() {
 
     let metrics = render_metrics(&state);
 
-    assert!(metrics.contains("aether_gateway_dataplane_endpoint_runtime_tracked_current 1"));
-    assert!(metrics.contains("aether_gateway_dataplane_endpoint_passive_ejected_current 1"));
-    assert!(metrics.contains("aether_gateway_dataplane_endpoint_active_unhealthy_current 1"));
+    assert!(metrics.contains("nantian_gateway_dataplane_endpoint_runtime_tracked_current 1"));
+    assert!(metrics.contains("nantian_gateway_dataplane_endpoint_passive_ejected_current 1"));
+    assert!(metrics.contains("nantian_gateway_dataplane_endpoint_active_unhealthy_current 1"));
 }
 
 #[test]
@@ -68,9 +68,9 @@ fn render_metrics_exposes_endpoint_recovery_latency_histogram() {
     let metrics = render_metrics(&state);
 
     assert!(
-        metrics.contains("# TYPE aether_gateway_dataplane_endpoint_recovery_latency_ms histogram")
+        metrics.contains("# TYPE nantian_gateway_dataplane_endpoint_recovery_latency_ms histogram")
     );
     assert!(metrics
-        .contains("aether_gateway_dataplane_endpoint_recovery_latency_ms_bucket{le=\"+Inf\"} 1"));
-    assert!(metrics.contains("aether_gateway_dataplane_endpoint_recovery_latency_ms_count 1"));
+        .contains("nantian_gateway_dataplane_endpoint_recovery_latency_ms_bucket{le=\"+Inf\"} 1"));
+    assert!(metrics.contains("nantian_gateway_dataplane_endpoint_recovery_latency_ms_count 1"));
 }

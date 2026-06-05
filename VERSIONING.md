@@ -1,7 +1,7 @@
 # Versioning — Aether Gateway Data Plane
 
 The data plane follows the main [Aether Gateway versioning
-policy](../aether-gateway/VERSIONING.md). This document covers
+policy](../nantian-gw/VERSIONING.md). This document covers
 data-plane-specific considerations.
 
 ## Version Format
@@ -29,16 +29,16 @@ upgrades are treated as MINOR-level changes and require:
 ## Crate Versioning
 
 Workspace crates are versioned independently but released together:
-- `aether-proxy`, `aether-xds`, `aether-admin`: follow data plane release tags.
+- `nantian-proxy`, `nantian-xds`, `nantian-admin`: follow data plane release tags.
 - `aeg-wasm-sdk`: may have separate pre-release cycles for plugin authors.
 - `aeg-wasm-*` internal crates: follow data plane release tags.
 
 ## Release Artifacts
 
 Data plane releases produce:
-- Binary container image (`aether-gateway-dataplane`).
+- Binary container image (`nantian-dataplane`).
 - Prebuilt Wasm modules.
 - Cargo workspace semver tags.
 
-See the main [VERSIONING.md](../aether-gateway/VERSIONING.md) for the
+See the main [VERSIONING.md](../nantian-gw/VERSIONING.md) for the
 full release workflow and support scope.

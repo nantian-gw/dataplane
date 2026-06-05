@@ -21,5 +21,5 @@
 - Backend TLS with certificate validation.
 
 No formal releases yet. See the main [Aether Gateway
-CHANGELOG.md](../aether-gateway/CHANGELOG.md) for project-wide release
+CHANGELOG.md](../nantian-gw/CHANGELOG.md) for project-wide release
 history.

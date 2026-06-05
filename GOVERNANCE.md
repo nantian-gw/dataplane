@@ -1,8 +1,8 @@
 # Governance — Aether Gateway Data Plane
 
 This sub-project follows the lightweight governance model of the main
-[Aether Gateway](../aether-gateway/) project. See the main
-[GOVERNANCE.md](../aether-gateway/GOVERNANCE.md) for the full policy.
+[Aether Gateway](../nantian-gw/) project. See the main
+[GOVERNANCE.md](../nantian-gw/GOVERNANCE.md) for the full policy.
 
 ## Sub-Project Scope
 

@@ -94,49 +94,49 @@ fn render_metrics_exposes_overload_counters() {
 
     let metrics = render_metrics(&state);
 
-    assert!(metrics.contains("aether_gateway_dataplane_http_global_inflight_current 1"));
+    assert!(metrics.contains("nantian_gateway_dataplane_http_global_inflight_current 1"));
     assert!(metrics
-        .contains("aether_gateway_dataplane_http_listener_inflight_current{listener=\"web\"} 1"));
+        .contains("nantian_gateway_dataplane_http_listener_inflight_current{listener=\"web\"} 1"));
     assert!(metrics.contains(
-        "aether_gateway_dataplane_http_route_inflight_current{route=\"Http/default/shared\"} 1"
+        "nantian_gateway_dataplane_http_route_inflight_current{route=\"Http/default/shared\"} 1"
     ));
     assert!(metrics
-        .contains("aether_gateway_dataplane_http_overload_rejected_total{scope=\"total\"} 3"));
+        .contains("nantian_gateway_dataplane_http_overload_rejected_total{scope=\"total\"} 3"));
     assert!(metrics
-        .contains("aether_gateway_dataplane_http_overload_rejected_total{scope=\"global\"} 1"));
+        .contains("nantian_gateway_dataplane_http_overload_rejected_total{scope=\"global\"} 1"));
     assert!(metrics
-        .contains("aether_gateway_dataplane_http_overload_rejected_total{scope=\"listener\"} 1"));
+        .contains("nantian_gateway_dataplane_http_overload_rejected_total{scope=\"listener\"} 1"));
     assert!(metrics
-        .contains("aether_gateway_dataplane_http_overload_rejected_total{scope=\"route\"} 1"));
+        .contains("nantian_gateway_dataplane_http_overload_rejected_total{scope=\"route\"} 1"));
     assert!(metrics.contains(
-        "aether_gateway_dataplane_http_overload_rejected_listener_total{listener=\"web\"} 1"
+        "nantian_gateway_dataplane_http_overload_rejected_listener_total{listener=\"web\"} 1"
     ));
     assert!(metrics.contains(
-        "aether_gateway_dataplane_http_overload_rejected_route_total{route=\"Http/default/shared\"} 1"
+        "nantian_gateway_dataplane_http_overload_rejected_route_total{route=\"Http/default/shared\"} 1"
     ));
-    assert!(metrics.contains("aether_gateway_dataplane_tcp_global_connections_current 1"));
+    assert!(metrics.contains("nantian_gateway_dataplane_tcp_global_connections_current 1"));
     assert!(metrics.contains(
-        "aether_gateway_dataplane_tcp_listener_connections_current{listener=\"passthrough\"} 1"
+        "nantian_gateway_dataplane_tcp_listener_connections_current{listener=\"passthrough\"} 1"
     ));
     assert!(metrics
-        .contains("aether_gateway_dataplane_tcp_overload_rejected_total{scope=\"total\"} 2"));
+        .contains("nantian_gateway_dataplane_tcp_overload_rejected_total{scope=\"total\"} 2"));
     assert!(metrics
-        .contains("aether_gateway_dataplane_tcp_overload_rejected_total{scope=\"global\"} 1"));
+        .contains("nantian_gateway_dataplane_tcp_overload_rejected_total{scope=\"global\"} 1"));
     assert!(metrics
-        .contains("aether_gateway_dataplane_tcp_overload_rejected_total{scope=\"listener\"} 1"));
+        .contains("nantian_gateway_dataplane_tcp_overload_rejected_total{scope=\"listener\"} 1"));
     assert!(metrics.contains(
-        "aether_gateway_dataplane_tcp_overload_rejected_listener_total{listener=\"passthrough\"} 1"
+        "nantian_gateway_dataplane_tcp_overload_rejected_listener_total{listener=\"passthrough\"} 1"
     ));
-    assert!(metrics.contains("aether_gateway_dataplane_udp_global_datagrams_current 1"));
+    assert!(metrics.contains("nantian_gateway_dataplane_udp_global_datagrams_current 1"));
     assert!(metrics
-        .contains("aether_gateway_dataplane_udp_listener_datagrams_current{listener=\"dns\"} 1"));
+        .contains("nantian_gateway_dataplane_udp_listener_datagrams_current{listener=\"dns\"} 1"));
     assert!(metrics
-        .contains("aether_gateway_dataplane_udp_overload_rejected_total{scope=\"total\"} 2"));
+        .contains("nantian_gateway_dataplane_udp_overload_rejected_total{scope=\"total\"} 2"));
     assert!(metrics
-        .contains("aether_gateway_dataplane_udp_overload_rejected_total{scope=\"global\"} 1"));
+        .contains("nantian_gateway_dataplane_udp_overload_rejected_total{scope=\"global\"} 1"));
     assert!(metrics
-        .contains("aether_gateway_dataplane_udp_overload_rejected_total{scope=\"listener\"} 1"));
+        .contains("nantian_gateway_dataplane_udp_overload_rejected_total{scope=\"listener\"} 1"));
     assert!(metrics.contains(
-        "aether_gateway_dataplane_udp_overload_rejected_listener_total{listener=\"dns\"} 1"
+        "nantian_gateway_dataplane_udp_overload_rejected_listener_total{listener=\"dns\"} 1"
     ));
 }

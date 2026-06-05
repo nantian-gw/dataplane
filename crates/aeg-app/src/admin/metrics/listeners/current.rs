@@ -6,7 +6,7 @@ pub(super) fn append_listener_current_metrics(out: &mut String, counts: &Listene
 
     append_gauge(
         out,
-        "aether_gateway_dataplane_listener_current_idle_count",
+        "nantian_gateway_dataplane_listener_current_idle_count",
         "Number of listeners currently classified as idle.",
         listener_runtime_statuses
             .iter()
@@ -15,7 +15,7 @@ pub(super) fn append_listener_current_metrics(out: &mut String, counts: &Listene
     );
     append_gauge(
         out,
-        "aether_gateway_dataplane_listener_current_warming_count",
+        "nantian_gateway_dataplane_listener_current_warming_count",
         "Number of listeners currently classified as warming.",
         listener_runtime_statuses
             .iter()
@@ -24,7 +24,7 @@ pub(super) fn append_listener_current_metrics(out: &mut String, counts: &Listene
     );
     append_gauge(
         out,
-        "aether_gateway_dataplane_listener_current_pending_count",
+        "nantian_gateway_dataplane_listener_current_pending_count",
         "Number of listeners currently classified as pending.",
         listener_runtime_statuses
             .iter()
@@ -33,7 +33,7 @@ pub(super) fn append_listener_current_metrics(out: &mut String, counts: &Listene
     );
     append_gauge(
         out,
-        "aether_gateway_dataplane_listener_current_accepted_count",
+        "nantian_gateway_dataplane_listener_current_accepted_count",
         "Number of listeners currently classified as accepted.",
         listener_runtime_statuses
             .iter()
@@ -42,7 +42,7 @@ pub(super) fn append_listener_current_metrics(out: &mut String, counts: &Listene
     );
     append_gauge(
         out,
-        "aether_gateway_dataplane_listener_current_retained_count",
+        "nantian_gateway_dataplane_listener_current_retained_count",
         "Number of listeners currently classified as retained.",
         listener_runtime_statuses
             .iter()
@@ -51,7 +51,7 @@ pub(super) fn append_listener_current_metrics(out: &mut String, counts: &Listene
     );
     append_gauge(
         out,
-        "aether_gateway_dataplane_listener_current_rejected_count",
+        "nantian_gateway_dataplane_listener_current_rejected_count",
         "Number of listeners currently classified as rejected.",
         listener_runtime_statuses
             .iter()
@@ -60,7 +60,7 @@ pub(super) fn append_listener_current_metrics(out: &mut String, counts: &Listene
     );
     append_gauge(
         out,
-        "aether_gateway_dataplane_listener_current_stale_count",
+        "nantian_gateway_dataplane_listener_current_stale_count",
         "Number of listeners currently classified as stale.",
         listener_runtime_statuses
             .iter()

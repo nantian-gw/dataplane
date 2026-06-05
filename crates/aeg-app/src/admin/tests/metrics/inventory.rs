@@ -42,32 +42,32 @@ fn render_metrics_exposes_snapshot_inventory_and_session_persistence_state() {
 
     let metrics = render_metrics(&state);
 
-    assert!(metrics.contains("aether_gateway_dataplane_ready 1"));
-    assert!(metrics.contains("aether_gateway_dataplane_listener_count 2"));
-    assert!(metrics.contains("aether_gateway_dataplane_http_route_count 1"));
-    assert!(metrics.contains("aether_gateway_dataplane_grpc_route_count 1"));
-    assert!(metrics.contains("aether_gateway_dataplane_stream_route_count 1"));
-    assert!(metrics.contains("aether_gateway_dataplane_backend_count 3"));
-    assert!(metrics.contains("aether_gateway_dataplane_secret_count 1"));
-    assert!(metrics.contains("aether_gateway_dataplane_http3_configured 1"));
+    assert!(metrics.contains("nantian_gateway_dataplane_ready 1"));
+    assert!(metrics.contains("nantian_gateway_dataplane_listener_count 2"));
+    assert!(metrics.contains("nantian_gateway_dataplane_http_route_count 1"));
+    assert!(metrics.contains("nantian_gateway_dataplane_grpc_route_count 1"));
+    assert!(metrics.contains("nantian_gateway_dataplane_stream_route_count 1"));
+    assert!(metrics.contains("nantian_gateway_dataplane_backend_count 3"));
+    assert!(metrics.contains("nantian_gateway_dataplane_secret_count 1"));
+    assert!(metrics.contains("nantian_gateway_dataplane_http3_configured 1"));
     assert!(metrics.contains(&format!(
-        "aether_gateway_dataplane_http3_available {}",
+        "nantian_gateway_dataplane_http3_available {}",
         u64::from(aeg_http::http3_available())
     )));
     assert!(metrics.contains(&format!(
-        "aether_gateway_dataplane_http3_enabled {}",
+        "nantian_gateway_dataplane_http3_enabled {}",
         u64::from(aeg_http::http3_available())
     )));
-    assert!(metrics.contains("aether_gateway_dataplane_session_persistence_active 1"));
-    assert!(metrics.contains("aether_gateway_dataplane_session_persistence_ephemeral_secret 1"));
-    assert!(metrics.contains("aether_gateway_dataplane_session_persistence_route_rule_count 2"));
-    assert!(metrics.contains("aether_gateway_dataplane_session_persistence_backend_policy_count 1"));
-    assert!(metrics.contains("aether_gateway_dataplane_xds_connect_failures_total 1"));
-    assert!(metrics.contains("aether_gateway_dataplane_xds_stream_failures_total 1"));
+    assert!(metrics.contains("nantian_gateway_dataplane_session_persistence_active 1"));
+    assert!(metrics.contains("nantian_gateway_dataplane_session_persistence_ephemeral_secret 1"));
+    assert!(metrics.contains("nantian_gateway_dataplane_session_persistence_route_rule_count 2"));
+    assert!(metrics.contains("nantian_gateway_dataplane_session_persistence_backend_policy_count 1"));
+    assert!(metrics.contains("nantian_gateway_dataplane_xds_connect_failures_total 1"));
+    assert!(metrics.contains("nantian_gateway_dataplane_xds_stream_failures_total 1"));
 
     let last_apply = metric_value(
         &metrics,
-        "aether_gateway_dataplane_xds_last_apply_timestamp_seconds",
+        "nantian_gateway_dataplane_xds_last_apply_timestamp_seconds",
     )
     .expect("last apply timestamp metric");
     assert!(last_apply.parse::<u64>().expect("unix timestamp") > 0);
@@ -104,16 +104,16 @@ fn render_metrics_stays_stable_for_empty_snapshot_with_default_runtime_controls(
     );
 
     for expected in [
-        "aether_gateway_dataplane_ready 0",
-        "aether_gateway_dataplane_listener_count 0",
-        "aether_gateway_dataplane_http_route_count 0",
-        "aether_gateway_dataplane_grpc_route_count 0",
-        "aether_gateway_dataplane_stream_route_count 0",
-        "aether_gateway_dataplane_backend_count 0",
-        "aether_gateway_dataplane_http_circuit_breaker_backend_max_inflight_requests 0",
-        "aether_gateway_dataplane_http_rate_limit_global_requests_per_second 0",
-        "aether_gateway_dataplane_http_rate_limit_global_burst 0",
-        "aether_gateway_dataplane_http_rate_limit_global_available_tokens 0",
+        "nantian_gateway_dataplane_ready 0",
+        "nantian_gateway_dataplane_listener_count 0",
+        "nantian_gateway_dataplane_http_route_count 0",
+        "nantian_gateway_dataplane_grpc_route_count 0",
+        "nantian_gateway_dataplane_stream_route_count 0",
+        "nantian_gateway_dataplane_backend_count 0",
+        "nantian_gateway_dataplane_http_circuit_breaker_backend_max_inflight_requests 0",
+        "nantian_gateway_dataplane_http_rate_limit_global_requests_per_second 0",
+        "nantian_gateway_dataplane_http_rate_limit_global_burst 0",
+        "nantian_gateway_dataplane_http_rate_limit_global_available_tokens 0",
     ] {
         assert!(
             metrics.contains(expected),
@@ -130,10 +130,10 @@ fn render_metrics_omits_traffic_ratio_gauges_without_denominators() {
     let metrics = render_metrics(&state);
 
     for name in [
-        "aether_gateway_dataplane_traffic_retry_rate",
-        "aether_gateway_dataplane_traffic_failover_success_rate",
-        "aether_gateway_dataplane_traffic_upstream_pool_hit_ratio",
-        "aether_gateway_dataplane_traffic_upstream_connect_latency_ms_average",
+        "nantian_gateway_dataplane_traffic_retry_rate",
+        "nantian_gateway_dataplane_traffic_failover_success_rate",
+        "nantian_gateway_dataplane_traffic_upstream_pool_hit_ratio",
+        "nantian_gateway_dataplane_traffic_upstream_connect_latency_ms_average",
     ] {
         assert!(
             metric_value(&metrics, name).is_none(),
@@ -158,27 +158,27 @@ fn render_metrics_omits_traffic_ratio_gauges_without_denominators() {
 
     let metrics = render_metrics(&state);
     assert_eq!(
-        metric_value(&metrics, "aether_gateway_dataplane_traffic_retry_rate"),
+        metric_value(&metrics, "nantian_gateway_dataplane_traffic_retry_rate"),
         Some("0")
     );
     assert_eq!(
         metric_value(
             &metrics,
-            "aether_gateway_dataplane_traffic_failover_success_rate"
+            "nantian_gateway_dataplane_traffic_failover_success_rate"
         ),
         None
     );
     assert_eq!(
         metric_value(
             &metrics,
-            "aether_gateway_dataplane_traffic_upstream_pool_hit_ratio"
+            "nantian_gateway_dataplane_traffic_upstream_pool_hit_ratio"
         ),
         None
     );
     assert_eq!(
         metric_value(
             &metrics,
-            "aether_gateway_dataplane_traffic_upstream_connect_latency_ms_average"
+            "nantian_gateway_dataplane_traffic_upstream_connect_latency_ms_average"
         ),
         None
     );
@@ -224,57 +224,57 @@ fn render_metrics_retry_rate_uses_request_event_denominator() {
     let metrics = render_metrics(&state);
 
     assert_eq!(
-        metric_value(&metrics, "aether_gateway_dataplane_traffic_events_total"),
+        metric_value(&metrics, "nantian_gateway_dataplane_traffic_events_total"),
         Some("2")
     );
     assert_eq!(
         metric_value(
             &metrics,
-            "aether_gateway_dataplane_traffic_request_events_total"
+            "nantian_gateway_dataplane_traffic_request_events_total"
         ),
         Some("1")
     );
     assert_eq!(
         metric_value(
             &metrics,
-            "aether_gateway_dataplane_traffic_retried_events_total"
+            "nantian_gateway_dataplane_traffic_retried_events_total"
         ),
         Some("1")
     );
     assert_eq!(
         metric_value(
             &metrics,
-            "aether_gateway_dataplane_traffic_retry_attempts_total"
+            "nantian_gateway_dataplane_traffic_retry_attempts_total"
         ),
         Some("1")
     );
     assert_eq!(
         metric_value(
             &metrics,
-            "aether_gateway_dataplane_traffic_retried_success_events_total"
+            "nantian_gateway_dataplane_traffic_retried_success_events_total"
         ),
         Some("0")
     );
     assert_eq!(
-        metric_value(&metrics, "aether_gateway_dataplane_traffic_retry_rate"),
+        metric_value(&metrics, "nantian_gateway_dataplane_traffic_retry_rate"),
         Some("1")
     );
     assert_eq!(
         metric_value(
             &metrics,
-            "aether_gateway_dataplane_traffic_failover_success_rate"
+            "nantian_gateway_dataplane_traffic_failover_success_rate"
         ),
         Some("0")
     );
     assert_eq!(
         metric_value(
             &metrics,
-            "aether_gateway_dataplane_traffic_status_other_total"
+            "nantian_gateway_dataplane_traffic_status_other_total"
         ),
         Some("0")
     );
     assert!(
-        metrics.contains("aether_gateway_dataplane_traffic_response_flags_total{flag=\"none\"} 0")
+        metrics.contains("nantian_gateway_dataplane_traffic_response_flags_total{flag=\"none\"} 0")
     );
 }
 
@@ -311,54 +311,54 @@ fn render_metrics_upstream_pool_views_ignore_stream_events() {
     assert_eq!(
         metric_value(
             &metrics,
-            "aether_gateway_dataplane_traffic_upstream_pool_hits_total"
+            "nantian_gateway_dataplane_traffic_upstream_pool_hits_total"
         ),
         Some("0")
     );
     assert_eq!(
         metric_value(
             &metrics,
-            "aether_gateway_dataplane_traffic_upstream_pool_misses_total"
+            "nantian_gateway_dataplane_traffic_upstream_pool_misses_total"
         ),
         Some("0")
     );
     assert_eq!(
         metric_value(
             &metrics,
-            "aether_gateway_dataplane_traffic_upstream_peer_build_failures_total"
+            "nantian_gateway_dataplane_traffic_upstream_peer_build_failures_total"
         ),
         Some("0")
     );
     assert_eq!(
         metric_value(
             &metrics,
-            "aether_gateway_dataplane_traffic_upstream_pool_hit_ratio"
+            "nantian_gateway_dataplane_traffic_upstream_pool_hit_ratio"
         ),
         None
     );
     assert_eq!(
         metric_value(
             &metrics,
-            "aether_gateway_dataplane_traffic_upstream_connect_latency_ms_total"
+            "nantian_gateway_dataplane_traffic_upstream_connect_latency_ms_total"
         ),
         Some("0")
     );
     assert_eq!(
         metric_value(
             &metrics,
-            "aether_gateway_dataplane_traffic_upstream_connect_latency_ms_max"
+            "nantian_gateway_dataplane_traffic_upstream_connect_latency_ms_max"
         ),
         Some("0")
     );
     assert_eq!(
         metric_value(
             &metrics,
-            "aether_gateway_dataplane_traffic_upstream_connect_latency_ms_average"
+            "nantian_gateway_dataplane_traffic_upstream_connect_latency_ms_average"
         ),
         None
     );
     assert!(
-        metrics.contains("aether_gateway_dataplane_traffic_upstream_connect_latency_ms_count 0")
+        metrics.contains("nantian_gateway_dataplane_traffic_upstream_connect_latency_ms_count 0")
     );
 }
 
@@ -383,5 +383,5 @@ fn render_metrics_ready_matches_summary_readiness_for_pending_snapshot_without_l
 
     let metrics = render_metrics(&state);
 
-    assert!(metrics.contains("aether_gateway_dataplane_ready 0"));
+    assert!(metrics.contains("nantian_gateway_dataplane_ready 0"));
 }

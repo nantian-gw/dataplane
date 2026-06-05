@@ -6,7 +6,7 @@ fn assert_protection_metrics_match_state(
     assert_eq!(
         metric_u64(
             metrics,
-            "aether_gateway_dataplane_http_circuit_breaker_backend_max_inflight_requests"
+            "nantian_gateway_dataplane_http_circuit_breaker_backend_max_inflight_requests"
         ),
         circuit_breakers["backendMaxInflightRequests"]
             .as_u64()
@@ -15,7 +15,7 @@ fn assert_protection_metrics_match_state(
     assert_eq!(
         labeled_metric_u64(
             metrics,
-            "aether_gateway_dataplane_http_circuit_breaker_backend_inflight_current",
+            "nantian_gateway_dataplane_http_circuit_breaker_backend_inflight_current",
             "backend",
             "default/api:80"
         ),
@@ -27,7 +27,7 @@ fn assert_protection_metrics_match_state(
     assert_eq!(
         metric_u64(
             metrics,
-            "aether_gateway_dataplane_http_rate_limit_global_requests_per_second"
+            "nantian_gateway_dataplane_http_rate_limit_global_requests_per_second"
         ),
         rate_limits["global"]["requestsPerSecond"]
             .as_u64()
@@ -36,7 +36,7 @@ fn assert_protection_metrics_match_state(
     assert_eq!(
         labeled_metric_u64(
             metrics,
-            "aether_gateway_dataplane_http_rate_limit_listener_available_tokens",
+            "nantian_gateway_dataplane_http_rate_limit_listener_available_tokens",
             "listener",
             "web"
         ),
@@ -47,7 +47,7 @@ fn assert_protection_metrics_match_state(
     assert_eq!(
         labeled_metric_u64(
             metrics,
-            "aether_gateway_dataplane_http_rate_limit_rejected_route_total",
+            "nantian_gateway_dataplane_http_rate_limit_rejected_route_total",
             "route",
             "Http/default/shared"
         ),

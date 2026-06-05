@@ -1,7 +1,7 @@
 # Roadmap — Aether Gateway Data Plane
 
 The data plane roadmap aligns with the main [Aether Gateway
-roadmap](../aether-gateway/ROADMAP.md). This file tracks data-plane-specific
+roadmap](../nantian-gw/ROADMAP.md). This file tracks data-plane-specific
 milestones.
 
 ## Current Status (June 2026)
@@ -34,4 +34,4 @@ implemented and integrated.
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development workflow and
-[ROADMAP.md](../aether-gateway/ROADMAP.md) for the project-wide roadmap.
+[ROADMAP.md](../nantian-gw/ROADMAP.md) for the project-wide roadmap.

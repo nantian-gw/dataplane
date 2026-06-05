@@ -33,7 +33,7 @@ pub(crate) fn default_open_telemetry_sample_ratio() -> f64 {
 }
 
 pub(crate) fn default_open_telemetry_service_name() -> String {
-    "aether-gateway-dataplane".to_string()
+    "nantian-dataplane".to_string()
 }
 
 pub(crate) fn default_access_enabled() -> bool {
@@ -41,7 +41,7 @@ pub(crate) fn default_access_enabled() -> bool {
 }
 
 pub(crate) fn default_access_path() -> String {
-    "/var/log/aether-gateway/access.log".to_string()
+    "/var/log/nantian-gw/access.log".to_string()
 }
 
 pub(crate) fn default_access_format() -> String {

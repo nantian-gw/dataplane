@@ -1,7 +1,7 @@
 #[test]
 fn materialize_tls_assets_cleans_up_stale_temp_files() {
     let asset_dir = std::env::temp_dir()
-        .join("aether-gateway")
+        .join("nantian-gw")
         .join("http-listeners")
         .join(super::listener_plan::unique_asset_dir_name());
     fs::create_dir_all(&asset_dir).expect("create asset dir");

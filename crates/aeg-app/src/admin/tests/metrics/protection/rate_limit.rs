@@ -27,30 +27,30 @@ fn render_metrics_exposes_rate_limit_counters() {
     let metrics = render_metrics(&state);
 
     assert!(
-        metrics.contains("aether_gateway_dataplane_http_rate_limit_global_requests_per_second 1")
+        metrics.contains("nantian_gateway_dataplane_http_rate_limit_global_requests_per_second 1")
     );
-    assert!(metrics.contains("aether_gateway_dataplane_http_rate_limit_global_burst 2"));
-    assert!(metrics.contains("aether_gateway_dataplane_http_rate_limit_global_available_tokens 1"));
+    assert!(metrics.contains("nantian_gateway_dataplane_http_rate_limit_global_burst 2"));
+    assert!(metrics.contains("nantian_gateway_dataplane_http_rate_limit_global_available_tokens 1"));
     assert!(metrics
-        .contains("aether_gateway_dataplane_http_rate_limit_listener_requests_per_second 1"));
-    assert!(metrics.contains("aether_gateway_dataplane_http_rate_limit_listener_burst 2"));
+        .contains("nantian_gateway_dataplane_http_rate_limit_listener_requests_per_second 1"));
+    assert!(metrics.contains("nantian_gateway_dataplane_http_rate_limit_listener_burst 2"));
     assert!(metrics.contains(
-        "aether_gateway_dataplane_http_rate_limit_listener_available_tokens{listener=\"web\"} 1"
+        "nantian_gateway_dataplane_http_rate_limit_listener_available_tokens{listener=\"web\"} 1"
     ));
     assert!(
-        metrics.contains("aether_gateway_dataplane_http_rate_limit_route_requests_per_second 1")
+        metrics.contains("nantian_gateway_dataplane_http_rate_limit_route_requests_per_second 1")
     );
-    assert!(metrics.contains("aether_gateway_dataplane_http_rate_limit_route_burst 1"));
+    assert!(metrics.contains("nantian_gateway_dataplane_http_rate_limit_route_burst 1"));
     assert!(metrics.contains(
-        "aether_gateway_dataplane_http_rate_limit_route_available_tokens{route=\"Http/default/shared\"} 0"
+        "nantian_gateway_dataplane_http_rate_limit_route_available_tokens{route=\"Http/default/shared\"} 0"
     ));
-    assert!(metrics.contains("aether_gateway_dataplane_http_rate_limit_allowed_total 1"));
+    assert!(metrics.contains("nantian_gateway_dataplane_http_rate_limit_allowed_total 1"));
     assert!(metrics
-        .contains("aether_gateway_dataplane_http_rate_limit_rejected_total{scope=\"total\"} 1"));
+        .contains("nantian_gateway_dataplane_http_rate_limit_rejected_total{scope=\"total\"} 1"));
     assert!(metrics
-        .contains("aether_gateway_dataplane_http_rate_limit_rejected_total{scope=\"route\"} 1"));
+        .contains("nantian_gateway_dataplane_http_rate_limit_rejected_total{scope=\"route\"} 1"));
     assert!(metrics.contains(
-        "aether_gateway_dataplane_http_rate_limit_rejected_route_total{route=\"Http/default/shared\"} 1"
+        "nantian_gateway_dataplane_http_rate_limit_rejected_route_total{route=\"Http/default/shared\"} 1"
     ));
 }
 
@@ -59,9 +59,9 @@ fn render_metrics_exposes_rate_limit_scope_enabled_state() {
     let state = test_state(None);
     let disabled = render_metrics(&state);
 
-    assert!(disabled.contains("aether_gateway_dataplane_http_rate_limit_global_enabled 0"));
-    assert!(disabled.contains("aether_gateway_dataplane_http_rate_limit_listener_enabled 0"));
-    assert!(disabled.contains("aether_gateway_dataplane_http_rate_limit_route_enabled 0"));
+    assert!(disabled.contains("nantian_gateway_dataplane_http_rate_limit_global_enabled 0"));
+    assert!(disabled.contains("nantian_gateway_dataplane_http_rate_limit_listener_enabled 0"));
+    assert!(disabled.contains("nantian_gateway_dataplane_http_rate_limit_route_enabled 0"));
 
     replace_rate_limit(
         &state,
@@ -76,7 +76,7 @@ fn render_metrics_exposes_rate_limit_scope_enabled_state() {
     );
     let enabled = render_metrics(&state);
 
-    assert!(enabled.contains("aether_gateway_dataplane_http_rate_limit_global_enabled 1"));
-    assert!(enabled.contains("aether_gateway_dataplane_http_rate_limit_listener_enabled 1"));
-    assert!(enabled.contains("aether_gateway_dataplane_http_rate_limit_route_enabled 1"));
+    assert!(enabled.contains("nantian_gateway_dataplane_http_rate_limit_global_enabled 1"));
+    assert!(enabled.contains("nantian_gateway_dataplane_http_rate_limit_listener_enabled 1"));
+    assert!(enabled.contains("nantian_gateway_dataplane_http_rate_limit_route_enabled 1"));
 }

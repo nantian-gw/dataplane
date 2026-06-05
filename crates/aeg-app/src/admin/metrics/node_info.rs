@@ -15,11 +15,11 @@ pub(super) fn append_node_info_metrics(out: &mut String, ctx: &MetricsContext) {
     let stream_runtime = &ctx.stream_runtime;
     let node_id = &ctx.node_id;
     let cluster = &ctx.cluster;
-    out.push_str("# HELP aether_gateway_dataplane_node_info Static dataplane node information.\n");
-    out.push_str("# TYPE aether_gateway_dataplane_node_info gauge\n");
+    out.push_str("# HELP nantian_gateway_dataplane_node_info Static dataplane node information.\n");
+    out.push_str("# TYPE nantian_gateway_dataplane_node_info gauge\n");
     let _ = writeln!(
         out,
-        "aether_gateway_dataplane_node_info{{node_id=\"{}\",cluster=\"{}\",snapshot_version=\"{}\",xds_last_snapshot_version=\"{}\",last_good_snapshot_version=\"{}\",current_snapshot_status=\"{}\",current_snapshot_rejection_version=\"{}\",current_snapshot_rejection_runtime=\"{}\",runtime_http_required=\"{}\",runtime_http_current_status=\"{}\",runtime_tls_required=\"{}\",runtime_tls_current_status=\"{}\",runtime_stream_required=\"{}\",runtime_stream_current_status=\"{}\",runtime_last_reload_attempt_version=\"{}\",runtime_last_good_reload_version=\"{}\",runtime_last_reload_failure_version=\"{}\",runtime_http_last_reload_attempt_version=\"{}\",runtime_http_last_good_reload_version=\"{}\",runtime_http_last_reload_failure_version=\"{}\",runtime_http_last_reload_failure_listener=\"{}\",runtime_tls_last_reload_attempt_version=\"{}\",runtime_tls_last_good_reload_version=\"{}\",runtime_tls_last_reload_failure_version=\"{}\",runtime_tls_last_reload_failure_listener=\"{}\",runtime_stream_last_reload_attempt_version=\"{}\",runtime_stream_last_good_reload_version=\"{}\",runtime_stream_last_reload_failure_version=\"{}\",runtime_stream_last_reload_failure_listener=\"{}\"}} 1",
+        "nantian_gateway_dataplane_node_info{{node_id=\"{}\",cluster=\"{}\",snapshot_version=\"{}\",xds_last_snapshot_version=\"{}\",last_good_snapshot_version=\"{}\",current_snapshot_status=\"{}\",current_snapshot_rejection_version=\"{}\",current_snapshot_rejection_runtime=\"{}\",runtime_http_required=\"{}\",runtime_http_current_status=\"{}\",runtime_tls_required=\"{}\",runtime_tls_current_status=\"{}\",runtime_stream_required=\"{}\",runtime_stream_current_status=\"{}\",runtime_last_reload_attempt_version=\"{}\",runtime_last_good_reload_version=\"{}\",runtime_last_reload_failure_version=\"{}\",runtime_http_last_reload_attempt_version=\"{}\",runtime_http_last_good_reload_version=\"{}\",runtime_http_last_reload_failure_version=\"{}\",runtime_http_last_reload_failure_listener=\"{}\",runtime_tls_last_reload_attempt_version=\"{}\",runtime_tls_last_good_reload_version=\"{}\",runtime_tls_last_reload_failure_version=\"{}\",runtime_tls_last_reload_failure_listener=\"{}\",runtime_stream_last_reload_attempt_version=\"{}\",runtime_stream_last_good_reload_version=\"{}\",runtime_stream_last_reload_failure_version=\"{}\",runtime_stream_last_reload_failure_listener=\"{}\"}} 1",
         prometheus_label(node_id),
         prometheus_label(cluster),
         prometheus_label(&snapshot.id),
@@ -64,7 +64,7 @@ pub(super) fn append_node_info_metrics(out: &mut String, ctx: &MetricsContext) {
     );
     append_gauge(
         out,
-        "aether_gateway_dataplane_xds_last_nack_info",
+        "nantian_gateway_dataplane_xds_last_nack_info",
         "1 if the dataplane has a retained last xDS NACK detail, 0 otherwise.",
         u64::from(!xds.last_nack_version.is_empty()),
     );

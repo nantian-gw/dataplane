@@ -5,9 +5,9 @@ use crate::{normalize_endpoint, ClientTlsOptions, TransportOptions};
 #[test]
 fn normalizes_plain_endpoint_with_tls_scheme() {
     assert_eq!(
-        normalize_endpoint("controlplane.aether-gateway.svc:18080", true)
+        normalize_endpoint("controlplane.nantian-gw.svc:18080", true)
             .expect("endpoint should normalize"),
-        "https://controlplane.aether-gateway.svc:18080"
+        "https://controlplane.nantian-gw.svc:18080"
     );
 }
 

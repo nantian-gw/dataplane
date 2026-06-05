@@ -2,13 +2,13 @@
 fn xds_runtime_config_includes_transport_and_tls_options() {
     let mut cfg = base_config();
     cfg.node_id = "dp-local-1".to_string();
-    cfg.control_plane_addr = "https://controlplane.aether-gateway.svc:18080".to_string();
+    cfg.control_plane_addr = "https://controlplane.nantian-gw.svc:18080".to_string();
     cfg.xds_tls = aeg_config::XdsTlsConfig {
         enabled: true,
-        ca_path: "/etc/aether-gateway/ca.crt".to_string(),
-        cert_path: "/etc/aether-gateway/tls.crt".to_string(),
-        key_path: "/etc/aether-gateway/tls.key".to_string(),
-        domain_name: "controlplane.aether-gateway.svc".to_string(),
+        ca_path: "/etc/nantian-gw/ca.crt".to_string(),
+        cert_path: "/etc/nantian-gw/tls.crt".to_string(),
+        key_path: "/etc/nantian-gw/tls.key".to_string(),
+        domain_name: "controlplane.nantian-gw.svc".to_string(),
     };
     cfg.xds_transport = aeg_config::XdsTransportConfig {
         connect_timeout_ms: 4_000,
@@ -26,13 +26,13 @@ fn xds_runtime_config_includes_transport_and_tls_options() {
 
     assert_eq!(
         xds.connect_options.endpoint,
-        "https://controlplane.aether-gateway.svc:18080"
+        "https://controlplane.nantian-gw.svc:18080"
     );
     let tls = xds.connect_options.tls.expect("xds tls");
-    assert_eq!(tls.ca_path, "/etc/aether-gateway/ca.crt");
-    assert_eq!(tls.cert_path, "/etc/aether-gateway/tls.crt");
-    assert_eq!(tls.key_path, "/etc/aether-gateway/tls.key");
-    assert_eq!(tls.domain_name, "controlplane.aether-gateway.svc");
+    assert_eq!(tls.ca_path, "/etc/nantian-gw/ca.crt");
+    assert_eq!(tls.cert_path, "/etc/nantian-gw/tls.crt");
+    assert_eq!(tls.key_path, "/etc/nantian-gw/tls.key");
+    assert_eq!(tls.domain_name, "controlplane.nantian-gw.svc");
     assert_eq!(
         xds.connect_options.transport.connect_timeout.as_millis(),
         4_000

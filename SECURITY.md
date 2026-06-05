@@ -31,6 +31,6 @@ When reporting, include:
 
 This is a pre-production project. Maintainers will acknowledge reports,
 assess impact, and schedule fixes. See the main [Aether Gateway
-SECURITY.md](../aether-gateway/SECURITY.md) for the full project-wide policy.
+SECURITY.md](../nantian-gw/SECURITY.md) for the full project-wide policy.
 
 Only the `main` branch is guaranteed to be under continuous maintenance.

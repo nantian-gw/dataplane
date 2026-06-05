@@ -66,7 +66,7 @@ adminAddr: 127.0.0.1:19080
     assert_eq!(default_cfg.log.open_telemetry.sample_ratio, 1.0);
     assert_eq!(
         default_cfg.log.open_telemetry.service_name,
-        "aether-gateway-dataplane"
+        "nantian-dataplane"
     );
     assert!(default_cfg.log.open_telemetry.service_namespace.is_empty());
     assert!(default_cfg.log.non_blocking);
@@ -115,10 +115,10 @@ cluster: kind
 controlPlaneAddr: http://127.0.0.1:18080
 adminAddr: 127.0.0.1:19080
 runtime:
-  tlsAssetDir: /var/lib/aether-gateway/tls
+  tlsAssetDir: /var/lib/nantian-gw/tls
 "#,
     )
     .expect("config should parse");
 
-    assert_eq!(cfg.runtime.tls_asset_dir, "/var/lib/aether-gateway/tls");
+    assert_eq!(cfg.runtime.tls_asset_dir, "/var/lib/nantian-gw/tls");
 }

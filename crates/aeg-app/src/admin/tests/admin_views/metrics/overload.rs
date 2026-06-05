@@ -2,7 +2,7 @@ fn assert_overload_metrics_match_state(metrics: &str, overload: &serde_json::Val
     assert_eq!(
         metric_u64(
             metrics,
-            "aether_gateway_dataplane_http_global_inflight_current"
+            "nantian_gateway_dataplane_http_global_inflight_current"
         ),
         overload["httpGlobalInflightCurrent"]
             .as_u64()
@@ -11,7 +11,7 @@ fn assert_overload_metrics_match_state(metrics: &str, overload: &serde_json::Val
     assert_eq!(
         labeled_metric_u64(
             metrics,
-            "aether_gateway_dataplane_http_listener_inflight_current",
+            "nantian_gateway_dataplane_http_listener_inflight_current",
             "listener",
             "web"
         ),
@@ -22,7 +22,7 @@ fn assert_overload_metrics_match_state(metrics: &str, overload: &serde_json::Val
     assert_eq!(
         labeled_metric_u64(
             metrics,
-            "aether_gateway_dataplane_http_route_inflight_current",
+            "nantian_gateway_dataplane_http_route_inflight_current",
             "route",
             "Http/default/shared"
         ),
@@ -33,7 +33,7 @@ fn assert_overload_metrics_match_state(metrics: &str, overload: &serde_json::Val
     assert_eq!(
         labeled_metric_u64(
             metrics,
-            "aether_gateway_dataplane_http_overload_rejected_total",
+            "nantian_gateway_dataplane_http_overload_rejected_total",
             "scope",
             "total"
         ),
@@ -44,7 +44,7 @@ fn assert_overload_metrics_match_state(metrics: &str, overload: &serde_json::Val
     assert_eq!(
         labeled_metric_u64(
             metrics,
-            "aether_gateway_dataplane_tcp_overload_rejected_listener_total",
+            "nantian_gateway_dataplane_tcp_overload_rejected_listener_total",
             "listener",
             "passthrough"
         ),

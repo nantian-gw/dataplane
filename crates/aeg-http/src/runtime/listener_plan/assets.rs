@@ -68,7 +68,7 @@ pub(in crate::runtime) fn materialize_runtime_plan(
 #[cfg(test)]
 pub(in crate::runtime) fn materialize_tls_assets(plan: &ListenerPlan) -> Result<PathBuf> {
     let root = std::env::temp_dir()
-        .join("aether-gateway")
+        .join("nantian-gw")
         .join("http-listeners")
         .join(unique_asset_dir_name());
     materialize_tls_assets_in_dir(plan, &root)?;

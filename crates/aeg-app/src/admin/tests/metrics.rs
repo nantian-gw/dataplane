@@ -83,9 +83,9 @@ fn runtime_metrics_include_tls_plane_reload_state() {
     let metrics = render_metrics(&state);
 
     assert!(
-        metrics.contains("aether_gateway_dataplane_runtime_tls_listener_reload_failures_total 0")
+        metrics.contains("nantian_gateway_dataplane_runtime_tls_listener_reload_failures_total 0")
     );
-    assert!(metrics.contains("aether_gateway_dataplane_runtime_tls_current_rejected 0"));
+    assert!(metrics.contains("nantian_gateway_dataplane_runtime_tls_current_rejected 0"));
     assert!(metrics.contains("runtime_tls_required=\"true\""));
     assert!(metrics.contains("runtime_tls_current_status=\"accepted\""));
     assert!(metrics.contains("runtime_tls_last_reload_attempt_version=\"v-test\""));

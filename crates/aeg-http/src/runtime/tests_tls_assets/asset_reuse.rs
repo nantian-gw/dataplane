@@ -101,7 +101,7 @@ fn materialized_tls_assets_are_reused_across_separate_listener_starts() {
         listeners: vec![plan.listeners[1].clone()],
     };
     let asset_dir = std::env::temp_dir()
-        .join("aether-gateway")
+        .join("nantian-gw")
         .join("http-listeners")
         .join(super::listener_plan::unique_asset_dir_name());
 

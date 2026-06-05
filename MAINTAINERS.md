@@ -1,8 +1,8 @@
 # Maintainers — Aether Gateway Data Plane
 
 This sub-project follows the maintenance model of the main
-[Aether Gateway](../aether-gateway/) project. See the main
-[MAINTAINERS.md](../aether-gateway/MAINTAINERS.md) for the full role
+[Aether Gateway](../nantian-gw/) project. See the main
+[MAINTAINERS.md](../nantian-gw/MAINTAINERS.md) for the full role
 definitions and project-wide maintainers.
 
 ## Data Plane Maintainers
@@ -29,4 +29,4 @@ To become a data plane reviewer:
   compatibility boundaries.
 
 See [GOVERNANCE.md](GOVERNANCE.md) and the main project's
-[MAINTAINERS.md](../aether-gateway/MAINTAINERS.md) for promotion criteria.
+[MAINTAINERS.md](../nantian-gw/MAINTAINERS.md) for promotion criteria.

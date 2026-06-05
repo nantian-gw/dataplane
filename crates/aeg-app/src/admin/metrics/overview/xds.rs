@@ -9,61 +9,61 @@ pub(super) fn append_xds_metrics(out: &mut String, ctx: &MetricsContext) {
 
     append_counter(
         out,
-        "aether_gateway_dataplane_xds_connect_failures_total",
+        "nantian_gateway_dataplane_xds_connect_failures_total",
         "Total number of failed control plane connection attempts.",
         xds.connect_failures,
     );
     append_counter(
         out,
-        "aether_gateway_dataplane_xds_stream_failures_total",
+        "nantian_gateway_dataplane_xds_stream_failures_total",
         "Total number of xDS stream failures that triggered a retry.",
         xds.stream_failures,
     );
     append_gauge(
         out,
-        "aether_gateway_dataplane_xds_last_connect_failure_unix_seconds",
+        "nantian_gateway_dataplane_xds_last_connect_failure_unix_seconds",
         "Unix timestamp of the most recent control plane connection failure retained by the dataplane, or 0 if none has been recorded.",
         xds.last_connect_failure_unix_seconds,
     );
     append_gauge(
         out,
-        "aether_gateway_dataplane_xds_last_stream_failure_unix_seconds",
+        "nantian_gateway_dataplane_xds_last_stream_failure_unix_seconds",
         "Unix timestamp of the most recent xDS stream failure retained by the dataplane, or 0 if none has been recorded.",
         xds.last_stream_failure_unix_seconds,
     );
     append_gauge(
         out,
-        "aether_gateway_dataplane_xds_last_connect_error_retained",
+        "nantian_gateway_dataplane_xds_last_connect_error_retained",
         "1 if the dataplane retains a most recent control plane connection error detail, 0 otherwise.",
         u64::from(!xds.last_connect_error.is_empty()),
     );
     append_gauge(
         out,
-        "aether_gateway_dataplane_xds_last_stream_error_retained",
+        "nantian_gateway_dataplane_xds_last_stream_error_retained",
         "1 if the dataplane retains a most recent xDS stream error detail, 0 otherwise.",
         u64::from(!xds.last_stream_error.is_empty()),
     );
     append_counter(
         out,
-        "aether_gateway_dataplane_xds_snapshots_applied_total",
+        "nantian_gateway_dataplane_xds_snapshots_applied_total",
         "Total number of configuration snapshots successfully applied.",
         xds.snapshots_applied,
     );
     append_counter(
         out,
-        "aether_gateway_dataplane_xds_snapshots_nacked_total",
+        "nantian_gateway_dataplane_xds_snapshots_nacked_total",
         "Total number of configuration snapshots explicitly rejected after dataplane apply validation failed.",
         xds.snapshots_nacked,
     );
     append_counter(
         out,
-        "aether_gateway_dataplane_xds_snapshots_skipped_total",
+        "nantian_gateway_dataplane_xds_snapshots_skipped_total",
         "Total number of duplicate configuration snapshots skipped without reapplying runtime state.",
         xds.snapshots_skipped,
     );
     append_gauge(
         out,
-        "aether_gateway_dataplane_xds_last_apply_timestamp_seconds",
+        "nantian_gateway_dataplane_xds_last_apply_timestamp_seconds",
         "Unix timestamp of the most recent successfully applied snapshot.",
         xds.last_apply_unix_seconds,
     );
@@ -75,7 +75,7 @@ fn append_apply_stage_histograms(out: &mut String, ctx: &MetricsContext) {
         return;
     }
 
-    let name = "aether_gateway_dataplane_xds_apply_stage_duration_ms";
+    let name = "nantian_gateway_dataplane_xds_apply_stage_duration_ms";
     let _ = writeln!(
         out,
         "# HELP {name} xDS snapshot apply stage duration in milliseconds."

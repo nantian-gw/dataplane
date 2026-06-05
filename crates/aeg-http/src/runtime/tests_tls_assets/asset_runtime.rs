@@ -1,13 +1,13 @@
 #[test]
 fn runtime_tls_asset_root_uses_configured_directory() {
     let runtime = RuntimeOptions {
-        tls_asset_dir: "/var/lib/aether-gateway/tls-assets".to_string(),
+        tls_asset_dir: "/var/lib/nantian-gw/tls-assets".to_string(),
         ..RuntimeOptions::default()
     };
 
     assert_eq!(
         super::tls_asset_root(&runtime),
-        PathBuf::from("/var/lib/aether-gateway/tls-assets")
+        PathBuf::from("/var/lib/nantian-gw/tls-assets")
     );
 }
 
@@ -17,7 +17,7 @@ fn materialized_tls_assets_use_owner_only_permissions() {
     use std::os::unix::fs::PermissionsExt;
 
     let asset_dir = std::env::temp_dir()
-        .join("aether-gateway")
+        .join("nantian-gw")
         .join("http-listeners")
         .join(super::listener_plan::unique_asset_dir_name());
     let plan = ListenerPlan {
@@ -72,7 +72,7 @@ fn materialized_tls_assets_use_owner_only_permissions() {
 #[test]
 fn skips_tls_listener_without_primary_identity_when_materializing_runtime_plan() {
     let asset_dir = std::env::temp_dir()
-        .join("aether-gateway")
+        .join("nantian-gw")
         .join("http-listeners")
         .join(super::listener_plan::unique_asset_dir_name());
     let plan = ListenerPlan {

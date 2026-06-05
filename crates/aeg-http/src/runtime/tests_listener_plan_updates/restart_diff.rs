@@ -149,7 +149,7 @@ fn listener_replace_reports_retained_listeners_when_plan_is_unchanged() -> anyho
     let traffic = SharedTrafficStats::shared();
     let overload = OverloadStats::shared();
     let asset_root = std::env::temp_dir()
-        .join("aether-gateway")
+        .join("nantian-gw")
         .join("listener-replace-reports-retained")
         .join(unique_asset_dir_name());
     fs::create_dir_all(&asset_root)?;
@@ -205,7 +205,7 @@ fn listener_replace_retains_last_good_listener_when_new_listener_start_fails() -
     let traffic = SharedTrafficStats::shared();
     let overload = OverloadStats::shared();
     let asset_root = std::env::temp_dir()
-        .join("aether-gateway")
+        .join("nantian-gw")
         .join("listener-replace-retains-last-good")
         .join(unique_asset_dir_name());
     fs::create_dir_all(&asset_root)?;
@@ -317,7 +317,7 @@ async fn listener_replace_keeps_existing_http_connection_when_new_listener_start
     let traffic = SharedTrafficStats::shared();
     let overload = OverloadStats::shared();
     let asset_root = std::env::temp_dir()
-        .join("aether-gateway")
+        .join("nantian-gw")
         .join("listener-replace-keeps-existing-http-connection")
         .join(unique_asset_dir_name());
     fs::create_dir_all(&asset_root)?;

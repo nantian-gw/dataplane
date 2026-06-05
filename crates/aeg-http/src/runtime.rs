@@ -320,7 +320,7 @@ fn tls_asset_root(runtime: &RuntimeOptions) -> PathBuf {
     }
 
     std::env::temp_dir()
-        .join("aether-gateway")
+        .join("nantian-gw")
         .join("http-listeners")
         .join(unique_asset_dir_name())
 }

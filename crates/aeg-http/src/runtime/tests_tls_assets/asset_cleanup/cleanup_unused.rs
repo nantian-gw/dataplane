@@ -1,7 +1,7 @@
 #[test]
 fn cleanup_unused_tls_assets_removes_temp_files_but_keeps_referenced_assets() {
     let asset_dir = std::env::temp_dir()
-        .join("aether-gateway")
+        .join("nantian-gw")
         .join("http-listeners")
         .join(super::listener_plan::unique_asset_dir_name());
     let plan = ListenerPlan {

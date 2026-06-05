@@ -1,7 +1,7 @@
 #[test]
 fn materialized_tls_assets_prune_stale_files_after_rotation() {
     let asset_dir = std::env::temp_dir()
-        .join("aether-gateway")
+        .join("nantian-gw")
         .join("http-listeners")
         .join(super::listener_plan::unique_asset_dir_name());
 

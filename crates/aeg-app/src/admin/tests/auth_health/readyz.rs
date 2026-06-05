@@ -198,13 +198,13 @@ async fn readyz_and_metrics_stay_consistent_after_rejected_snapshot_with_last_go
         .expect("metrics body");
     let metrics = String::from_utf8(metrics_body.to_vec()).expect("metrics utf-8");
 
-    assert!(metrics.contains("aether_gateway_dataplane_xds_snapshots_applied_total 1"));
-    assert!(metrics.contains("aether_gateway_dataplane_xds_snapshots_nacked_total 1"));
-    assert!(metrics.contains("aether_gateway_dataplane_xds_last_nack_info 1"));
-    assert!(metrics.contains("aether_gateway_dataplane_current_snapshot_rejected 1"));
-    assert!(metrics.contains("aether_gateway_dataplane_serving_last_good_snapshot 1"));
-    assert!(metrics.contains("aether_gateway_dataplane_runtime_http_current_rejected 1"));
-    assert!(metrics.contains("aether_gateway_dataplane_runtime_tls_current_rejected 1"));
+    assert!(metrics.contains("nantian_gateway_dataplane_xds_snapshots_applied_total 1"));
+    assert!(metrics.contains("nantian_gateway_dataplane_xds_snapshots_nacked_total 1"));
+    assert!(metrics.contains("nantian_gateway_dataplane_xds_last_nack_info 1"));
+    assert!(metrics.contains("nantian_gateway_dataplane_current_snapshot_rejected 1"));
+    assert!(metrics.contains("nantian_gateway_dataplane_serving_last_good_snapshot 1"));
+    assert!(metrics.contains("nantian_gateway_dataplane_runtime_http_current_rejected 1"));
+    assert!(metrics.contains("nantian_gateway_dataplane_runtime_tls_current_rejected 1"));
     assert!(metrics.contains(
         "snapshot_version=\"v2\",xds_last_snapshot_version=\"v1\",last_good_snapshot_version=\"v1\",current_snapshot_status=\"rejected\""
     ));

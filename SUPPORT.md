@@ -6,7 +6,7 @@ Use English or Chinese when opening an issue.
 
 - Build and test: [CONTRIBUTING.md](CONTRIBUTING.md)
 - Architecture overview: [README.md](README.md)
-- Main project: [Aether Gateway](../aether-gateway/)
+- Main project: [Aether Gateway](../nantian-gw/)
 
 ## Issue Forms
 

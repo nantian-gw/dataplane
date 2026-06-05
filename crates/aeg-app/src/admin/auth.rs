@@ -100,7 +100,7 @@ fn unauthorized_response() -> Response {
     let mut response = StatusCode::UNAUTHORIZED.into_response();
     response.headers_mut().insert(
         header::WWW_AUTHENTICATE,
-        HeaderValue::from_static("Bearer realm=\"aether-gateway-dataplane-admin\""),
+        HeaderValue::from_static("Bearer realm=\"nantian-dataplane-admin\""),
     );
     response
 }

@@ -69,7 +69,7 @@ impl Default for OpenTelemetryOptions {
             timeout_ms: 3_000,
             insecure: false,
             sample_ratio: 1.0,
-            service_name: "aether-gateway-dataplane".to_string(),
+            service_name: "nantian-dataplane".to_string(),
             service_namespace: String::new(),
             service_instance_id: String::new(),
             deployment_environment: String::new(),

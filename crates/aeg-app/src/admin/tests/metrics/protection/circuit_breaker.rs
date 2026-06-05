@@ -19,18 +19,18 @@ fn render_metrics_exposes_circuit_breaker_counters() {
     let metrics = render_metrics(&state);
 
     assert!(metrics.contains(
-        "aether_gateway_dataplane_http_circuit_breaker_backend_max_inflight_requests 1"
+        "nantian_gateway_dataplane_http_circuit_breaker_backend_max_inflight_requests 1"
     ));
     assert!(metrics.contains(
-        "aether_gateway_dataplane_http_circuit_breaker_backend_inflight_current{backend=\"default/echo:8080\"} 1"
+        "nantian_gateway_dataplane_http_circuit_breaker_backend_inflight_current{backend=\"default/echo:8080\"} 1"
     ));
     assert!(metrics.contains(
-        "aether_gateway_dataplane_http_circuit_breaker_rejected_total{scope=\"total\"} 1"
+        "nantian_gateway_dataplane_http_circuit_breaker_rejected_total{scope=\"total\"} 1"
     ));
     assert!(metrics.contains(
-        "aether_gateway_dataplane_http_circuit_breaker_rejected_total{scope=\"backend\"} 1"
+        "nantian_gateway_dataplane_http_circuit_breaker_rejected_total{scope=\"backend\"} 1"
     ));
     assert!(metrics.contains(
-        "aether_gateway_dataplane_http_circuit_breaker_rejected_backend_total{backend=\"default/echo:8080\"} 1"
+        "nantian_gateway_dataplane_http_circuit_breaker_rejected_backend_total{backend=\"default/echo:8080\"} 1"
     ));
 }

@@ -34,18 +34,18 @@ async fn metrics_view_returns_prometheus_payload() {
         .await
         .expect("body");
     let payload = String::from_utf8(body.to_vec()).expect("utf-8");
-    assert!(payload.contains("aether_gateway_dataplane_ready 1"));
+    assert!(payload.contains("nantian_gateway_dataplane_ready 1"));
     assert!(payload.contains("process_cpu_seconds_total"));
     assert!(payload.contains("process_resident_memory_bytes"));
     assert!(payload.contains("process_open_fds"));
     assert!(payload.contains("process_threads"));
-    assert!(payload.contains("aether_gateway_dataplane_listener_count 2"));
-    assert!(payload.contains("aether_gateway_dataplane_http_route_count 1"));
-    assert!(payload.contains("aether_gateway_dataplane_grpc_route_count 1"));
-    assert!(payload.contains("aether_gateway_dataplane_stream_route_count 1"));
-    assert!(payload.contains("aether_gateway_dataplane_backend_count 3"));
-    assert!(payload.contains("aether_gateway_dataplane_secret_count 1"));
-    assert!(payload.contains("aether_gateway_dataplane_node_info{node_id=\"dp-1\""));
+    assert!(payload.contains("nantian_gateway_dataplane_listener_count 2"));
+    assert!(payload.contains("nantian_gateway_dataplane_http_route_count 1"));
+    assert!(payload.contains("nantian_gateway_dataplane_grpc_route_count 1"));
+    assert!(payload.contains("nantian_gateway_dataplane_stream_route_count 1"));
+    assert!(payload.contains("nantian_gateway_dataplane_backend_count 3"));
+    assert!(payload.contains("nantian_gateway_dataplane_secret_count 1"));
+    assert!(payload.contains("nantian_gateway_dataplane_node_info{node_id=\"dp-1\""));
 }
 
 #[tokio::test]
@@ -92,18 +92,18 @@ async fn metrics_view_exposes_admin_request_observability() {
     let payload = authorized_text(&app, "/metrics").await;
 
     assert!(payload.contains(
-        "aether_gateway_dataplane_admin_requests_total{method=\"GET\",route=\"livez\",status_class=\"2xx\"} 1"
+        "nantian_gateway_dataplane_admin_requests_total{method=\"GET\",route=\"livez\",status_class=\"2xx\"} 1"
     ));
     assert!(payload.contains(
-        "aether_gateway_dataplane_admin_requests_total{method=\"GET\",route=\"summary\",status_class=\"2xx\"} 1"
+        "nantian_gateway_dataplane_admin_requests_total{method=\"GET\",route=\"summary\",status_class=\"2xx\"} 1"
     ));
     assert!(payload.contains(
-        "aether_gateway_dataplane_admin_requests_total{method=\"GET\",route=\"summary\",status_class=\"4xx\"} 1"
+        "nantian_gateway_dataplane_admin_requests_total{method=\"GET\",route=\"summary\",status_class=\"4xx\"} 1"
     ));
     assert!(payload.contains(
-        "aether_gateway_dataplane_admin_request_duration_seconds_bucket{method=\"GET\",route=\"summary\",status_class=\"2xx\",le=\"+Inf\"} 1"
+        "nantian_gateway_dataplane_admin_request_duration_seconds_bucket{method=\"GET\",route=\"summary\",status_class=\"2xx\",le=\"+Inf\"} 1"
     ));
     assert!(payload.contains(
-        "aether_gateway_dataplane_admin_request_duration_seconds_count{method=\"GET\",route=\"summary\",status_class=\"2xx\"} 1"
+        "nantian_gateway_dataplane_admin_request_duration_seconds_count{method=\"GET\",route=\"summary\",status_class=\"2xx\"} 1"
     ));
 }
