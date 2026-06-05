@@ -1,4 +1,4 @@
-# Support — Aether Gateway Data Plane
+# Support — Nantian Gateway Data Plane
 
 Use English or Chinese when opening an issue.
 
@@ -6,7 +6,7 @@ Use English or Chinese when opening an issue.
 
 - Build and test: [CONTRIBUTING.md](CONTRIBUTING.md)
 - Architecture overview: [README.md](README.md)
-- Main project: [Aether Gateway](../nantian-gw/)
+- Main project: [Nantian Gateway](../nantian-gw/)
 
 ## Issue Forms
 

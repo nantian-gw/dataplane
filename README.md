@@ -1,6 +1,6 @@
-# Aether Gateway Data Plane
+# Nantian Gateway Data Plane
 
-Rust workspace providing the high-performance HTTP and stream proxy runtime for Aether Gateway.
+Rust workspace providing the high-performance HTTP and stream proxy runtime for Nantian Gateway.
 
 ## Crates
 

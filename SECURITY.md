@@ -1,4 +1,4 @@
-# Security Policy — Aether Gateway Data Plane
+# Security Policy — Nantian Gateway Data Plane
 
 The data plane is the Rust-based proxy runtime that handles live traffic,
 xDS subscriptions, and admin API endpoints. Security issues in this component
@@ -30,7 +30,7 @@ When reporting, include:
 ## Response
 
 This is a pre-production project. Maintainers will acknowledge reports,
-assess impact, and schedule fixes. See the main [Aether Gateway
+assess impact, and schedule fixes. See the main [Nantian Gateway
 SECURITY.md](../nantian-gw/SECURITY.md) for the full project-wide policy.
 
 Only the `main` branch is guaranteed to be under continuous maintenance.

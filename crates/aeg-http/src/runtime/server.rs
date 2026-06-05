@@ -322,7 +322,7 @@ fn run_server(
         listeners = ?bind_list,
         http3_configured = runtime.enable_http3,
         http3_available = http3_available(),
-        "starting aether http runtime"
+        "starting nantian http runtime"
     );
 
     #[cfg(unix)]
@@ -386,7 +386,7 @@ fn add_plain_http_service(
             runtime.experimental.clone(),
         ),
     )
-    .name("Aether Gateway HTTP")
+    .name("Nantian Gateway HTTP")
     .server_options(plain_http_server_options(runtime.keepalive_request_limit))
     .build();
 
@@ -464,7 +464,7 @@ fn add_tls_http_service(
             runtime.experimental.clone(),
         ),
     )
-    .name("Aether Gateway HTTPS")
+    .name("Nantian Gateway HTTPS")
     .server_options(tls_http_server_options(runtime.keepalive_request_limit))
     .build();
 

@@ -247,11 +247,11 @@ impl RuntimeTuningConfig {
     }
 
     pub fn downstream_tcp_keepalive(&self) -> Option<TcpKeepalive> {
-        self.downstream_tcp_keepalive.to_aether()
+        self.downstream_tcp_keepalive.to_nantian()
     }
 
     pub fn upstream_tcp_keepalive(&self) -> Option<TcpKeepalive> {
-        self.upstream_tcp_keepalive.to_aether()
+        self.upstream_tcp_keepalive.to_nantian()
     }
 
     pub fn work_stealing(&self) -> bool {
@@ -292,7 +292,7 @@ impl RuntimeTuningConfig {
 }
 
 impl TcpKeepaliveConfig {
-    pub fn to_aether(&self) -> Option<TcpKeepalive> {
+    pub fn to_nantian(&self) -> Option<TcpKeepalive> {
         if !self.enabled {
             return None;
         }

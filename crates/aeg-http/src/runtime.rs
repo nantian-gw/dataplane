@@ -190,7 +190,7 @@ pub fn spawn(
         let shutdown = shutdown;
         let mut current = initial;
         if current.runtime.enable_http3 && !http3_available() {
-            warn!("HTTP/3 is configured but unsupported by the current Aether build");
+            warn!("HTTP/3 is configured but unsupported by the current Nantian build");
         }
 
         let mut active = ListenerSet::default();
@@ -207,7 +207,7 @@ pub fn spawn(
                 refresh_runtime = true;
                 force_reload = true;
                 if current.runtime.enable_http3 && !http3_available() {
-                    warn!("HTTP/3 is configured but unsupported by the current Aether build");
+                    warn!("HTTP/3 is configured but unsupported by the current Nantian build");
                 }
             }
 
@@ -567,7 +567,7 @@ where
             None if is_http3_protocol(&listener.protocol) => {
                 warn!(
                     listener = %listener.name,
-                    "HTTP/3 listener requested but unavailable in the current Aether build"
+                    "HTTP/3 listener requested but unavailable in the current Nantian build"
                 );
             }
             None => {}

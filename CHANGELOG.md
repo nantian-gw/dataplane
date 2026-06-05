@@ -1,4 +1,4 @@
-# Changelog — Aether Gateway Data Plane
+# Changelog — Nantian Gateway Data Plane
 
 ## Unreleased
 
@@ -20,6 +20,6 @@
 - Request buffering and streaming support.
 - Backend TLS with certificate validation.
 
-No formal releases yet. See the main [Aether Gateway
+No formal releases yet. See the main [Nantian Gateway
 CHANGELOG.md](../nantian-gw/CHANGELOG.md) for project-wide release
 history.

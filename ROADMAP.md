@@ -1,6 +1,6 @@
-# Roadmap — Aether Gateway Data Plane
+# Roadmap — Nantian Gateway Data Plane
 
-The data plane roadmap aligns with the main [Aether Gateway
+The data plane roadmap aligns with the main [Nantian Gateway
 roadmap](../nantian-gw/ROADMAP.md). This file tracks data-plane-specific
 milestones.
 

@@ -59,7 +59,7 @@ pub(super) fn append_inventory_metrics(out: &mut String, ctx: &MetricsContext) {
     append_gauge(
         out,
         "nantian_gateway_dataplane_http3_available",
-        "1 if the current Aether build exposes HTTP/3 support, 0 otherwise.",
+        "1 if the current Nantian build exposes HTTP/3 support, 0 otherwise.",
         ctx.http3_available,
     );
     append_gauge(

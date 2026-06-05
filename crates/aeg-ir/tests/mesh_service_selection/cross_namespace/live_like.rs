@@ -3,32 +3,32 @@ fn live_like_cross_namespace_mesh_route_matches_consumer_on_service_frontend() {
     let snapshot = Snapshot {
         listeners: vec![
             mesh_listener(
-                "aether-mesh-validation",
+                "nantian-mesh-validation",
                 "echo-v1",
                 80,
                 25064,
                 "HTTP",
-                &["aether-mesh-consumer-validation/mesh-consumer-route"],
+                &["nantian-mesh-consumer-validation/mesh-consumer-route"],
             ),
             mesh_listener(
-                "aether-mesh-validation",
+                "nantian-mesh-validation",
                 "echo-v1",
                 8080,
                 24688,
                 "HTTP",
-                &["aether-mesh-consumer-validation/mesh-consumer-route"],
+                &["nantian-mesh-consumer-validation/mesh-consumer-route"],
             ),
             mesh_listener(
-                "aether-mesh-validation",
+                "nantian-mesh-validation",
                 "echo-v1",
                 7070,
                 21464,
                 "GRPC",
                 &[],
             ),
-            mesh_listener("aether-mesh-validation", "echo-v2", 80, 26903, "HTTP", &[]),
+            mesh_listener("nantian-mesh-validation", "echo-v2", 80, 26903, "HTTP", &[]),
             mesh_listener(
-                "aether-mesh-validation",
+                "nantian-mesh-validation",
                 "echo-v2",
                 8080,
                 29639,
@@ -36,7 +36,7 @@ fn live_like_cross_namespace_mesh_route_matches_consumer_on_service_frontend() {
                 &[],
             ),
             mesh_listener(
-                "aether-mesh-validation",
+                "nantian-mesh-validation",
                 "echo-v2",
                 7070,
                 22463,
@@ -46,11 +46,11 @@ fn live_like_cross_namespace_mesh_route_matches_consumer_on_service_frontend() {
         ],
         http_routes: vec![HttpRoute {
             name: "mesh-consumer-route".to_string(),
-            namespace: "aether-mesh-consumer-validation".to_string(),
+            namespace: "nantian-mesh-consumer-validation".to_string(),
             hostnames: vec![],
             parent_refs: vec![ParentRef {
                 kind: "Service".to_string(),
-                namespace: "aether-mesh-validation".to_string(),
+                namespace: "nantian-mesh-validation".to_string(),
                 name: "echo-v1".to_string(),
                 ..ParentRef::default()
             }],
@@ -67,7 +67,7 @@ fn live_like_cross_namespace_mesh_route_matches_consumer_on_service_frontend() {
                     ..Filter::default()
                 }],
                 backend_refs: vec![BackendRef {
-                    namespace: "aether-mesh-validation".to_string(),
+                    namespace: "nantian-mesh-validation".to_string(),
                     name: "echo-v1".to_string(),
                     port: 80,
                     ..BackendRef::default()
@@ -81,7 +81,7 @@ fn live_like_cross_namespace_mesh_route_matches_consumer_on_service_frontend() {
         backends: vec![
             BackendCluster {
                 name: "echo-v1:80".to_string(),
-                namespace: "aether-mesh-validation".to_string(),
+                namespace: "nantian-mesh-validation".to_string(),
                 protocol: "HTTP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.244.0.155".to_string(),
@@ -94,7 +94,7 @@ fn live_like_cross_namespace_mesh_route_matches_consumer_on_service_frontend() {
             },
             BackendCluster {
                 name: "echo-v1:8080".to_string(),
-                namespace: "aether-mesh-validation".to_string(),
+                namespace: "nantian-mesh-validation".to_string(),
                 protocol: "HTTP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.244.0.155".to_string(),
@@ -107,7 +107,7 @@ fn live_like_cross_namespace_mesh_route_matches_consumer_on_service_frontend() {
             },
             BackendCluster {
                 name: "echo-v2:80".to_string(),
-                namespace: "aether-mesh-validation".to_string(),
+                namespace: "nantian-mesh-validation".to_string(),
                 protocol: "HTTP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.244.0.156".to_string(),
@@ -121,12 +121,12 @@ fn live_like_cross_namespace_mesh_route_matches_consumer_on_service_frontend() {
         ],
         workloads: vec![
             Workload {
-                namespace: "aether-mesh-consumer-validation".to_string(),
+                namespace: "nantian-mesh-consumer-validation".to_string(),
                 name: "consumer".to_string(),
                 ip: "10.244.0.158".to_string(),
             },
             Workload {
-                namespace: "aether-mesh-validation".to_string(),
+                namespace: "nantian-mesh-validation".to_string(),
                 name: "producer".to_string(),
                 ip: "10.244.0.157".to_string(),
             },
@@ -135,7 +135,7 @@ fn live_like_cross_namespace_mesh_route_matches_consumer_on_service_frontend() {
     };
 
     let mut consumer = RequestMeta::with_port(
-        Some("echo-v1.aether-mesh-validation".to_string()),
+        Some("echo-v1.nantian-mesh-validation".to_string()),
         25064,
         "/",
         "GET",
@@ -144,7 +144,7 @@ fn live_like_cross_namespace_mesh_route_matches_consumer_on_service_frontend() {
     consumer.source_ip = Some("10.244.0.158".to_string());
 
     let mut producer = RequestMeta::with_port(
-        Some("echo-v1.aether-mesh-validation".to_string()),
+        Some("echo-v1.nantian-mesh-validation".to_string()),
         25064,
         "/",
         "GET",
@@ -156,7 +156,7 @@ fn live_like_cross_namespace_mesh_route_matches_consumer_on_service_frontend() {
         .select_http_route(&consumer)
         .expect("mesh consumer route");
     assert_eq!(selected.route_name, "mesh-consumer-route");
-    assert_eq!(selected.route_namespace, "aether-mesh-consumer-validation");
+    assert_eq!(selected.route_namespace, "nantian-mesh-consumer-validation");
 
     assert!(snapshot.select_http_route(&producer).is_none());
 }

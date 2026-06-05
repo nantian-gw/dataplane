@@ -82,7 +82,7 @@ fn build_cached_backend_tls_validation(
 
     if !validation.min_version.is_empty() || !validation.max_version.is_empty() {
         return Err(unsupported_backend_tls_validation(
-            "backend TLS version bounds are not supported by the upstream Aether/OpenSSL runtime",
+            "backend TLS version bounds are not supported by the upstream Nantian/OpenSSL runtime",
         ));
     }
 

@@ -1,4 +1,4 @@
-# Contributing — Aether Gateway Data Plane
+# Contributing — Nantian Gateway Data Plane
 
 The data plane is the Rust proxy runtime (`dataplane/`). It handles live
 HTTP/stream traffic, xDS subscriptions, admin endpoints, metrics, and the
@@ -45,4 +45,4 @@ dataplane/
 ## Questions
 
 Use GitHub issue forms. See [SUPPORT.md](SUPPORT.md) and the main
-[Aether Gateway repo](../nantian-gw/) for broader project context.
+[Nantian Gateway repo](../nantian-gw/) for broader project context.

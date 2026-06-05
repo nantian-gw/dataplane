@@ -1,6 +1,6 @@
-# Versioning — Aether Gateway Data Plane
+# Versioning — Nantian Gateway Data Plane
 
-The data plane follows the main [Aether Gateway versioning
+The data plane follows the main [Nantian Gateway versioning
 policy](../nantian-gw/VERSIONING.md). This document covers
 data-plane-specific considerations.
 

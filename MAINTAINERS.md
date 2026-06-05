@@ -1,7 +1,7 @@
-# Maintainers — Aether Gateway Data Plane
+# Maintainers — Nantian Gateway Data Plane
 
 This sub-project follows the maintenance model of the main
-[Aether Gateway](../nantian-gw/) project. See the main
+[Nantian Gateway](../nantian-gw/) project. See the main
 [MAINTAINERS.md](../nantian-gw/MAINTAINERS.md) for the full role
 definitions and project-wide maintainers.
 
