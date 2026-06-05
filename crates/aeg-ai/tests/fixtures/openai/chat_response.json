@@ -1,0 +1,21 @@
+{
+    "id": "chatcmpl-Abc123Def456",
+    "object": "chat.completion",
+    "created": 1700000000,
+    "model": "gpt-4o",
+    "choices": [
+        {
+            "index": 0,
+            "message": {
+                "role": "assistant",
+                "content": "The capital of France is Paris."
+            },
+            "finish_reason": "stop"
+        }
+    ],
+    "usage": {
+        "prompt_tokens": 20,
+        "completion_tokens": 8,
+        "total_tokens": 28
+    }
+}

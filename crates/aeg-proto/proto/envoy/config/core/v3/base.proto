@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package envoy.config.core.v3;
+
+message HeaderValue {
+  string key = 1;
+  string value = 2;
+}
+
+message HeaderValueOption {
+  HeaderValue header = 1;
+  bool append = 2;
+}

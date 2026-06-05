@@ -1,0 +1,19 @@
+[package]
+name = "aeg-xds"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+serde.workspace = true
+tokio.workspace = true
+tokio-stream.workspace = true
+tonic.workspace = true
+tracing.workspace = true
+aeg-ir.workspace = true
+aeg-observability.workspace = true
+aeg-proto.workspace = true
+
+[dev-dependencies]
+tracing-subscriber.workspace = true

@@ -1,0 +1,9 @@
+include!("tests_http1/protocol_admission.rs");
+include!("tests_http1/request_body.rs");
+include!("tests_http1/connection_and_direct.rs");
+include!("tests_http1/frontend_validation.rs");
+include!("tests_http1/https_misdirected.rs");
+include!("tests_http1/retries_and_limits.rs");
+include!("tests_http1/external_auth.rs");
+include!("tests_http1/request_mirror.rs");
+include!("tests_http1/streaming.rs");

@@ -1,0 +1,25 @@
+[package]
+name = "aeg-bench"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[features]
+default = []
+allocator-mimalloc = ["aeg-allocator/allocator-mimalloc"]
+allocator-jemalloc = ["aeg-allocator/allocator-jemalloc"]
+
+[dependencies]
+anyhow.workspace = true
+arc-swap.workspace = true
+clap.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+stats_alloc.workspace = true
+tokio.workspace = true
+aeg-allocator.workspace = true
+aeg-http.workspace = true
+aeg-ir.workspace = true
+aeg-observability.workspace = true
+aeg-stream.workspace = true
+aeg-xds.workspace = true

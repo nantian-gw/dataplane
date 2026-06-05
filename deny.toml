@@ -1,0 +1,33 @@
+[graph]
+all-features = true
+
+[advisories]
+yanked = "warn"
+unmaintained = "workspace"
+ignore = [
+  { id = "RUSTSEC-2024-0437", reason = "Tracked as SEC-RA-004: upstream pingora-core 0.8.0 still pulls prometheus 0.13.x -> protobuf 2.x. The dataplane only exports Prometheus text format and does not parse attacker-supplied protobuf payloads; scripts/run-dataplane-guardrails.sh now asserts the accepted dependency graph until a released upstream Pingora path can move to protobuf >= 3.7.2." },
+]
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+highlight = "all"
+
+[licenses]
+allow = [
+  "0BSD",
+  "Apache-2.0",
+  "Apache-2.0 WITH LLVM-exception",
+  "BSD-2-Clause",
+  "BSD-3-Clause",
+  "ISC",
+  "MIT",
+  "Unicode-3.0",
+  "Zlib",
+]
+confidence-threshold = 0.8
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]

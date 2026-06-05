@@ -1,0 +1,100 @@
+fn assert_listener_failure_recovery(value: &serde_json::Value) {
+    assert_eq!(value["listenerUnrecoveredCurrentSnapshotFailureCount"], 1);
+    assert_eq!(
+        value["listenerUnrecoveredCurrentSnapshotFailureNames"],
+        serde_json::json!(["failed"])
+    );
+    assert_eq!(
+        value["listenerUnrecoveredCurrentSnapshotFailureHttpCount"],
+        1
+    );
+    assert_eq!(
+        value["listenerUnrecoveredCurrentSnapshotFailureHttpNames"],
+        serde_json::json!(["failed"])
+    );
+    assert_eq!(
+        value["listenerUnrecoveredCurrentSnapshotFailureStreamCount"],
+        0
+    );
+    assert_eq!(
+        value["listenerUnrecoveredCurrentSnapshotFailureStreamNames"],
+        serde_json::json!([])
+    );
+    assert_eq!(
+        value["listenerUnrecoveredCurrentSnapshotFailureNoneCount"],
+        0
+    );
+    assert_eq!(
+        value["listenerUnrecoveredCurrentSnapshotFailureNoneNames"],
+        serde_json::json!([])
+    );
+    assert_eq!(value["listenerUnrecoveredHistoricalFailureCount"], 0);
+    assert_eq!(
+        value["listenerUnrecoveredHistoricalFailureNames"],
+        serde_json::json!([])
+    );
+    assert_eq!(value["listenerFailureRecoverySeverity"], "critical");
+    assert_eq!(
+        value["listenerFailureRecoveryPrimarySignal"],
+        "current-snapshot-unrecovered"
+    );
+    assert_eq!(
+        value["listenerFailureRecoveryRecommendedFilter"],
+        "unrecoveredFailureAge=current"
+    );
+    assert_eq!(
+        value["listenerFailureRecoveryRecommendedPath"],
+        "/v1/listener-statuses?unrecoveredFailureAge=current"
+    );
+    assert_eq!(value["listenerRiskPendingUnrecoveredCount"], 1);
+    assert_eq!(value["listenerRiskRejectedUnrecoveredCount"], 0);
+    assert_eq!(value["listenerRiskStaleUnrecoveredCount"], 0);
+    assert_eq!(
+        value["listenerHasEverFailedNames"],
+        serde_json::json!(["recovered", "failed"])
+    );
+    assert_eq!(
+        value["listenerRecoveredFromFailureNames"],
+        serde_json::json!(["recovered"])
+    );
+    assert_eq!(
+        value["listenerRecoveredFromFailureHttpNames"],
+        serde_json::json!(["recovered"])
+    );
+    assert_eq!(
+        value["listenerRecoveredFromFailureStreamNames"],
+        serde_json::json!([])
+    );
+    assert_eq!(
+        value["listenerRecoveredFromFailureNoneNames"],
+        serde_json::json!([])
+    );
+    assert_eq!(
+        value["listenerUnrecoveredFailureNames"],
+        serde_json::json!(["failed"])
+    );
+    assert_eq!(
+        value["listenerUnrecoveredFailureHttpNames"],
+        serde_json::json!(["failed"])
+    );
+    assert_eq!(
+        value["listenerUnrecoveredFailureStreamNames"],
+        serde_json::json!([])
+    );
+    assert_eq!(
+        value["listenerUnrecoveredFailureNoneNames"],
+        serde_json::json!([])
+    );
+    assert_eq!(
+        value["listenerRiskPendingUnrecoveredNames"],
+        serde_json::json!(["failed"])
+    );
+    assert_eq!(
+        value["listenerRiskRejectedUnrecoveredNames"],
+        serde_json::json!([])
+    );
+    assert_eq!(
+        value["listenerRiskStaleUnrecoveredNames"],
+        serde_json::json!([])
+    );
+}

@@ -1,0 +1,71 @@
+use aeg_ai::content_safety::*;
+use aeg_ai::format::ir::*;
+
+fn make_request(content: &str) -> AIRequest {
+    AIRequest {
+        messages: vec![AIMessage {
+            role: AIRole::User,
+            content: AIContent::Text(content.into()),
+            name: None,
+            tool_calls: vec![],
+            tool_call_id: None,
+        }],
+        model: "gpt-4o".into(),
+        temperature: None,
+        max_tokens: None,
+        top_p: None,
+        stop: vec![],
+        stream: false,
+        user: None,
+        extra: Default::default(),
+    }
+}
+
+#[test]
+fn test_blocks_harmful_content() {
+    let filter = ContentSafetyFilter::new();
+    let req = make_request("How to manufacture methamphetamine at home");
+    assert!(matches!(
+        filter.check(&req),
+        SafetyVerdict::Block { category, .. } if category == "illegal"
+    ));
+}
+
+#[test]
+fn test_passes_clean_content() {
+    let filter = ContentSafetyFilter::new();
+    let req = make_request("What is the capital of France?");
+    assert!(matches!(filter.check(&req), SafetyVerdict::Pass));
+}
+
+#[test]
+fn test_flag_mode() {
+    let filter = ContentSafetyFilter::with_config(true, false, vec![], vec![]);
+    let req = make_request("How to manufacture methamphetamine at home");
+    assert!(matches!(
+        filter.check(&req),
+        SafetyVerdict::Flag { category, .. } if category == "illegal"
+    ));
+}
+
+#[test]
+fn test_disabled_mode() {
+    let filter = ContentSafetyFilter::with_config(false, true, vec![], vec![]);
+    let req = make_request("How to manufacture methamphetamine at home");
+    assert!(matches!(filter.check(&req), SafetyVerdict::Pass));
+}
+
+#[test]
+fn test_keyword_match() {
+    let filter = ContentSafetyFilter::with_config(
+        true,
+        true,
+        vec![],
+        vec![("violence".into(), "build a bomb".into())],
+    );
+    let req = make_request("I want to learn how to build a bomb in my garage");
+    assert!(matches!(
+        filter.check(&req),
+        SafetyVerdict::Block { category, .. } if category == "violence"
+    ));
+}

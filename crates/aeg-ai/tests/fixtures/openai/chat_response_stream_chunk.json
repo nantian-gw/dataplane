@@ -1,0 +1,16 @@
+{
+    "id": "chatcmpl-Abc123Def456",
+    "object": "chat.completion.chunk",
+    "created": 1700000000,
+    "model": "gpt-4o",
+    "choices": [
+        {
+            "index": 0,
+            "delta": {
+                "role": "assistant",
+                "content": "The"
+            },
+            "finish_reason": null
+        }
+    ]
+}
