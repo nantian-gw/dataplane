@@ -22,9 +22,9 @@ COPY tests/testdata/ /src/tests/testdata/
 
 ARG DATAPLANE_CARGO_FEATURES=allocator-jemalloc
 RUN if [ -n "${DATAPLANE_CARGO_FEATURES}" ]; then \
-      cargo build --release -p aeg-app --features "${DATAPLANE_CARGO_FEATURES}"; \
+      cargo build --release -p ntgw-app --features "${DATAPLANE_CARGO_FEATURES}"; \
     else \
-      cargo build --release -p aeg-app; \
+      cargo build --release -p ntgw-app; \
     fi
 
 FROM ${RUNTIME_IMAGE}
@@ -39,6 +39,6 @@ RUN apt-get update \
         tcpdump \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=chef /src/dataplane/target/release/aeg-app /usr/local/bin/aeg-app
+COPY --from=chef /src/dataplane/target/release/ntgw-app /usr/local/bin/ntgw-app
 
-ENTRYPOINT ["/usr/local/bin/aeg-app"]
+ENTRYPOINT ["/usr/local/bin/ntgw-app"]

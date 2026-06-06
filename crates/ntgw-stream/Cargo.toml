@@ -1,0 +1,17 @@
+[package]
+name = "ntgw-stream"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+serde.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+ntgw-ir.workspace = true
+dashmap.workspace = true
+ntgw-observability.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true

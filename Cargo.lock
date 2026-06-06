@@ -27,240 +27,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
 
 [[package]]
-name = "aeg-ai"
-version = "0.1.0"
-dependencies = [
- "aeg-wasm",
- "anyhow",
- "async-trait",
- "base64 0.22.1",
- "opentelemetry",
- "opentelemetry-otlp",
- "opentelemetry_sdk",
- "prometheus",
- "rand 0.8.6",
- "regex",
- "reqwest",
- "serde",
- "serde_json",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
- "tracing-opentelemetry",
- "tracing-subscriber",
- "uuid",
-]
-
-[[package]]
-name = "aeg-allocator"
-version = "0.1.0"
-dependencies = [
- "mimalloc",
- "tikv-jemallocator",
-]
-
-[[package]]
-name = "aeg-app"
-version = "0.1.0"
-dependencies = [
- "aeg-allocator",
- "aeg-config",
- "aeg-http",
- "aeg-ir",
- "aeg-observability",
- "aeg-shared-tls",
- "aeg-stream",
- "aeg-xds",
- "anyhow",
- "axum 0.8.9",
- "clap",
- "serde",
- "serde_json",
- "subtle",
- "tokio",
- "tower 0.5.3",
- "tracing",
-]
-
-[[package]]
-name = "aeg-bench"
-version = "0.1.0"
-dependencies = [
- "aeg-allocator",
- "aeg-http",
- "aeg-ir",
- "aeg-observability",
- "aeg-stream",
- "aeg-xds",
- "anyhow",
- "arc-swap",
- "clap",
- "serde",
- "serde_json",
- "stats_alloc",
- "tokio",
-]
-
-[[package]]
-name = "aeg-config"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "pingora",
- "serde",
- "serde_yaml",
- "sha2",
-]
-
-[[package]]
-name = "aeg-http"
-version = "0.1.0"
-dependencies = [
- "aeg-ai",
- "aeg-config",
- "aeg-ir",
- "aeg-observability",
- "aeg-proto",
- "aeg-wasm",
- "anyhow",
- "async-trait",
- "base64 0.22.1",
- "bytes",
- "getrandom 0.2.17",
- "h2",
- "hmac",
- "http",
- "opentelemetry",
- "opentelemetry_sdk",
- "parking_lot",
- "pingora",
- "pingora-cache",
- "prometheus",
- "proptest",
- "serde",
- "serde_json",
- "sha2",
- "tokio",
- "tonic 0.12.3",
- "tracing",
- "tracing-opentelemetry",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "aeg-ir"
-version = "0.1.0"
-dependencies = [
- "aeg-proto",
- "form_urlencoded",
- "parking_lot",
- "proptest",
- "prost-types",
- "regex",
- "serde",
- "tokio",
-]
-
-[[package]]
-name = "aeg-observability"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "humantime",
- "nix",
- "opentelemetry",
- "opentelemetry-otlp",
- "opentelemetry_sdk",
- "parking_lot",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
- "tracing-appender",
- "tracing-opentelemetry",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "aeg-proto"
-version = "0.1.0"
-dependencies = [
- "prost 0.13.5",
- "prost-types",
- "protoc-bin-vendored",
- "tonic 0.12.3",
- "tonic-build",
-]
-
-[[package]]
-name = "aeg-shared-tls"
-version = "0.1.0"
-dependencies = [
- "aeg-http",
- "aeg-ir",
- "aeg-observability",
- "aeg-stream",
- "anyhow",
- "async-trait",
- "pingora",
- "proptest",
- "socket2 0.6.3",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "aeg-stream"
-version = "0.1.0"
-dependencies = [
- "aeg-ir",
- "aeg-observability",
- "anyhow",
- "dashmap",
- "proptest",
- "serde",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "aeg-wasm"
-version = "0.1.0"
-dependencies = [
- "aeg-wasm-sdk",
- "anyhow",
- "parking_lot",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
- "wasmtime",
- "wat",
-]
-
-[[package]]
-name = "aeg-wasm-sdk"
-version = "0.1.0"
-
-[[package]]
-name = "aeg-xds"
-version = "0.1.0"
-dependencies = [
- "aeg-ir",
- "aeg-observability",
- "aeg-proto",
- "anyhow",
- "serde",
- "tokio",
- "tokio-stream",
- "tonic 0.12.3",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "ahash"
 version = "0.8.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2230,6 +1996,242 @@ dependencies = [
  "cfg-if",
  "libc",
  "memoffset",
+]
+
+[[package]]
+name = "ntgw-ai"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "base64 0.22.1",
+ "dashmap",
+ "ntgw-wasm",
+ "opentelemetry",
+ "opentelemetry-otlp",
+ "opentelemetry_sdk",
+ "prometheus",
+ "rand 0.8.6",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "tracing-opentelemetry",
+ "tracing-subscriber",
+ "uuid",
+ "zeroize",
+]
+
+[[package]]
+name = "ntgw-allocator"
+version = "0.1.0"
+dependencies = [
+ "mimalloc",
+ "tikv-jemallocator",
+]
+
+[[package]]
+name = "ntgw-app"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum 0.8.9",
+ "clap",
+ "ntgw-allocator",
+ "ntgw-config",
+ "ntgw-http",
+ "ntgw-ir",
+ "ntgw-observability",
+ "ntgw-shared-tls",
+ "ntgw-stream",
+ "ntgw-xds",
+ "serde",
+ "serde_json",
+ "subtle",
+ "tokio",
+ "tower 0.5.3",
+ "tracing",
+]
+
+[[package]]
+name = "ntgw-bench"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "arc-swap",
+ "clap",
+ "ntgw-allocator",
+ "ntgw-http",
+ "ntgw-ir",
+ "ntgw-observability",
+ "ntgw-stream",
+ "ntgw-xds",
+ "serde",
+ "serde_json",
+ "stats_alloc",
+ "tokio",
+]
+
+[[package]]
+name = "ntgw-config"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "pingora",
+ "serde",
+ "serde_yaml",
+ "sha2",
+]
+
+[[package]]
+name = "ntgw-http"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "base64 0.22.1",
+ "bytes",
+ "getrandom 0.2.17",
+ "h2",
+ "hmac",
+ "http",
+ "ntgw-ai",
+ "ntgw-config",
+ "ntgw-ir",
+ "ntgw-observability",
+ "ntgw-proto",
+ "ntgw-wasm",
+ "opentelemetry",
+ "opentelemetry_sdk",
+ "parking_lot",
+ "pingora",
+ "pingora-cache",
+ "prometheus",
+ "proptest",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tokio",
+ "tonic 0.12.3",
+ "tracing",
+ "tracing-opentelemetry",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "ntgw-ir"
+version = "0.1.0"
+dependencies = [
+ "form_urlencoded",
+ "ntgw-proto",
+ "parking_lot",
+ "proptest",
+ "prost-types",
+ "regex",
+ "serde",
+ "tokio",
+]
+
+[[package]]
+name = "ntgw-observability"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "humantime",
+ "nix",
+ "opentelemetry",
+ "opentelemetry-otlp",
+ "opentelemetry_sdk",
+ "parking_lot",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "tracing-appender",
+ "tracing-opentelemetry",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "ntgw-proto"
+version = "0.1.0"
+dependencies = [
+ "prost 0.13.5",
+ "prost-types",
+ "protoc-bin-vendored",
+ "tonic 0.12.3",
+ "tonic-build",
+]
+
+[[package]]
+name = "ntgw-shared-tls"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "ntgw-http",
+ "ntgw-ir",
+ "ntgw-observability",
+ "ntgw-stream",
+ "pingora",
+ "proptest",
+ "socket2 0.6.3",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "ntgw-stream"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "dashmap",
+ "ntgw-ir",
+ "ntgw-observability",
+ "proptest",
+ "serde",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "ntgw-wasm"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "ntgw-wasm-sdk",
+ "parking_lot",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "wasmtime",
+ "wat",
+]
+
+[[package]]
+name = "ntgw-wasm-sdk"
+version = "0.1.0"
+
+[[package]]
+name = "ntgw-xds"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "ntgw-ir",
+ "ntgw-observability",
+ "ntgw-proto",
+ "serde",
+ "tokio",
+ "tokio-stream",
+ "tonic 0.12.3",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -5294,6 +5296,20 @@ name = "zeroize"
 version = "1.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b97154e67e32c85465826e8bcc1c59429aaaf107c1e4a9e53c8d8ccd5eff88d0"
+dependencies = [
+ "zeroize_derive",
+]
+
+[[package]]
+name = "zeroize_derive"
+version = "1.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "85a5b4158499876c763cb03bc4e49185d3cccbabb15b33c627f7884f43db852e"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.117",
+]
 
 [[package]]
 name = "zerotrie"

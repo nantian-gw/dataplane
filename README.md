@@ -6,20 +6,20 @@ Rust workspace providing the high-performance HTTP and stream proxy runtime for 
 
 | Crate | Description |
 |---|---|
-| `aeg-app` | Data plane binary and service composition |
-| `aeg-http` | HTTP/gRPC proxy runtime and filters |
-| `aeg-ai` | AI Gateway proxy with multi-format support and rate limiting |
-| `aeg-wasm` | wasmtime plugin engine and host functions |
-| `aeg-stream` | TCP/UDP/TLS passthrough stream proxy |
-| `aeg-ir` | Runtime IR, snapshot indexing, and proto ingestion |
-| `aeg-xds` | xDS client for control plane config streaming |
-| `aeg-config` | Data plane configuration management |
-| `aeg-observability` | Metrics, tracing, and observability infrastructure |
-| `aeg-allocator` | Custom memory allocation helpers |
-| `aeg-bench` | Performance benchmarks |
-| `aeg-proto` | Protobuf definitions and generated code |
-| `aeg-shared-tls` | Shared TLS configuration and certificate management |
-| `aeg-wasm-sdk` | SDK for building Wasm plugins |
+| `ntgw-app` | Data plane binary and service composition |
+| `ntgw-http` | HTTP/gRPC proxy runtime and filters |
+| `ntgw-ai` | AI Gateway proxy with multi-format support and rate limiting |
+| `ntgw-wasm` | wasmtime plugin engine and host functions |
+| `ntgw-stream` | TCP/UDP/TLS passthrough stream proxy |
+| `ntgw-ir` | Runtime IR, snapshot indexing, and proto ingestion |
+| `ntgw-xds` | xDS client for control plane config streaming |
+| `ntgw-config` | Data plane configuration management |
+| `ntgw-observability` | Metrics, tracing, and observability infrastructure |
+| `ntgw-allocator` | Custom memory allocation helpers |
+| `ntgw-bench` | Performance benchmarks |
+| `ntgw-proto` | Protobuf definitions and generated code |
+| `ntgw-shared-tls` | Shared TLS configuration and certificate management |
+| `ntgw-wasm-sdk` | SDK for building Wasm plugins |
 
 ## Build
 

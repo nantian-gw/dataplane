@@ -1,0 +1,8 @@
+[package]
+name = "ntgw-wasm-sdk"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "SDK for writing Nantian Gateway Wasm plugins"
+
+[dependencies]

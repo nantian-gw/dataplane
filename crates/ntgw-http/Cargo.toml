@@ -1,0 +1,38 @@
+[package]
+name = "ntgw-http"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+async-trait.workspace = true
+base64.workspace = true
+bytes.workspace = true
+hmac.workspace = true
+http.workspace = true
+opentelemetry.workspace = true
+opentelemetry_sdk.workspace = true
+parking_lot.workspace = true
+pingora.workspace = true
+pingora-cache.workspace = true
+ntgw-config.workspace = true
+serde = { workspace = true, features = ["rc"] }
+serde_json.workspace = true
+sha2.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-opentelemetry.workspace = true
+getrandom.workspace = true
+ntgw-ir.workspace = true
+ntgw-observability.workspace = true
+ntgw-proto.workspace = true
+ntgw-ai = { path = "../ntgw-ai" }
+ntgw-wasm.workspace = true
+prometheus = "0.13"
+tonic.workspace = true
+
+[dev-dependencies]
+h2 = "0.4.13"
+proptest.workspace = true
+tracing-subscriber.workspace = true

@@ -1,19 +1,19 @@
 [workspace]
 members = [
-  "crates/aeg-ai",
-  "crates/aeg-allocator",
-  "crates/aeg-app",
-  "crates/aeg-bench",
-  "crates/aeg-config",
-  "crates/aeg-http",
-  "crates/aeg-ir",
-  "crates/aeg-observability",
-  "crates/aeg-proto",
-  "crates/aeg-shared-tls",
-  "crates/aeg-stream",
-  "crates/aeg-wasm",
-  "crates/aeg-wasm-sdk",
-  "crates/aeg-xds",
+  "crates/ntgw-ai",
+  "crates/ntgw-allocator",
+  "crates/ntgw-app",
+  "crates/ntgw-bench",
+  "crates/ntgw-config",
+  "crates/ntgw-http",
+  "crates/ntgw-ir",
+  "crates/ntgw-observability",
+  "crates/ntgw-proto",
+  "crates/ntgw-shared-tls",
+  "crates/ntgw-stream",
+  "crates/ntgw-wasm",
+  "crates/ntgw-wasm-sdk",
+  "crates/ntgw-xds",
 ]
 resolver = "2"
 
@@ -63,17 +63,18 @@ tracing = "0.1.41"
 tracing-appender = "0.2.3"
 tracing-opentelemetry = "0.32.0"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter", "fmt", "json"] }
-aeg-allocator = { version = "0.1.0", path = "crates/aeg-allocator" }
-aeg-config = { version = "0.1.0", path = "crates/aeg-config" }
-aeg-http = { version = "0.1.0", path = "crates/aeg-http" }
-aeg-ir = { version = "0.1.0", path = "crates/aeg-ir" }
-aeg-observability = { version = "0.1.0", path = "crates/aeg-observability" }
-aeg-proto = { version = "0.1.0", path = "crates/aeg-proto" }
-aeg-shared-tls = { version = "0.1.0", path = "crates/aeg-shared-tls" }
-aeg-stream = { version = "0.1.0", path = "crates/aeg-stream" }
-aeg-wasm = { version = "0.1.0", path = "crates/aeg-wasm" }
-aeg-wasm-sdk = { version = "0.1.0", path = "crates/aeg-wasm-sdk" }
-aeg-xds = { version = "0.1.0", path = "crates/aeg-xds" }
+zeroize = { version = "1", features = ["derive"] }
+ntgw-allocator = { version = "0.1.0", path = "crates/ntgw-allocator" }
+ntgw-config = { version = "0.1.0", path = "crates/ntgw-config" }
+ntgw-http = { version = "0.1.0", path = "crates/ntgw-http" }
+ntgw-ir = { version = "0.1.0", path = "crates/ntgw-ir" }
+ntgw-observability = { version = "0.1.0", path = "crates/ntgw-observability" }
+ntgw-proto = { version = "0.1.0", path = "crates/ntgw-proto" }
+ntgw-shared-tls = { version = "0.1.0", path = "crates/ntgw-shared-tls" }
+ntgw-stream = { version = "0.1.0", path = "crates/ntgw-stream" }
+ntgw-wasm = { version = "0.1.0", path = "crates/ntgw-wasm" }
+ntgw-wasm-sdk = { version = "0.1.0", path = "crates/ntgw-wasm-sdk" }
+ntgw-xds = { version = "0.1.0", path = "crates/ntgw-xds" }
 
 [profile.release]
 lto = "thin"

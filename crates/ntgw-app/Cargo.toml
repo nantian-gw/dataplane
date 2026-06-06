@@ -1,0 +1,31 @@
+[package]
+name = "ntgw-app"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[features]
+default = []
+allocator-mimalloc = ["ntgw-allocator/allocator-mimalloc"]
+allocator-jemalloc = ["ntgw-allocator/allocator-jemalloc"]
+
+[dependencies]
+anyhow.workspace = true
+axum.workspace = true
+clap.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+subtle.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+ntgw-allocator.workspace = true
+ntgw-config.workspace = true
+ntgw-http.workspace = true
+ntgw-ir.workspace = true
+ntgw-observability.workspace = true
+ntgw-shared-tls.workspace = true
+ntgw-stream.workspace = true
+ntgw-xds.workspace = true
+
+[dev-dependencies]
+tower.workspace = true
