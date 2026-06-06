@@ -53,10 +53,9 @@ pub fn register_host_functions(linker: &mut Linker<PluginContext>) -> Result<()>
                 };
 
                 match value {
-                    Some(val) => match mem::allocate_guest_memory(caller, val.as_bytes()) {
-                        Ok(packed) => packed,
-                        Err(_) => 0,
-                    },
+                    Some(val) => {
+                        mem::allocate_guest_memory(caller, val.as_bytes()).unwrap_or_default()
+                    }
                     None => 0,
                 }
             },

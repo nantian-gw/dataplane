@@ -6,6 +6,7 @@ use std::{
 };
 
 use super::{handle_connection, read_preface, run_with_listener};
+use anyhow::Result;
 use ntgw_ir::{
     BackendCluster, BackendEndpoint, BackendRef, Listener, SelectedBackendRuntimeIds,
     SharedSnapshot, Snapshot, StreamMatch, StreamRoute, StreamRule,
@@ -13,7 +14,6 @@ use ntgw_ir::{
 use ntgw_observability::{
     shutdown_access_log_writer, AccessLogMode, AccessLogOptions, SharedTrafficStats,
 };
-use anyhow::Result;
 use tokio::{sync::watch, time::Duration};
 
 const TCP_PROXY_BUFFER_BYTES: usize = 16 * 1024;

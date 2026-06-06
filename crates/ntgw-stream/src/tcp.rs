@@ -311,8 +311,9 @@ struct TcpConnectFailure<'a> {
 fn record_tcp_connect_failure(traffic: &SharedTrafficStats, failure: TcpConnectFailure<'_>) {
     let upstream_connect_latency_ms_buckets = {
         let mut buckets = [0; UPSTREAM_CONNECT_LATENCY_MS_BUCKET_COUNT];
-        let bucket =
-            ntgw_observability::upstream_connect_latency_ms_bucket_index(failure.connect_latency_ms);
+        let bucket = ntgw_observability::upstream_connect_latency_ms_bucket_index(
+            failure.connect_latency_ms,
+        );
         buckets[bucket] = 1;
         buckets
     };

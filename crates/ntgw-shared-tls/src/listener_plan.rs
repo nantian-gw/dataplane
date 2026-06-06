@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-use ntgw_ir::{Listener, SecretMaterial, Snapshot};
 use anyhow::{anyhow, Context, Result};
+use ntgw_ir::{Listener, SecretMaterial, Snapshot};
 use pingora::tls::{nid::Nid, x509::X509};
 
 use crate::RuntimeOptions;

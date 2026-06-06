@@ -1,5 +1,6 @@
 use std::sync::{Arc, Mutex};
 
+use anyhow::Result;
 use ntgw_http::{
     build_http_app, AccessLogOptions, RuntimeOptions as HttpRuntimeOptions,
     SessionPersistenceOptions,
@@ -9,7 +10,6 @@ use ntgw_observability::{
     ApplyStageRecorder, HttpCircuitBreakerController, HttpRateLimitController,
     RetryBudgetController, RuntimeStats, SharedApplyStageRecorder, SharedTrafficStats,
 };
-use anyhow::Result;
 use tokio::{
     io::AsyncWriteExt,
     net::{TcpListener, TcpStream},

@@ -1,3 +1,4 @@
+#[allow(clippy::too_many_arguments)]
 pub async fn run(
     snapshot: SharedSnapshot,
     updates: SharedSnapshotSignal,

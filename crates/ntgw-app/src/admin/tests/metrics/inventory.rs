@@ -61,7 +61,9 @@ fn render_metrics_exposes_snapshot_inventory_and_session_persistence_state() {
     assert!(metrics.contains("nantian_gateway_dataplane_session_persistence_active 1"));
     assert!(metrics.contains("nantian_gateway_dataplane_session_persistence_ephemeral_secret 1"));
     assert!(metrics.contains("nantian_gateway_dataplane_session_persistence_route_rule_count 2"));
-    assert!(metrics.contains("nantian_gateway_dataplane_session_persistence_backend_policy_count 1"));
+    assert!(
+        metrics.contains("nantian_gateway_dataplane_session_persistence_backend_policy_count 1")
+    );
     assert!(metrics.contains("nantian_gateway_dataplane_xds_connect_failures_total 1"));
     assert!(metrics.contains("nantian_gateway_dataplane_xds_stream_failures_total 1"));
 

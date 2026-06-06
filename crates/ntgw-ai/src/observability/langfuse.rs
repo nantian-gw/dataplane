@@ -197,6 +197,7 @@ impl LangfuseClient {
     }
 
     /// Ingest a generation into Langfuse.
+    #[allow(clippy::too_many_arguments)]
     pub async fn ingest_generation(
         &self,
         trace_id: &str,

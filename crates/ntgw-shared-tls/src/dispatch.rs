@@ -1,5 +1,5 @@
-use ntgw_ir::{SharedSnapshot, TlsRouteMode};
 use anyhow::{anyhow, Result};
+use ntgw_ir::{SharedSnapshot, TlsRouteMode};
 use pingora::protocols::l4::stream::Stream as L4Stream;
 use tokio::{
     io::{copy_bidirectional, AsyncRead, AsyncWrite},

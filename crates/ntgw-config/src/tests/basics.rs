@@ -29,7 +29,7 @@ adminAddr: 127.0.0.1:19080
 #[test]
 fn bundled_dataplane_configs_match_schema() {
     let repo_root = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../..")
+        .join("../..")
         .canonicalize()
         .expect("repo root");
     for relative_path in [

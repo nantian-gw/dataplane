@@ -86,7 +86,13 @@ impl ABTestEngine {
         // Fallback: return last variant if roll >= total weight
         // (can happen when weights sum < 1.0)
         #[allow(clippy::unwrap_used)]
-        Some(experiment.variants.last().expect("ab-test has non-empty variants").clone())
+        Some(
+            experiment
+                .variants
+                .last()
+                .expect("ab-test has non-empty variants")
+                .clone(),
+        )
     }
 
     /// Generate a unique experiment identifier.

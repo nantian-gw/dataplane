@@ -4,7 +4,6 @@ use std::{
     time::Duration,
 };
 
-use ntgw_observability::ReloadingFile;
 use anyhow::{anyhow, Result};
 use axum::{
     extract::State,
@@ -12,6 +11,7 @@ use axum::{
     middleware::Next,
     response::{IntoResponse, Response},
 };
+use ntgw_observability::ReloadingFile;
 use subtle::ConstantTimeEq;
 
 use super::AdminRuntimeConfig;

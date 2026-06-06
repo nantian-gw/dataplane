@@ -39,7 +39,7 @@ pub enum AIError {
 
     #[error("cache hit")]
     CacheHit {
-        response: crate::format::ir::AIResponse,
+        response: Box<crate::format::ir::AIResponse>,
     },
 
     #[error("all fallbacks exhausted for model {model}: {reason}")]

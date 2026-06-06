@@ -59,6 +59,7 @@ pub struct AIGatewayFilter {
 }
 
 impl AIGatewayFilter {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         adapters: Arc<AdapterRegistry>,
         metrics: Arc<AIMetrics>,
@@ -167,7 +168,7 @@ impl AIGatewayFilter {
                 if let Some(max_tokens) = route.max_tokens {
                     if request
                         .max_tokens
-                        .map_or(true, |req_max| req_max > max_tokens)
+                        .is_none_or(|req_max| req_max > max_tokens)
                     {
                         request.max_tokens = Some(max_tokens);
                     }

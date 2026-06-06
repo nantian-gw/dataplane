@@ -54,15 +54,21 @@ fn render_metrics_exposes_listener_overlap_risks() {
     ));
     assert!(metrics
         .contains("nantian_gateway_dataplane_listener_unrecovered_historical_failure_count 2"));
-    assert!(metrics
-        .contains("nantian_gateway_dataplane_listener_unrecovered_historical_failure_http_count 2"));
+    assert!(metrics.contains(
+        "nantian_gateway_dataplane_listener_unrecovered_historical_failure_http_count 2"
+    ));
     assert!(metrics.contains(
         "nantian_gateway_dataplane_listener_unrecovered_historical_failure_stream_count 0"
     ));
-    assert!(metrics
-        .contains("nantian_gateway_dataplane_listener_unrecovered_historical_failure_none_count 0"));
-    assert!(metrics.contains("nantian_gateway_dataplane_listener_failure_recovery_severity_level 2"));
+    assert!(metrics.contains(
+        "nantian_gateway_dataplane_listener_unrecovered_historical_failure_none_count 0"
+    ));
+    assert!(
+        metrics.contains("nantian_gateway_dataplane_listener_failure_recovery_severity_level 2")
+    );
     assert!(metrics.contains("nantian_gateway_dataplane_listener_risk_pending_unrecovered_count 1"));
-    assert!(metrics.contains("nantian_gateway_dataplane_listener_risk_rejected_unrecovered_count 1"));
+    assert!(
+        metrics.contains("nantian_gateway_dataplane_listener_risk_rejected_unrecovered_count 1")
+    );
     assert!(metrics.contains("nantian_gateway_dataplane_listener_risk_stale_unrecovered_count 1"));
 }

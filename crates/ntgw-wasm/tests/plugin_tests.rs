@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
+use anyhow::Result;
 use ntgw_wasm::engine::create_engine;
 use ntgw_wasm::plugin::{HookResult, PluginManager, WasmHook, WasmSandboxConfig};
-use anyhow::Result;
 
 /// Minimal WAT for a plugin that exports `on_request`, `alloc`, and `memory`.
 ///

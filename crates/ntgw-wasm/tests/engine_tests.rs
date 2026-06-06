@@ -1,5 +1,5 @@
-use ntgw_wasm::engine::{create_engine, create_linker, PluginContext};
 use anyhow::Result;
+use ntgw_wasm::engine::{create_engine, create_linker, PluginContext};
 
 #[test]
 fn test_create_engine() -> Result<()> {

@@ -1,5 +1,6 @@
 use std::{net::TcpListener as StdTcpListener, pin::Pin};
 
+use anyhow::Result;
 use ntgw_http::{
     build_http_app, AccessLogOptions, RuntimeOptions as HttpRuntimeOptions,
     SessionPersistenceOptions,
@@ -10,7 +11,6 @@ use ntgw_observability::{
     HttpCircuitBreakerController, HttpRateLimitController, RetryBudgetController,
     SharedTrafficStats,
 };
-use anyhow::Result;
 use pingora::{
     protocols::tls::SslStream,
     tls::{

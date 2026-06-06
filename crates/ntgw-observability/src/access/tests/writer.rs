@@ -1,5 +1,3 @@
-use std::borrow::Cow;
-
 use std::{
     io::{self, Write},
     sync::{

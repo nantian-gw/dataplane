@@ -80,7 +80,7 @@ adminAddr: 127.0.0.1:19080
             .runtime_tuning
             .graceful_drain_period()
             .as_millis(),
-        0
+        30000
     );
     assert!(!default_cfg.runtime_tuning.active_health_check_enabled());
     assert_eq!(

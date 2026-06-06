@@ -20,7 +20,9 @@ use pingora::{
 use tokio::sync::watch;
 use tracing::{debug, error, info, warn};
 
-use ntgw_ir::{Listener, SecretMaterial, SharedSnapshot, SharedSnapshotSignal, Snapshot, TlsConfig};
+use ntgw_ir::{
+    Listener, SecretMaterial, SharedSnapshot, SharedSnapshotSignal, Snapshot, TlsConfig,
+};
 use ntgw_observability::{
     AccessLogOptions, HttpAdmissionController, HttpAdmissionOptions, HttpCircuitBreakerController,
     HttpCircuitBreakerOptions, HttpRateLimitController, HttpRateLimitOptions,

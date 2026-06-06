@@ -1,4 +1,6 @@
-use ntgw_ai::format::{AIContent, AIMessage, AIRequest, AIResponse, AIRole, AIStreamChunk, AIUsage};
+use ntgw_ai::format::{
+    AIContent, AIMessage, AIRequest, AIResponse, AIRole, AIStreamChunk, AIUsage,
+};
 
 #[test]
 fn test_airequest_simple_roundtrip() {

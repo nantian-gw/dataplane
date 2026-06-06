@@ -1,6 +1,8 @@
 use pingora::{http::RequestHeader, proxy::Session, Error};
 
-use ntgw_ir::{MatchedHttpPath, PathModifier, RequestMeta, RequestRedirectFilter, UrlRewriteFilter};
+use ntgw_ir::{
+    MatchedHttpPath, PathModifier, RequestMeta, RequestRedirectFilter, UrlRewriteFilter,
+};
 
 use super::INVALID_ROUTE_FILTER;
 

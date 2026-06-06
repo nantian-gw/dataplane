@@ -1,12 +1,12 @@
 use std::{collections::BTreeMap, collections::BTreeSet, collections::HashMap, str};
 
+use bytes::{Bytes, BytesMut};
+use http::header::{HeaderName, AUTHORIZATION, CONTENT_LENGTH, HOST};
 use ntgw_ir::{BackendEndpoint, ExternalAuthFilter, Filter};
 use ntgw_proto::envoy::service::auth::v3::{
     attribute_context, authorization_client::AuthorizationClient, check_response, AttributeContext,
     CheckRequest, DeniedHttpResponse,
 };
-use bytes::{Bytes, BytesMut};
-use http::header::{HeaderName, AUTHORIZATION, CONTENT_LENGTH, HOST};
 use pingora::http::{RequestHeader, ResponseHeader};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},

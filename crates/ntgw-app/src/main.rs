@@ -20,6 +20,10 @@ use tokio::time::sleep;
 use tracing::{error, info};
 
 use admin::{build_router, AppState};
+use config_mapping::to_tracing_options;
+use config_reload::{
+    build_config_snapshot, spawn_config_reload_loop, ReloadTargets, CONFIG_RELOAD_POLL_INTERVAL,
+};
 use ntgw_config::ReloadingDataPlaneConfig;
 use ntgw_ir::{Snapshot, SnapshotSignal};
 use ntgw_observability::{
@@ -28,10 +32,6 @@ use ntgw_observability::{
     SharedRuntimeStats, SharedTrafficStats, UdpSessionStats,
 };
 use ntgw_xds::ClientStats;
-use config_mapping::to_tracing_options;
-use config_reload::{
-    build_config_snapshot, spawn_config_reload_loop, ReloadTargets, CONFIG_RELOAD_POLL_INTERVAL,
-};
 use supervisor::{
     wait_for_shutdown, wait_for_termination_signal, ShutdownCause, ShutdownCoordinator,
 };

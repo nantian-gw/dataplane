@@ -17,7 +17,7 @@ struct AdminSurfaceDoc {
 #[test]
 fn dataplane_route_contract_matches_machine_readable_surface_doc() {
     let manifest_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../../docs/contracts/admin-api-surface.json");
+        .join("../../docs/contracts/admin-api-surface.json");
     let raw = fs::read_to_string(&manifest_path).expect("read admin API surface contract");
     let document: SurfaceContractDocument =
         serde_json::from_str(&raw).expect("decode admin API surface contract");

@@ -139,7 +139,7 @@ pub struct SessionPersistenceConfig {
     pub shared_secret: Option<String>,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct XdsTlsConfig {
     #[serde(default = "default_xds_tls_enabled")]

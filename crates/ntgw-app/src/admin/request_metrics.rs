@@ -1,6 +1,5 @@
 use std::time::Instant;
 
-use ntgw_observability::SharedAdminRequestStats;
 use axum::{
     body::Body,
     extract::State,
@@ -8,6 +7,7 @@ use axum::{
     middleware::Next,
     response::Response,
 };
+use ntgw_observability::SharedAdminRequestStats;
 
 pub(crate) async fn observe_admin_request(
     State(stats): State<SharedAdminRequestStats>,

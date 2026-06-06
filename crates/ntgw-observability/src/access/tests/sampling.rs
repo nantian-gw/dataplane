@@ -1,5 +1,3 @@
-use std::borrow::Cow;
-
 #[test]
 fn sampling_respects_extreme_values() {
     let record = AccessLogRecord {
@@ -54,13 +52,13 @@ fn write_options_can_sample_before_building_full_record() {
     };
     let key = AccessLogSampleKey {
         event: "http_request",
-        listener: Cow::Borrowed("listener-a"),
+        listener: "listener-a",
         listener_runtime_id: None,
         request_id: "request-1",
-        route_namespace: Cow::Borrowed("default"),
-        route_name: Cow::Borrowed("orders"),
+        route_namespace: "default",
+        route_name: "orders",
         route_runtime_id: None,
-        backend: Cow::Borrowed("default/orders:8080"),
+        backend: "default/orders:8080",
         backend_runtime_id: None,
         start_time_unix_ms: 42,
     };
@@ -82,13 +80,13 @@ fn write_options_borrow_base_when_route_annotations_do_not_override_access_log()
     annotations.insert("example.com/unrelated".to_string(), "ignored".to_string());
     let key = AccessLogSampleKey {
         event: "http_request",
-        listener: Cow::Borrowed("listener-a"),
+        listener: "listener-a",
         listener_runtime_id: None,
         request_id: "request-1",
-        route_namespace: Cow::Borrowed("default"),
-        route_name: Cow::Borrowed("orders"),
+        route_namespace: "default",
+        route_name: "orders",
         route_runtime_id: None,
-        backend: Cow::Borrowed("default/orders:8080"),
+        backend: "default/orders:8080",
         backend_runtime_id: None,
         start_time_unix_ms: 42,
     };
@@ -110,13 +108,13 @@ fn write_options_sampling_prefers_runtime_ids_over_display_names() {
     };
     let base_without_ids = AccessLogSampleKey {
         event: "http_request",
-        listener: Cow::Borrowed("listener-a"),
+        listener: "listener-a",
         listener_runtime_id: None,
         request_id: "request-1",
-        route_namespace: Cow::Borrowed("default"),
-        route_name: Cow::Borrowed("orders"),
+        route_namespace: "default",
+        route_name: "orders",
         route_runtime_id: None,
-        backend: Cow::Borrowed("default/orders:8080"),
+        backend: "default/orders:8080",
         backend_runtime_id: None,
         start_time_unix_ms: 42,
     };
@@ -136,21 +134,21 @@ fn write_options_sampling_prefers_runtime_ids_over_display_names() {
     assert_eq!(
         resolve_access_log_write_options(&options, &BTreeMap::new(), &base_with_ids).is_some(),
         resolve_access_log_write_options(&options, &BTreeMap::new(), &renamed_with_ids).is_some(),
-        "runtime IDs should make write-option sampling stable across display-name changes"
+        "runtime IDs should make sampling stable across display-name changes"
     );
 }
 
-fn renamed_record_with_different_string_sample(
-    base: &AccessLogRecord,
+fn renamed_record_with_different_string_sample<'a>(
+    base: &AccessLogRecord<'a>,
     rate: f64,
-) -> AccessLogRecord {
+) -> AccessLogRecord<'a> {
     let base_decision = should_emit_sample(rate, base);
     for index in 0..10_000 {
         let mut renamed = base.clone();
-        renamed.listener = format!("listener-renamed-{index}");
-        renamed.route_namespace = format!("namespace-renamed-{index}");
-        renamed.route_name = format!("route-renamed-{index}");
-        renamed.backend = format!("namespace-renamed-{index}/backend-renamed-{index}:8080");
+        renamed.listener = Cow::Owned(format!("listener-renamed-{index}"));
+        renamed.route_namespace = Cow::Owned(format!("namespace-renamed-{index}"));
+        renamed.route_name = Cow::Owned(format!("route-renamed-{index}"));
+        renamed.backend = Cow::Owned(format!("namespace-renamed-{index}/backend-renamed-{index}:8080"));
         if should_emit_sample(rate, &renamed) != base_decision {
             return renamed;
         }
@@ -158,7 +156,7 @@ fn renamed_record_with_different_string_sample(
     panic!("could not find display names with a different sampling decision");
 }
 
-fn with_runtime_ids(mut record: AccessLogRecord) -> AccessLogRecord {
+fn with_runtime_ids(mut record: AccessLogRecord<'_>) -> AccessLogRecord<'_> {
     record.listener_runtime_id = Some("0000000000000001".to_string());
     record.route_runtime_id = Some("0000000000000002".to_string());
     record.backend_runtime_id = Some("0000000000000003".to_string());

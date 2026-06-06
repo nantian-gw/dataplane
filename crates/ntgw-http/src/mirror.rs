@@ -7,8 +7,8 @@ use std::{
     time::Duration,
 };
 
-use ntgw_ir::SelectedBackend;
 use bytes::Bytes;
+use ntgw_ir::SelectedBackend;
 use pingora::{
     protocols::http::HttpTask,
     proxy::{

@@ -1,7 +1,7 @@
 use std::{collections::BTreeMap, net::IpAddr, sync::OnceLock};
 
-use ntgw_ir::{Filter, RequestMeta};
 use http::header::{HeaderName, HeaderValue, CONTENT_TYPE};
+use ntgw_ir::{Filter, RequestMeta};
 use opentelemetry::propagation::{Extractor, Injector, TextMapPropagator};
 use opentelemetry_sdk::propagation::TraceContextPropagator;
 use tracing::Span;

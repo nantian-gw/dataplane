@@ -132,10 +132,11 @@ fn render_metrics_exposes_traffic_counters() {
     assert!(
         metrics.contains("nantian_gateway_dataplane_traffic_upstream_connect_latency_ms_total 11")
     );
-    assert!(metrics.contains("nantian_gateway_dataplane_traffic_upstream_connect_latency_ms_max 11"));
     assert!(
-        metrics.contains("nantian_gateway_dataplane_traffic_upstream_connect_latency_ms_average 11")
+        metrics.contains("nantian_gateway_dataplane_traffic_upstream_connect_latency_ms_max 11")
     );
+    assert!(metrics
+        .contains("nantian_gateway_dataplane_traffic_upstream_connect_latency_ms_average 11"));
     assert!(metrics.contains(
         "nantian_gateway_dataplane_traffic_upstream_connect_latency_ms_bucket{le=\"10\"} 0"
     ));
@@ -145,7 +146,9 @@ fn render_metrics_exposes_traffic_counters() {
     assert!(metrics.contains(
         "nantian_gateway_dataplane_traffic_upstream_connect_latency_ms_bucket{le=\"+Inf\"} 1"
     ));
-    assert!(metrics.contains("nantian_gateway_dataplane_traffic_upstream_connect_latency_ms_sum 11"));
+    assert!(
+        metrics.contains("nantian_gateway_dataplane_traffic_upstream_connect_latency_ms_sum 11")
+    );
     assert!(
         metrics.contains("nantian_gateway_dataplane_traffic_upstream_connect_latency_ms_count 1")
     );
@@ -191,7 +194,9 @@ fn render_metrics_exposes_traffic_counters() {
     assert!(metrics.contains("nantian_gateway_dataplane_access_log_writer_sink_errors_total"));
     assert!(metrics.contains("nantian_gateway_dataplane_udp_sessions_active_current 1"));
     assert!(metrics.contains("nantian_gateway_dataplane_udp_session_queue_depth_current 1"));
-    assert!(metrics.contains("nantian_gateway_dataplane_udp_session_queue_overflow_dropped_total 1"));
+    assert!(
+        metrics.contains("nantian_gateway_dataplane_udp_session_queue_overflow_dropped_total 1")
+    );
     assert!(metrics.contains("nantian_gateway_dataplane_udp_session_idle_evictions_total 1"));
     assert!(metrics.contains(
         "nantian_gateway_dataplane_udp_sessions_active_listener_current{listener=\"default/gw/udp\"} 1"
@@ -260,17 +265,15 @@ fn render_metrics_exposes_traffic_counters() {
     assert!(metrics.contains("nantian_gateway_dataplane_listener_apply_blocked_stream_count 0"));
     assert!(metrics.contains("nantian_gateway_dataplane_listener_apply_blocked_none_count 0"));
     assert!(metrics.contains("nantian_gateway_dataplane_listener_awaiting_current_attempt_count 0"));
-    assert!(
-        metrics.contains("nantian_gateway_dataplane_listener_awaiting_current_attempt_http_count 0")
-    );
+    assert!(metrics
+        .contains("nantian_gateway_dataplane_listener_awaiting_current_attempt_http_count 0"));
     assert!(
         metrics.contains("nantian_gateway_dataplane_listener_awaiting_current_attempt_tls_count 0")
     );
     assert!(metrics
         .contains("nantian_gateway_dataplane_listener_awaiting_current_attempt_stream_count 0"));
-    assert!(
-        metrics.contains("nantian_gateway_dataplane_listener_awaiting_current_attempt_none_count 0")
-    );
+    assert!(metrics
+        .contains("nantian_gateway_dataplane_listener_awaiting_current_attempt_none_count 0"));
     assert!(metrics.contains("nantian_gateway_dataplane_listener_current_attempt_blocked_count 2"));
     assert!(
         metrics.contains("nantian_gateway_dataplane_listener_current_attempt_blocked_http_count 1")
@@ -299,9 +302,8 @@ fn render_metrics_exposes_traffic_counters() {
         .contains("nantian_gateway_dataplane_listener_serving_state_current_retained_count 0"));
     assert!(metrics
         .contains("nantian_gateway_dataplane_listener_serving_state_last_good_rejected_count 0"));
-    assert!(
-        metrics.contains("nantian_gateway_dataplane_listener_serving_state_last_good_stale_count 0")
-    );
+    assert!(metrics
+        .contains("nantian_gateway_dataplane_listener_serving_state_last_good_stale_count 0"));
     assert!(metrics.contains("nantian_gateway_dataplane_listener_has_ever_failed_count 2"));
     assert!(metrics.contains("nantian_gateway_dataplane_listener_recovered_from_failure_count 0"));
     assert!(
@@ -310,9 +312,8 @@ fn render_metrics_exposes_traffic_counters() {
     assert!(
         metrics.contains("nantian_gateway_dataplane_listener_recovered_from_failure_tls_count 0")
     );
-    assert!(
-        metrics.contains("nantian_gateway_dataplane_listener_recovered_from_failure_stream_count 0")
-    );
+    assert!(metrics
+        .contains("nantian_gateway_dataplane_listener_recovered_from_failure_stream_count 0"));
     assert!(
         metrics.contains("nantian_gateway_dataplane_listener_recovered_from_failure_none_count 0")
     );
@@ -324,7 +325,9 @@ fn render_metrics_exposes_traffic_counters() {
     );
     assert!(metrics.contains("nantian_gateway_dataplane_listener_unrecovered_failure_none_count 0"));
     assert!(metrics.contains("nantian_gateway_dataplane_listener_risk_pending_unrecovered_count 0"));
-    assert!(metrics.contains("nantian_gateway_dataplane_listener_risk_rejected_unrecovered_count 2"));
+    assert!(
+        metrics.contains("nantian_gateway_dataplane_listener_risk_rejected_unrecovered_count 2")
+    );
     assert!(metrics.contains("nantian_gateway_dataplane_listener_risk_stale_unrecovered_count 0"));
     assert!(metrics.contains("nantian_gateway_dataplane_listener_attention_required_count 2"));
     assert!(metrics.contains("nantian_gateway_dataplane_listener_attention_severity_level 2"));
@@ -335,9 +338,8 @@ fn render_metrics_exposes_traffic_counters() {
     assert!(metrics.contains("nantian_gateway_dataplane_listener_attention_pending_count 0"));
     assert!(metrics.contains("nantian_gateway_dataplane_listener_attention_rejected_count 2"));
     assert!(metrics.contains("nantian_gateway_dataplane_listener_attention_stale_count 0"));
-    assert!(
-        metrics.contains("nantian_gateway_dataplane_listener_attention_unrecovered_failure_count 2")
-    );
+    assert!(metrics
+        .contains("nantian_gateway_dataplane_listener_attention_unrecovered_failure_count 2"));
     assert!(metrics.contains("last_good_snapshot_version=\"v-test\""));
     assert!(metrics.contains("current_snapshot_status=\"rejected\""));
     assert!(metrics.contains("current_snapshot_rejection_version=\"v-test\""));

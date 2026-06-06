@@ -35,9 +35,10 @@ fn mesh_listener(
         tls: None,
         ..Listener::default()
     };
-    listener
-        .metadata
-        .insert("nantian.dev/frontend-kind".to_string(), "Service".to_string());
+    listener.metadata.insert(
+        "nantian.dev/frontend-kind".to_string(),
+        "Service".to_string(),
+    );
     listener.metadata.insert(
         "nantian.dev/frontend-namespace".to_string(),
         namespace.to_string(),
@@ -45,8 +46,9 @@ fn mesh_listener(
     listener
         .metadata
         .insert("nantian.dev/frontend-name".to_string(), name.to_string());
-    listener
-        .metadata
-        .insert("nantian.dev/frontend-port".to_string(), service_port.to_string());
+    listener.metadata.insert(
+        "nantian.dev/frontend-port".to_string(),
+        service_port.to_string(),
+    );
     listener
 }

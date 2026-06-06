@@ -40,7 +40,7 @@ impl ModelRouter {
 
     pub fn add_routes(&mut self, complexity: Complexity, routes: Vec<ModelRoute>) {
         let mut sorted = routes;
-        sorted.sort_by(|a, b| b.weight.cmp(&a.weight));
+        sorted.sort_by_key(|b| std::cmp::Reverse(b.weight));
         self.routes.insert(complexity, sorted);
     }
 

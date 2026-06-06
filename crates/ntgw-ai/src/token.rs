@@ -14,23 +14,12 @@ use crate::format::ir::{AIStreamChunk, AIUsage};
 ///   accumulated usage together with the concatenated content deltas.
 /// - With `count_tokens` to count tokens in arbitrary text, using a sandbox
 ///   Wasm tokenizer if available, otherwise falling back to approximation.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct TokenCounter {
     pub prompt_tokens: u64,
     pub completion_tokens: u64,
     pub total_tokens: u64,
     ai_sandbox: Option<Arc<AISandbox>>,
-}
-
-impl Default for TokenCounter {
-    fn default() -> Self {
-        Self {
-            prompt_tokens: 0,
-            completion_tokens: 0,
-            total_tokens: 0,
-            ai_sandbox: None,
-        }
-    }
 }
 
 impl TokenCounter {

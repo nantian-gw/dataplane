@@ -9,6 +9,7 @@ use std::{
     time::Instant,
 };
 
+use anyhow::{anyhow, Context, Result};
 use ntgw_http::{build_http_app, process_accepted_stream, AcceptedHttpApp};
 use ntgw_ir::{Listener, SharedSnapshot, SharedSnapshotSignal, Snapshot, TlsRouteMode};
 use ntgw_observability::{
@@ -16,7 +17,6 @@ use ntgw_observability::{
     RuntimeListenerFailure, SharedApplyStageRecorder, SharedOverloadStats, SharedRuntimeStats,
     SharedTrafficStats,
 };
-use anyhow::{anyhow, Context, Result};
 use pingora::protocols::l4::stream::Stream as L4Stream;
 use pingora::protocols::{GetSocketDigest, SocketDigest};
 use socket2::{Domain, Protocol, Socket, Type};

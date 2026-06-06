@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "surfaces": [
+    {
+      "name": "dataplane-admin",
+      "endpoints": [
+        {"method": "GET", "path": "/livez", "auth": "none", "contentType": "text/plain"},
+        {"method": "GET", "path": "/readyz", "auth": "none", "contentType": "text/plain"},
+        {"method": "GET", "path": "/metrics", "auth": "bearer-when-configured", "contentType": "text/plain; version=0.0.4; charset=utf-8"},
+        {"method": "GET", "path": "/v1/summary", "auth": "bearer-when-configured", "contentType": "application/json"},
+        {"method": "GET", "path": "/v1/node", "auth": "bearer-when-configured", "contentType": "application/json"},
+        {"method": "GET", "path": "/v1/snapshot", "auth": "bearer-when-configured", "contentType": "application/json"},
+        {"method": "GET", "path": "/v1/overload", "auth": "bearer-when-configured", "contentType": "application/json"},
+        {"method": "GET", "path": "/v1/circuit-breakers", "auth": "bearer-when-configured", "contentType": "application/json"},
+        {"method": "GET", "path": "/v1/rate-limits", "auth": "bearer-when-configured", "contentType": "application/json"},
+        {"method": "GET", "path": "/v1/listeners", "auth": "bearer-when-configured", "contentType": "application/json"},
+        {"method": "GET", "path": "/v1/listeners/{name}", "auth": "bearer-when-configured", "contentType": "application/json"},
+        {"method": "GET", "path": "/v1/listener-statuses", "auth": "bearer-when-configured", "contentType": "application/json"},
+        {"method": "GET", "path": "/v1/listener-statuses/{name}", "auth": "bearer-when-configured", "contentType": "application/json"},
+        {"method": "GET", "path": "/v1/routes", "auth": "bearer-when-configured", "contentType": "application/json"},
+        {"method": "GET", "path": "/v1/routes/{kind}/{namespace}/{name}", "auth": "bearer-when-configured", "contentType": "application/json"},
+        {"method": "GET", "path": "/v1/backends", "auth": "bearer-when-configured", "contentType": "application/json"},
+        {"method": "GET", "path": "/v1/backends/{namespace}/{name}", "auth": "bearer-when-configured", "contentType": "application/json"},
+        {"method": "GET", "path": "/v1/traffic", "auth": "bearer-when-configured", "contentType": "application/json"}
+      ]
+    }
+  ]
+}

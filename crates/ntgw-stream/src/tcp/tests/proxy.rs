@@ -1,9 +1,9 @@
 use std::collections::BTreeMap;
 
+use anyhow::{anyhow, Result};
 use ntgw_ir::{
     BackendCluster, BackendEndpoint, BackendRef, Listener, Snapshot, StreamRoute, StreamRule,
 };
-use anyhow::{anyhow, Result};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::{TcpListener, TcpStream},

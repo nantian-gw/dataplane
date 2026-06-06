@@ -1,0 +1,4 @@
+nodeId: dp
+cluster: kind
+controlPlaneAddr: http://127.0.0.1:18080
+adminAddr: 127.0.0.1:19080

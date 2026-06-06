@@ -1,5 +1,3 @@
-use std::borrow::Cow;
-
 #[test]
 fn renders_access_log_template() {
     let line = render_access_log(

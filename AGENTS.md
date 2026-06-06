@@ -1,0 +1,100 @@
+# AGENTS.md — Nantian Gateway Data Plane
+
+Rust workspace for the Nantian Gateway high-performance HTTP/stream proxy data plane.
+
+## Build & Test
+
+```bash
+# Build everything
+cargo build --workspace
+
+# Run all tests
+cargo test --workspace
+
+# Lint (must pass in CI)
+cargo clippy --workspace -- -D warnings
+cargo fmt --all -- --check
+
+# Build only the binary with jemalloc allocator
+cargo build --release -p ntgw-app --features allocator-jemalloc
+```
+
+## Toolchain
+
+- **Pinned to Rust 1.88.0** (`rust-toolchain.toml`)
+- Required components: `rustfmt`, `clippy`
+- No system `protoc` needed — `ntgw-proto` build.rs uses `protoc-bin-vendored`
+
+## Architecture
+
+This is a **monorepo subdirectory** (`/dataplane`). Sibling dirs:
+- `proto/` — Protobuf definitions (consumed by `ntgw-proto` build.rs via `../../../proto`)
+- `gateway/` — Control plane (Go)
+- `dashboard/`, `website/` — UI
+
+### Crate Dependency Map
+
+```
+ntgw-app (binary) — orchestrates everything
+├── ntgw-config       — YAML config, file watching
+├── ntgw-http         — HTTP/gRPC proxy (Pingora-based), filters, sessions, cache
+│   ├── ntgw-ai       — AI Gateway proxy (rate limiting, multi-format)
+│   ├── ntgw-wasm     — wasmtime 30 plugin engine
+│   │   └── ntgw-wasm-sdk
+│   ├── ntgw-ir       — Runtime IR, route matching, LB, fast-path
+│   │   └── ntgw-proto — Protobuf codegen
+│   └── ntgw-observability — Metrics, tracing, OTel
+├── ntgw-stream       — TCP/UDP/TLS stream proxy
+├── ntgw-xds          — xDS client for control plane
+├── ntgw-shared-tls   — TLS config / certs
+└── ntgw-allocator    — Memory allocator helpers (mimalloc/jemalloc)
+```
+
+### Key Dependencies
+- **Pingora 0.8.0** — Core proxy framework (Cloudflare). Used for HTTP/stream proxy runtime.
+- **tokio** (full) — Async runtime
+- **tonic** — gRPC (xDS client, ext auth)
+- **axum** — Admin API server
+- **wasmtime 30** — Wasm plugin engine
+- **OpenTelemetry** — Metrics and tracing
+
+## Code Conventions
+
+- **`#![forbid(unsafe_code)]`** — Present in `ntgw-app`, `ntgw-proto`, `ntgw-ir`, and others. Do not add unsafe code.
+- **Workspace dependencies** — All shared deps declared in root `Cargo.toml` under `[workspace.dependencies]`. Use `{workspace = true}` in crate Cargo.tomls.
+- **Edition 2021**, **Apache-2.0** license.
+
+### Test Patterns
+- Module-level `#[cfg(test)]` with `tests.rs` as entry point
+- `include!("tests_*.rs")` macro used to compose test modules within a single `#[cfg(test)]` block
+- `proptest` for property-based testing in `ntgw-ir`, `ntgw-http`, `ntgw-stream`
+- `h2` crate used for HTTP/2 test fixtures in `ntgw-http`
+
+## CI (GitHub Actions)
+
+4 jobs on `ubuntu-latest`, all require `protobuf-compiler`:
+1. `cargo check --workspace`
+2. `cargo test --workspace`
+3. `cargo clippy --workspace -- -D warnings`
+4. `cargo fmt --all -- --check`
+
+## Docker
+
+- **Build context MUST be the monorepo root** (`/root/nantian-gw`), not `dataplane/`
+- Uses aliyun crate mirror for crates.io
+- Requires `cmake`, `pkg-config`, `clang`, `make`, `g++` (for wasmtime/openssl build)
+- Default build feature: `allocator-jemalloc`
+- Binary: `ntgw-app` at `/usr/local/bin/ntgw-app`
+
+## Release Profile
+
+```toml
+[profile.release]
+lto = "thin"
+codegen-units = 1
+panic = "abort"
+```
+
+## Known Issues
+
+- **prometheus 0.13** is pinned (not workspace-managed) in `ntgw-http` and `ntgw-ai`. Upstream `pingora-core 0.8.0` pulls `prometheus 0.13.x` → `protobuf 2.x`. Tracked as `RUSTSEC-2024-0437` in `deny.toml` — the dataplane only exports Prometheus text format, no attacker-supplied protobuf parsing.

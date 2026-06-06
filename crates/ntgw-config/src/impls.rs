@@ -4,6 +4,8 @@ use anyhow::Result;
 use pingora::protocols::l4::ext::TcpKeepalive;
 use sha2::{Digest, Sha256};
 
+use crate::defaults::*;
+
 use super::{
     defaults::{
         default_active_health_check_interval_ms, default_active_health_check_timeout_ms,
@@ -60,6 +62,18 @@ impl AdminAuthConfig {
         }
 
         Ok(trimmed_non_empty(&self.bearer_token))
+    }
+}
+
+impl Default for XdsTlsConfig {
+    fn default() -> Self {
+        Self {
+            enabled: default_xds_tls_enabled(),
+            ca_path: String::new(),
+            cert_path: String::new(),
+            key_path: String::new(),
+            domain_name: String::new(),
+        }
     }
 }
 

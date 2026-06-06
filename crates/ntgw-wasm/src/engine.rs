@@ -10,7 +10,7 @@ pub fn create_engine() -> Result<Engine> {
     config.wasm_component_model(true);
     config.wasm_backtrace_details(wasmtime::WasmBacktraceDetails::Enable);
     config.cranelift_opt_level(OptLevel::Speed);
-    Engine::new(&config).map_err(Into::into)
+    Engine::new(&config)
 }
 
 #[derive(Default)]

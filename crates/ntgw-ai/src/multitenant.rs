@@ -1,23 +1,13 @@
-use std::collections::HashMap;
 use parking_lot::Mutex;
+use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
 /// Per-tenant resource quota.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct TenantQuota {
     pub tokens_per_minute: u64,
     pub tokens_per_day: u64,
     pub requests_per_minute: u64,
-}
-
-impl Default for TenantQuota {
-    fn default() -> Self {
-        Self {
-            tokens_per_minute: 0,
-            tokens_per_day: 0,
-            requests_per_minute: 0,
-        }
-    }
 }
 
 /// A tenant represents an isolated user/organisation within the AI Gateway.

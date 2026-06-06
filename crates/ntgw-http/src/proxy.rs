@@ -5,10 +5,10 @@ use std::{
     time::{Duration, Instant, SystemTime},
 };
 
-use ntgw_ai::wasm_filter::WasmPluginFilter;
 use async_trait::async_trait;
 use bytes::Bytes;
 use http::Version;
+use ntgw_ai::wasm_filter::WasmPluginFilter;
 use pingora::{
     http::{RequestHeader, ResponseHeader},
     prelude::HttpPeer,
@@ -596,7 +596,7 @@ impl ProxyHttp for GatewayProxy {
         // AI Gateway post-processing
         if let Some(ref ai_filter) = self.ai_filter {
             if let Some(ai_ctx) = ctx.ai_context.take() {
-                match ai_filter.post_process(ai_ctx, &[], ctx.status as u16).await {
+                match ai_filter.post_process(ai_ctx, &[], ctx.status).await {
                     Ok(_transformed) => {
                         tracing::debug!(
                             target: "ai_gateway",

@@ -41,7 +41,7 @@ adminAddr: 127.0.0.1:19080
     assert_eq!(default_cfg.xds_transport.apply_timeout().as_millis(), 3_000);
     assert_eq!(
         default_cfg.xds_transport.apply_poll_interval().as_millis(),
-        25
+        100
     );
     assert_eq!(
         default_cfg.xds_transport.stale_stream_timeout().as_millis(),

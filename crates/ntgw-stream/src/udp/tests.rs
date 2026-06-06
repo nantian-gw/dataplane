@@ -6,6 +6,7 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
+use anyhow::Result;
 use ntgw_ir::{
     BackendCluster, BackendEndpoint, BackendRef, Listener, SelectedBackendRuntimeIds,
     SharedSnapshot, Snapshot, StreamMatch, StreamRoute, StreamRule,
@@ -14,7 +15,6 @@ use ntgw_observability::{
     shutdown_access_log_writer, AccessLogMode, AccessLogOptions, OverloadStats, SharedTrafficStats,
     UdpAdmissionController, UdpAdmissionOptions, UdpSessionStats,
 };
-use anyhow::Result;
 use tokio::{
     net::UdpSocket,
     sync::{oneshot, watch},

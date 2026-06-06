@@ -39,7 +39,9 @@ pub(crate) fn snapshot_session_persistence_usage(snapshot: &Snapshot) -> Session
     }
 }
 
-pub(super) fn traffic_upstream_pool_hit_ratio(traffic: &ntgw_observability::TrafficSnapshot) -> f64 {
+pub(super) fn traffic_upstream_pool_hit_ratio(
+    traffic: &ntgw_observability::TrafficSnapshot,
+) -> f64 {
     let total = traffic
         .total_upstream_pool_hits
         .saturating_add(traffic.total_upstream_pool_misses);

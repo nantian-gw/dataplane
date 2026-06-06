@@ -1,6 +1,6 @@
-use ntgw_http::DownstreamTlsInfo;
 use anyhow::{anyhow, Context, Result};
 use async_trait::async_trait;
+use ntgw_http::DownstreamTlsInfo;
 use pingora::{
     listeners::TlsAccept,
     protocols::{l4::stream::Stream as L4Stream, tls::server::handshake_with_callback},

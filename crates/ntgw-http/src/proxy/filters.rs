@@ -1,6 +1,6 @@
+use bytes::Bytes;
 use ntgw_ir::SessionPersistence;
 use ntgw_wasm::WasmError;
-use bytes::Bytes;
 use pingora::prelude::Session;
 use pingora_cache::HitStatus;
 use std::collections::HashMap;

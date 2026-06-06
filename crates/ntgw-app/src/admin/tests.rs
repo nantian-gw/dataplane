@@ -1,3 +1,8 @@
+pub(super) use axum::{
+    body::Body,
+    http::header,
+    http::{Request, StatusCode},
+};
 pub(super) use ntgw_ir::{
     BackendCluster, BackendEndpoint, BackendPolicy, CookieConfig, GrpcRoute, GrpcRule, HttpRule,
     Listener, RouteKind, SelectedBackend, SessionPersistence, Snapshot, StreamMatch, StreamRoute,
@@ -11,11 +16,6 @@ pub(super) use ntgw_observability::{
     UdpAdmissionController, UdpAdmissionOptions, UdpSessionStats,
 };
 pub(super) use ntgw_xds::ClientStats;
-pub(super) use axum::{
-    body::Body,
-    http::header,
-    http::{Request, StatusCode},
-};
 pub(super) use std::{
     fs,
     path::PathBuf,

@@ -11,8 +11,8 @@ mod session;
 
 pub use cache::{CacheManager, CacheOptions};
 
-pub use ntgw_observability::AccessLogOptions;
 pub use mirror::configure_request_mirror_budget;
+pub use ntgw_observability::AccessLogOptions;
 pub use proxy::{DownstreamTlsInfo, RequestContext};
 pub use runtime::bench as runtime_bench;
 pub use runtime::{
