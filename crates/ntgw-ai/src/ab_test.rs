@@ -2,7 +2,8 @@ use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::sync::Mutex;
+
+use parking_lot::Mutex;
 
 /// A single variant in an A/B test experiment.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -71,8 +72,7 @@ impl ABTestEngine {
             return None;
         }
 
-        #[allow(clippy::unwrap_used)]
-        let mut rng = self.rng.lock().unwrap();
+        let mut rng = self.rng.lock();
         let roll: f64 = rng.gen();
 
         let mut cumulative = 0.0_f64;
@@ -86,7 +86,7 @@ impl ABTestEngine {
         // Fallback: return last variant if roll >= total weight
         // (can happen when weights sum < 1.0)
         #[allow(clippy::unwrap_used)]
-        Some(experiment.variants.last().cloned().unwrap())
+        Some(experiment.variants.last().expect("ab-test has non-empty variants").clone())
     }
 
     /// Generate a unique experiment identifier.

@@ -1,6 +1,7 @@
 use std::collections::HashMap;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
+use parking_lot::RwLock;
 use zeroize::Zeroize;
 
 #[derive(Debug, Clone, Zeroize)]
@@ -31,8 +32,7 @@ impl ApiKeyManager {
     /// Look up best backend key for a gateway key + provider combination.
     /// Returns the credential with lowest priority (preferred).
     pub fn resolve(&self, gateway_key: &str) -> Option<BackendCredential> {
-        #[allow(clippy::unwrap_used)]
-        let keys = self.keys.read().unwrap();
+        let keys = self.keys.read();
         let creds = keys.get(gateway_key)?;
         // Return the one with lowest priority (preferred)
         creds.iter().min_by_key(|c| c.priority).cloned()
@@ -41,8 +41,7 @@ impl ApiKeyManager {
     /// Rotate keys: add a new key with lower priority (becomes preferred).
     /// Old key remains available during rotation window.
     pub fn rotate(&self, gateway_key: &str, new_key: String, priority: u8) {
-        #[allow(clippy::unwrap_used)]
-        let mut keys = self.keys.write().unwrap();
+        let mut keys = self.keys.write();
         let cred = BackendCredential {
             api_key: new_key,
             expires_at: None,
@@ -53,8 +52,7 @@ impl ApiKeyManager {
 
     /// Remove a specific key.
     pub fn revoke(&self, gateway_key: &str, api_key: &str) -> bool {
-        #[allow(clippy::unwrap_used)]
-        let mut keys = self.keys.write().unwrap();
+        let mut keys = self.keys.write();
         if let Some(creds) = keys.get_mut(gateway_key) {
             let before = creds.len();
             creds.retain(|c| c.api_key != api_key);
@@ -66,15 +64,13 @@ impl ApiKeyManager {
 
     /// Reload keys from external config map.
     pub fn reload(&self, key_map: HashMap<String, Vec<BackendCredential>>) {
-        #[allow(clippy::unwrap_used)]
-        let mut keys = self.keys.write().unwrap();
+        let mut keys = self.keys.write();
         *keys = key_map;
     }
 
     /// Check if any keys are configured.
     pub fn is_empty(&self) -> bool {
-        #[allow(clippy::unwrap_used)]
-        self.keys.read().unwrap().is_empty()
+        self.keys.read().is_empty()
     }
 }
 
