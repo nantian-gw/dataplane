@@ -1,4 +1,5 @@
 use std::{
+    borrow::Cow,
     collections::BTreeMap,
     fs,
     path::PathBuf,
@@ -46,11 +47,11 @@ pub struct AccessLogBenchStep {
     pub sample_rate: f64,
 }
 
-pub struct AccessLogFixture {
+pub struct AccessLogFixture<'a> {
     path: PathBuf,
     options: AccessLogOptions,
     route_annotations: BTreeMap<String, String>,
-    record: AccessLogRecord,
+    record: AccessLogRecord<'a>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -197,7 +198,7 @@ impl TrafficStatsFixture {
     }
 }
 
-impl AccessLogFixture {
+impl<'a> AccessLogFixture<'a> {
     pub fn build(config: AccessLogBenchConfig) -> Self {
         let path = unique_log_path("ntgw-access-log-bench");
         let mut route_annotations = BTreeMap::new();
@@ -226,17 +227,17 @@ impl AccessLogFixture {
                 timestamp: "2026-01-01T00:00:00.000Z".to_string(),
                 start_time_unix_ms: 1_700_000_000_000,
                 snapshot_version: "bench-v1".to_string(),
-                listener: "default/gw/http".to_string(),
-                protocol: "HTTP".to_string(),
+                listener: Cow::Borrowed("default/gw/http"),
+                protocol: Cow::Borrowed("HTTP"),
                 client_ip: "10.0.0.10".to_string(),
                 host: "bench.example.com".to_string(),
                 method: "GET".to_string(),
                 path: "/bench/items".to_string(),
                 request_id: "bench-request".to_string(),
-                route_namespace: "default".to_string(),
-                route_name: "bench-route".to_string(),
-                route_kind: "Http".to_string(),
-                backend: "default/bench-backend:8080".to_string(),
+                route_namespace: Cow::Borrowed("default"),
+                route_name: Cow::Borrowed("bench-route"),
+                route_kind: Cow::Borrowed("Http"),
+                backend: Cow::Borrowed("default/bench-backend:8080"),
                 status: Some(200),
                 latency_ms: 12,
                 bytes_sent: 512,
@@ -278,7 +279,7 @@ impl AccessLogFixture {
     }
 }
 
-impl Drop for AccessLogFixture {
+impl Drop for AccessLogFixture<'_> {
     fn drop(&mut self) {
         self.cleanup();
     }

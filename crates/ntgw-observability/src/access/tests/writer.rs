@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use std::{
     io::{self, Write},
     sync::{
@@ -17,7 +19,7 @@ fn writes_access_logs_via_background_worker() {
     };
     let record = AccessLogRecord {
         event: "http_request".to_string(),
-        route_name: "orders".to_string(),
+        route_name: Cow::Borrowed("orders"),
         ..AccessLogRecord::default()
     };
 

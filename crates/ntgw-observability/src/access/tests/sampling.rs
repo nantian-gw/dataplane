@@ -1,8 +1,10 @@
+use std::borrow::Cow;
+
 #[test]
 fn sampling_respects_extreme_values() {
     let record = AccessLogRecord {
         event: "http_request".to_string(),
-        route_name: "orders".to_string(),
+        route_name: Cow::Borrowed("orders"),
         start_time_unix_ms: 42,
         ..AccessLogRecord::default()
     };
@@ -16,11 +18,11 @@ fn sampling_prefers_runtime_ids_over_display_names() {
     let rate = 0.5;
     let base_without_ids = AccessLogRecord {
         event: "http_request".to_string(),
-        listener: "listener-a".to_string(),
+        listener: Cow::Borrowed("listener-a"),
         request_id: "request-1".to_string(),
-        route_namespace: "default".to_string(),
-        route_name: "orders".to_string(),
-        backend: "default/orders:8080".to_string(),
+        route_namespace: Cow::Borrowed("default"),
+        route_name: Cow::Borrowed("orders"),
+        backend: Cow::Borrowed("default/orders:8080"),
         start_time_unix_ms: 42,
         ..AccessLogRecord::default()
     };
@@ -52,13 +54,13 @@ fn write_options_can_sample_before_building_full_record() {
     };
     let key = AccessLogSampleKey {
         event: "http_request",
-        listener: "listener-a",
+        listener: Cow::Borrowed("listener-a"),
         listener_runtime_id: None,
         request_id: "request-1",
-        route_namespace: "default",
-        route_name: "orders",
+        route_namespace: Cow::Borrowed("default"),
+        route_name: Cow::Borrowed("orders"),
         route_runtime_id: None,
-        backend: "default/orders:8080",
+        backend: Cow::Borrowed("default/orders:8080"),
         backend_runtime_id: None,
         start_time_unix_ms: 42,
     };
@@ -80,13 +82,13 @@ fn write_options_borrow_base_when_route_annotations_do_not_override_access_log()
     annotations.insert("example.com/unrelated".to_string(), "ignored".to_string());
     let key = AccessLogSampleKey {
         event: "http_request",
-        listener: "listener-a",
+        listener: Cow::Borrowed("listener-a"),
         listener_runtime_id: None,
         request_id: "request-1",
-        route_namespace: "default",
-        route_name: "orders",
+        route_namespace: Cow::Borrowed("default"),
+        route_name: Cow::Borrowed("orders"),
         route_runtime_id: None,
-        backend: "default/orders:8080",
+        backend: Cow::Borrowed("default/orders:8080"),
         backend_runtime_id: None,
         start_time_unix_ms: 42,
     };
@@ -108,13 +110,13 @@ fn write_options_sampling_prefers_runtime_ids_over_display_names() {
     };
     let base_without_ids = AccessLogSampleKey {
         event: "http_request",
-        listener: "listener-a",
+        listener: Cow::Borrowed("listener-a"),
         listener_runtime_id: None,
         request_id: "request-1",
-        route_namespace: "default",
-        route_name: "orders",
+        route_namespace: Cow::Borrowed("default"),
+        route_name: Cow::Borrowed("orders"),
         route_runtime_id: None,
-        backend: "default/orders:8080",
+        backend: Cow::Borrowed("default/orders:8080"),
         backend_runtime_id: None,
         start_time_unix_ms: 42,
     };

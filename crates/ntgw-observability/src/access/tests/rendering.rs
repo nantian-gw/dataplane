@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 #[test]
 fn renders_access_log_template() {
     let line = render_access_log(
@@ -8,8 +10,8 @@ fn renders_access_log_template() {
         &AccessLogRecord {
             event: "http_request".to_string(),
             start_time_unix_ms: 123,
-            listener: "edge".to_string(),
-            protocol: "HTTP".to_string(),
+            listener: Cow::Borrowed("edge"),
+            protocol: Cow::Borrowed("HTTP"),
             host: "example.com".to_string(),
             method: "GET".to_string(),
             status: Some(200),
@@ -73,8 +75,8 @@ fn renders_json_access_log() {
         },
         &AccessLogRecord {
             event: "tcp_session".to_string(),
-            listener: "stream".to_string(),
-            protocol: "TCP".to_string(),
+            listener: Cow::Borrowed("stream"),
+            protocol: Cow::Borrowed("TCP"),
             ..AccessLogRecord::default()
         },
     )

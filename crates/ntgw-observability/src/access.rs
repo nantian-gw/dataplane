@@ -65,17 +65,17 @@ impl Default for AccessLogOptions {
     }
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct AccessLogRecord {
+pub struct AccessLogRecord<'a> {
     pub event: String,
     pub timestamp: String,
     pub start_time_unix_ms: u128,
     pub snapshot_version: String,
-    pub listener: String,
+    pub listener: Cow<'a, str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub listener_runtime_id: Option<String>,
-    pub protocol: String,
+    pub protocol: Cow<'a, str>,
     pub client_ip: String,
     #[serde(skip_serializing_if = "String::is_empty")]
     pub host: String,
@@ -85,14 +85,14 @@ pub struct AccessLogRecord {
     pub path: String,
     #[serde(skip_serializing_if = "String::is_empty")]
     pub request_id: String,
-    pub route_namespace: String,
-    pub route_name: String,
-    pub route_kind: String,
+    pub route_namespace: Cow<'a, str>,
+    pub route_name: Cow<'a, str>,
+    pub route_kind: Cow<'a, str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub route_runtime_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rule_runtime_id: Option<String>,
-    pub backend: String,
+    pub backend: Cow<'a, str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub backend_runtime_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -126,6 +126,49 @@ pub struct AccessLogRecord {
     pub connection_id: String,
 }
 
+impl Default for AccessLogRecord<'static> {
+    fn default() -> Self {
+        Self {
+            event: String::new(),
+            timestamp: String::new(),
+            start_time_unix_ms: 0,
+            snapshot_version: String::new(),
+            listener: Cow::Borrowed(""),
+            listener_runtime_id: None,
+            protocol: Cow::Borrowed(""),
+            client_ip: String::new(),
+            host: String::new(),
+            method: String::new(),
+            path: String::new(),
+            request_id: String::new(),
+            route_namespace: Cow::Borrowed(""),
+            route_name: Cow::Borrowed(""),
+            route_kind: Cow::Borrowed(""),
+            route_runtime_id: None,
+            rule_runtime_id: None,
+            backend: Cow::Borrowed(""),
+            backend_runtime_id: None,
+            endpoint_runtime_id: None,
+            status: None,
+            latency_ms: 0,
+            bytes_sent: 0,
+            bytes_received: 0,
+            retry_attempts: 0,
+            response_flags: String::new(),
+            request: String::new(),
+            http_version: String::new(),
+            query_string: String::new(),
+            referer: String::new(),
+            user_agent: String::new(),
+            x_forwarded_for: String::new(),
+            upstream_addr: String::new(),
+            upstream_connect_time_ms: 0,
+            content_type: String::new(),
+            connection_id: String::new(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct AccessLogSampleKey<'a> {
     pub event: &'a str,
@@ -140,17 +183,17 @@ pub struct AccessLogSampleKey<'a> {
     pub start_time_unix_ms: u128,
 }
 
-impl AccessLogRecord {
-    pub fn sample_key(&self) -> AccessLogSampleKey<'_> {
+impl<'a> AccessLogRecord<'a> {
+    pub fn sample_key(&'a self) -> AccessLogSampleKey<'a> {
         AccessLogSampleKey {
             event: self.event.as_str(),
-            listener: self.listener.as_str(),
+            listener: self.listener.as_ref(),
             listener_runtime_id: parse_runtime_id_hex(self.listener_runtime_id.as_deref()),
             request_id: self.request_id.as_str(),
-            route_namespace: self.route_namespace.as_str(),
-            route_name: self.route_name.as_str(),
+            route_namespace: self.route_namespace.as_ref(),
+            route_name: self.route_name.as_ref(),
             route_runtime_id: parse_runtime_id_hex(self.route_runtime_id.as_deref()),
-            backend: self.backend.as_str(),
+            backend: self.backend.as_ref(),
             backend_runtime_id: parse_runtime_id_hex(self.backend_runtime_id.as_deref()),
             start_time_unix_ms: self.start_time_unix_ms,
         }

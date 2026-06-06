@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::collections::BTreeMap;
 
 use ntgw_observability::{
@@ -100,48 +101,49 @@ pub(crate) fn observe_completed_request(
         return;
     };
 
-    let route_labels = request_route_labels(ctx);
-    let record = AccessLogRecord {
-        event: "http_request".to_string(),
-        timestamp: current_timestamp(),
-        start_time_unix_ms: ctx.started_at_unix_ms,
-        snapshot_version: ctx.snapshot_version.clone(),
-        listener: route_labels.listener_name.to_string(),
-        listener_runtime_id: ctx.runtime_ids.listener.map(|id| id.to_string()),
-        protocol: route_labels.effective_protocol().to_string(),
-        client_ip: ctx.client_ip.clone(),
-        host: ctx.host.clone(),
-        method: ctx.method.clone(),
-        path: ctx.path.clone(),
-        request_id: ctx.request_id.clone(),
-        route_namespace: route_labels.route_namespace.to_string(),
-        route_name: route_labels.route_name.to_string(),
-        route_kind: route_labels.route_kind.to_string(),
-        route_runtime_id: ctx.runtime_ids.route.map(|id| id.to_string()),
-        rule_runtime_id: ctx.runtime_ids.rule.map(|id| id.to_string()),
-        backend: route_labels.backend_name.to_string(),
-        backend_runtime_id: ctx.runtime_ids.backend.map(|id| id.to_string()),
-        endpoint_runtime_id: ctx.runtime_ids.endpoint.map(|id| id.to_string()),
-        status: Some(ctx.status),
-        latency_ms,
-        bytes_sent,
-        bytes_received: ctx.bytes_received,
-        retry_attempts: ctx.retry_attempts,
-        response_flags: ctx.response_flags.clone(),
-        request: build_request_line(ctx),
-        http_version: ctx.http_version.clone(),
-        query_string: ctx.query_string.clone(),
-        referer: extract_request_header(&ctx.request_headers, "referer"),
-        user_agent: extract_request_header(&ctx.request_headers, "user-agent"),
-        x_forwarded_for: extract_request_header(&ctx.request_headers, "x-forwarded-for"),
-        upstream_addr: ctx.upstream_addr.clone(),
-        upstream_connect_time_ms: ctx.upstream_connect_latency_ms as u128,
-        content_type: ctx.response_content_type.clone(),
-        connection_id: ctx.connection_id.clone(),
+    let write_result = {
+        let route_labels = request_route_labels(ctx);
+        let record = AccessLogRecord {
+            event: "http_request".to_string(),
+            timestamp: current_timestamp(),
+            start_time_unix_ms: ctx.started_at_unix_ms,
+            snapshot_version: ctx.snapshot_version.clone(),
+            listener: Cow::Borrowed(route_labels.listener_name),
+            listener_runtime_id: ctx.runtime_ids.listener.map(|id| id.to_string()),
+            protocol: Cow::Borrowed(route_labels.effective_protocol()),
+            client_ip: ctx.client_ip.clone(),
+            host: ctx.host.clone(),
+            method: ctx.method.clone(),
+            path: ctx.path.clone(),
+            request_id: ctx.request_id.clone(),
+            route_namespace: Cow::Borrowed(route_labels.route_namespace),
+            route_name: Cow::Borrowed(route_labels.route_name),
+            route_kind: Cow::Borrowed(route_labels.route_kind),
+            route_runtime_id: ctx.runtime_ids.route.map(|id| id.to_string()),
+            rule_runtime_id: ctx.runtime_ids.rule.map(|id| id.to_string()),
+            backend: Cow::Borrowed(route_labels.backend_name),
+            backend_runtime_id: ctx.runtime_ids.backend.map(|id| id.to_string()),
+            endpoint_runtime_id: ctx.runtime_ids.endpoint.map(|id| id.to_string()),
+            status: Some(ctx.status),
+            latency_ms,
+            bytes_sent,
+            bytes_received: ctx.bytes_received,
+            retry_attempts: ctx.retry_attempts,
+            response_flags: ctx.response_flags.clone(),
+            request: build_request_line(ctx),
+            http_version: ctx.http_version.clone(),
+            query_string: ctx.query_string.clone(),
+            referer: extract_request_header(&ctx.request_headers, "referer"),
+            user_agent: extract_request_header(&ctx.request_headers, "user-agent"),
+            x_forwarded_for: extract_request_header(&ctx.request_headers, "x-forwarded-for"),
+            upstream_addr: ctx.upstream_addr.clone(),
+            upstream_connect_time_ms: ctx.upstream_connect_latency_ms as u128,
+            content_type: ctx.response_content_type.clone(),
+            connection_id: ctx.connection_id.clone(),
+        };
+        render_access_log(&resolved_access_log, &record)
+            .and_then(|line| emit_access_log(&resolved_access_log.path, &line))
     };
-
-    let write_result = render_access_log(&resolved_access_log, &record)
-        .and_then(|line| emit_access_log(&resolved_access_log.path, &line));
     if let Err(err) = write_result {
         error!(error = %err, "failed to emit access log");
     }

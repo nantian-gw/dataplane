@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::io;
 use std::sync::Arc;
 
@@ -261,24 +262,24 @@ async fn handle_connection(
             timestamp: current_timestamp(),
             start_time_unix_ms: access_log_state.started_at_unix_ms,
             snapshot_version: access_log_state.snapshot_version.clone(),
-            listener: listener_name.clone(),
+            listener: Cow::Owned(listener_name.clone()),
             listener_runtime_id: runtime_ids.listener.map(|id| id.to_string()),
-            protocol: if is_tls_passthrough {
+            protocol: Cow::Owned(if is_tls_passthrough {
                 "TLS_PASSTHROUGH".to_string()
             } else {
                 "TCP".to_string()
-            },
+            }),
             client_ip: client_addr
                 .map(|addr| addr.ip().to_string())
                 .unwrap_or_else(|| "-".to_string()),
             host: server_name.as_deref().unwrap_or_default().to_string(),
             request_id: String::new(),
-            route_namespace: selected.route_namespace.clone(),
-            route_name: selected.route_name.clone(),
-            route_kind: format!("{:?}", selected.route_kind),
+            route_namespace: Cow::Owned(selected.route_namespace.clone()),
+            route_name: Cow::Owned(selected.route_name.clone()),
+            route_kind: Cow::Owned(format!("{:?}", selected.route_kind)),
             route_runtime_id: runtime_ids.route.map(|id| id.to_string()),
             rule_runtime_id: runtime_ids.rule.map(|id| id.to_string()),
-            backend: selected.backend_name.clone(),
+            backend: Cow::Owned(selected.backend_name.clone()),
             backend_runtime_id: runtime_ids.backend.map(|id| id.to_string()),
             endpoint_runtime_id: runtime_ids.endpoint.map(|id| id.to_string()),
             status: None,
