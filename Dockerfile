@@ -4,6 +4,10 @@ FROM ${RUST_IMAGE} AS chef
 
 ENV CARGO_HOME=/usr/local/cargo
 
+# Use aliyun mirror for crates.io in China
+RUN mkdir -p ${CARGO_HOME} && \
+    printf '[source.crates-io]\nreplace-with = "aliyun"\n[source.aliyun]\nregistry = "sparse+https://mirrors.aliyun.com/crates.io-index/"\n' > ${CARGO_HOME}/config.toml
+
 RUN apt-get update \
     && apt-get install -y --no-install-recommends cmake pkg-config clang make g++ \
     && rm -rf /var/lib/apt/lists/*
