@@ -80,6 +80,17 @@ impl CacheManager {
 
         CACHE_DEFAULT_TTL_SECS.store(options.default_ttl.as_secs(), Ordering::Relaxed);
 
+        // Box::leak is required here because Pingora's HttpCache API expects &'static
+        // storage. The leaked memory is bounded by max_size_bytes and is the cache itself
+        // — it is intentionally allocated for the process lifetime, not truly "leaked".
+        let max_gb = options.max_size_bytes as f64 / (1024.0 * 1024.0 * 1024.0);
+        if max_gb > 4.0 {
+            tracing::warn!(
+                max_size_gb = %max_gb,
+                "HTTP cache configured with large memory footprint; ensure adequate headroom to avoid OOM"
+            );
+        }
+
         let storage: &'static MemCache = Box::leak(Box::new(MemCache::new()));
         let eviction: &'static LruManager =
             Box::leak(Box::new(LruManager::new(options.max_size_bytes)));

@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::sync::Mutex;
+use parking_lot::Mutex;
 use std::time::{Duration, Instant};
 
 /// Per-tenant resource quota.
@@ -151,7 +151,7 @@ impl TenantManager {
         }
 
         #[allow(clippy::unwrap_used)]
-        let mut state = self.quota_state.lock().unwrap();
+        let mut state = self.quota_state.lock();
         let entry = state
             .entry(tenant_id.to_string())
             .or_insert_with(TenantQuotaState::new);

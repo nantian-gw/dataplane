@@ -1,4 +1,5 @@
 use regex::Regex;
+use std::sync::LazyLock;
 
 use crate::format::ir::{AIContent, AIRequest};
 
@@ -65,9 +66,11 @@ impl ContentSafetyFilter {
     }
 
     /// Default regex patterns for the five content safety categories.
+    /// Compiled once via LazyLock for reuse across all ContentSafetyFilter instances.
     #[allow(clippy::unwrap_used)]
     fn default_patterns() -> Vec<(String, Regex)> {
-        vec![
+        static PATTERNS: LazyLock<Vec<(String, Regex)>> = LazyLock::new(|| {
+            vec![
             // ── Violence ──────────────────────────────────────────
             (
                 "violence".into(),
@@ -124,6 +127,8 @@ impl ContentSafetyFilter {
                     .unwrap(),
             ),
         ]
+        });
+        PATTERNS.clone()
     }
 
     /// Default keyword list for the five content safety categories.

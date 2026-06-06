@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::sync::Mutex;
+use parking_lot::Mutex;
 use std::time::{Duration, Instant};
 
 /// Result of a rate limit check.
@@ -149,7 +149,7 @@ impl TokenRateLimiter {
             };
         }
 
-        let mut windows = self.windows.lock().unwrap();
+        let mut windows = self.windows.lock();
         let window = windows
             .entry(key.to_string())
             .or_insert_with(|| SlidingWindow::new(&self.config));
@@ -167,7 +167,7 @@ impl TokenRateLimiter {
             };
         }
 
-        let mut windows = self.windows.lock().unwrap();
+        let mut windows = self.windows.lock();
         let window = windows
             .entry(key.to_string())
             .or_insert_with(|| SlidingWindow::new(&self.config));

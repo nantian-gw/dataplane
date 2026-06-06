@@ -1,4 +1,5 @@
 use regex::Regex;
+use std::sync::LazyLock;
 
 use crate::format::ir::{AIContent, AIRequest};
 
@@ -58,8 +59,9 @@ impl PromptGuardFilter {
 
     #[allow(clippy::unwrap_used)]
     fn default_patterns() -> Vec<Regex> {
-        vec![
-            Regex::new(
+        static PATTERNS: LazyLock<Vec<Regex>> = LazyLock::new(|| {
+            vec![
+                Regex::new(
                 r"(?i)(ignore|forget|override)\s+(all\s+)?(previous|above|prior)\s+(instructions?|prompts?)",
             )
             .unwrap(),
@@ -71,7 +73,9 @@ impl PromptGuardFilter {
             Regex::new(r"(?i)(do\s+not|don't|never)\s+follow\s+(your|the)\s+(guidelines|rules|instructions)")
                 .unwrap(),
             Regex::new(r"(?i)system\s*prompt\s*[:=].*you\s+are").unwrap(),
-        ]
+            ]
+        });
+        PATTERNS.clone()
     }
 
     /// Returns the configured mode.

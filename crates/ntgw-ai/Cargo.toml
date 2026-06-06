@@ -25,6 +25,7 @@ rand = "0.8"
 zeroize = { workspace = true }
 ntgw-wasm = { path = "../ntgw-wasm" }
 dashmap = { workspace = true }
+parking_lot = { workspace = true }
 
 [dev-dependencies]
 opentelemetry_sdk = { workspace = true, features = ["rt-tokio", "trace", "testing"] }
