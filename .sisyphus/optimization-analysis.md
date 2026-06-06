@@ -416,3 +416,197 @@ pub http_max_request_header_bytes: usize,  // serde(default) → 0 = 无限制
 | **P2** | 安全 | IP 黑白名单 | 防御恶意流量 | 大 |
 | **P2** | 安全 | Admin API mTLS | 加固管理接口 | 中等 |
 | **P2** | 延迟 | HTTP/3 支持评估 | 弱网环境改善 | 大 |
+
+---
+
+## 五、第二轮深度优化（代码质量 + 构建 + 可观测性）
+
+> 审计日期：2026-06-06（第二轮）
+> 审计范围：全部 14 个 crate，~100K 行 Rust 代码
+
+### P0 — 生产环境稳定性
+
+#### 1. `std::sync::Mutex` 在 async 上下文中会阻塞 tokio 线程
+
+**位置**：`crates/ntgw-ai/src/ratelimit.rs:2`, `crates/ntgw-ai/src/multitenant.rs:2`
+
+```rust
+use std::sync::Mutex;  // 阻塞型锁！
+```
+
+**影响**：tokio 默认工作线程数等于 CPU 核心数。如果在 async 任务中持有 `std::sync::Mutex` 导致阻塞，会饥饿其他就绪任务，导致尾延迟飙升。
+
+**建议**：统一替换为 `parking_lot::Mutex`（已在 workspace deps 中）。
+
+**对比**：`ntgw-http`/`ntgw-ir` 已使用 `parking_lot::RwLock`，但 `ntgw-ai` 混用 `std::sync::Mutex`。
+
+---
+
+#### 2. Regex 在热路径运行时编译
+
+**位置**：`crates/ntgw-ai/src/content_safety.rs:74-118`
+
+```rust
+Regex::new(r"(?i)(how\s+to|teach\s+me\s+to)\s+(kill|...")  // 每次请求编译！
+```
+
+**影响**：`ContentSafetyFilter::default_patterns()` 返回 `Vec<(String, Regex)>`，其中每个 Regex 在函数调用时编译。如果该函数被多次调用（例如在请求路径中），会产生大量不必要的编译开销。
+
+**建议**：使用 `std::sync::LazyLock`（Rust 1.80+ stable）包装 Regex，确保只编译一次。
+
+**同样问题**：`prompt_guard.rs` 中的 `PromptGuardFilter::default_patterns()`。
+
+---
+
+#### 3. `Box::leak` 导致的 4 处有意内存泄漏
+
+**位置**：`crates/ntgw-http/src/cache/mod.rs:83-89`
+
+```rust
+let storage: &'static MemCache = Box::leak(Box::new(MemCache::new()));
+let eviction: &'static LruManager = Box::leak(Box::new(...));
+let lock: &'static CacheLock = Box::leak(CacheLock::new_boxed(...));
+let defaults: &'static CacheMetaDefaults = Box::leak(Box::new(...));
+```
+
+**影响**：HTTP 缓存启用后，缓存存储、LRU 管理器、锁和元数据永远无法被回收。在容器化部署中，如果缓存配置过大，OOM killer 可能触发。
+
+**建议**：改为 `Arc<Mutex<MemCache>>` 架构，支持热更新缓存大小上限。
+
+---
+
+### P1 — 性能优化
+
+#### 4. 日志热路径中的字符串分配
+
+**统计**：
+- `.to_string()` 调用：2841 处（全代码库）
+- `format!()` 调用：346 处
+- `.clone()` 调用：1111 处
+
+**热点文件**：
+| 文件 | `.to_string()` | 问题 |
+|------|:---:|------|
+| `ntgw-http/src/proxy/logging.rs` | 15+ | 每个请求构造 JSON 事件时大量字符串分配 |
+| `ntgw-http/src/proxy/filters.rs` | 10+ | query_string、path 重复分配 |
+| `ntgw-http/src/proxy/context.rs` | 5+ | backend_name, address 重复分配 |
+
+**建议**：使用 `Arc<str>` 或 `Cow<str>` 减少重复分配。访问日志的 JSON 序列化可考虑预分配 buffer。
+
+---
+
+#### 5. `unwrap()` 调用在生产代码中
+
+**统计**：57 处非测试代码中的 `.unwrap()` 调用
+
+| 文件 | 数量 |
+|------|:---:|
+| `ntgw-ai/src/content_safety.rs` | 10 |
+| `ntgw-stream/src/pool.rs` | 6 |
+| `ntgw-ai/src/ab_test.rs` | 6 |
+| `ntgw-ai/src/prompt_guard.rs` | 5 |
+| `ntgw-ai/src/keyring.rs` | 5 |
+
+**影响**：如果这些路径触发 panic，将导致 tokio 任务崩溃，可能引发级联故障。
+
+**建议**：替换为 `.expect("descriptive message")` 或 `?` 传播错误。
+
+---
+
+#### 6. 锁原语不一致
+
+| Crate | 使用的锁 | 问题 |
+|-------|----------|------|
+| `ntgw-http` | `parking_lot::RwLock` | ✅ 正确 |
+| `ntgw-ir` | `parking_lot::{Mutex, Condvar, RwLock}` | ✅ 正确 |
+| `ntgw-ai` | `std::sync::Mutex`, `std::sync::RwLock` | ❌ 应统一为 parking_lot |
+| `ntgw-observability` | `parking_lot::RwLock` | ✅ 正确 |
+
+**建议**：全项目统一使用 `parking_lot`，`std::sync::*` 仅用于需要 poisoning 语义的场景。
+
+---
+
+### P2 — 构建优化
+
+#### 7. Release profile 缺少 `strip`
+
+**位置**：`Cargo.toml`
+
+```toml
+[profile.release]
+lto = "thin"
+codegen-units = 1
+panic = "abort"
+# 缺少: strip = true
+```
+
+**建议**：添加 `strip = true` 可减少 20-40% 二进制大小。
+
+---
+
+#### 8. 单消费者 workspace 依赖
+
+以下 workspace 级依赖仅被 1 个 crate 使用，可下放到 crate 级 `Cargo.toml`，加速增量编译：
+
+| 依赖 | 仅被使用于 |
+|------|-----------|
+| `arc-swap` | `ntgw-bench` |
+| `bytes` | `ntgw-http` |
+| `form_urlencoded` | `ntgw-ir` |
+| `getrandom` | `ntgw-http` |
+| `humantime` | `ntgw-observability` |
+| `hmac` | `ntgw-http` |
+| `http` | `ntgw-http` |
+| `nix` | `ntgw-observability` |
+| `subtle` | `ntgw-app` |
+
+---
+
+### P2 — 可观测性增强
+
+#### 9. 缺少分布式追踪 span
+
+**发现**：全代码库中 **零个** `#[instrument]` / `#[tracing::instrument]` 注解。
+
+**影响**：无法在 Jaeger/Tempo 中查看请求的完整调用链，调试跨服务延迟问题困难。
+
+**建议**：在关键函数添加 `#[instrument]`：
+- `GatewayProxy::upstream_peer()` 
+- `apply_request_filters()` / `apply_response_filters()`
+- `run_external_auth()`
+- `AIGatewayFilter::pre_process()` / `post_process()`
+- `TcpConnectionPool::get_connection()`
+
+---
+
+#### 10. 缺失缓存可观测性指标
+
+**发现**：HTTP Cache (`ntgw-http/src/cache/mod.rs`) 无 Prometheus 指标暴露。
+
+**建议**：添加 `http_cache_hits_total` / `http_cache_misses_total` / `http_cache_evictions_total` 计数器。
+
+---
+
+#### 11. 缺失 TLS 握手时长指标
+
+**发现**：虽然 `traffic.rs` 记录了 `total_upstream_tls_handshake_failures`，但没有 TLS 握手延迟的 histogram。
+
+**建议**：添加 `upstream_tls_handshake_duration_seconds` histogram。
+
+---
+
+## 六、第二轮总结
+
+| 优先级 | 类别 | 建议 | 改动量 |
+|--------|------|------|--------|
+| **P0** | 稳定性 | `std::sync::Mutex` → `parking_lot::Mutex` | 小（2 文件） |
+| **P0** | 性能 | Regex 编译 → `LazyLock` | 小（2 文件） |
+| **P0** | 内存 | `Box::leak` 替换 | 大（需架构改动） |
+| **P1** | 性能 | 日志热路径字符串分配优化 | 中等 |
+| **P1** | 稳定性 | `unwrap()` → `expect()`/`?` | 中等（57 处） |
+| **P1** | 一致性 | 统一使用 `parking_lot` | 小 |
+| **P2** | 构建 | Release `strip = true` | 1 行 |
+| **P2** | 构建 | 下放单消费者 workspace 依赖 | 小（编辑 Cargo.toml） |
+| **P2** | 可观测 | 添加 `#[instrument]` span | 中等 |
+| **P2** | 可观测 | 缓存/TLS 指标 | 小 |
+| **P2** | 可观测 | Debug 日志降级或条件编译 | 小 |
