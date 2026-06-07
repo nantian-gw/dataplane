@@ -2095,7 +2095,7 @@ dependencies = [
  "async-trait",
  "base64 0.22.1",
  "bytes",
- "getrandom 0.2.17",
+ "getrandom 0.4.2",
  "h2",
  "hmac",
  "http",
