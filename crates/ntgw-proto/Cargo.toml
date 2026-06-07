@@ -12,3 +12,4 @@ tonic.workspace = true
 [build-dependencies]
 protoc-bin-vendored = "3.2.0"
 tonic-build.workspace = true
+ureq = { version = "2", default-features = false, features = ["tls"] }

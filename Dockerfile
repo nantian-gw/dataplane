@@ -12,10 +12,6 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends cmake pkg-config clang make g++ \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /src
-
-COPY proto/ /src/proto/
-
 WORKDIR /src/dataplane
 COPY dataplane/ /src/dataplane/
 COPY tests/testdata/ /src/tests/testdata/
