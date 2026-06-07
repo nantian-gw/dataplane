@@ -39,7 +39,7 @@ http = "1.4.0"
 nix = "0.24.3"
 opentelemetry = "0.31.0"
 opentelemetry-otlp = { version = "0.31.0", features = ["grpc-tonic", "trace"] }
-opentelemetry_sdk = { version = "0.31.0", features = ["rt-tokio", "trace"] }
+opentelemetry_sdk = { version = "0.32.1", features = ["rt-tokio", "trace"] }
 parking_lot = "0.12.3"
 pingora = { version = "0.8.0", default-features = false, features = ["proxy", "openssl", "cache"] }
 pingora-cache = "0.8.0"
