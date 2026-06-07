@@ -43,7 +43,7 @@ opentelemetry_sdk = { version = "0.31.0", features = ["rt-tokio", "trace"] }
 parking_lot = "0.12.3"
 pingora = { version = "0.8.0", default-features = false, features = ["proxy", "openssl", "cache"] }
 pingora-cache = "0.8.0"
-prost = "0.13.5"
+prost = "0.14.3"
 prost-types = "0.13.5"
 proptest = "1.6.0"
 regex = "1.12.2"
