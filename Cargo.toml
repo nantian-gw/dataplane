@@ -61,7 +61,7 @@ tonic-build = "0.12.3"
 tower = { version = "0.5.2", features = ["util"] }
 tracing = "0.1.41"
 tracing-appender = "0.2.3"
-tracing-opentelemetry = "0.32.0"
+tracing-opentelemetry = "0.33.0"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter", "fmt", "json"] }
 zeroize = { version = "1", features = ["derive"] }
 ntgw-allocator = { version = "0.1.0", path = "crates/ntgw-allocator" }
