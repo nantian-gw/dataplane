@@ -1,0 +1,35 @@
+name: Docker
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Prepare build context
+        run: |
+          # Dockerfile expects monorepo layout: dataplane/ + tests/testdata/
+          # The checkout is dataplane/ only, so create a wrapper context.
+          mkdir -p /tmp/docker-build/tests/testdata
+          cp -r . /tmp/docker-build/dataplane
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: /tmp/docker-build
+          file: /tmp/docker-build/dataplane/Dockerfile
+          push: false
+          build-args: |
+            DATAPLANE_CARGO_FEATURES=allocator-jemalloc
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
