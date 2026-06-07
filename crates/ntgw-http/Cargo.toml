@@ -29,7 +29,7 @@ ntgw-observability.workspace = true
 ntgw-proto.workspace = true
 ntgw-ai = { path = "../ntgw-ai" }
 ntgw-wasm.workspace = true
-prometheus = "0.13"
+prometheus = "0.14"
 tonic.workspace = true
 
 [dev-dependencies]
