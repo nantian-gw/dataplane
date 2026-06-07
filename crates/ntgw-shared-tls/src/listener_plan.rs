@@ -151,8 +151,7 @@ fn merge_frontend_validation(
     }
 
     Err(anyhow!(
-        "frontend validation conflict on shared tls bind {}",
-        bind
+        "frontend validation conflict on shared tls bind {bind}"
     ))
 }
 
