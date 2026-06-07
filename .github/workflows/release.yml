@@ -30,7 +30,7 @@ jobs:
           sha256sum target/release/ntgw-app > target/release/ntgw-app.sha256
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Prepare Docker build context
         run: |
