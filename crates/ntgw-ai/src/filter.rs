@@ -152,7 +152,7 @@ impl AIGatewayFilter {
             }
             headers.insert("x-request-model".to_string(), request.model.clone());
             wf.pre_process(&headers, &masked_body)
-                .map_err(|e| AIError::Internal(anyhow::anyhow!("wasm plugin rejected: {}", e)))?;
+                .map_err(|e| AIError::Internal(anyhow::anyhow!("wasm plugin rejected: {e}")))?;
         }
 
         // 2b. Model routing: classify and replace model if router configured.
@@ -324,7 +324,7 @@ impl AIGatewayFilter {
         if let Some(ref wf) = self.wasm_filter {
             wf.post_process(&HashMap::new(), response_body)
                 .map_err(|e| {
-                    AIError::Internal(anyhow::anyhow!("wasm plugin response rejected: {}", e))
+                    AIError::Internal(anyhow::anyhow!("wasm plugin response rejected: {e}"))
                 })?;
         }
 
@@ -336,7 +336,7 @@ impl AIGatewayFilter {
                 TokenCounter::new()
             };
             let sse_text = std::str::from_utf8(response_body).map_err(|e| {
-                AIError::Internal(anyhow::anyhow!("SSE body is not valid UTF-8: {}", e))
+                AIError::Internal(anyhow::anyhow!("SSE body is not valid UTF-8: {e}"))
             })?;
             let chunks: Vec<AIStreamChunk> = parse_sse_chunks(sse_text)?;
 

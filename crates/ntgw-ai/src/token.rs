@@ -91,7 +91,7 @@ impl TokenCounter {
     /// Returns `AIError::Internal` if any chunk fails to deserialise.
     pub fn from_sse_body(body: &[u8]) -> Result<(AIUsage, String), AIError> {
         let text = std::str::from_utf8(body).map_err(|e| {
-            AIError::Internal(anyhow::anyhow!("SSE body is not valid UTF-8: {}", e))
+            AIError::Internal(anyhow::anyhow!("SSE body is not valid UTF-8: {e}"))
         })?;
 
         let mut counter = TokenCounter::new();
