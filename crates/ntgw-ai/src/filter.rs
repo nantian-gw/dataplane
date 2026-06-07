@@ -397,7 +397,7 @@ impl AIGatewayFilter {
         // Record format error if applicable (error status)
         if response_status >= 400 {
             self.metrics
-                .record_format_error(&format, &format!("http_{}", response_status));
+                .record_format_error(&format, &format!("http_{response_status}"));
         }
 
         // Langfuse ingestion

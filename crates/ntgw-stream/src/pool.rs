@@ -40,11 +40,11 @@ impl TcpConnectionPool {
         port: u16,
     ) -> (std::io::Result<TcpStream>, StreamPoolCounters) {
         if !self.is_enabled() {
-            let conn = TcpStream::connect(format!("{}:{}", addr, port)).await;
+            let conn = TcpStream::connect(format!("{addr}:{port}")).await;
             return (conn, StreamPoolCounters::default());
         }
 
-        let key = format!("{}:{}", addr, port);
+        let key = format!("{addr}:{port}");
 
         if let Some(mut entry) = self.idle.get_mut(&key) {
             while let Some(idle) = entry.pop() {
@@ -76,7 +76,7 @@ impl TcpConnectionPool {
         }
 
         debug!(backend = %key, "pool miss");
-        let conn = TcpStream::connect(format!("{}:{}", addr, port)).await;
+        let conn = TcpStream::connect(format!("{addr}:{port}")).await;
         (conn, StreamPoolCounters { hits: 0, misses: 1 })
     }
 
@@ -84,7 +84,7 @@ impl TcpConnectionPool {
         if !self.is_enabled() {
             return;
         }
-        let key = format!("{}:{}", addr, port);
+        let key = format!("{addr}:{port}");
         let mut entry = self.idle.entry(key.clone()).or_default();
 
         if entry.len() >= self.max_idle_per_backend {
@@ -107,7 +107,7 @@ impl TcpConnectionPool {
 
     #[cfg(test)]
     fn idle_count(&self, addr: &str, port: u16) -> usize {
-        let key = format!("{}:{}", addr, port);
+        let key = format!("{addr}:{port}");
         self.idle.get(&key).map_or(0, |e| e.len())
     }
 }

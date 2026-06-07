@@ -38,7 +38,7 @@ impl PromptTemplate {
     fn resolve(&self, text: &str) -> String {
         let mut resolved = text.to_string();
         for (key, value) in &self.variables {
-            let placeholder = format!("{{{}}}", key);
+            let placeholder = format!("{{{key}}}");
             resolved = resolved.replace(&placeholder, value);
         }
         resolved

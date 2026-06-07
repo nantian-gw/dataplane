@@ -310,11 +310,10 @@ impl FormatAdapter for AnthropicAdapter {
             #[allow(clippy::unwrap_used)]
             let stop_json = serde_json::to_string(&stop).unwrap();
             Ok(format!(
-                "event: content_block_delta\ndata: {}\n\nevent: message_stop\ndata: {}\n\n",
-                json, stop_json
+                "event: content_block_delta\ndata: {json}\n\nevent: message_stop\ndata: {stop_json}\n\n"
             ))
         } else {
-            Ok(format!("event: content_block_delta\ndata: {}\n\n", json))
+            Ok(format!("event: content_block_delta\ndata: {json}\n\n"))
         }
     }
 

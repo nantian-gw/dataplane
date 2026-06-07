@@ -99,10 +99,10 @@ impl LangfuseClient {
 
         let client = if enabled {
             let basic = base64::engine::general_purpose::STANDARD
-                .encode(format!("{}:{}", public_key, secret_key));
+                .encode(format!("{public_key}:{secret_key}"));
             #[allow(clippy::expect_used)]
-            let auth_value = HeaderValue::from_str(&format!("Basic {}", basic))
-                .expect("valid basic auth header");
+            let auth_value =
+                HeaderValue::from_str(&format!("Basic {basic}")).expect("valid basic auth header");
             let mut headers = HeaderMap::new();
             headers.insert(header::AUTHORIZATION, auth_value);
             headers.insert(
@@ -190,7 +190,7 @@ impl LangfuseClient {
         if !resp.status().is_success() {
             let status = resp.status();
             let body = resp.text().await.unwrap_or_default();
-            anyhow::bail!("trace ingestion failed with status {}: {}", status, body);
+            anyhow::bail!("trace ingestion failed with status {status}: {body}");
         }
 
         Ok(())
@@ -243,11 +243,7 @@ impl LangfuseClient {
         if !resp.status().is_success() {
             let status = resp.status();
             let body = resp.text().await.unwrap_or_default();
-            anyhow::bail!(
-                "generation ingestion failed with status {}: {}",
-                status,
-                body
-            );
+            anyhow::bail!("generation ingestion failed with status {status}: {body}");
         }
 
         Ok(())
@@ -284,7 +280,7 @@ impl LangfuseClient {
         if !resp.status().is_success() {
             let status = resp.status();
             let body = resp.text().await.unwrap_or_default();
-            anyhow::bail!("score ingestion failed with status {}: {}", status, body);
+            anyhow::bail!("score ingestion failed with status {status}: {body}");
         }
 
         Ok(())
@@ -302,7 +298,7 @@ impl LangfuseClient {
 
         let mut url = format!("{}/api/public/v2/prompts/{}", self.host, name);
         if let Some(v) = version {
-            url.push_str(&format!("?version={}", v));
+            url.push_str(&format!("?version={v}"));
         }
 
         let resp = self
@@ -315,7 +311,7 @@ impl LangfuseClient {
         if !resp.status().is_success() {
             let status = resp.status();
             let body = resp.text().await.unwrap_or_default();
-            anyhow::bail!("prompt fetch failed with status {}: {}", status, body);
+            anyhow::bail!("prompt fetch failed with status {status}: {body}");
         }
 
         let template: PromptTemplate = resp
@@ -348,7 +344,7 @@ impl LangfuseClient {
         if !resp.status().is_success() {
             let status = resp.status();
             let body = resp.text().await.unwrap_or_default();
-            anyhow::bail!("dataset creation failed with status {}: {}", status, body);
+            anyhow::bail!("dataset creation failed with status {status}: {body}");
         }
         Ok(())
     }
@@ -383,11 +379,7 @@ impl LangfuseClient {
         if !resp.status().is_success() {
             let status = resp.status();
             let body = resp.text().await.unwrap_or_default();
-            anyhow::bail!(
-                "experiment creation failed with status {}: {}",
-                status,
-                body
-            );
+            anyhow::bail!("experiment creation failed with status {status}: {body}");
         }
         Ok(())
     }
@@ -421,17 +413,12 @@ impl LangfuseClient {
             .json(&body)
             .send()
             .await
-            .with_context(|| format!("failed to send webhook to {}", url))?;
+            .with_context(|| format!("failed to send webhook to {url}"))?;
 
         if !resp.status().is_success() {
             let status = resp.status();
             let body_text = resp.text().await.unwrap_or_default();
-            anyhow::bail!(
-                "webhook to {} failed with status {}: {}",
-                url,
-                status,
-                body_text
-            );
+            anyhow::bail!("webhook to {url} failed with status {status}: {body_text}");
         }
         Ok(())
     }

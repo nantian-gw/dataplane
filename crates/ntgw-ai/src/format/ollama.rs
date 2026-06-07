@@ -199,7 +199,7 @@ impl FormatAdapter for OllamaAdapter {
             format: "ollama".into(),
             message: e.to_string(),
         })?;
-        Ok(format!("{}\n", json))
+        Ok(format!("{json}\n"))
     }
 
     fn error_response(&self, _status: u16, message: &str) -> Result<Vec<u8>, AIError> {
