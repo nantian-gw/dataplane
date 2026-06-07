@@ -152,8 +152,8 @@ impl CacheManager {
         host: &str,
         path: &str,
     ) -> CacheKey {
-        let route = format!("{}/{}", route_namespace, route_name);
-        let url = format!("{}://{}{}", "https", host, path);
+        let route = format!("{route_namespace}/{route_name}");
+        let url = format!("https://{host}{path}");
         CacheKey::new(route.as_bytes(), url.as_bytes(), "")
     }
 
