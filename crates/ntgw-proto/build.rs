@@ -14,10 +14,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if !control_proto_path.exists() {
         std::fs::create_dir_all(control_proto_path.parent().unwrap())?;
 
-        let url = format!(
-            "https://raw.githubusercontent.com/nantian-gw/proto/{}/gateway/control/v1/control.proto",
-            proto_version
-        );
+        let url = format!("https://raw.githubusercontent.com/nantian-gw/proto/{proto_version}/gateway/control/v1/control.proto");
 
         let agent = ureq::AgentBuilder::new()
             .timeout(Duration::from_secs(60))
