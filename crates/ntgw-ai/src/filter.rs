@@ -479,7 +479,7 @@ pub fn parse_sse_chunks(sse_text: &str) -> Result<Vec<AIStreamChunk>, AIError> {
                     continue;
                 }
                 let chunk: AIStreamChunk = serde_json::from_str(json)
-                    .map_err(|e| AIError::Internal(anyhow::anyhow!("SSE parse error: {}", e)))?;
+                    .map_err(|e| AIError::Internal(anyhow::anyhow!("SSE parse error: {e}")))?;
                 chunks.push(chunk);
             }
         }
