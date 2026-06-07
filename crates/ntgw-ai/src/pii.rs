@@ -180,7 +180,7 @@ impl PIIMasker {
     /// no-op and the original bytes are returned unchanged.
     pub fn mask_bytes(&self, bytes: &[u8]) -> Result<Vec<u8>, AIError> {
         let s = std::str::from_utf8(bytes)
-            .map_err(|e| AIError::Internal(anyhow::anyhow!("non-UTF-8 payload: {}", e)))?;
+            .map_err(|e| AIError::Internal(anyhow::anyhow!("non-UTF-8 payload: {e}")))?;
         let (masked, _count, _details) = self.mask(s);
         Ok(masked.into_bytes())
     }

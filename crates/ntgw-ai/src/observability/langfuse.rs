@@ -455,10 +455,7 @@ fn iso8601_now() -> String {
 
     let (year, month, day) = days_to_civil(total_days as i64);
 
-    format!(
-        "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}.{:03}Z",
-        year, month, day, hours, minutes, seconds, millis
-    )
+    format!("{year:04}-{month:02}-{day:02}T{hours:02}:{minutes:02}:{seconds:02}.{millis:03}Z")
 }
 
 /// Convert days since 1970-01-01 to (year, month, day).

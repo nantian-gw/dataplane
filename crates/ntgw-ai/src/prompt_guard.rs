@@ -114,7 +114,7 @@ impl PromptGuardFilter {
             for keyword in &self.keywords {
                 if text.to_lowercase().contains(&keyword.to_lowercase()) {
                     return GuardResult::Block {
-                        reason: format!("blocked_keyword: {}", keyword),
+                        reason: format!("blocked_keyword: {keyword}"),
                         matched: keyword.clone(),
                     };
                 }
