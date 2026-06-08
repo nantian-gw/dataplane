@@ -1,0 +1,84 @@
+[workspace]
+members = [
+  "crates/ntgw-ai",
+  "crates/ntgw-allocator",
+  "crates/ntgw-app",
+  "crates/ntgw-bench",
+  "crates/ntgw-config",
+  "crates/ntgw-http",
+  "crates/ntgw-ir",
+  "crates/ntgw-observability",
+  "crates/ntgw-proto",
+  "crates/ntgw-shared-tls",
+  "crates/ntgw-stream",
+  "crates/ntgw-wasm",
+  "crates/ntgw-wasm-sdk",
+  "crates/ntgw-xds",
+]
+resolver = "2"
+
+[workspace.package]
+edition = "2024"
+license = "Apache-2.0"
+version = "0.1.0"
+
+[workspace.dependencies]
+anyhow = "1.0.98"
+arc-swap = "1.7.1"
+async-trait = "0.1.88"
+axum = "0.8.9"
+base64 = "0.22.1"
+bytes = "1.10.1"
+clap = { version = "4.6.1", features = ["derive"] }
+dashmap = "6.1.0"
+form_urlencoded = "1.2.2"
+getrandom = "0.2.15"
+humantime = "2.1.0"
+hmac = "0.12.1"
+http = "1.4.1"
+nix = "0.24.3"
+opentelemetry = "0.31.0"
+opentelemetry-otlp = { version = "0.31.0", features = ["grpc-tonic", "trace"] }
+opentelemetry_sdk = { version = "0.31.0", features = ["rt-tokio", "trace"] }
+parking_lot = "0.12.3"
+pingora = { version = "0.8.1", default-features = false, features = ["proxy", "openssl", "cache"] }
+pingora-cache = "0.8.0"
+prost = "0.14.1"
+prost-types = "0.14.1"
+proptest = "1.6.0"
+thiserror = "2"
+regex = "1.12.2"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.150"
+serde_yaml = "0.9.34"
+sha2 = "0.10.8"
+socket2 = "0.6.4"
+stats_alloc = "0.1.10"
+subtle = "2.6.1"
+tokio = { version = "1.52.3", features = ["full"] }
+tokio-stream = "0.1.17"
+tonic = { version = "0.14.1", features = ["transport", "tls-native-roots"] }
+tonic-build = "0.14.1"
+tower = { version = "0.5.2", features = ["util"] }
+tracing = "0.1.41"
+tracing-appender = "0.2.3"
+tracing-opentelemetry = "0.32.0"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter", "fmt", "json"] }
+zeroize = { version = "1", features = ["derive"] }
+ntgw-allocator = { version = "0.1.0", path = "crates/ntgw-allocator" }
+ntgw-config = { version = "0.1.0", path = "crates/ntgw-config" }
+ntgw-http = { version = "0.1.0", path = "crates/ntgw-http" }
+ntgw-ir = { version = "0.1.0", path = "crates/ntgw-ir" }
+ntgw-observability = { version = "0.1.0", path = "crates/ntgw-observability" }
+ntgw-proto = { version = "0.1.0", path = "crates/ntgw-proto" }
+ntgw-shared-tls = { version = "0.1.0", path = "crates/ntgw-shared-tls" }
+ntgw-stream = { version = "0.1.0", path = "crates/ntgw-stream" }
+ntgw-wasm = { version = "0.1.0", path = "crates/ntgw-wasm" }
+ntgw-wasm-sdk = { version = "0.1.0", path = "crates/ntgw-wasm-sdk" }
+ntgw-xds = { version = "0.1.0", path = "crates/ntgw-xds" }
+ntgw-ai = { version = "0.1.0", path = "crates/ntgw-ai" }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+panic = "abort"

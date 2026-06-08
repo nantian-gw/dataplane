@@ -1,0 +1,131 @@
+nodeId: "dp-local"
+cluster: "default"
+controlPlaneAddr: "http://127.0.0.1:18080"
+adminAddr: "127.0.0.1:19080"
+log:
+  level: "info,nantian_core::connectors=off"
+  format: "json"
+  addSource: false
+  includeTarget: false
+  includeThreadIds: false
+  includeThreadNames: false
+  nonBlocking: true
+  nonBlockingBufferedLines: 65536
+  dropWhenFull: true
+  openTelemetry:
+    enabled: false
+    endpoint: ""
+    protocol: "grpc"
+    timeoutMs: 3000
+    insecure: false
+    sampleRatio: 1.0
+    serviceName: "nantian-dataplane"
+    serviceNamespace: ""
+adminAuth:
+  bearerToken: ""
+  bearerTokenFile: ""
+accessLog:
+  enabled: false
+  path: "stdout"
+  format: "%TIMESTAMP% %EVENT% %PROTOCOL% %LISTENER% %CLIENT_IP% %HOST% %METHOD% %PATH% %REQUEST_ID% %ROUTE_NAMESPACE% %ROUTE_NAME% %BACKEND% %STATUS% %LATENCY_MS% %BYTES_RECEIVED% %BYTES_SENT% %SNAPSHOT_VERSION% %RETRY_ATTEMPTS% %RESPONSE_FLAGS%"
+  mode: "json"
+  sampleRate: 0.01
+  routeAnnotationPrefix: "gateway.nantian.dev/access-log-"
+runtime:
+  httpListenAddr: "0.0.0.0:10080"
+  enableIpv6: true
+  enableHttp3: false
+  tlsMinVersion: "1.2"
+  tlsMaxVersion: "1.3"
+  tlsAssetDir: ""
+runtimeTuning:
+  httpReloadRetryIntervalMs: 1000
+  streamReloadRetryIntervalMs: 1000
+  downstreamReadTimeoutMs: 60000
+  httpMaxConnectionAgeMs: 0
+  httpKeepaliveRequestLimit: 0
+  upstreamConnectionTimeoutMs: 5000
+  upstreamReadTimeoutMs: 30000
+  upstreamIdleTimeoutMs: 60000
+  httpCapacity:
+    workerThreads: 0
+    acceptConcurrency: 16
+    upstreamKeepalivePoolSize: 32768
+    reusePort: null
+  requestMirrorMaxConcurrency: 1024
+  udpResponseIdleTimeoutMs: 500
+  tcpProxyBufferBytes: 16384
+  tcpSessionIdleTimeoutMs: 0
+  tcpMaxConnectionAgeMs: 0
+  retryBudgetEnabled: true
+  retryBudgetRatioPercent: 20
+  retryBudgetBurst: 16
+  gracefulDrainPeriodMs: 0
+  activeHealthCheckEnabled: false
+  activeHealthCheckIntervalMs: 5000
+  activeHealthCheckTimeoutMs: 1000
+  activeHealthCheckUnhealthyThreshold: 2
+  downstreamTcpKeepalive:
+    enabled: false
+    idleMs: 60000
+    intervalMs: 15000
+    probeCount: 4
+    userTimeoutMs: 0
+  upstreamTcpKeepalive:
+    enabled: true
+    idleMs: 60000
+    intervalMs: 15000
+    probeCount: 4
+    userTimeoutMs: 0
+  streamUpstreamPoolSize: 128
+  streamUpstreamPoolIdleTimeoutMs: 30000
+  workStealing: true
+  downstreamTcpFastopen: null
+  downstreamDscp: null
+  upstreamTcpRecvBuf: 0
+  upstreamTcpFastOpen: true
+  upstreamDscp: null
+  httpCache:
+    enabled: false
+    maxSizeMb: 256
+    defaultTtlSeconds: 60
+runtimeProtection:
+  httpGlobalInflightLimit: 0
+  httpListenerInflightLimit: 0
+  httpRouteInflightLimit: 0
+  httpBackendCircuitBreakerMaxRequests: 0
+  httpGlobalRateLimitRequestsPerSecond: 0
+  httpGlobalRateLimitBurst: 0
+  httpListenerRateLimitRequestsPerSecond: 0
+  httpListenerRateLimitBurst: 0
+  httpRouteRateLimitRequestsPerSecond: 0
+  httpRouteRateLimitBurst: 0
+  httpMaxRequestBodyBytes: 0
+  httpMaxRequestHeaderBytes: 0
+  tcpGlobalConnectionLimit: 0
+  tcpListenerConnectionLimit: 0
+  udpGlobalDatagramLimit: 0
+  udpListenerDatagramLimit: 0
+sessionPersistence:
+  secretKey: ""
+  secretKeyFile: ""
+  # sharedSecret: "your-shared-secret-here"
+xdsTls:
+  enabled: false
+  caPath: ""
+  certPath: ""
+  keyPath: ""
+  domainName: ""
+xdsTransport:
+  connectTimeoutMs: 5000
+  keepaliveIntervalMs: 10000
+  keepaliveTimeoutMs: 5000
+  initialReconnectBackoffMs: 2000
+  maxReconnectBackoffMs: 30000
+  applyTimeoutMs: 3000
+  applyPollIntervalMs: 100
+  staleStreamTimeoutMs: 30000
+  snapshotFreshnessTimeoutMs: 90000
+experimental:
+  enableExperimentalGateway: false
+  enableAiGateway: false

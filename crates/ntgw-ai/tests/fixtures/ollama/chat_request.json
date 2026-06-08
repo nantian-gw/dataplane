@@ -1,0 +1,12 @@
+{
+    "model": "llama3.2",
+    "messages": [
+        {"role": "system", "content": "Be concise."},
+        {"role": "user", "content": "What is 2+2?"}
+    ],
+    "stream": false,
+    "options": {
+        "temperature": 0.5,
+        "num_predict": 100
+    }
+}

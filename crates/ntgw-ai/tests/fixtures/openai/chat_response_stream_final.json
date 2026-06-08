@@ -1,0 +1,18 @@
+{
+    "id": "chatcmpl-9a8b7c6d5e4f",
+    "object": "chat.completion.chunk",
+    "created": 1700000000,
+    "model": "gpt-4o-2024-05-13",
+    "choices": [
+        {
+            "index": 0,
+            "delta": {},
+            "finish_reason": "stop"
+        }
+    ],
+    "usage": {
+        "prompt_tokens": 25,
+        "completion_tokens": 8,
+        "total_tokens": 33
+    }
+}

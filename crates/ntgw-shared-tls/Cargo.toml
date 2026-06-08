@@ -1,0 +1,20 @@
+[package]
+name = "ntgw-shared-tls"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+async-trait.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+pingora.workspace = true
+ntgw-http.workspace = true
+ntgw-ir.workspace = true
+ntgw-observability.workspace = true
+ntgw-stream.workspace = true
+socket2.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true

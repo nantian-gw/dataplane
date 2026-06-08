@@ -1,0 +1,8 @@
+version: v2
+plugins:
+  - remote: buf.build/community/neoeinstein-prost
+    out: crates/ntgw-proto/src/bsr
+  - remote: buf.build/community/neoeinstein-tonic
+    out: crates/ntgw-proto/src/bsr
+    opt:
+      - no_server

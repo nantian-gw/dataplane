@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package envoy.service.auth.v3;
+
+import "envoy/config/core/v3/base.proto";
+import "envoy/service/auth/v3/attribute_context.proto";
+import "envoy/type/v3/http_status.proto";
+import "google/rpc/status.proto";
+
+// Minimal Envoy ext_authz v3 subset used by pgw-http: Authorization/Check,
+// CheckRequest.attributes, OK/denied HTTP decisions, denial status/body, and
+// response headers. Body forwarding and dynamic metadata are intentionally
+// omitted because the dataplane ExternalAuth filter does not support them.
+service Authorization {
+  rpc Check(CheckRequest) returns (CheckResponse);
+}
+
+message CheckRequest {
+  AttributeContext attributes = 1;
+}
+
+message DeniedHttpResponse {
+  envoy.type.v3.HttpStatus status = 1;
+  repeated envoy.config.core.v3.HeaderValueOption headers = 2;
+  string body = 3;
+}
+
+message OkHttpResponse {
+  repeated envoy.config.core.v3.HeaderValueOption headers = 2;
+}
+
+message CheckResponse {
+  google.rpc.Status status = 1;
+
+  oneof http_response {
+    DeniedHttpResponse denied_response = 2;
+    OkHttpResponse ok_response = 3;
+  }
+}

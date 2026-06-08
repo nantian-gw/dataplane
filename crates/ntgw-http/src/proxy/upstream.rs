@@ -1,0 +1,219 @@
+use std::time::Instant;
+
+use ntgw_ir::SessionPersistence;
+use pingora::{
+    Error, ErrorType,
+    prelude::{HttpPeer, Session},
+};
+
+use super::*;
+
+pub(crate) async fn do_upstream_peer(
+    proxy: &GatewayProxy,
+    session: &mut Session,
+    ctx: &mut RequestContext,
+) -> pingora::Result<Box<HttpPeer>> {
+    if let Some(backoff) = retry_backoff(ctx) {
+        tokio::time::sleep(backoff).await;
+    }
+
+    if ctx.fast_selected_backend.is_some() {
+        let backend_config = ctx.selected_backend_config.as_ref().ok_or_else(|| {
+            Error::new(ErrorType::new("InternalError"))
+                .more_context("fast path selected backend config missing from request context")
+        })?;
+        let peer = {
+            let fast = ctx.fast_selected_backend.as_ref().ok_or_else(|| {
+                Error::new(ErrorType::new("InternalError"))
+                    .more_context("fast path selected backend missing from request context")
+            })?;
+            build_upstream_peer_for_fast_path(
+                &fast.selected,
+                backend_config,
+                proxy.upstream_tcp_keepalive.clone(),
+                &proxy.upstream_tuning,
+            )
+        };
+        let peer = match peer {
+            Ok(peer) => peer,
+            Err(err) => {
+                record_upstream_peer_build_failure(ctx);
+                return Err(err);
+            }
+        };
+        if ctx.circuit_breaker_permit.is_none() {
+            let permit = {
+                let fast = ctx.fast_selected_backend.as_ref().ok_or_else(|| {
+                    Error::new(ErrorType::new("InternalError"))
+                        .more_context("fast path selected backend missing from request context")
+                })?;
+                proxy
+                    .circuit_breaker
+                    .try_acquire_backend(fast.selected.backend_name.as_str())
+                    .map_err(|_| {
+                        Error::new(ErrorType::new("CircuitBreakerOpen")).more_context(format!(
+                            "backend circuit breaker rejected request for {}",
+                            fast.selected.backend_name
+                        ))
+                    })?
+            };
+            ctx.circuit_breaker_permit = Some(permit);
+        }
+        ctx.upstream_connect_started_at = Some(Instant::now());
+        return Ok(Box::new(peer));
+    }
+
+    let endpoint = if let Some(selected) = ctx.selected_backend.clone() {
+        selected
+    } else {
+        let request = build_request_meta(session);
+        capture_request_context(ctx, &request);
+        if ctx.request_span.is_none() {
+            start_request_span_if_enabled(ctx, &request.headers, proxy.request_tracing_enabled);
+        }
+        let session_cache = SessionResolutionCache::new(&proxy.session_manager, &request.headers);
+        let selected = {
+            let current = proxy.snapshot.read();
+            cache_snapshot_version_if_observed(
+                ctx,
+                current.id.as_str(),
+                proxy.access_log.enabled,
+                proxy.request_tracing_enabled,
+            );
+            record_request_span(ctx);
+            let session_resolver =
+                |policy: &SessionPersistence| session_cache.resolve_target(policy);
+            let selected = select_backend_with_transport_retry_exclusions(
+                &current,
+                &request,
+                &session_resolver,
+                ctx,
+            )
+            .ok_or_else(|| {
+                if current.http_routes.is_empty() && current.grpc_routes.is_empty() {
+                    Error::new(ErrorType::new("NoHealthyBackend"))
+                } else {
+                    Error::new(ErrorType::new("NoRouteMatched"))
+                }
+            })?;
+            let config = selected_backend_config_cached(
+                &proxy.selected_backend_config_cache,
+                &current,
+                &selected,
+            )?;
+            Ok::<_, Error>((selected, config))
+        };
+        let (selected, config) = selected?;
+        ensure_supported_filters(&selected.filters)?;
+        cache_request_headers_if_needed(ctx, &request.headers, &selected.filters);
+        ctx.resolved_session = selected
+            .session_persistence
+            .as_ref()
+            .and_then(|policy| session_cache.resolved_session(policy));
+        cache_selected_backend_state(ctx, selected, config, proxy.access_log.enabled);
+        proxy.seed_retry_budget(ctx);
+        record_request_span(ctx);
+        ctx.selected_backend.clone().ok_or_else(|| {
+            Error::new(ErrorType::new("InternalError"))
+                .more_context("selected backend missing from request context")
+        })?
+    };
+
+    let peer = {
+        if ctx.selected_backend_config.is_none() {
+            let current = proxy.snapshot.read();
+            ctx.selected_backend_config = Some(selected_backend_config_cached(
+                &proxy.selected_backend_config_cache,
+                &current,
+                endpoint.as_ref(),
+            )?);
+        }
+        let backend_config = ctx.selected_backend_config.as_ref().ok_or_else(|| {
+            Error::new(ErrorType::new("InternalError"))
+                .more_context("selected backend config missing from request context")
+        })?;
+        build_upstream_peer_with_cached_config(
+            endpoint.as_ref(),
+            backend_config,
+            proxy.upstream_tcp_keepalive.clone(),
+            &proxy.upstream_tuning,
+        )
+    };
+    let peer = match peer {
+        Ok(peer) => peer,
+        Err(err) => {
+            record_upstream_peer_build_failure(ctx);
+            return Err(err);
+        }
+    };
+    if ctx.circuit_breaker_permit.is_none() {
+        ctx.circuit_breaker_permit = Some(
+            proxy
+                .circuit_breaker
+                .try_acquire_backend(endpoint.backend_name.as_str())
+                .map_err(|_| {
+                    Error::new(ErrorType::new("CircuitBreakerOpen")).more_context(format!(
+                        "backend circuit breaker rejected request for {}",
+                        endpoint.backend_name
+                    ))
+                })?,
+        );
+    }
+    ctx.upstream_connect_started_at = Some(Instant::now());
+
+    Ok(Box::new(peer))
+}
+
+use pingora::ErrorSource;
+
+pub(crate) fn do_error_while_proxy(
+    proxy: &GatewayProxy,
+    peer: &HttpPeer,
+    session: &mut Session,
+    e: Box<Error>,
+    ctx: &mut RequestContext,
+    client_reused: bool,
+) -> Box<Error> {
+    let response_started = session.response_written().is_some();
+    let downstream_error = matches!(e.esource(), ErrorSource::Downstream);
+    let mut e = e.more_context(format!("Peer: {peer}"));
+    if downstream_error {
+        e.set_retry(false);
+    } else {
+        observe_selected_backend_failure(&proxy.snapshot, ctx);
+    }
+
+    if !response_started
+        && !downstream_error
+        && try_prepare_transport_retry(ctx, session, &proxy.retry_budget, e.as_ref())
+    {
+        e.set_retry(true);
+    } else {
+        e.retry.decide_reuse(
+            !response_started
+                && !downstream_error
+                && client_reused
+                && !session.as_ref().retry_buffer_truncated(),
+        );
+    }
+    record_request_span(ctx);
+    e
+}
+
+pub(crate) fn do_fail_to_connect(
+    proxy: &GatewayProxy,
+    session: &mut Session,
+    peer: &HttpPeer,
+    ctx: &mut RequestContext,
+    e: Box<Error>,
+) -> Box<Error> {
+    record_upstream_tls_handshake_failure(&proxy.traffic, ctx, e.as_ref());
+    record_upstream_connection(ctx, false);
+    observe_selected_backend_failure(&proxy.snapshot, ctx);
+    let mut e = e.more_context(format!("Peer: {peer}"));
+    if try_prepare_transport_retry(ctx, session, &proxy.retry_budget, e.as_ref()) {
+        e.set_retry(true);
+    }
+    record_request_span(ctx);
+    e
+}

@@ -1,0 +1,25 @@
+[package]
+name = "ntgw-bench"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[features]
+default = []
+allocator-mimalloc = ["ntgw-allocator/allocator-mimalloc"]
+allocator-jemalloc = ["ntgw-allocator/allocator-jemalloc"]
+
+[dependencies]
+anyhow.workspace = true
+arc-swap.workspace = true
+clap.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+stats_alloc.workspace = true
+tokio.workspace = true
+ntgw-allocator.workspace = true
+ntgw-http.workspace = true
+ntgw-ir.workspace = true
+ntgw-observability.workspace = true
+ntgw-stream.workspace = true
+ntgw-xds.workspace = true

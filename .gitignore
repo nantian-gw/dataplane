@@ -1,0 +1,7 @@
+target/
+*.rs.bk
+*.swp
+.env
+__pycache__/
+.DS_Store
+.sisyphus/

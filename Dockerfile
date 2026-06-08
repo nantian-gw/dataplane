@@ -1,0 +1,36 @@
+ARG RUST_IMAGE=docker.io/library/rust:1.96-bookworm
+ARG RUNTIME_IMAGE=docker.io/library/debian:bookworm-slim
+FROM ${RUST_IMAGE} AS chef
+
+ENV CARGO_HOME=/usr/local/cargo
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends cmake pkg-config clang make g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /src/dataplane
+COPY dataplane/ /src/dataplane/
+COPY tests/testdata/ /src/tests/testdata/
+
+ARG DATAPLANE_CARGO_FEATURES=allocator-jemalloc
+RUN if [ -n "${DATAPLANE_CARGO_FEATURES}" ]; then \
+      cargo build --release -p ntgw-app --features "${DATAPLANE_CARGO_FEATURES}"; \
+    else \
+      cargo build --release -p ntgw-app; \
+    fi
+
+FROM ${RUNTIME_IMAGE}
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates \
+        curl \
+        dnsutils \
+        iproute2 \
+        netcat-openbsd \
+        procps \
+        tcpdump \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=chef /src/dataplane/target/release/ntgw-app /usr/local/bin/ntgw-app
+
+ENTRYPOINT ["/usr/local/bin/ntgw-app"]
