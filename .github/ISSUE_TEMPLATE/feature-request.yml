@@ -1,0 +1,88 @@
+name: Feature Request
+description: Suggest a new capability or improvement for the data plane.
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Write in English or Chinese.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - HTTP proxy
+        - stream proxy
+        - config
+        - xDS client
+        - AI gateway
+        - Wasm plugin
+        - observability
+        - release / CI
+        - tests
+        - docs
+        - other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: Describe the problem before the solution.
+      placeholder: What is missing, why the current behavior is insufficient.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed Change
+      placeholder: Describe what you want to add or change.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+
+  - type: dropdown
+    id: ownership
+    attributes:
+      label: Ownership
+      options:
+        - HTTP proxy
+        - stream proxy
+        - config / xDS
+        - AI gateway
+        - Wasm
+        - observability
+        - mixed / cross-cutting
+
+  - type: textarea
+    id: validation
+    attributes:
+      label: Suggested Validation
+      placeholder: |
+        - unit test
+        - local process
+        - admin API
+        - kind smoke
+
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Compatibility Impact
+      description: Does this affect proto, config, or existing behavior?
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I checked the existing issues for similar requests.
+          required: true

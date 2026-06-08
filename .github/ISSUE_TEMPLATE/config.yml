@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Contributor Guide
+    url: ../../CONTRIBUTING.md
+    about: Read the contribution guide before contributing.
+  - name: Security Policy
+    url: ../../SECURITY.md
+    about: Do not disclose vulnerabilities in a public issue.

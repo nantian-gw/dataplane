@@ -1,0 +1,51 @@
+name: Question
+description: Ask about usage, development, debugging, or troubleshooting.
+title: "[Question] "
+labels:
+  - question
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Write in English or Chinese.
+
+  - type: dropdown
+    id: topic
+    attributes:
+      label: Topic
+      options:
+        - how to build / dev
+        - how to test
+        - how to run locally
+        - configuration
+        - architecture / design
+        - other
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      placeholder: Explain what you are trying to do, where you are blocked, and what you already tried.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      placeholder: |
+        - Commands run:
+        - Docs checked:
+        - Environment:
+        - Error output:
+      render: text
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I checked the README and existing docs first.
+          required: true

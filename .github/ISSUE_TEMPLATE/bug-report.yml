@@ -1,0 +1,97 @@
+name: Bug Report
+description: Report a bug in the data plane runtime, proxy, or tooling.
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Write in English or Chinese.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Select the nearest area this bug belongs to.
+      options:
+        - HTTP proxy
+        - stream proxy
+        - config
+        - xDS client
+        - AI gateway
+        - Wasm plugin
+        - observability
+        - release / CI
+        - tests
+        - docs
+        - other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: layer
+    attributes:
+      label: Validation Layer
+      description: Reproduce at the cheapest layer first when possible.
+      options:
+        - unit test
+        - local process
+        - admin API
+        - kind smoke
+        - production-like environment
+    validations:
+      required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Describe the bug and impact in 1 to 3 sentences.
+      placeholder: e.g. HTTP proxy panics when receiving a malformed header.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps To Reproduce
+      placeholder: |
+        1. Run ...
+        2. Send request ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      placeholder: Include panic output, error logs, or metrics.
+    validations:
+      required: true
+
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      value: |
+        - OS:
+        - Rust version (rustc --version):
+        - Branch / commit:
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs Or Output
+      description: Paste the minimum useful logs. Do not include secrets.
+      render: text
