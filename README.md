@@ -74,6 +74,16 @@ cargo clippy --workspace -- -D warnings
 cargo fmt --all -- --check
 ```
 
+### Protobuf Generation Check
+
+Checked-in control-plane Rust types under `crates/ntgw-proto/src/bsr/` are
+generated from the Buf Schema Registry module:
+
+```bash
+buf generate buf.build/nantian/proto
+scripts/verify-bsr-generated.sh
+```
+
 ### Run
 
 ```bash

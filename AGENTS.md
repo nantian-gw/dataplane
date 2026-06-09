@@ -72,11 +72,16 @@ ntgw-app (binary) — orchestrates everything
 
 ## CI (GitHub Actions)
 
-4 jobs on `ubuntu-latest`, all require `protobuf-compiler`:
+5 jobs run on `ubuntu-latest`:
 1. `cargo check --workspace`
 2. `cargo test --workspace`
 3. `cargo clippy --workspace -- -D warnings`
 4. `cargo fmt --all -- --check`
+5. `scripts/verify-bsr-generated.sh`
+
+The Rust jobs do not require system `protoc`; `ntgw-proto` uses
+`protoc-bin-vendored` for local Envoy/google protos. The `proto-check` job uses
+Buf to verify checked-in BSR-generated control-plane Rust code.
 
 ## Docker
 

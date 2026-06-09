@@ -22,8 +22,6 @@ jobs:
         with:
           toolchain: stable
       - uses: Swatinem/rust-cache@v2
-      - name: Install protoc
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends protobuf-compiler
       - run: cargo check --workspace
 
   test:
@@ -35,8 +33,6 @@ jobs:
         with:
           toolchain: stable
       - uses: Swatinem/rust-cache@v2
-      - name: Install protoc
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends protobuf-compiler
       - run: cargo test --workspace
 
   clippy:
@@ -49,8 +45,6 @@ jobs:
           toolchain: stable
           components: clippy
       - uses: Swatinem/rust-cache@v2
-      - name: Install protoc
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends protobuf-compiler
       - run: cargo clippy --workspace -- -D warnings
 
   fmt:
@@ -73,11 +67,5 @@ jobs:
         with:
           github_token: ${{ github.token }}
           buf_api_token: ${{ secrets.BUF_TOKEN }}
-      - name: Buf generate
-        run: buf generate buf.build/nantian/proto
-      - name: Verify generated code is up to date
-        run: |
-          if ! git diff --exit-code crates/ntgw-proto/src/bsr/; then
-            echo "::error::BSR-generated Rust code is out of date. Run 'buf generate buf.build/nantian/proto' locally and commit."
-            exit 1
-          fi
+      - name: Verify BSR generated code
+        run: scripts/verify-bsr-generated.sh
