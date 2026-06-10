@@ -6,9 +6,9 @@ Thanks for your interest in contributing!
 
 1. **Fork** the repository
 2. **Clone** your fork
-3. Install Rust 1.92.0 via [rustup](https://rustup.rs):
+3. Install Rust 1.96.0 via [rustup](https://rustup.rs):
 ```bash
-rustup toolchain install 1.92.0
+rustup toolchain install 1.96.0
 ```
 4. Build and test:
    ```bash
