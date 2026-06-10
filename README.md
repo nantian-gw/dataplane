@@ -3,7 +3,7 @@
 [![CI](https://github.com/nantian-gw/dataplane/actions/workflows/ci.yml/badge.svg)](https://github.com/nantian-gw/dataplane/actions/workflows/ci.yml)
 [![Docker](https://github.com/nantian-gw/dataplane/actions/workflows/docker.yml/badge.svg)](https://github.com/nantian-gw/dataplane/actions/workflows/docker.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![Rust](https://img.shields.io/badge/rust-1.92.0%2B-orange.svg)](rust-toolchain.toml)
+[![Rust](https://img.shields.io/badge/rust-1.96.0-orange.svg)](rust-toolchain.toml)
 
 Rust workspace providing the high-performance HTTP and stream proxy runtime for Nantian Gateway.
 
@@ -48,7 +48,7 @@ ntgw-app (binary) — orchestrates everything
 
 ### Prerequisites
 
-- Rust 1.92.0+ (see [rust-toolchain.toml](rust-toolchain.toml))
+- Rust 1.96.0 (see [rust-toolchain.toml](rust-toolchain.toml))
 - No system `protoc` needed — `ntgw-proto` bundles its own via `protoc-bin-vendored`
 
 ### Build
@@ -99,11 +99,25 @@ Pre-built images are available on [GitHub Container Registry](https://github.com
 docker pull ghcr.io/nantian-gw/dataplane:latest
 ```
 
-Build locally:
+Build locally from a Nantian workspace root where this repository is available
+as `dataplane/`:
 
 ```bash
-# From the monorepo root:
 docker build -f dataplane/Dockerfile -t ntgw-app .
+```
+
+The Dockerfile uses `cargo-chef` to cache Rust dependency layers. To run the
+same synthetic-context verification used by maintainers, run from this
+repository:
+
+```bash
+scripts/verify-docker-build.sh
+```
+
+To run only static Dockerfile checks without a Docker daemon:
+
+```bash
+scripts/verify-docker-build.sh --static-only
 ```
 
 ## License
