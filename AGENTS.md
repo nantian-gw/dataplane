@@ -28,9 +28,14 @@ cargo build --release -p ntgw-app --features allocator-jemalloc
 ## Architecture
 
 This is a **monorepo subdirectory** (`/dataplane`). Sibling dirs:
-- `proto/` — Protobuf definitions (consumed by `ntgw-proto` build.rs via `../../../proto`)
+- `proto/` — Control-plane Protobuf source definitions
 - `gateway/` — Control plane (Go)
 - `dashboard/`, `website/` — UI
+
+`ntgw-proto` build scripts compile local Envoy/google protos from
+`crates/ntgw-proto/proto` with `protoc-bin-vendored`. Checked-in BSR-generated
+control-plane Rust code is verified separately with
+`scripts/verify-bsr-generated.sh`.
 
 ### Crate Dependency Map
 
@@ -85,11 +90,18 @@ Buf to verify checked-in BSR-generated control-plane Rust code.
 
 ## Docker
 
-- **Build context MUST be the monorepo root** (`/root/nantian-gw`), not `dataplane/`
-- Uses aliyun crate mirror for crates.io
-- Requires `cmake`, `pkg-config`, `clang`, `make`, `g++` (for wasmtime/openssl build)
-- Default build feature: `allocator-jemalloc`
-- Binary: `ntgw-app` at `/usr/local/bin/ntgw-app`
+- Build context for normal local builds is the workspace root (`/root/nantian-gw`), not `dataplane/`.
+- Local build command: `docker build -f dataplane/Dockerfile -t ntgw-app .`
+- `scripts/verify-docker-build.sh` creates the same synthetic context shape used by GitHub Actions: `<context>/dataplane`.
+- The Dockerfile uses `cargo-chef` stages:
+  1. `chef` installs native build dependencies and `cargo-chef`
+  2. `planner` creates `recipe.json`
+  3. `builder` cooks dependency layers, then builds `ntgw-app`
+  4. runtime copies `/usr/local/bin/ntgw-app`
+- Do not add system `protobuf-compiler`; `ntgw-proto` uses `protoc-bin-vendored`.
+- Required native build packages remain `cmake`, `pkg-config`, `clang`, `make`, and `g++`.
+- Default build feature: `allocator-jemalloc` through `DATAPLANE_CARGO_FEATURES`.
+- Binary: `ntgw-app` at `/usr/local/bin/ntgw-app`.
 
 ## Release Profile
 
