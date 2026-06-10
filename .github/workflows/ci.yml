@@ -63,9 +63,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: bufbuild/buf-setup-action@v1
-        with:
-          github_token: ${{ github.token }}
-          buf_api_token: ${{ secrets.BUF_TOKEN }}
+      - name: Install Buf CLI
+        env:
+          BUF_VERSION: 1.70.0
+        run: |
+          mkdir -p "$RUNNER_TEMP/bin"
+          curl -fsSL "https://github.com/bufbuild/buf/releases/download/v${BUF_VERSION}/buf-Linux-x86_64" -o "$RUNNER_TEMP/bin/buf"
+          chmod +x "$RUNNER_TEMP/bin/buf"
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/bin/buf" --version
       - name: Verify BSR generated code
+        env:
+          BUF_TOKEN: ${{ secrets.BUF_TOKEN }}
         run: scripts/verify-bsr-generated.sh
