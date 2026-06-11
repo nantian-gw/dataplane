@@ -1,7 +1,7 @@
 use regex::Regex;
 use std::sync::LazyLock;
 
-use crate::format::ir::{AIContent, AIRequest};
+use crate::format::ir::AIRequest;
 
 /// Verdict from a content safety check.
 #[derive(Debug, Clone, PartialEq)]
@@ -20,10 +20,10 @@ pub enum SafetyVerdict {
 /// Uses compiled regex patterns and keyword matching. Supports three modes:
 /// `block`, `flag`, and `disabled`.
 pub struct ContentSafetyFilter {
-    patterns: Vec<(String, Regex)>,
-    keywords: Vec<(String, String)>,
-    enabled: bool,
-    block_mode: bool,
+    pub(crate) patterns: Vec<(String, Regex)>,
+    pub(crate) keywords: Vec<(String, String)>,
+    pub(crate) enabled: bool,
+    pub(crate) block_mode: bool,
 }
 
 impl ContentSafetyFilter {
@@ -158,19 +158,14 @@ impl ContentSafetyFilter {
         }
 
         for msg in &request.messages {
-            let text = match &msg.content {
-                AIContent::Text(t) => t.as_str(),
-                AIContent::MultiPart(_) => continue,
-                AIContent::None => continue,
+            let text = match crate::prompt_guard::message_text(&msg.content) {
+                Some(t) if !t.is_empty() => t,
+                _ => continue,
             };
-
-            if text.is_empty() {
-                continue;
-            }
 
             // Check regex patterns
             for (category, regex) in &self.patterns {
-                if let Some(captured) = regex.find(text) {
+                if let Some(captured) = regex.find(&text) {
                     let matched = captured.as_str().to_string();
                     if self.block_mode {
                         return SafetyVerdict::Block {

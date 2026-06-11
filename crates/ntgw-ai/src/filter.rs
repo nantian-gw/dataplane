@@ -5,7 +5,7 @@ use std::time::Instant;
 use ntgw_wasm::sandbox::AISandbox;
 
 use crate::ab_test::ABTestEngine;
-use crate::content_safety::{ContentSafetyFilter, SafetyVerdict};
+use crate::content_safety::ContentSafetyFilter;
 use crate::cost::CostTracker;
 use crate::error::AIError;
 use crate::fallback::ModelFallback;
@@ -18,7 +18,7 @@ use crate::observability::langfuse::LangfuseClient;
 use crate::observability::metrics::AIMetrics;
 use crate::observability::tracing::AITracer;
 use crate::pii::PIIMasker;
-use crate::prompt_guard::{GuardResult, PromptGuardFilter};
+use crate::prompt_guard::{PromptGuardFilter, message_text};
 use crate::prompt_template::PromptInjector;
 use crate::ratelimit::{RateLimitResult, TokenRateLimiter};
 use crate::token::TokenCounter;
@@ -99,10 +99,95 @@ impl AIGatewayFilter {
         }
     }
 
-    /// Pre-upstream: detect format, parse request body into AIRequest,
-    /// optionally create OTel span.
-    ///
-    /// Returns `AIContext` with the parsed request and metadata.
+    /// Single-pass security scan: combines prompt guard and content safety checks
+    /// into one loop over request messages.
+    fn scan_security(&self, request: &AIRequest) -> Result<(), AIError> {
+        for msg in &request.messages {
+            let text = match message_text(&msg.content) {
+                Some(t) => t,
+                None => continue,
+            };
+
+            self.check_prompt_guard(&text, &request.model)?;
+            self.check_content_safety(&text, &request.model)?;
+        }
+        Ok(())
+    }
+
+    fn check_prompt_guard(&self, text: &str, model: &str) -> Result<(), AIError> {
+        let guard = match &self.prompt_guard {
+            Some(g) if g.enabled => g,
+            _ => return Ok(()),
+        };
+        for pattern in &guard.patterns {
+            if let Some(matched) = pattern.find(text) {
+                let reason = "injection_pattern_match".to_string();
+                let matched_str = matched.as_str().to_string();
+                tracing::warn!(reason = %reason, matched = %matched_str, %model, "prompt guard blocked request");
+                self.metrics.record_prompt_guard_block(&reason, model);
+                if guard.mode() == "block" {
+                    return Err(AIError::PromptGuardBlocked {
+                        reason,
+                        matched: matched_str,
+                    });
+                }
+            }
+        }
+        for keyword in &guard.keywords {
+            if text.to_lowercase().contains(&keyword.to_lowercase()) {
+                let reason = format!("blocked_keyword: {keyword}");
+                tracing::warn!(reason = %reason, matched = %keyword, %model, "prompt guard blocked request");
+                self.metrics.record_prompt_guard_block(&reason, model);
+                if guard.mode() == "block" {
+                    return Err(AIError::PromptGuardBlocked {
+                        reason,
+                        matched: keyword.clone(),
+                    });
+                }
+            }
+        }
+        Ok(())
+    }
+
+    fn check_content_safety(&self, text: &str, model: &str) -> Result<(), AIError> {
+        let safety = match &self.content_safety {
+            Some(s) if s.enabled => s,
+            _ => return Ok(()),
+        };
+        for (category, regex) in &safety.patterns {
+            if let Some(captured) = regex.find(text) {
+                let matched = captured.as_str().to_string();
+                if safety.block_mode {
+                    tracing::warn!(category = %category, matched = %matched, %model, "content safety filter blocked request");
+                    self.metrics
+                        .record_content_safety_violation(category, model, "block");
+                    return Err(AIError::ContentSafetyBlocked {
+                        category: category.clone(),
+                        matched,
+                    });
+                }
+                tracing::warn!(category = %category, matched = %matched, %model, "content safety filter flagged request");
+                self.metrics
+                    .record_content_safety_violation(category, model, "flag");
+            }
+        }
+        for (category, keyword) in &safety.keywords {
+            if text.to_lowercase().contains(&keyword.to_lowercase()) {
+                if safety.block_mode {
+                    self.metrics
+                        .record_content_safety_violation(category, model, "block");
+                    return Err(AIError::ContentSafetyBlocked {
+                        category: category.clone(),
+                        matched: keyword.clone(),
+                    });
+                }
+                self.metrics
+                    .record_content_safety_violation(category, model, "flag");
+            }
+        }
+        Ok(())
+    }
+
     pub async fn pre_process(
         &self,
         path: &str,
@@ -199,56 +284,9 @@ impl AIGatewayFilter {
             }
         }
 
-        // 2e. Prompt guard check (pre-rate-limit)
-        if let Some(ref guard) = self.prompt_guard {
-            match guard.check(&request) {
-                GuardResult::Block { reason, matched } => {
-                    tracing::warn!(
-                        reason = %reason,
-                        matched = %matched,
-                        model = %request.model,
-                        "prompt guard blocked request"
-                    );
-                    self.metrics
-                        .record_prompt_guard_block(&reason, &request.model);
-                    if guard.mode() == "block" {
-                        return Err(AIError::PromptGuardBlocked { reason, matched });
-                    }
-                    // mode = "warn" or "log": continue
-                }
-                GuardResult::Pass => {}
-            }
-        }
-
-        // 2f. Content safety check (pre-rate-limit)
-        if let Some(ref safety) = self.content_safety {
-            match safety.check(&request) {
-                SafetyVerdict::Block { category, matched } => {
-                    tracing::warn!(
-                        category = %category,
-                        matched = %matched,
-                        model = %request.model,
-                        "content safety filter blocked request"
-                    );
-                    self.metrics.record_content_safety_violation(
-                        &category,
-                        &request.model,
-                        "block",
-                    );
-                    return Err(AIError::ContentSafetyBlocked { category, matched });
-                }
-                SafetyVerdict::Flag { category, matched } => {
-                    tracing::warn!(
-                        category = %category,
-                        matched = %matched,
-                        model = %request.model,
-                        "content safety filter flagged request"
-                    );
-                    self.metrics
-                        .record_content_safety_violation(&category, &request.model, "flag");
-                }
-                SafetyVerdict::Pass => {}
-            }
+        // 2e+2f. Merged security scan: prompt guard + content safety in one message loop.
+        if self.prompt_guard.is_some() || self.content_safety.is_some() {
+            self.scan_security(&request)?;
         }
 
         // 3. Rate limit check (pre-request)

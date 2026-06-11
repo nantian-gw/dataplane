@@ -17,9 +17,9 @@ pub enum GuardResult {
 /// Checks all messages in a request against configurable regex patterns
 /// and keywords. Supports three modes: `block`, `warn`, `log`.
 pub struct PromptGuardFilter {
-    patterns: Vec<Regex>,
-    keywords: Vec<String>,
-    enabled: bool,
+    pub(crate) patterns: Vec<Regex>,
+    pub(crate) keywords: Vec<String>,
+    pub(crate) enabled: bool,
     mode: String,
 }
 
@@ -89,14 +89,9 @@ impl PromptGuardFilter {
         }
 
         for msg in &request.messages {
-            let text = match &msg.content {
-                AIContent::Text(s) => s.clone(),
-                AIContent::MultiPart(parts) => parts
-                    .iter()
-                    .filter_map(|p| p.text.clone())
-                    .collect::<Vec<_>>()
-                    .join(" "),
-                AIContent::None => continue,
+            let text = match message_text(&msg.content) {
+                Some(t) => t,
+                None => continue,
             };
 
             // Check regex patterns
@@ -121,6 +116,23 @@ impl PromptGuardFilter {
         }
 
         GuardResult::Pass
+    }
+}
+
+/// Extract text content from an AI message part for security scanning.
+/// MultiPart content parts are joined with spaces.
+pub(crate) fn message_text(content: &AIContent) -> Option<String> {
+    match content {
+        AIContent::Text(s) => Some(s.clone()),
+        AIContent::MultiPart(parts) => {
+            let texts: Vec<&str> = parts.iter().filter_map(|p| p.text.as_deref()).collect();
+            if texts.is_empty() {
+                None
+            } else {
+                Some(texts.join(" "))
+            }
+        }
+        AIContent::None => None,
     }
 }
 
