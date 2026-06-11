@@ -62,13 +62,12 @@ impl Default for MemoryCacheBackend {
 
 impl CacheBackend for MemoryCacheBackend {
     fn store(&self, key: &str, response: &CachedResponse, _ttl: Duration) {
-        // Evict expired entries first to make room
+        // Evict expired entries first, then if still at capacity evict one more.
         if self.entries.len() >= self.max_entries {
             self.entries.retain(|_, v| !v.is_expired());
-        }
-        // If still at capacity, evict an arbitrary entry
-        if self.entries.len() >= self.max_entries {
-            if let Some(evict_key) = self.entries.iter().next().map(|e| e.key().clone()) {
+            if self.entries.len() >= self.max_entries
+                && let Some(evict_key) = self.entries.iter().next().map(|e| e.key().clone())
+            {
                 self.entries.remove(&evict_key);
             }
         }

@@ -1,5 +1,6 @@
-use parking_lot::Mutex;
+use dashmap::DashMap;
 use std::collections::HashMap;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 
 /// Per-tenant resource quota.
@@ -91,8 +92,13 @@ pub struct TenantManager {
     /// Maps API key → tenant_id for O(1) lookup.
     api_key_index: HashMap<String, String>,
     /// Runtime quota tracking per tenant_id.
-    quota_state: Mutex<HashMap<String, TenantQuotaState>>,
+    quota_state: DashMap<String, TenantQuotaState>,
+    /// Counter for opportunistic stale-entry cleanup.
+    check_count: AtomicU64,
 }
+
+/// Cleanup is triggered every N check_quota calls.
+const CLEANUP_INTERVAL: u64 = 1000;
 
 impl TenantManager {
     /// Create a new `TenantManager` pre-populated with the given tenants.
@@ -110,7 +116,8 @@ impl TenantManager {
         Self {
             tenants: tenant_map,
             api_key_index: key_index,
-            quota_state: Mutex::new(HashMap::new()),
+            quota_state: DashMap::new(),
+            check_count: AtomicU64::new(0),
         }
     }
 
@@ -120,6 +127,23 @@ impl TenantManager {
     pub fn resolve(&self, api_key: &str) -> Option<&Tenant> {
         let tid = self.api_key_index.get(api_key)?;
         self.tenants.get(tid)
+    }
+
+    /// Remove quota state entries for tenants no longer in the registry.
+    fn maybe_cleanup(&self) {
+        let count = self.check_count.fetch_add(1, Ordering::Relaxed);
+        if !count.is_multiple_of(CLEANUP_INTERVAL) {
+            return;
+        }
+        self.quota_state
+            .retain(|tid, _| self.tenants.contains_key(tid));
+    }
+
+    /// Cleanup exposed for testing.
+    #[doc(hidden)]
+    pub fn force_cleanup(&self) {
+        self.quota_state
+            .retain(|tid, _| self.tenants.contains_key(tid));
     }
 
     /// Check whether the tenant has sufficient token quota.
@@ -140,10 +164,10 @@ impl TenantManager {
             return true;
         }
 
-        #[allow(clippy::unwrap_used)]
-        let mut state = self.quota_state.lock();
-        let entry = state
-            .entry(tenant_id.to_string())
+        self.maybe_cleanup();
+        let mut entry = self
+            .quota_state
+            .entry(tenant_id.to_owned())
             .or_insert_with(TenantQuotaState::new);
         entry.consume(&tenant.quota, tokens)
     }
