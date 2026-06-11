@@ -150,7 +150,7 @@ impl PIIMasker {
 
         // Deduplicate overlapping matches in-place: keep the first (longest)
         // match at each position.
-        matches.dedup_by(|a, b| b.start < a.end);
+        matches.dedup_by(|a, b| a.start < b.end);
 
         let count = matches.len();
         let mut result = String::with_capacity(text.len());

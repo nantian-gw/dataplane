@@ -65,10 +65,12 @@ impl CacheBackend for MemoryCacheBackend {
         // Evict expired entries first, then if still at capacity evict one more.
         if self.entries.len() >= self.max_entries {
             self.entries.retain(|_, v| !v.is_expired());
-            if self.entries.len() >= self.max_entries
-                && let Some(evict_key) = self.entries.iter().next().map(|e| e.key().clone())
-            {
-                self.entries.remove(&evict_key);
+            let evict_key = self.entries.iter().next().map(|e| e.key().clone());
+            #[allow(clippy::collapsible_if)]
+            if self.entries.len() >= self.max_entries {
+                if let Some(key) = evict_key {
+                    self.entries.remove(&key);
+                }
             }
         }
         self.entries.insert(key.to_string(), response.clone());
