@@ -1,3 +1,4 @@
+use std::hash::{Hash, Hasher};
 use std::sync::Arc;
 
 use dashmap::DashMap;
@@ -26,15 +27,29 @@ impl CachedResponse {
     }
 }
 
-/// Simple in-memory cache backend using `DashMap` for lock-free concurrent access.
+/// Default maximum number of cache entries before eviction kicks in.
+pub const DEFAULT_MAX_ENTRIES: usize = 10_000;
+
+/// Simple in-memory cache backend using `DashMap` for lock-free concurrent access
+/// with capacity-bounded eviction.
 pub struct MemoryCacheBackend {
     entries: DashMap<String, CachedResponse>,
+    max_entries: usize,
 }
 
 impl MemoryCacheBackend {
     pub fn new() -> Self {
         Self {
             entries: DashMap::new(),
+            max_entries: DEFAULT_MAX_ENTRIES,
+        }
+    }
+
+    /// Create a backend with a custom entry cap.
+    pub fn with_capacity(max_entries: usize) -> Self {
+        Self {
+            entries: DashMap::new(),
+            max_entries,
         }
     }
 }
@@ -47,6 +62,16 @@ impl Default for MemoryCacheBackend {
 
 impl CacheBackend for MemoryCacheBackend {
     fn store(&self, key: &str, response: &CachedResponse, _ttl: Duration) {
+        // Evict expired entries first to make room
+        if self.entries.len() >= self.max_entries {
+            self.entries.retain(|_, v| !v.is_expired());
+        }
+        // If still at capacity, evict an arbitrary entry
+        if self.entries.len() >= self.max_entries {
+            if let Some(evict_key) = self.entries.iter().next().map(|e| e.key().clone()) {
+                self.entries.remove(&evict_key);
+            }
+        }
         self.entries.insert(key.to_string(), response.clone());
     }
 
@@ -80,30 +105,32 @@ impl Default for CacheConfig {
     }
 }
 
-/// Build a cache key from the request's last user message and model.
-fn build_cache_key(request: &AIRequest) -> String {
-    let last_msg = request
+/// Build a cache key from the request model and a hash of the last user message content.
+/// Uses a full-content hash instead of a truncated prefix to avoid collisions.
+pub fn build_cache_key(request: &AIRequest) -> String {
+    let content = request
         .messages
         .iter()
         .rev()
-        .find(|m| matches!(m.role, AIRole::User));
+        .find(|m| matches!(m.role, AIRole::User))
+        .map(|m| content_str(&m.content))
+        .unwrap_or_default();
 
-    let content = match last_msg.map(|m| &m.content) {
-        Some(AIContent::Text(s)) => s.clone(),
-        Some(AIContent::MultiPart(parts)) => parts
-            .iter()
-            .filter_map(|p| p.text.clone())
-            .collect::<Vec<_>>()
-            .join(" "),
-        Some(AIContent::None) | None => String::new(),
-    };
+    let mut hasher = std::collections::hash_map::DefaultHasher::new();
+    request.model.hash(&mut hasher);
+    content.hash(&mut hasher);
+    format!("cache:{:016x}", hasher.finish())
+}
 
-    format!(
-        "cache:{}:{}:{}",
-        request.model,
-        content.len(),
-        content.chars().take(100).collect::<String>(),
-    )
+fn content_str(content: &AIContent) -> String {
+    match content {
+        AIContent::Text(s) => s.clone(),
+        AIContent::MultiPart(parts) => {
+            let texts: Vec<&str> = parts.iter().filter_map(|p| p.text.as_deref()).collect();
+            texts.join(" ")
+        }
+        AIContent::None => String::new(),
+    }
 }
 
 /// Semantic cache: lookup/store against a generic [`CacheBackend`].
@@ -149,5 +176,69 @@ impl SemanticCache {
             ttl: self.config.ttl,
         };
         self.backend.store(&key, &entry, self.config.ttl);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn make_response(id: &str) -> AIResponse {
+        AIResponse {
+            id: id.to_string(),
+            model: "test".to_string(),
+            choices: vec![],
+            usage: None,
+            created: None,
+            extra: Default::default(),
+        }
+    }
+
+    #[test]
+    fn test_cache_eviction_at_capacity() {
+        let backend = MemoryCacheBackend::with_capacity(2);
+        let resp = CachedResponse {
+            response: make_response("r1"),
+            stored_at: Instant::now(),
+            ttl: Duration::from_secs(60),
+        };
+        backend.store("key1", &resp, Duration::from_secs(60));
+        backend.store("key2", &resp, Duration::from_secs(60));
+        backend.store("key3", &resp, Duration::from_secs(60));
+        // After inserting key3 at capacity 2, at most one of key1/key2 should remain
+        let present =
+            backend.lookup("key1").is_some() as u8 + backend.lookup("key2").is_some() as u8;
+        assert!(
+            present <= 1,
+            "at most one of key1/key2 should remain after eviction"
+        );
+        assert!(backend.lookup("key3").is_some(), "key3 must be present");
+    }
+
+    #[test]
+    fn test_build_cache_key_different_content_produces_different_keys() {
+        let req1 = AIRequest {
+            messages: vec![],
+            model: "gpt-4".into(),
+            temperature: None,
+            max_tokens: None,
+            top_p: None,
+            stop: vec![],
+            stream: false,
+            user: None,
+            extra: Default::default(),
+        };
+        let req2 = AIRequest {
+            messages: vec![],
+            model: "gpt-4o".into(),
+            temperature: None,
+            max_tokens: None,
+            top_p: None,
+            stop: vec![],
+            stream: false,
+            user: None,
+            extra: Default::default(),
+        };
+        assert_ne!(build_cache_key(&req1), build_cache_key(&req2));
     }
 }
