@@ -19,8 +19,8 @@ impl ModelPricing {
     }
 }
 
-/// Real-time cost tracker. Accumulates cost in micro-dollars (µ$).
-/// All public cost values returned are in dollars.
+/// Real-time cost tracker. Accumulates cost in deci-cent-dollars (1 unit = 0.0001 dollars)
+/// to avoid f64-to-u64 truncation. All public cost values returned are in dollars.
 pub struct CostTracker {
     pricing: HashMap<String, ModelPricing>,
     total_cost: AtomicU64,
@@ -68,15 +68,15 @@ impl CostTracker {
     /// Record usage and return cost in dollars.
     pub fn record(&self, model: &str, usage: &AIUsage) -> f64 {
         let cost = self.calc_cost(model, usage);
-        let micro_dollars = (cost * 1_000_000.0) as u64;
-        self.total_cost.fetch_add(micro_dollars, Ordering::Relaxed);
+        let units = (cost * 10_000.0).round() as u64;
+        self.total_cost.fetch_add(units, Ordering::Relaxed);
         cost
     }
 
     /// Total accumulated cost in dollars.
     pub fn total_cost_dollars(&self) -> f64 {
-        let micro = self.total_cost.load(Ordering::Relaxed);
-        micro as f64 / 1_000_000.0
+        let units = self.total_cost.load(Ordering::Relaxed);
+        units as f64 / 10_000.0
     }
 
     /// Reset total cost to zero.
