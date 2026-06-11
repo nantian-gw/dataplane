@@ -9,7 +9,7 @@ async fn http1_max_connection_age_closes_downstream_after_current_request() {
     let snapshot = simple_http_snapshot(gateway_port, "/age", upstream_addr.port() as u32, "HTTP");
     let runtime = RuntimeOptions {
         enable_ipv6: false,
-        downstream_max_connection_age: Some(Duration::from_millis(75)),
+        downstream_max_connection_age: Some(Duration::from_millis(500)),
         ..RuntimeOptions::default()
     };
     let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
@@ -56,7 +56,7 @@ async fn http1_max_connection_age_closes_downstream_after_current_request() {
         assert!(first.starts_with("HTTP/1.1 200"));
         assert!(first.ends_with("\r\n\r\none"));
 
-        sleep(Duration::from_millis(120)).await;
+        sleep(Duration::from_millis(600)).await;
 
         client
             .write_all(b"GET /age HTTP/1.1\r\nHost: example.com\r\n\r\n")
