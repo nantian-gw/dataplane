@@ -39,15 +39,17 @@ impl ApiKeyManager {
     }
 
     /// Rotate keys: add a new key with lower priority (becomes preferred).
-    /// Old key remains available during rotation window.
+    /// Expired credentials are removed before the new key is added.
     pub fn rotate(&self, gateway_key: &str, new_key: String, priority: u8) {
         let mut keys = self.keys.write();
+        let entry = keys.entry(gateway_key.to_string()).or_default();
+        entry.retain(|c| c.expires_at.is_none());
         let cred = BackendCredential {
             api_key: new_key,
             expires_at: None,
             priority,
         };
-        keys.entry(gateway_key.to_string()).or_default().push(cred);
+        entry.push(cred);
     }
 
     /// Remove a specific key.
