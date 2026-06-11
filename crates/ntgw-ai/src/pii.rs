@@ -1,4 +1,5 @@
 use regex::Regex;
+use std::borrow::Cow;
 
 use crate::error::AIError;
 
@@ -134,44 +135,42 @@ impl PIIMasker {
 
     /// Detect and mask PII in `text`.
     ///
-    /// Returns the masked string, the number of entities replaced, and a
-    /// detail vector of `(original, replacement)` pairs for logging /
-    /// auditing purposes.
-    pub fn mask(&self, text: &str) -> (String, usize, Vec<(String, String)>) {
+    /// Returns the masked string (Cow::Borrowed when no changes), the number
+    /// of entities replaced, and a detail vector of `(original, replacement)`
+    /// pairs for logging / auditing purposes.
+    pub fn mask<'a>(&self, text: &'a str) -> (Cow<'a, str>, usize, Vec<(String, String)>) {
         if !self.enabled {
-            return (text.to_string(), 0, Vec::new());
+            return (Cow::Borrowed(text), 0, Vec::new());
         }
 
-        let matches = self.detect(text);
+        let mut matches = self.detect(text);
+        if matches.is_empty() {
+            return (Cow::Borrowed(text), 0, Vec::new());
+        }
 
-        // Remove overlapping matches: keep the first (longest) match at each
-        // position, then skip any match whose start falls inside an already
-        // accepted span.
-        let mut filtered: Vec<PIIMatch> = Vec::new();
+        // Deduplicate overlapping matches in-place: keep the first (longest)
+        // match at each position.
+        matches.dedup_by(|a, b| b.start < a.end);
+
+        let count = matches.len();
+        let mut result = String::with_capacity(text.len());
+        let mut details = Vec::with_capacity(count);
         let mut last_end = 0;
+
         for m in &matches {
-            if m.start >= last_end {
-                filtered.push(m.clone());
-                last_end = m.end;
-            }
-        }
-
-        let count = filtered.len();
-        let mut result = text.to_string();
-        let mut details = Vec::new();
-
-        // Replace in reverse order so that earlier positions stay valid.
-        for m in filtered.iter().rev() {
+            result.push_str(&text[last_end..m.start]);
             let replacement = match self.mode {
                 PIIMode::Mask => format!("[{}]", m.entity_type.as_str()),
-                PIIMode::Redact => "[REDACTED]".into(),
+                PIIMode::Redact => "[REDACTED]".to_string(),
                 PIIMode::Anonymize => format!("<{}>", m.entity_type.as_str()),
             };
             details.push((m.text.clone(), replacement.clone()));
-            result.replace_range(m.start..m.end, &replacement);
+            result.push_str(&replacement);
+            last_end = m.end;
         }
+        result.push_str(&text[last_end..]);
 
-        (result, count, details)
+        (Cow::Owned(result), count, details)
     }
 
     /// Convenience helper: apply masking to a byte-slice payload that is
@@ -181,7 +180,7 @@ impl PIIMasker {
         let s = std::str::from_utf8(bytes)
             .map_err(|e| AIError::Internal(anyhow::anyhow!("non-UTF-8 payload: {e}")))?;
         let (masked, _count, _details) = self.mask(s);
-        Ok(masked.into_bytes())
+        Ok(masked.into_owned().into_bytes())
     }
 
     /// Return the compiled pattern count (useful for diagnostics).
@@ -304,5 +303,32 @@ mod tests {
         let (result, count, _) = masker.mask("Card: 4111-1111-1111-1111");
         assert!(result.contains("[credit_card]"));
         assert_eq!(count, 1);
+    }
+
+    #[test]
+    fn test_mask_no_pii_is_zero_allocation() {
+        let masker = PIIMasker::new(PIIMode::Mask);
+        let input = "This is a clean message with no personal information whatsoever.";
+        let (result, count, _details) = masker.mask(input);
+        assert_eq!(count, 0);
+        assert!(matches!(result, Cow::Borrowed(_)));
+    }
+
+    #[test]
+    fn test_mask_disabled_is_zero_allocation() {
+        let masker = PIIMasker::new(PIIMode::Mask).with_enabled(false);
+        let input = "test@example.com call 13912345678";
+        let (result, count, _details) = masker.mask(input);
+        assert_eq!(count, 0);
+        assert!(matches!(result, Cow::Borrowed(_)));
+    }
+
+    #[test]
+    fn test_mask_with_pii_is_owned() {
+        let masker = PIIMasker::new(PIIMode::Mask);
+        let input = "Contact test@example.com for details.";
+        let (result, count, _details) = masker.mask(input);
+        assert!(count > 0);
+        assert!(matches!(result, Cow::Owned(_)));
     }
 }

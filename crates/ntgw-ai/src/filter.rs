@@ -217,7 +217,7 @@ impl AIGatewayFilter {
                     self.metrics.record_pii_detected(entity_type, *n);
                 }
             }
-            masked.into_bytes()
+            masked.into_owned().into_bytes()
         } else {
             body.to_vec()
         };
@@ -491,7 +491,7 @@ impl AIGatewayFilter {
                     self.metrics.record_pii_detected(entity_type, *n);
                 }
             }
-            masked_response.into_bytes()
+            masked_response.into_owned().into_bytes()
         } else {
             output_body
         };
