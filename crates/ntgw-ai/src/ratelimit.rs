@@ -1,5 +1,4 @@
-use parking_lot::Mutex;
-use std::collections::HashMap;
+use dashmap::DashMap;
 use std::time::{Duration, Instant};
 
 /// Result of a rate limit check.
@@ -122,7 +121,7 @@ impl SlidingWindow {
 
 /// Thread-safe token/request rate limiter with per-key sliding windows.
 pub struct TokenRateLimiter {
-    windows: Mutex<HashMap<String, SlidingWindow>>,
+    windows: DashMap<String, SlidingWindow>,
     pub config: RateLimitConfig,
 }
 
@@ -130,7 +129,7 @@ impl TokenRateLimiter {
     /// Create a new rate limiter with the given configuration.
     pub fn new(config: RateLimitConfig) -> Self {
         Self {
-            windows: Mutex::new(HashMap::new()),
+            windows: DashMap::new(),
             config,
         }
     }
@@ -138,7 +137,6 @@ impl TokenRateLimiter {
     /// Check before sending request. Returns whether request can proceed.
     ///
     /// When all limits are zero (unlimited), always returns `Allowed`.
-    #[allow(clippy::unwrap_used)]
     pub fn check(&self, key: &str) -> RateLimitResult {
         if self.config.tokens_per_minute == 0
             && self.config.tokens_per_hour == 0
@@ -149,17 +147,16 @@ impl TokenRateLimiter {
             };
         }
 
-        let mut windows = self.windows.lock();
-        let window = windows
-            .entry(key.to_string())
+        let mut entry = self
+            .windows
+            .entry(key.to_owned())
             .or_insert_with(|| SlidingWindow::new(&self.config));
-        window.check()
+        entry.check()
     }
 
     /// Record token usage after response and check token limits.
     ///
     /// When all limits are zero (unlimited), always returns `Allowed`.
-    #[allow(clippy::unwrap_used)]
     pub fn record_usage(&self, key: &str, total_tokens: u64) -> RateLimitResult {
         if self.config.tokens_per_minute == 0 && self.config.tokens_per_hour == 0 {
             return RateLimitResult::Allowed {
@@ -167,10 +164,10 @@ impl TokenRateLimiter {
             };
         }
 
-        let mut windows = self.windows.lock();
-        let window = windows
-            .entry(key.to_string())
+        let mut entry = self
+            .windows
+            .entry(key.to_owned())
             .or_insert_with(|| SlidingWindow::new(&self.config));
-        window.record_tokens(total_tokens)
+        entry.record_tokens(total_tokens)
     }
 }
