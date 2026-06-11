@@ -1,9 +1,6 @@
-use rand::rngs::StdRng;
-use rand::{Rng, SeedableRng};
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-
-use parking_lot::Mutex;
 
 /// A single variant in an A/B test experiment.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -32,26 +29,16 @@ pub struct ABTest {
 /// Weighted-random selection engine for A/B test experiments.
 ///
 /// Stores experiments by ID and provides weighted-random variant selection
-/// using a seeded PRNG for reproducibility when desired.
+/// using `thread_rng()` for lock-free concurrent access.
 pub struct ABTestEngine {
     experiments: HashMap<String, ABTest>,
-    rng: Mutex<StdRng>,
 }
 
 impl ABTestEngine {
-    /// Create a new engine with a randomly-seeded PRNG.
+    /// Create a new engine.
     pub fn new() -> Self {
         Self {
             experiments: HashMap::new(),
-            rng: Mutex::new(StdRng::from_entropy()),
-        }
-    }
-
-    /// Create a new engine with a fixed PRNG seed (useful for deterministic tests).
-    pub fn with_seed(seed: u64) -> Self {
-        Self {
-            experiments: HashMap::new(),
-            rng: Mutex::new(StdRng::seed_from_u64(seed)),
         }
     }
 
@@ -72,8 +59,7 @@ impl ABTestEngine {
             return None;
         }
 
-        let mut rng = self.rng.lock();
-        let roll: f64 = rng.r#gen();
+        let roll: f64 = rand::thread_rng().r#gen();
 
         let mut cumulative = 0.0_f64;
         for variant in &experiment.variants {
@@ -120,11 +106,9 @@ impl Default for ABTestEngine {
 mod tests {
     use super::*;
 
-    // ── tests within this module measure just the core selection logic ──
-
     #[test]
     fn test_selects_correct_variant_by_weight() {
-        let mut engine = ABTestEngine::with_seed(42);
+        let mut engine = ABTestEngine::new();
         engine.register(ABTest {
             experiment_id: "test_exp".into(),
             variants: vec![
@@ -153,15 +137,13 @@ mod tests {
                 counts[1] += 1;
             }
         }
-        // With 1000 trials and weights 0.3/0.7, counts should be roughly
-        // 300/700. We assert a generous tolerance to avoid flaky failures.
         assert!(counts[0] > 200, "variant a count {} too low", counts[0]);
         assert!(counts[1] > 600, "variant b count {} too low", counts[1]);
     }
 
     #[test]
     fn test_all_weight_goes_to_first_when_weight_is_1() {
-        let mut engine = ABTestEngine::with_seed(99);
+        let mut engine = ABTestEngine::new();
         engine.register(ABTest {
             experiment_id: "single".into(),
             variants: vec![Variant {
@@ -182,15 +164,17 @@ mod tests {
 
     #[test]
     fn test_returns_none_for_unknown_experiment() {
-        let engine = ABTestEngine::with_seed(1);
+        let engine = ABTestEngine::new();
         assert!(engine.select_variant("nonexistent").is_none());
     }
 
     #[test]
-    fn test_deterministic_with_fixed_seed() {
-        let mut engine = ABTestEngine::with_seed(7);
+    fn test_concurrent_select_variant_no_deadlock() {
+        use std::sync::Arc;
+
+        let mut engine = ABTestEngine::new();
         engine.register(ABTest {
-            experiment_id: "det".into(),
+            experiment_id: "concurrent".into(),
             variants: vec![
                 Variant {
                     name: "x".into(),
@@ -206,43 +190,20 @@ mod tests {
                 },
             ],
         });
-
-        // With fixed seed the sequence is deterministic
-        let first_three: Vec<String> = (0..3)
+        let engine = Arc::new(engine);
+        let handles: Vec<_> = (0..16)
             .map(|_| {
-                #[allow(clippy::unwrap_used)]
-                engine.select_variant("det").unwrap().name.clone()
+                let engine = Arc::clone(&engine);
+                std::thread::spawn(move || {
+                    for _ in 0..100 {
+                        let _ = engine.select_variant("concurrent");
+                    }
+                })
             })
             .collect();
-
-        // Same seed → same sequence
-        let mut engine2 = ABTestEngine::with_seed(7);
-        engine2.register(ABTest {
-            experiment_id: "det".into(),
-            variants: vec![
-                Variant {
-                    name: "x".into(),
-                    model: "m-a".into(),
-                    weight: 0.5,
-                    config: serde_json::Value::Null,
-                },
-                Variant {
-                    name: "y".into(),
-                    model: "m-b".into(),
-                    weight: 0.5,
-                    config: serde_json::Value::Null,
-                },
-            ],
-        });
-
-        let second_three: Vec<String> = (0..3)
-            .map(|_| {
-                #[allow(clippy::unwrap_used)]
-                engine2.select_variant("det").unwrap().name.clone()
-            })
-            .collect();
-
-        assert_eq!(first_three, second_three);
+        for h in handles {
+            h.join().unwrap();
+        }
     }
 
     #[test]

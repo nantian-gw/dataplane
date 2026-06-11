@@ -1,8 +1,10 @@
+use std::sync::Arc;
+
 use ntgw_ai::ab_test::{ABTest, ABTestEngine, Variant};
 
 #[test]
 fn test_selects_correct_variant_by_weight() {
-    let mut engine = ABTestEngine::with_seed(42);
+    let mut engine = ABTestEngine::new();
     engine.register(ABTest {
         experiment_id: "test_exp".into(),
         variants: vec![
@@ -36,7 +38,7 @@ fn test_selects_correct_variant_by_weight() {
 
 #[test]
 fn test_all_weight_goes_to_first_when_weight_is_1() {
-    let mut engine = ABTestEngine::with_seed(99);
+    let mut engine = ABTestEngine::new();
     engine.register(ABTest {
         experiment_id: "single".into(),
         variants: vec![Variant {
@@ -56,15 +58,15 @@ fn test_all_weight_goes_to_first_when_weight_is_1() {
 
 #[test]
 fn test_returns_none_for_unknown_experiment() {
-    let engine = ABTestEngine::with_seed(1);
+    let engine = ABTestEngine::new();
     assert!(engine.select_variant("nonexistent").is_none());
 }
 
 #[test]
-fn test_deterministic_with_fixed_seed() {
-    let mut engine = ABTestEngine::with_seed(7);
+fn test_concurrent_select_variant_no_deadlock() {
+    let mut engine = ABTestEngine::new();
     engine.register(ABTest {
-        experiment_id: "det".into(),
+        experiment_id: "concurrent".into(),
         variants: vec![
             Variant {
                 name: "x".into(),
@@ -80,33 +82,34 @@ fn test_deterministic_with_fixed_seed() {
             },
         ],
     });
-
-    let first_three: Vec<String> = (0..3)
-        .map(|_| engine.select_variant("det").unwrap().name.clone())
+    let engine = Arc::new(engine);
+    let handles: Vec<_> = (0..16)
+        .map(|_| {
+            let engine = Arc::clone(&engine);
+            std::thread::spawn(move || {
+                for _ in 0..100 {
+                    let _ = engine.select_variant("concurrent");
+                }
+            })
+        })
         .collect();
+    for h in handles {
+        h.join().unwrap();
+    }
+}
 
-    let mut engine2 = ABTestEngine::with_seed(7);
-    engine2.register(ABTest {
-        experiment_id: "det".into(),
-        variants: vec![
-            Variant {
-                name: "x".into(),
-                model: "m-a".into(),
-                weight: 0.5,
-                config: serde_json::Value::Null,
-            },
-            Variant {
-                name: "y".into(),
-                model: "m-b".into(),
-                weight: 0.5,
-                config: serde_json::Value::Null,
-            },
-        ],
-    });
+#[test]
+fn test_generate_id_is_unique() {
+    let id1 = ABTestEngine::generate_id();
+    let id2 = ABTestEngine::generate_id();
+    assert_ne!(id1, id2);
+    assert!(id1.starts_with("exp_"));
+    assert!(id2.starts_with("exp_"));
+}
 
-    let second_three: Vec<String> = (0..3)
-        .map(|_| engine2.select_variant("det").unwrap().name.clone())
-        .collect();
-
-    assert_eq!(first_three, second_three);
+#[test]
+fn test_empty_engine_is_empty() {
+    let engine = ABTestEngine::new();
+    assert!(engine.is_empty());
+    assert_eq!(engine.len(), 0);
 }
