@@ -591,7 +591,7 @@ fn build_ai_filter(
     snapshot: &SharedSnapshot,
     wasm_filter: Option<Arc<ntgw_ai::wasm_filter::WasmPluginFilter>>,
 ) -> Option<Arc<ntgw_ai::filter::AIGatewayFilter>> {
-    use ntgw_ai::filter::AIGatewayFilter;
+    use ntgw_ai::filter::AIGatewayFilterBuilder;
     use ntgw_ai::format::AdapterRegistry;
     use ntgw_ai::format::anthropic::AnthropicAdapter;
     use ntgw_ai::format::ollama::OllamaAdapter;
@@ -634,22 +634,14 @@ fn build_ai_filter(
         })
     };
 
-    Some(Arc::new(AIGatewayFilter::new(
-        adapters,
-        metrics,
-        None, // langfuse
-        None, // tracer
-        rate_limiter,
-        None, // key_manager
-        None, // pii_masker
-        None, // prompt_guard
-        None, // content_safety
-        None, // fallback
-        None, // cost_tracker
-        None, // tenant_manager
-        wasm_filter,
-        None, // ai_sandbox
-    )))
+    let mut builder = AIGatewayFilterBuilder::new(adapters, metrics);
+    if let Some(rl) = rate_limiter {
+        builder = builder.rate_limiter(rl);
+    }
+    if let Some(wf) = wasm_filter {
+        builder = builder.wasm_filter(wf);
+    }
+    Some(Arc::new(builder.build()))
 }
 
 fn build_wasm_filter(

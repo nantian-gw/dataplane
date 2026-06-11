@@ -12,7 +12,7 @@ use crate::fallback::ModelFallback;
 use crate::format::ir::{AIRequest, AIStreamChunk};
 use crate::format::{AdapterRegistry, detect_format};
 use crate::keyring::ApiKeyManager;
-use crate::model_router::ModelRouter;
+use crate::model_router::{Complexity, ModelRouter};
 use crate::multitenant::TenantManager;
 use crate::observability::langfuse::LangfuseClient;
 use crate::observability::metrics::AIMetrics;
@@ -30,8 +30,9 @@ pub struct AIContext {
     pub format: String,
     pub request: AIRequest,
     pub start_time: Instant,
-    /// Store raw request bytes for Langfuse ingestion
     pub raw_request: Vec<u8>,
+    pub cache_key: Option<String>,
+    pub complexity: Option<Complexity>,
 }
 
 /// AI Gateway filter: wraps upstream call with format conversion,
@@ -58,47 +59,149 @@ pub struct AIGatewayFilter {
     pub ai_sandbox: Option<Arc<AISandbox>>,
 }
 
-impl AIGatewayFilter {
-    #[allow(clippy::too_many_arguments)]
-    pub fn new(
-        adapters: Arc<AdapterRegistry>,
-        metrics: Arc<AIMetrics>,
-        langfuse: Option<Arc<LangfuseClient>>,
-        tracer: Option<Arc<AITracer>>,
-        rate_limiter: Option<TokenRateLimiter>,
-        key_manager: Option<Arc<ApiKeyManager>>,
-        pii_masker: Option<PIIMasker>,
-        prompt_guard: Option<PromptGuardFilter>,
-        content_safety: Option<ContentSafetyFilter>,
-        fallback: Option<ModelFallback>,
-        cost_tracker: Option<Arc<CostTracker>>,
-        tenant_manager: Option<Arc<TenantManager>>,
-        wasm_filter: Option<Arc<WasmPluginFilter>>,
-        ai_sandbox: Option<Arc<AISandbox>>,
-    ) -> Self {
+/// Builder for `AIGatewayFilter`.
+pub struct AIGatewayFilterBuilder {
+    adapters: Option<Arc<AdapterRegistry>>,
+    metrics: Option<Arc<AIMetrics>>,
+    langfuse: Option<Arc<LangfuseClient>>,
+    tracer: Option<Arc<AITracer>>,
+    rate_limiter: Option<TokenRateLimiter>,
+    key_manager: Option<Arc<ApiKeyManager>>,
+    pii_masker: Option<PIIMasker>,
+    prompt_guard: Option<PromptGuardFilter>,
+    content_safety: Option<ContentSafetyFilter>,
+    fallback: Option<ModelFallback>,
+    cost_tracker: Option<Arc<CostTracker>>,
+    model_router: Option<Arc<ModelRouter>>,
+    prompt_injector: Option<Arc<PromptInjector>>,
+    prompt_template_name: Option<String>,
+    tenant_manager: Option<Arc<TenantManager>>,
+    ab_engine: Option<Arc<ABTestEngine>>,
+    ab_experiment_id: Option<String>,
+    wasm_filter: Option<Arc<WasmPluginFilter>>,
+    ai_sandbox: Option<Arc<AISandbox>>,
+}
+
+impl AIGatewayFilterBuilder {
+    pub fn new(adapters: Arc<AdapterRegistry>, metrics: Arc<AIMetrics>) -> Self {
         Self {
-            adapters,
-            metrics,
-            langfuse,
-            tracer,
-            rate_limiter,
-            key_manager,
-            pii_masker,
-            prompt_guard,
-            content_safety,
-            fallback,
-            cost_tracker,
+            adapters: Some(adapters),
+            metrics: Some(metrics),
+            langfuse: None,
+            tracer: None,
+            rate_limiter: None,
+            key_manager: None,
+            pii_masker: None,
+            prompt_guard: None,
+            content_safety: None,
+            fallback: None,
+            cost_tracker: None,
             model_router: None,
             prompt_injector: None,
             prompt_template_name: None,
-            tenant_manager,
+            tenant_manager: None,
             ab_engine: None,
             ab_experiment_id: None,
-            wasm_filter,
-            ai_sandbox,
+            wasm_filter: None,
+            ai_sandbox: None,
         }
     }
 
+    pub fn langfuse(mut self, v: Arc<LangfuseClient>) -> Self {
+        self.langfuse = Some(v);
+        self
+    }
+    pub fn tracer(mut self, v: Arc<AITracer>) -> Self {
+        self.tracer = Some(v);
+        self
+    }
+    pub fn rate_limiter(mut self, v: TokenRateLimiter) -> Self {
+        self.rate_limiter = Some(v);
+        self
+    }
+    pub fn key_manager(mut self, v: Arc<ApiKeyManager>) -> Self {
+        self.key_manager = Some(v);
+        self
+    }
+    pub fn pii_masker(mut self, v: PIIMasker) -> Self {
+        self.pii_masker = Some(v);
+        self
+    }
+    pub fn prompt_guard(mut self, v: PromptGuardFilter) -> Self {
+        self.prompt_guard = Some(v);
+        self
+    }
+    pub fn content_safety(mut self, v: ContentSafetyFilter) -> Self {
+        self.content_safety = Some(v);
+        self
+    }
+    pub fn fallback(mut self, v: ModelFallback) -> Self {
+        self.fallback = Some(v);
+        self
+    }
+    pub fn cost_tracker(mut self, v: Arc<CostTracker>) -> Self {
+        self.cost_tracker = Some(v);
+        self
+    }
+    pub fn model_router(mut self, v: Arc<ModelRouter>) -> Self {
+        self.model_router = Some(v);
+        self
+    }
+    pub fn prompt_injector(mut self, v: Arc<PromptInjector>) -> Self {
+        self.prompt_injector = Some(v);
+        self
+    }
+    pub fn prompt_template_name(mut self, v: String) -> Self {
+        self.prompt_template_name = Some(v);
+        self
+    }
+    pub fn tenant_manager(mut self, v: Arc<TenantManager>) -> Self {
+        self.tenant_manager = Some(v);
+        self
+    }
+    pub fn ab_engine(mut self, v: Arc<ABTestEngine>) -> Self {
+        self.ab_engine = Some(v);
+        self
+    }
+    pub fn ab_experiment_id(mut self, v: String) -> Self {
+        self.ab_experiment_id = Some(v);
+        self
+    }
+    pub fn wasm_filter(mut self, v: Arc<WasmPluginFilter>) -> Self {
+        self.wasm_filter = Some(v);
+        self
+    }
+    pub fn ai_sandbox(mut self, v: Arc<AISandbox>) -> Self {
+        self.ai_sandbox = Some(v);
+        self
+    }
+
+    pub fn build(self) -> AIGatewayFilter {
+        AIGatewayFilter {
+            adapters: self.adapters.expect("adapters required"),
+            metrics: self.metrics.expect("metrics required"),
+            langfuse: self.langfuse,
+            tracer: self.tracer,
+            rate_limiter: self.rate_limiter,
+            key_manager: self.key_manager,
+            pii_masker: self.pii_masker,
+            prompt_guard: self.prompt_guard,
+            content_safety: self.content_safety,
+            fallback: self.fallback,
+            cost_tracker: self.cost_tracker,
+            model_router: self.model_router,
+            prompt_injector: self.prompt_injector,
+            prompt_template_name: self.prompt_template_name,
+            tenant_manager: self.tenant_manager,
+            ab_engine: self.ab_engine,
+            ab_experiment_id: self.ab_experiment_id,
+            wasm_filter: self.wasm_filter,
+            ai_sandbox: self.ai_sandbox,
+        }
+    }
+}
+
+impl AIGatewayFilter {
     /// Single-pass security scan: combines prompt guard and content safety checks
     /// into one loop over request messages.
     fn scan_security(&self, request: &AIRequest) -> Result<(), AIError> {
@@ -241,22 +344,25 @@ impl AIGatewayFilter {
         }
 
         // 2b. Model routing: classify and replace model if router configured.
-        if let Some(ref router) = self.model_router
-            && let Some(route) = router.classify_and_route(&request)
-        {
-            tracing::info!(
-                original_model = %request.model,
-                routed_model = %route.model,
-                complexity = ?router.classify(&request),
-                "model routed"
-            );
-            request.model = route.model.clone();
-            if let Some(max_tokens) = route.max_tokens
-                && request
-                    .max_tokens
-                    .is_none_or(|req_max| req_max > max_tokens)
-            {
-                request.max_tokens = Some(max_tokens);
+        let mut complexity: Option<Complexity> = None;
+        if let Some(ref router) = self.model_router {
+            let complexity_val = router.classify(&request);
+            complexity = Some(complexity_val);
+            if let Some(route) = router.route(complexity_val) {
+                tracing::info!(
+                    original_model = %request.model,
+                    routed_model = %route.model,
+                    ?complexity,
+                    "model routed"
+                );
+                request.model = route.model.clone();
+                if let Some(max_tokens) = route.max_tokens
+                    && request
+                        .max_tokens
+                        .is_none_or(|req_max| req_max > max_tokens)
+                {
+                    request.max_tokens = Some(max_tokens);
+                }
             }
         }
 
@@ -325,6 +431,8 @@ impl AIGatewayFilter {
             request,
             start_time: Instant::now(),
             raw_request: masked_body,
+            cache_key: None,
+            complexity,
         })
     }
 

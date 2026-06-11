@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use ntgw_ai::filter::{AIGatewayFilter, parse_sse_chunks};
+use ntgw_ai::filter::{AIGatewayFilter, AIGatewayFilterBuilder, parse_sse_chunks};
 use ntgw_ai::format::AdapterRegistry;
 use ntgw_ai::format::anthropic::AnthropicAdapter;
 use ntgw_ai::format::openai::OpenAIAdapter;
@@ -13,22 +13,7 @@ fn test_filter() -> (AIGatewayFilter, Registry) {
     let mut adapters = AdapterRegistry::new();
     adapters.register("openai", Arc::new(OpenAIAdapter));
     adapters.register("anthropic", Arc::new(AnthropicAdapter));
-    let filter = AIGatewayFilter::new(
-        Arc::new(adapters),
-        Arc::new(metrics),
-        None, // no langfuse
-        None, // no tracer
-        None, // no rate limiter
-        None, // no key manager
-        None, // no pii masker
-        None, // no prompt guard
-        None, // no content safety
-        None, // no fallback
-        None, // no cost tracker
-        None, // no tenant manager
-        None, // no wasm_filter
-        None, // no ai_sandbox
-    );
+    let filter = AIGatewayFilterBuilder::new(Arc::new(adapters), Arc::new(metrics)).build();
     (filter, registry)
 }
 
@@ -210,22 +195,7 @@ async fn test_noop_observability() {
     let metrics = AIMetrics::new(&registry).unwrap();
     let mut adapters = AdapterRegistry::new();
     adapters.register("openai", Arc::new(OpenAIAdapter));
-    let filter = AIGatewayFilter::new(
-        Arc::new(adapters),
-        Arc::new(metrics),
-        None, // no langfuse
-        None, // no tracer
-        None, // no rate limiter
-        None, // no key manager
-        None, // no pii masker
-        None, // no prompt guard
-        None, // no content safety
-        None, // no fallback
-        None, // no cost tracker
-        None, // no tenant manager
-        None, // no wasm_filter
-        None, // no ai_sandbox
-    );
+    let filter = AIGatewayFilterBuilder::new(Arc::new(adapters), Arc::new(metrics)).build();
 
     let request_body = br#"{"model": "gpt-4o", "messages": [{"role": "user", "content": "test"}]}"#;
     let ctx = filter
