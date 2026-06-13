@@ -306,17 +306,21 @@ pub struct HttpCacheConfig {
     pub enabled: bool,
     #[serde(default = "default_http_cache_max_size_mb")]
     pub max_size_mb: usize,
+    #[serde(default = "default_http_cache_max_entry_size_mb")]
+    pub max_entry_size_mb: usize,
     #[serde(default = "default_http_cache_default_ttl_seconds")]
     pub default_ttl_seconds: u64,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExperimentalConfig {
     #[serde(default)]
     pub enable_experimental_gateway: bool,
     #[serde(default)]
     pub enable_ai_gateway: bool,
+    #[serde(default = "default_ai_gateway_max_request_body_bytes")]
+    pub ai_gateway_max_request_body_bytes: usize,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

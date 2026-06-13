@@ -65,6 +65,11 @@ upstream_tcp_keepalive: ntgw_config::TcpKeepaliveConfig {
         http_route_rate_limit_burst: 6,
         ..RuntimeProtectionConfig::default()
     };
+    cfg.experimental = ExperimentalConfig {
+        enable_ai_gateway: true,
+        ai_gateway_max_request_body_bytes: 16_384,
+        ..ExperimentalConfig::default()
+    };
 
     let http = to_http_runtime_options(&cfg);
     assert_eq!(http.reload_retry_interval.as_millis(), 2_200);
@@ -87,6 +92,8 @@ upstream_tcp_keepalive: ntgw_config::TcpKeepaliveConfig {
     assert_eq!(http.capacity.reuse_port, Some(false));
     assert_eq!(http.max_request_body_bytes, 4_096);
     assert_eq!(http.max_request_header_bytes, 8_192);
+    assert!(http.experimental.enable_ai_gateway);
+    assert_eq!(http.experimental.ai_gateway_max_request_body_bytes, 16_384);
     assert!(!http.retry_budget.enabled);
     assert_eq!(http.retry_budget.ratio_percent, 35);
     assert_eq!(http.retry_budget.burst, 9);

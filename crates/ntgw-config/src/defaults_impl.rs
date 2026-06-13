@@ -1,35 +1,37 @@
 use super::{
-    AccessLogConfig, HttpCacheConfig, HttpCapacityConfig, LogConfig, OpenTelemetryConfig,
-    RuntimeConfig, RuntimeProtectionConfig, RuntimeTuningConfig, TcpKeepaliveConfig,
-    XdsTransportConfig,
+    AccessLogConfig, ExperimentalConfig, HttpCacheConfig, HttpCapacityConfig, LogConfig,
+    OpenTelemetryConfig, RuntimeConfig, RuntimeProtectionConfig, RuntimeTuningConfig,
+    TcpKeepaliveConfig, XdsTransportConfig,
     defaults::{
         default_access_enabled, default_access_format, default_access_mode, default_access_path,
         default_access_sample_rate, default_active_health_check_enabled,
         default_active_health_check_interval_ms, default_active_health_check_timeout_ms,
-        default_active_health_check_unhealthy_threshold, default_downstream_read_timeout_ms,
-        default_graceful_drain_period_ms, default_http_cache_default_ttl_seconds,
-        default_http_cache_enabled, default_http_cache_max_size_mb,
+        default_active_health_check_unhealthy_threshold, default_ai_gateway_max_request_body_bytes,
+        default_downstream_read_timeout_ms, default_graceful_drain_period_ms,
+        default_http_cache_default_ttl_seconds, default_http_cache_enabled,
+        default_http_cache_max_entry_size_mb, default_http_cache_max_size_mb,
         default_http_keepalive_request_limit, default_http_listen_addr,
         default_http_max_connection_age_ms, default_http_max_request_body_bytes,
-        default_http_reload_retry_interval_ms, default_http3_enabled, default_level,
-        default_log_drop_when_full, default_log_format, default_log_non_blocking,
-        default_log_non_blocking_buffered_lines, default_open_telemetry_protocol,
-        default_open_telemetry_sample_ratio, default_open_telemetry_service_name,
-        default_open_telemetry_timeout_ms, default_request_mirror_max_concurrency,
-        default_retry_budget_burst, default_retry_budget_enabled,
-        default_retry_budget_ratio_percent, default_route_annotation_prefix,
-        default_stream_reload_retry_interval_ms, default_stream_upstream_pool_idle_timeout_ms,
-        default_stream_upstream_pool_size, default_tcp_keepalive_idle_ms,
-        default_tcp_keepalive_interval_ms, default_tcp_keepalive_probe_count,
-        default_tcp_max_connection_age_ms, default_tcp_proxy_buffer_bytes,
-        default_tcp_session_idle_timeout_ms, default_tls_max, default_tls_min,
-        default_udp_response_idle_timeout_ms, default_upstream_connection_timeout_ms,
-        default_upstream_idle_timeout_ms, default_upstream_read_timeout_ms,
-        default_upstream_tcp_fast_open, default_work_stealing, default_xds_apply_poll_interval_ms,
-        default_xds_apply_timeout_ms, default_xds_connect_timeout_ms,
-        default_xds_initial_reconnect_backoff_ms, default_xds_keepalive_interval_ms,
-        default_xds_keepalive_timeout_ms, default_xds_max_reconnect_backoff_ms,
-        default_xds_snapshot_freshness_timeout_ms, default_xds_stale_stream_timeout_ms,
+        default_http_max_request_header_bytes, default_http_reload_retry_interval_ms,
+        default_http3_enabled, default_level, default_log_drop_when_full, default_log_format,
+        default_log_non_blocking, default_log_non_blocking_buffered_lines,
+        default_open_telemetry_protocol, default_open_telemetry_sample_ratio,
+        default_open_telemetry_service_name, default_open_telemetry_timeout_ms,
+        default_request_mirror_max_concurrency, default_retry_budget_burst,
+        default_retry_budget_enabled, default_retry_budget_ratio_percent,
+        default_route_annotation_prefix, default_stream_reload_retry_interval_ms,
+        default_stream_upstream_pool_idle_timeout_ms, default_stream_upstream_pool_size,
+        default_tcp_keepalive_idle_ms, default_tcp_keepalive_interval_ms,
+        default_tcp_keepalive_probe_count, default_tcp_max_connection_age_ms,
+        default_tcp_proxy_buffer_bytes, default_tcp_session_idle_timeout_ms, default_tls_max,
+        default_tls_min, default_udp_response_idle_timeout_ms,
+        default_upstream_connection_timeout_ms, default_upstream_idle_timeout_ms,
+        default_upstream_read_timeout_ms, default_upstream_tcp_fast_open, default_work_stealing,
+        default_xds_apply_poll_interval_ms, default_xds_apply_timeout_ms,
+        default_xds_connect_timeout_ms, default_xds_initial_reconnect_backoff_ms,
+        default_xds_keepalive_interval_ms, default_xds_keepalive_timeout_ms,
+        default_xds_max_reconnect_backoff_ms, default_xds_snapshot_freshness_timeout_ms,
+        default_xds_stale_stream_timeout_ms,
     },
 };
 
@@ -153,7 +155,18 @@ impl Default for HttpCacheConfig {
         Self {
             enabled: default_http_cache_enabled(),
             max_size_mb: default_http_cache_max_size_mb(),
+            max_entry_size_mb: default_http_cache_max_entry_size_mb(),
             default_ttl_seconds: default_http_cache_default_ttl_seconds(),
+        }
+    }
+}
+
+impl Default for ExperimentalConfig {
+    fn default() -> Self {
+        Self {
+            enable_experimental_gateway: false,
+            enable_ai_gateway: false,
+            ai_gateway_max_request_body_bytes: default_ai_gateway_max_request_body_bytes(),
         }
     }
 }
@@ -184,7 +197,7 @@ impl Default for RuntimeProtectionConfig {
             http_route_rate_limit_requests_per_second: 0,
             http_route_rate_limit_burst: 0,
             http_max_request_body_bytes: default_http_max_request_body_bytes(),
-            http_max_request_header_bytes: 0,
+            http_max_request_header_bytes: default_http_max_request_header_bytes(),
             tcp_global_connection_limit: 0,
             tcp_listener_connection_limit: 0,
             udp_global_datagram_limit: 0,

@@ -49,7 +49,8 @@ async fn main() -> Result<()> {
     let config_source = ReloadingDataPlaneConfig::new(&cli.config, CONFIG_RELOAD_POLL_INTERVAL)?;
     let cfg = config_source.load()?;
     init_tracing(&to_tracing_options(&cfg))?;
-    let _ = cfg.admin_auth.resolve_bearer_token()?;
+    let admin_auth_configured = cfg.admin_auth.resolve_bearer_token()?.is_some();
+    validate_admin_auth_exposure(&cfg.admin_addr, admin_auth_configured)?;
     let initial_config = build_config_snapshot(&cfg)?;
     ntgw_http::configure_request_mirror_budget(initial_config.request_mirror_max_concurrency);
 
@@ -308,9 +309,7 @@ async fn main() -> Result<()> {
         xds_tls = cfg.xds_tls.enabled(),
         "dataplane started"
     );
-    if initial_config.admin.admin_bearer_token.is_none()
-        && initial_config.admin.admin_bearer_token_file.is_none()
-    {
+    if !admin_auth_configured {
         tracing::warn!("admin API is running without bearer token authentication");
     }
     let admin_shutdown_events = shutdown_events_tx.clone();
@@ -367,6 +366,17 @@ async fn main() -> Result<()> {
     }
 
     Err(anyhow!(shutdown_cause.reason))
+}
+
+fn validate_admin_auth_exposure(admin_addr: &str, bearer_auth_configured: bool) -> Result<()> {
+    let addr: SocketAddr = admin_addr.parse()?;
+    if bearer_auth_configured || addr.ip().is_loopback() {
+        return Ok(());
+    }
+
+    Err(anyhow!(
+        "admin API bound to {admin_addr} requires bearer token authentication"
+    ))
 }
 
 async fn initiate_runtime_shutdown(

@@ -367,6 +367,7 @@ pub struct GatewayProxy {
     pub(crate) request_tracing_enabled: bool,
     pub(crate) max_request_body_bytes: usize,
     pub(crate) max_request_header_bytes: usize,
+    pub(crate) ai_gateway_max_request_body_bytes: usize,
     pub(crate) listener_name_hint: Option<String>,
     pub(crate) listener_port_hint: Option<u32>,
     pub(crate) cache: Arc<CacheManager>,
@@ -392,6 +393,7 @@ impl GatewayProxy {
         request_tracing_enabled: bool,
         max_request_body_bytes: usize,
         max_request_header_bytes: usize,
+        ai_gateway_max_request_body_bytes: usize,
         listener_name_hint: Option<String>,
         listener_port_hint: Option<u32>,
         cache: Arc<CacheManager>,
@@ -418,6 +420,7 @@ impl GatewayProxy {
             request_tracing_enabled,
             max_request_body_bytes,
             max_request_header_bytes,
+            ai_gateway_max_request_body_bytes,
             listener_name_hint,
             listener_port_hint,
             cache,
@@ -682,7 +685,19 @@ impl ProxyHttp for GatewayProxy {
         if ctx.http_cache.is_some()
             && let Some(chunk) = body
         {
-            ctx.cached_response_body.push(chunk.clone());
+            if cache_response_body_limit_exceeded(
+                ctx.cached_response_body_bytes,
+                chunk.len(),
+                self.cache.max_entry_size_bytes(),
+            ) {
+                ctx.http_cache = context::CacheState::default();
+                ctx.cached_response_body.clear();
+                ctx.cached_response_body_bytes = 0;
+            } else {
+                ctx.cached_response_body_bytes =
+                    ctx.cached_response_body_bytes.saturating_add(chunk.len());
+                ctx.cached_response_body.push(chunk.clone());
+            }
         }
         Ok(None)
     }
@@ -887,6 +902,10 @@ where
     };
     let config = selected_backend_config_cached(cache, current, &selected)?;
     Ok(Some((selected, config)))
+}
+
+fn cache_response_body_limit_exceeded(current_len: usize, chunk_len: usize, limit: usize) -> bool {
+    limit > 0 && current_len.saturating_add(chunk_len) > limit
 }
 
 #[cfg(test)]

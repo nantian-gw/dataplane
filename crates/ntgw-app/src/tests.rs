@@ -3,6 +3,7 @@ use tokio::time::{Duration, advance};
 use super::{
     initiate_runtime_shutdown,
     supervisor::{ShutdownCause, ShutdownCoordinator},
+    validate_admin_auth_exposure,
 };
 use ntgw_observability::RuntimeStats;
 
@@ -17,6 +18,31 @@ fn dataplane_binary_reports_selected_allocator() {
     };
 
     assert_eq!(ntgw_allocator::selected_allocator(), expected);
+}
+
+#[test]
+fn admin_auth_exposure_allows_loopback_without_token() {
+    validate_admin_auth_exposure("127.0.0.1:19080", false)
+        .expect("loopback IPv4 admin bind may omit auth");
+    validate_admin_auth_exposure("[::1]:19080", false)
+        .expect("loopback IPv6 admin bind may omit auth");
+}
+
+#[test]
+fn admin_auth_exposure_allows_non_loopback_with_token() {
+    validate_admin_auth_exposure("0.0.0.0:19080", true)
+        .expect("non-loopback admin bind is allowed when auth is configured");
+}
+
+#[test]
+fn admin_auth_exposure_rejects_non_loopback_without_token() {
+    let err = validate_admin_auth_exposure("0.0.0.0:19080", false)
+        .expect_err("non-loopback admin bind without auth should fail");
+
+    assert!(
+        err.to_string().contains("bearer token authentication"),
+        "unexpected error: {err}"
+    );
 }
 
 #[tokio::test(start_paused = true)]

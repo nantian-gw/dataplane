@@ -32,12 +32,64 @@ fn bundled_dataplane_configs_match_schema() {
         .join("../..")
         .canonicalize()
         .expect("repo root");
-    for relative_path in ["configs/dataplane/config.yaml"] {
+    for relative_path in [
+        "configs/dataplane/config.yaml",
+        "configs/dataplane/config.production.yaml",
+    ] {
         let path = repo_root.join(relative_path);
         let raw = fs::read_to_string(&path).expect("bundled dataplane config should be readable");
         serde_yaml::from_str::<DataPlaneConfig>(&raw)
             .unwrap_or_else(|err| panic!("{relative_path} should match dataplane schema: {err}"));
     }
+}
+
+#[test]
+fn bundled_production_config_enables_xds_mtls() {
+    let repo_root = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .canonicalize()
+        .expect("repo root");
+    let path = repo_root.join("configs/dataplane/config.production.yaml");
+    let raw = fs::read_to_string(&path).expect("production config should be readable");
+    let cfg: DataPlaneConfig = serde_yaml::from_str(&raw).expect("production config should parse");
+
+    assert!(cfg.control_plane_addr.starts_with("https://"));
+    assert!(cfg.xds_tls.enabled());
+    assert!(!cfg.xds_tls.ca_path.trim().is_empty());
+    assert!(!cfg.xds_tls.cert_path.trim().is_empty());
+    assert!(!cfg.xds_tls.key_path.trim().is_empty());
+    assert!(!cfg.xds_tls.domain_name.trim().is_empty());
+    assert!(!cfg.admin_auth.bearer_token_file.trim().is_empty());
+}
+
+#[test]
+fn bundled_dataplane_config_enables_runtime_protection() {
+    let repo_root = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .canonicalize()
+        .expect("repo root");
+    let path = repo_root.join("configs/dataplane/config.yaml");
+    let raw = fs::read_to_string(&path).expect("bundled dataplane config should be readable");
+    let cfg: DataPlaneConfig =
+        serde_yaml::from_str(&raw).expect("bundled dataplane config should parse");
+    let protection = cfg.runtime_protection;
+
+    assert!(protection.http_global_inflight_limit > 0);
+    assert!(protection.http_listener_inflight_limit > 0);
+    assert!(protection.http_route_inflight_limit > 0);
+    assert!(protection.http_backend_circuit_breaker_max_requests > 0);
+    assert!(protection.http_global_rate_limit_requests_per_second > 0);
+    assert!(protection.http_global_rate_limit_burst > 0);
+    assert!(protection.http_listener_rate_limit_requests_per_second > 0);
+    assert!(protection.http_listener_rate_limit_burst > 0);
+    assert!(protection.http_route_rate_limit_requests_per_second > 0);
+    assert!(protection.http_route_rate_limit_burst > 0);
+    assert_eq!(protection.http_max_request_body_bytes, 10 * 1024 * 1024);
+    assert_eq!(protection.http_max_request_header_bytes, 65_536);
+    assert!(protection.tcp_global_connection_limit > 0);
+    assert!(protection.tcp_listener_connection_limit > 0);
+    assert!(protection.udp_global_datagram_limit > 0);
+    assert!(protection.udp_listener_datagram_limit > 0);
 }
 
 #[test]
@@ -171,6 +223,10 @@ adminAddr: 127.0.0.1:19080
 
     assert!(!cfg.experimental.enable_experimental_gateway);
     assert!(!cfg.experimental.enable_ai_gateway);
+    assert_eq!(
+        cfg.experimental.ai_gateway_max_request_body_bytes,
+        10 * 1024 * 1024
+    );
 }
 
 #[test]
@@ -184,10 +240,12 @@ adminAddr: 127.0.0.1:19080
 experimental:
   enableExperimentalGateway: true
   enableAiGateway: true
+  aiGatewayMaxRequestBodyBytes: 8192
 "#,
     )
     .expect("config should parse");
 
     assert!(cfg.experimental.enable_experimental_gateway);
     assert!(cfg.experimental.enable_ai_gateway);
+    assert_eq!(cfg.experimental.ai_gateway_max_request_body_bytes, 8192);
 }

@@ -62,7 +62,7 @@ adminAddr: 127.0.0.1:19080
     );
     assert_eq!(
         default_cfg.runtime_protection.http_max_request_header_bytes,
-        0
+        65_536
     );
     assert_eq!(
         default_cfg.runtime_protection.tcp_global_connection_limit,

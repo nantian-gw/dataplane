@@ -579,6 +579,7 @@ fn build_gateway_proxy(
         request_tracing_enabled,
         max_request_body_bytes,
         max_request_header_bytes,
+        experimental.ai_gateway_max_request_body_bytes,
         listener_name_hint,
         listener_port_hint,
         cache,

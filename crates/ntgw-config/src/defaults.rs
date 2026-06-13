@@ -204,6 +204,10 @@ pub(crate) fn default_http_max_request_header_bytes() -> usize {
     65_536
 }
 
+pub(crate) fn default_ai_gateway_max_request_body_bytes() -> usize {
+    10 * 1024 * 1024
+}
+
 pub(crate) fn default_work_stealing() -> bool {
     true
 }
@@ -255,6 +259,10 @@ pub(crate) fn default_http_cache_enabled() -> bool {
 
 pub(crate) fn default_http_cache_max_size_mb() -> usize {
     256
+}
+
+pub(crate) fn default_http_cache_max_entry_size_mb() -> usize {
+    16
 }
 
 pub(crate) fn default_http_cache_default_ttl_seconds() -> u64 {

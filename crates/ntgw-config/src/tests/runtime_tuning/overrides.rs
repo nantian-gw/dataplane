@@ -44,6 +44,11 @@ runtimeTuning:
     intervalMs: 11000
     probeCount: 3
     userTimeoutMs: 0
+  httpCache:
+    enabled: true
+    maxSizeMb: 512
+    maxEntrySizeMb: 32
+    defaultTtlSeconds: 120
 "#,
     )
     .expect("custom runtime tuning config should parse");
@@ -166,4 +171,12 @@ runtimeTuning:
     assert_eq!(upstream.count, 3);
     #[cfg(target_os = "linux")]
     assert_eq!(upstream.user_timeout.as_millis(), 0);
+
+    assert!(custom_cfg.runtime_tuning.http_cache.enabled);
+    assert_eq!(custom_cfg.runtime_tuning.http_cache.max_size_mb, 512);
+    assert_eq!(custom_cfg.runtime_tuning.http_cache.max_entry_size_mb, 32);
+    assert_eq!(
+        custom_cfg.runtime_tuning.http_cache.default_ttl_seconds,
+        120
+    );
 }

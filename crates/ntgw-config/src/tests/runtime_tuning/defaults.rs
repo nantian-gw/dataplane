@@ -125,6 +125,13 @@ adminAddr: 127.0.0.1:19080
     assert_eq!(capacity.accept_concurrency, 0);
     assert_eq!(capacity.upstream_keepalive_pool_size, 0);
     assert_eq!(capacity.reuse_port, None);
+    assert!(!default_cfg.runtime_tuning.http_cache.enabled);
+    assert_eq!(default_cfg.runtime_tuning.http_cache.max_size_mb, 256);
+    assert_eq!(default_cfg.runtime_tuning.http_cache.max_entry_size_mb, 16);
+    assert_eq!(
+        default_cfg.runtime_tuning.http_cache.default_ttl_seconds,
+        60
+    );
 }
 
 #[test]

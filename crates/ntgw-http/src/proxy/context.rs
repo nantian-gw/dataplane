@@ -170,6 +170,7 @@ pub struct RequestContext {
     #[allow(dead_code)]
     pub(crate) http_cache: CacheState,
     pub(crate) cached_response_body: Vec<Bytes>,
+    pub(crate) cached_response_body_bytes: usize,
     pub(crate) ai_context: Option<AIContext>,
 }
 
@@ -310,6 +311,7 @@ fn clear_request_context(ctx: &mut RequestContext) {
     ctx.is_mirror_subrequest = false;
     ctx.http_cache = CacheState::default();
     ctx.cached_response_body.clear();
+    ctx.cached_response_body_bytes = 0;
     ctx.admission_permit = None;
     ctx.circuit_breaker_permit = None;
     ctx.rate_limit_applied = false;

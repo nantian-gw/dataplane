@@ -17,14 +17,18 @@ use ntgw_config::HttpCacheConfig;
 pub struct CacheOptions {
     pub enabled: bool,
     pub max_size_bytes: usize,
+    pub max_entry_size_bytes: usize,
     pub default_ttl: Duration,
 }
 
 impl From<&HttpCacheConfig> for CacheOptions {
     fn from(cfg: &HttpCacheConfig) -> Self {
+        let max_size_bytes = cfg.max_size_mb.saturating_mul(1024 * 1024);
+        let max_entry_size_bytes = cfg.max_entry_size_mb.saturating_mul(1024 * 1024);
         Self {
             enabled: cfg.enabled,
-            max_size_bytes: cfg.max_size_mb.saturating_mul(1024 * 1024),
+            max_size_bytes,
+            max_entry_size_bytes: max_entry_size_bytes.min(max_size_bytes),
             default_ttl: Duration::from_secs(cfg.default_ttl_seconds),
         }
     }
@@ -32,6 +36,7 @@ impl From<&HttpCacheConfig> for CacheOptions {
 
 pub struct CacheManager {
     pub enabled: bool,
+    max_entry_size_bytes: usize,
     storage: &'static MemCache,
     eviction: &'static LruManager,
     lock: &'static CacheKeyLockImpl,
@@ -50,6 +55,7 @@ impl Clone for CacheManager {
     fn clone(&self) -> Self {
         Self {
             enabled: self.enabled,
+            max_entry_size_bytes: self.max_entry_size_bytes,
             storage: self.storage,
             eviction: self.eviction,
             lock: self.lock,
@@ -105,6 +111,7 @@ impl CacheManager {
 
         Arc::new(Self {
             enabled: true,
+            max_entry_size_bytes: options.max_entry_size_bytes,
             storage,
             eviction,
             lock: lock_dyn,
@@ -122,6 +129,7 @@ impl CacheManager {
 
         Self {
             enabled: false,
+            max_entry_size_bytes: 0,
             storage,
             eviction,
             lock: lock_dyn,
@@ -143,6 +151,10 @@ impl CacheManager {
             );
         }
         cache
+    }
+
+    pub fn max_entry_size_bytes(&self) -> usize {
+        self.max_entry_size_bytes
     }
 
     pub fn generate_key(
@@ -171,5 +183,27 @@ impl CacheManager {
             RespCacheable::Cacheable(meta) => Some(meta),
             RespCacheable::Uncacheable(_) => None,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn cache_options_include_max_entry_size_bytes() {
+        let cfg = HttpCacheConfig {
+            enabled: true,
+            max_size_mb: 256,
+            max_entry_size_mb: 8,
+            default_ttl_seconds: 60,
+        };
+
+        let options = CacheOptions::from(&cfg);
+
+        assert!(options.enabled);
+        assert_eq!(options.max_size_bytes, 256 * 1024 * 1024);
+        assert_eq!(options.max_entry_size_bytes, 8 * 1024 * 1024);
+        assert_eq!(options.default_ttl, Duration::from_secs(60));
     }
 }

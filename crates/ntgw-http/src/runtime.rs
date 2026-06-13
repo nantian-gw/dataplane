@@ -112,6 +112,7 @@ impl Default for RuntimeOptions {
             cache: crate::cache::CacheManager::new(crate::cache::CacheOptions {
                 enabled: false,
                 max_size_bytes: 0,
+                max_entry_size_bytes: 0,
                 default_ttl: Duration::from_secs(0),
             }),
             experimental: ntgw_config::ExperimentalConfig::default(),

@@ -638,6 +638,17 @@ pub(crate) async fn do_request_filter(
         loop {
             match session.as_downstream_mut().read_request_body().await {
                 Ok(Some(chunk)) => {
+                    if ai_request_body_limit_exceeded(
+                        body.len(),
+                        chunk.len(),
+                        proxy.ai_gateway_max_request_body_bytes,
+                    ) {
+                        ctx.status = 413;
+                        assign_ctx_string(&mut ctx.response_flags, "RB");
+                        record_request_span(ctx);
+                        session.respond_error(413).await?;
+                        return Ok(true);
+                    }
                     body.extend_from_slice(&chunk);
                 }
                 Ok(None) => break,
@@ -682,6 +693,14 @@ pub(crate) async fn do_request_filter(
     }
 
     Ok(false)
+}
+
+pub(super) fn ai_request_body_limit_exceeded(
+    current_len: usize,
+    chunk_len: usize,
+    limit: usize,
+) -> bool {
+    limit > 0 && current_len.saturating_add(chunk_len) > limit
 }
 
 async fn try_cache_hit(
