@@ -703,6 +703,10 @@ pub(super) fn ai_request_body_limit_exceeded(
     limit > 0 && current_len.saturating_add(chunk_len) > limit
 }
 
+pub(super) fn cache_lookup_method_allowed(method: &str) -> bool {
+    method.eq_ignore_ascii_case("GET") || method.eq_ignore_ascii_case("HEAD")
+}
+
 async fn try_cache_hit(
     proxy: &GatewayProxy,
     session: &mut Session,
@@ -716,8 +720,7 @@ async fn try_cache_hit(
         return Ok(false);
     }
 
-    let method = ctx.method.to_uppercase();
-    if method != "GET" && method != "HEAD" {
+    if !cache_lookup_method_allowed(&ctx.method) {
         return Ok(false);
     }
 

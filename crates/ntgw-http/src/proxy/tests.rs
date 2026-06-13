@@ -3,6 +3,7 @@ mod backend_client_cert;
 mod backend_protocol;
 mod backend_tls_validation;
 mod cache_body_limit;
+mod cache_lookup_method;
 mod connection_header;
 mod context;
 mod fast_path;

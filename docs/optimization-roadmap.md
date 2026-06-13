@@ -352,7 +352,7 @@
 
 ### P1-6 小热路径去分配
 
-- [ ] 将 cache hit 方法判断中的 `to_uppercase()` 改为 `eq_ignore_ascii_case`。
+- [x] 将 cache hit 方法判断中的 `to_uppercase()` 改为 `eq_ignore_ascii_case`。
 
 风险：
 
@@ -377,6 +377,12 @@ if !ctx.method.eq_ignore_ascii_case("GET") && !ctx.method.eq_ignore_ascii_case("
 
 - 增加 GET/head/post 大小写测试。
 - 运行 `cargo test -p ntgw-http`。
+
+已落地：
+
+- 新增 `cache_lookup_method_allowed()` helper，使用 `eq_ignore_ascii_case()` 判断 GET/HEAD。
+- `try_cache_hit()` 不再为方法判断分配 uppercase `String`。
+- 已增加 GET/head/post/empty 方法边界测试。
 
 ## P1：安全加固
 
