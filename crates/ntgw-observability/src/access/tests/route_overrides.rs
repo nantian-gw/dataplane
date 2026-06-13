@@ -20,7 +20,7 @@ fn resolves_route_overrides_from_annotations() {
 
     let resolved = resolve_access_log_options(&AccessLogOptions::default(), &annotations);
     assert!(!resolved.enabled);
-    assert_eq!(resolved.path, "/var/log/ntgw/orders.log");
+    assert_eq!(resolved.path, "stdout");
     assert_eq!(resolved.mode, AccessLogMode::Json);
     assert_eq!(resolved.sample_rate, 0.25);
 }

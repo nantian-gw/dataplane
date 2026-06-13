@@ -338,9 +338,8 @@ fn resolve_access_log_options_cow<'a>(
                 }
             },
             "path" => {
-                if let Some(path) = trimmed_non_empty(value) {
-                    mutable_access_log_options(base, &mut resolved).path = path.to_string();
-                }
+                // Route annotations may originate from control-plane or tenant input. Do not let
+                // them redirect dataplane-local file writes.
             }
             "format" => {
                 if let Some(format) = trimmed_non_empty(value) {

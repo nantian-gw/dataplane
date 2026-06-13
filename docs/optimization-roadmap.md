@@ -388,7 +388,7 @@ if !ctx.method.eq_ignore_ascii_case("GET") && !ctx.method.eq_ignore_ascii_case("
 
 ### P1-7 限制 access log route annotation 覆盖文件路径
 
-- [ ] 禁止或限制通过 route annotation 覆盖 access log path。
+- [x] 禁止或限制通过 route annotation 覆盖 access log path。
 
 风险：
 
@@ -409,7 +409,13 @@ if !ctx.method.eq_ignore_ascii_case("GET") && !ctx.method.eq_ignore_ascii_case("
 验证：
 
 - 增加 annotation path 被忽略或拒绝测试。
-- 增加合法 allowlist path 测试。
+- 确认 `enabled`、`mode`、`sample-rate`、`format` 等低风险字段仍可覆盖。
+
+已落地：
+
+- `access-log-path` route annotation 现在会被忽略，不再能覆盖 dataplane 本地 access log 输出路径。
+- 保留 `enabled`、`mode`、`sample-rate`、`format` route annotation 覆盖能力。
+- 已更新 route override 单元测试，覆盖 path annotation 被忽略且其它字段仍生效。
 
 ### P1-8 精简生产 Docker runtime 镜像
 
