@@ -57,7 +57,7 @@ module_decl = re.compile(
 
 
 def module_roots(path: Path):
-    if path.name == "mod.rs":
+    if path.name in {"lib.rs", "main.rs", "mod.rs"}:
         return path.parent
     return path.parent / path.stem
 
@@ -68,13 +68,26 @@ def cfg_test_module_targets(path: Path, module_name: str):
     return {base / f"{module_name}.rs", module_dir / "mod.rs"}, {module_dir}
 
 
+def char_literal_end(chars, start: int):
+    i = start + 1
+    while i < len(chars):
+        ch = chars[i]
+        if ch == "\\":
+            i += 2
+            continue
+        if ch == "'":
+            return i
+        if ch.isspace():
+            return None
+        i += 1
+    return None
+
+
 def sanitize_lines(lines):
     sanitized = []
-    in_block_comment = False
+    block_comment_depth = 0
     in_string = False
     string_escape = False
-    in_char = False
-    char_escape = False
     in_raw_string = False
     raw_hashes = 0
 
@@ -84,12 +97,18 @@ def sanitize_lines(lines):
         i = 0
         while i < len(chars):
             ch = chars[i]
+            nxt = chars[i + 1] if i + 1 < len(chars) else ""
 
-            if in_block_comment:
+            if block_comment_depth > 0:
                 out[i] = " "
-                if ch == "*" and i + 1 < len(chars) and chars[i + 1] == "/":
+                if ch == "/" and nxt == "*":
                     out[i + 1] = " "
-                    in_block_comment = False
+                    block_comment_depth += 1
+                    i += 2
+                    continue
+                if ch == "*" and nxt == "/":
+                    out[i + 1] = " "
+                    block_comment_depth -= 1
                     i += 2
                     continue
                 i += 1
@@ -106,17 +125,6 @@ def sanitize_lines(lines):
                 i += 1
                 continue
 
-            if in_char:
-                out[i] = " "
-                if char_escape:
-                    char_escape = False
-                elif ch == "\\":
-                    char_escape = True
-                elif ch == "'":
-                    in_char = False
-                i += 1
-                continue
-
             if in_raw_string:
                 out[i] = " "
                 if ch == '"' and chars[i + 1 : i + 1 + raw_hashes] == ["#"] * raw_hashes:
@@ -128,15 +136,15 @@ def sanitize_lines(lines):
                 i += 1
                 continue
 
-            if ch == "/" and i + 1 < len(chars) and chars[i + 1] == "/":
+            if ch == "/" and nxt == "/":
                 for j in range(i, len(chars)):
                     out[j] = " "
                 break
 
-            if ch == "/" and i + 1 < len(chars) and chars[i + 1] == "*":
+            if ch == "/" and nxt == "*":
                 out[i] = " "
                 out[i + 1] = " "
-                in_block_comment = True
+                block_comment_depth = 1
                 i += 2
                 continue
 
@@ -152,6 +160,26 @@ def sanitize_lines(lines):
                     i = j + 1
                     continue
 
+            if ch == "b" and nxt == "r":
+                j = i + 2
+                while j < len(chars) and chars[j] == "#":
+                    j += 1
+                if j < len(chars) and chars[j] == '"':
+                    for k in range(i, j + 1):
+                        out[k] = " "
+                    in_raw_string = True
+                    raw_hashes = j - (i + 2)
+                    i = j + 1
+                    continue
+
+            if ch == "b" and nxt == '"':
+                out[i] = " "
+                out[i + 1] = " "
+                in_string = True
+                string_escape = False
+                i += 2
+                continue
+
             if ch == '"':
                 out[i] = " "
                 in_string = True
@@ -160,16 +188,12 @@ def sanitize_lines(lines):
                 continue
 
             if ch == "'":
-                prev = chars[i - 1] if i > 0 else ""
-                nxt = chars[i + 1] if i + 1 < len(chars) else ""
-                if prev.isalnum() or prev == "_" or nxt == "_":
-                    i += 1
+                end = char_literal_end(chars, i)
+                if end is not None:
+                    for j in range(i, end + 1):
+                        out[j] = " "
+                    i = end + 1
                     continue
-                out[i] = " "
-                in_char = True
-                char_escape = False
-                i += 1
-                continue
 
             i += 1
 
