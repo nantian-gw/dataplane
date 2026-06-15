@@ -105,7 +105,13 @@ pub(crate) async fn do_upstream_peer(
         };
         let (selected, config) = selected?;
         ensure_supported_filters(&selected.filters)?;
-        cache_request_headers_if_needed(ctx, &request.headers, &selected.filters);
+        super::request::cache_request_headers_for_filters_and_access_log(
+            ctx,
+            &request.headers,
+            &selected.filters,
+            &proxy.access_log,
+            &selected.route_annotations,
+        );
         ctx.resolved_session = selected
             .session_persistence
             .as_ref()

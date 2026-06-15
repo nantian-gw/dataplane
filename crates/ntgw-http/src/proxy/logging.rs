@@ -13,15 +13,19 @@ use super::context::{
 };
 use super::retry::retry_completed_successfully;
 
-fn extract_request_header(headers: &Option<BTreeMap<String, Vec<String>>>, name: &str) -> String {
-    headers
-        .as_ref()
-        .and_then(|h| h.get(name))
-        .and_then(|vals| vals.first())
-        .filter(|v| !v.is_empty())
-        .map(|v| v.as_str())
-        .unwrap_or("-")
-        .to_string()
+fn extract_request_header(ctx: &RequestContext, name: &str) -> String {
+    ctx.access_log_request_headers
+        .get(name)
+        .cloned()
+        .or_else(|| {
+            ctx.request_headers
+                .as_ref()
+                .and_then(|headers| headers.get(name))
+                .and_then(|values| values.first())
+                .cloned()
+        })
+        .filter(|value| !value.is_empty())
+        .unwrap_or_else(|| "-".to_string())
 }
 
 fn build_request_line(ctx: &RequestContext) -> String {
@@ -133,13 +137,14 @@ pub(crate) fn observe_completed_request(
             request: build_request_line(ctx),
             http_version: ctx.http_version.clone(),
             query_string: ctx.query_string.clone(),
-            referer: extract_request_header(&ctx.request_headers, "referer"),
-            user_agent: extract_request_header(&ctx.request_headers, "user-agent"),
-            x_forwarded_for: extract_request_header(&ctx.request_headers, "x-forwarded-for"),
+            referer: extract_request_header(ctx, "referer"),
+            user_agent: extract_request_header(ctx, "user-agent"),
+            x_forwarded_for: extract_request_header(ctx, "x-forwarded-for"),
             upstream_addr: ctx.upstream_addr.clone(),
             upstream_connect_time_ms: ctx.upstream_connect_latency_ms as u128,
             content_type: ctx.response_content_type.clone(),
             connection_id: ctx.connection_id.clone(),
+            request_header_values: ctx.access_log_request_headers.clone(),
         };
         render_access_log(&resolved_access_log, &record)
             .and_then(|line| emit_access_log(&resolved_access_log.path, &line))
@@ -310,6 +315,114 @@ mod tests {
                 .map(String::as_str),
             Some("json")
         );
+    }
+
+    #[test]
+    fn observe_completed_request_renders_nginx_style_http_variables() {
+        let log_path = temp_log_path("nginx-style-http");
+        let path_text = log_path.display().to_string();
+        let traffic = SharedTrafficStats::shared();
+        let mut ctx = RequestContext {
+            started_at_unix_ms: 123,
+            snapshot_version: "v1".to_string(),
+            client_ip: "192.0.2.10".to_string(),
+            host: "orders.example.com".to_string(),
+            method: "GET".to_string(),
+            path: "/orders".to_string(),
+            query_string: "id=1".to_string(),
+            request_id: "req-1".to_string(),
+            status: 200,
+            listener_name: "default/gw/http".to_string(),
+            listener_protocol: "HTTP".to_string(),
+            route_name: "orders".to_string(),
+            route_namespace: "default".to_string(),
+            route_kind: "HTTPRoute".to_string(),
+            backend: "default/orders:8080".to_string(),
+            http_version: "HTTP/2".to_string(),
+            upstream_addr: "10.0.0.10:8080".to_string(),
+            access_log_request_headers: BTreeMap::from([(
+                "user-agent".to_string(),
+                "curl/8.7.1".to_string(),
+            )]),
+            ..RequestContext::default()
+        };
+
+        observe_completed_request(
+            &AccessLogOptions {
+                enabled: true,
+                path: path_text.clone(),
+                mode: ntgw_observability::AccessLogMode::Text,
+                format: r#"$remote_addr "$request" $status $request_time "$http_user_agent""#
+                    .to_string(),
+                ..AccessLogOptions::default()
+            },
+            &traffic,
+            &mut ctx,
+            123,
+            128,
+        );
+
+        let contents = wait_for_log_contents(&log_path);
+        assert!(
+            contents.contains(r#"192.0.2.10 "GET /orders?id=1 HTTP/2" 200 0.123 "curl/8.7.1""#)
+        );
+
+        shutdown_access_log_writer(&path_text);
+        let _ = fs::remove_file(log_path);
+    }
+
+    #[test]
+    fn observe_completed_request_honors_nginx_style_route_override_format() {
+        let log_path = temp_log_path("nginx-style-override");
+        let path_text = log_path.display().to_string();
+        let traffic = SharedTrafficStats::shared();
+        let mut ctx = RequestContext {
+            started_at_unix_ms: 123,
+            snapshot_version: "v1".to_string(),
+            client_ip: "192.0.2.10".to_string(),
+            host: "orders.example.com".to_string(),
+            method: "GET".to_string(),
+            path: "/orders".to_string(),
+            query_string: "id=1".to_string(),
+            request_id: "req-1".to_string(),
+            status: 200,
+            listener_name: "default/gw/http".to_string(),
+            listener_protocol: "HTTP".to_string(),
+            route_name: "orders".to_string(),
+            route_namespace: "default".to_string(),
+            route_kind: "HTTPRoute".to_string(),
+            backend: "default/orders:8080".to_string(),
+            route_annotations: BTreeMap::from([
+                (
+                    "gateway.nantian.dev/access-log-mode".to_string(),
+                    "text".to_string(),
+                ),
+                (
+                    "gateway.nantian.dev/access-log-format".to_string(),
+                    "$remote_addr $ntgw_route_name".to_string(),
+                ),
+            ]),
+            ..RequestContext::default()
+        };
+
+        observe_completed_request(
+            &AccessLogOptions {
+                enabled: true,
+                path: path_text.clone(),
+                mode: ntgw_observability::AccessLogMode::Json,
+                ..AccessLogOptions::default()
+            },
+            &traffic,
+            &mut ctx,
+            123,
+            128,
+        );
+
+        let contents = wait_for_log_contents(&log_path);
+        assert!(contents.contains("192.0.2.10 orders"));
+
+        shutdown_access_log_writer(&path_text);
+        let _ = fs::remove_file(log_path);
     }
 
     #[test]

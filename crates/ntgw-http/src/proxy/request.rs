@@ -1,7 +1,14 @@
-use std::{collections::BTreeMap, net::IpAddr, sync::OnceLock};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    net::IpAddr,
+    sync::OnceLock,
+};
 
 use http::header::{CONTENT_TYPE, HeaderName, HeaderValue};
 use ntgw_ir::{Filter, RequestMeta};
+use ntgw_observability::{
+    AccessLogMode, AccessLogOptions, access_log_template_requirements, resolve_access_log_options,
+};
 use opentelemetry::propagation::{Extractor, Injector, TextMapPropagator};
 use opentelemetry_sdk::propagation::TraceContextPropagator;
 use tracing::Span;
@@ -203,7 +210,7 @@ pub(crate) fn normalize_ip(ip: IpAddr) -> String {
     }
 }
 
-fn request_headers(req: &RequestHeader) -> BTreeMap<String, Vec<String>> {
+pub(crate) fn request_headers(req: &RequestHeader) -> BTreeMap<String, Vec<String>> {
     req.headers
         .iter()
         .filter_map(|(name, value)| {
@@ -440,6 +447,77 @@ pub(crate) fn cache_request_headers_if_needed(
     if ctx.request_headers.is_none() && response_filters_need_request_headers(filters) {
         ctx.request_headers = Some(response_filter_request_headers(request_headers));
     }
+}
+
+pub(crate) fn cache_access_log_request_headers_if_needed(
+    ctx: &mut RequestContext,
+    request_headers: &BTreeMap<String, Vec<String>>,
+    access_log: &AccessLogOptions,
+    route_annotations: &BTreeMap<String, String>,
+) {
+    let Some(required_headers) =
+        access_log_request_header_requirements(access_log, route_annotations)
+    else {
+        return;
+    };
+
+    for header_name in required_headers {
+        if let Some(value) = request_headers
+            .get(&header_name)
+            .and_then(|values| values.first())
+        {
+            ctx.access_log_request_headers
+                .insert(header_name.clone(), value.clone());
+        }
+    }
+}
+
+pub(crate) fn cache_access_log_request_headers_from_header_if_needed(
+    ctx: &mut RequestContext,
+    request: &RequestHeader,
+    access_log: &AccessLogOptions,
+    route_annotations: &BTreeMap<String, String>,
+) {
+    let Some(required_headers) =
+        access_log_request_header_requirements(access_log, route_annotations)
+    else {
+        return;
+    };
+
+    for header_name in required_headers {
+        if let Some(value) = request
+            .headers
+            .get(header_name.as_str())
+            .and_then(|value| value.to_str().ok())
+        {
+            ctx.access_log_request_headers
+                .insert(header_name, value.to_string());
+        }
+    }
+}
+
+pub(crate) fn cache_request_headers_for_filters_and_access_log(
+    ctx: &mut RequestContext,
+    request_headers: &BTreeMap<String, Vec<String>>,
+    filters: &[Filter],
+    access_log: &AccessLogOptions,
+    route_annotations: &BTreeMap<String, String>,
+) {
+    cache_request_headers_if_needed(ctx, request_headers, filters);
+    cache_access_log_request_headers_if_needed(ctx, request_headers, access_log, route_annotations);
+}
+
+fn access_log_request_header_requirements(
+    access_log: &AccessLogOptions,
+    route_annotations: &BTreeMap<String, String>,
+) -> Option<BTreeSet<String>> {
+    let resolved = resolve_access_log_options(access_log, route_annotations);
+    if !resolved.enabled || resolved.mode != AccessLogMode::Text {
+        return None;
+    }
+
+    let requirements = access_log_template_requirements(&resolved.format);
+    (!requirements.request_headers.is_empty()).then_some(requirements.request_headers)
 }
 
 pub(crate) fn request_id_from_headers(headers: &BTreeMap<String, Vec<String>>) -> &str {

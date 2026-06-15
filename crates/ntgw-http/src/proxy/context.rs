@@ -162,6 +162,7 @@ pub struct RequestContext {
     pub(crate) retry_budget_seeded: bool,
     pub(crate) backend_observation_recorded: bool,
     pub(crate) request_body_bytes_seen: usize,
+    pub(crate) access_log_request_headers: BTreeMap<String, String>,
     pub http_version: String,
     pub query_string: String,
     pub upstream_addr: String,
@@ -280,6 +281,7 @@ fn clear_request_context(ctx: &mut RequestContext) {
     clear_string(&mut ctx.path);
     clear_string(&mut ctx.request_id);
     ctx.request_headers = None;
+    ctx.access_log_request_headers.clear();
     ctx.status = 0;
     clear_string(&mut ctx.listener_name);
     clear_string(&mut ctx.listener_protocol);

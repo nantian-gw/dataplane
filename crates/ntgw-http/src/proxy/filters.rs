@@ -273,6 +273,13 @@ pub(crate) async fn do_request_filter(
                 request_headers_complete,
                 &selected.filters,
             );
+            cache_request_headers_if_needed(ctx, &response_request.headers, &selected.filters);
+            super::request::cache_access_log_request_headers_from_header_if_needed(
+                ctx,
+                session.req_header(),
+                &proxy.access_log,
+                &selected.route_annotations,
+            );
             cache_selected_backend_ref(ctx, &selected, proxy.access_log.enabled);
             ctx.status = write_direct_response(
                 session,
@@ -293,6 +300,12 @@ pub(crate) async fn do_request_filter(
             &selected.filters,
         );
         cache_request_headers_if_needed(ctx, &filter_request.headers, &selected.filters);
+        super::request::cache_access_log_request_headers_from_header_if_needed(
+            ctx,
+            session.req_header(),
+            &proxy.access_log,
+            &selected.route_annotations,
+        );
         ctx.resolved_session = selected
             .session_persistence
             .as_ref()
@@ -326,6 +339,12 @@ pub(crate) async fn do_request_filter(
                 &selected.filters,
             );
             cache_request_headers_if_needed(ctx, &filter_request.headers, &selected.filters);
+            super::request::cache_access_log_request_headers_from_header_if_needed(
+                ctx,
+                session.req_header(),
+                &proxy.access_log,
+                &selected.route_annotations,
+            );
             ctx.resolved_session = selected
                 .session_persistence
                 .as_ref()
@@ -401,6 +420,13 @@ pub(crate) async fn do_request_filter(
         &mut full_request,
         request_headers_complete,
         &route.filters,
+    );
+    cache_request_headers_if_needed(ctx, &filter_request.headers, &route.filters);
+    super::request::cache_access_log_request_headers_from_header_if_needed(
+        ctx,
+        session.req_header(),
+        &proxy.access_log,
+        &route.route_annotations,
     );
     if let Some(response) = match build_cors_preflight_response(
         &route.filters,
@@ -562,14 +588,6 @@ pub(crate) async fn do_request_filter(
                 )?
             };
             ctx.request_mirrors = spawn_request_mirrors(session, mirrors, request_has_body);
-            let filter_request = request_for_response_filters(
-                session,
-                &request,
-                &mut full_request,
-                request_headers_complete,
-                &selected.filters,
-            );
-            cache_request_headers_if_needed(ctx, &filter_request.headers, &selected.filters);
             ctx.resolved_session = selected
                 .session_persistence
                 .as_ref()
