@@ -18,6 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - run: python3 scripts/test-audit-runtime-unwraps.py
       - run: scripts/audit-runtime-unwraps.sh --enforce
 
   check:
