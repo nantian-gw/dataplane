@@ -75,15 +75,12 @@ fn test_keyword_match() {
 
 #[test]
 fn test_rejects_invalid_custom_regex() {
-    let err = ContentSafetyFilter::with_config(
-        true,
-        true,
-        vec![("violence".into(), "(".into())],
-        vec![],
-    )
-    .unwrap_err();
+    let err =
+        ContentSafetyFilter::with_config(true, true, vec![("violence".into(), "(".into())], vec![])
+            .unwrap_err();
 
-    assert!(err
-        .to_string()
-        .contains("invalid custom content safety regex"));
+    assert!(
+        err.to_string()
+            .contains("invalid custom content safety regex")
+    );
 }

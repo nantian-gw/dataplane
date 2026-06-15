@@ -51,9 +51,7 @@ impl PromptGuardFilter {
                 .iter()
                 .map(|pattern| {
                     Regex::new(pattern).map_err(|err| {
-                        AIError::Internal(anyhow!(
-                            "invalid custom prompt guard regex: {err}"
-                        ))
+                        AIError::Internal(anyhow!("invalid custom prompt guard regex: {err}"))
                     })
                 })
                 .collect::<Result<Vec<_>, AIError>>()?
@@ -99,9 +97,8 @@ impl PromptGuardFilter {
                     )?,
                 ])
             })
-            .as_ref()
-            .map(Clone::clone)
-            .map_err(|message| AIError::Internal(anyhow!(message.clone())))
+            .clone()
+            .map_err(|message| AIError::Internal(anyhow!(message)))
     }
 
     /// Returns the configured mode.

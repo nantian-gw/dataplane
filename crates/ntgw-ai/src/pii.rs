@@ -118,9 +118,8 @@ impl PIIMasker {
                     )?,
                 ])
             })
-            .as_ref()
-            .map(Clone::clone)
-            .map_err(|message| AIError::Internal(anyhow!(message.clone())))
+            .clone()
+            .map_err(|message| AIError::Internal(anyhow!(message)))
     }
 
     /// Return the currently configured masking mode.

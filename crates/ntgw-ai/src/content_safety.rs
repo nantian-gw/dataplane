@@ -1,8 +1,8 @@
 use anyhow::anyhow;
 use regex::Regex;
+use std::sync::OnceLock;
 #[cfg(test)]
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::OnceLock;
 
 use crate::error::AIError;
 use crate::format::ir::AIRequest;
@@ -71,9 +71,9 @@ impl ContentSafetyFilter {
     fn default_patterns() -> Result<Vec<(String, Regex)>, AIError> {
         static DEFAULT_PATTERNS: OnceLock<Result<Vec<(String, Regex)>, String>> = OnceLock::new();
 
-        match DEFAULT_PATTERNS.get_or_init(|| {
-            Self::compile_builtin_patterns().map_err(|err| err.to_string())
-        }) {
+        match DEFAULT_PATTERNS
+            .get_or_init(|| Self::compile_builtin_patterns().map_err(|err| err.to_string()))
+        {
             Ok(patterns) => Ok(patterns.clone()),
             Err(message) => Err(AIError::Internal(anyhow!(message.clone()))),
         }

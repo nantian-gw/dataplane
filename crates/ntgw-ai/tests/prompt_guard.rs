@@ -60,8 +60,10 @@ fn test_blocks_keyword() {
 
 #[test]
 fn test_rejects_invalid_custom_regex() {
-    let err = PromptGuardFilter::with_config(true, "block", vec!["(".into()], vec![])
-        .unwrap_err();
+    let err = PromptGuardFilter::with_config(true, "block", vec!["(".into()], vec![]).unwrap_err();
 
-    assert!(err.to_string().contains("invalid custom prompt guard regex"));
+    assert!(
+        err.to_string()
+            .contains("invalid custom prompt guard regex")
+    );
 }
