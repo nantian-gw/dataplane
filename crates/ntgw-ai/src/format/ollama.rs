@@ -149,6 +149,14 @@ impl From<OllamaChatResponse> for AIResponse {
     }
 }
 
+fn serialize_ollama_error_body(message: &str) -> Vec<u8> {
+    let error = serde_json::json!({
+        "error": message
+    });
+
+    serde_json::to_vec(&error).unwrap_or_else(|_| br#"{"error":"internal error"}"#.to_vec())
+}
+
 pub struct OllamaAdapter;
 
 #[async_trait]
@@ -203,10 +211,19 @@ impl FormatAdapter for OllamaAdapter {
     }
 
     fn error_response(&self, _status: u16, message: &str) -> Result<Vec<u8>, AIError> {
-        let error = serde_json::json!({
-            "error": message
-        });
-        #[allow(clippy::unwrap_used)]
-        Ok(serde_json::to_vec(&error).unwrap())
+        Ok(serialize_ollama_error_body(message))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::Value;
+
+    #[test]
+    fn ollama_error_body_is_valid_json() {
+        let body = serialize_ollama_error_body("backend unavailable");
+        let value: Value = serde_json::from_slice(&body).expect("valid json");
+        assert_eq!(value["error"], "backend unavailable");
     }
 }

@@ -13,6 +13,13 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  runtime-unwrap-guardrail:
+    name: Runtime unwrap guardrail
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: scripts/audit-runtime-unwraps.sh --enforce
+
   check:
     name: Check
     runs-on: ubuntu-latest
