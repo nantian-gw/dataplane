@@ -51,24 +51,46 @@ import sys
 
 root = Path("crates/ntgw-ai/src")
 pattern = re.compile(r"unwrap\(|expect\(")
-module_decl = re.compile(r"(?:pub(?:\([^)]*\))?\s+)?mod\s+[A-Za-z_][A-Za-z0-9_]*\b")
+module_decl = re.compile(
+    r"(?:(?:pub(?:\([^)]*\))?)\s+)?mod\s+(?P<name>[A-Za-z_][A-Za-z0-9_]*)\b"
+)
+
+
+def module_roots(path: Path):
+    if path.name == "mod.rs":
+        return path.parent
+    return path.parent / path.stem
+
+
+def skip_item_state(line: str, brace_depth: int):
+    brace_depth += line.count("{") - line.count("}")
+    if brace_depth > 0:
+        return True, brace_depth
+    if "{" in line or ";" in line:
+        return False, 0
+    return True, 0
+
+
+def cfg_test_module_targets(path: Path, module_name: str):
+    base = module_roots(path)
+    module_dir = base / module_name
+    return {base / f"{module_name}.rs", module_dir / "mod.rs"}, {module_dir}
 
 
 def production_lines(path: Path):
     lines = path.read_text().splitlines()
     out = []
-    skip_module = False
+    skip_test_item = False
     brace_depth = 0
     pending_test_attr = False
+    excluded_paths = set()
+    excluded_dirs = set()
 
     for lineno, line in enumerate(lines, 1):
         stripped = line.lstrip()
 
-        if skip_module:
-            brace_depth += line.count("{") - line.count("}")
-            if brace_depth <= 0:
-                skip_module = False
-                brace_depth = 0
+        if skip_test_item:
+            skip_test_item, brace_depth = skip_item_state(line, brace_depth)
             continue
 
         if stripped.startswith("#[cfg(test)]"):
@@ -80,27 +102,38 @@ def production_lines(path: Path):
                 continue
             if stripped.startswith("#["):
                 continue
-            if module_decl.match(stripped):
-                skip_module = True
-                brace_depth = line.count("{") - line.count("}")
-                if brace_depth <= 0:
-                    skip_module = False
-                    brace_depth = 0
-                pending_test_attr = False
-                continue
+            module_match = module_decl.match(stripped)
+            if module_match and ";" in line and "{" not in line:
+                item_paths, item_dirs = cfg_test_module_targets(
+                    path, module_match.group("name")
+                )
+                excluded_paths.update(item_paths)
+                excluded_dirs.update(item_dirs)
             pending_test_attr = False
+            skip_test_item, brace_depth = skip_item_state(line, 0)
+            continue
 
         if pattern.search(line):
             out.append((lineno, line))
 
-    return out
+    return out, excluded_paths, excluded_dirs
 
 
 matches = []
+excluded_paths = set()
+excluded_dirs = set()
+
 for path in sorted(root.rglob("*.rs")):
+    if path in excluded_paths:
+        continue
+    if any(parent in excluded_dirs for parent in [path, *path.parents]):
+        continue
     if "/tests/" in str(path):
         continue
-    for lineno, line in production_lines(path):
+    file_matches, file_excluded_paths, file_excluded_dirs = production_lines(path)
+    excluded_paths.update(file_excluded_paths)
+    excluded_dirs.update(file_excluded_dirs)
+    for lineno, line in file_matches:
         matches.append(f"{path}:{lineno}:{line}")
 
 if matches:

@@ -3,7 +3,7 @@
 Date: 2026-06-15
 
 This note records the second batch of the `ntgw-ai` zero-unwrap governance work.
-The governed production files for this batch are:
+The second-batch target files are:
 
 - `crates/ntgw-ai/src/ab_test.rs`
 - `crates/ntgw-ai/src/filter.rs`
@@ -14,6 +14,8 @@ The governed production files for this batch are:
 `docs/runtime-unwrap-first-batch.md` remains the historical record for the
 original runtime/configuration fix set.
 
-Enforcement for this batch is limited to production code under
-`crates/ntgw-ai/src/`. Test-only code remains out of scope, including
-`crates/ntgw-ai/tests/**` and inline `#[cfg(test)]` modules.
+Guardrail enforcement for this batch scans production Rust sources under
+`crates/ntgw-ai/src/`, with the target files above called out as the second-batch
+focus. Test-only code remains out of scope, including `crates/ntgw-ai/tests/**`,
+inline `#[cfg(test)]` items and modules, and files reached only through
+`#[cfg(test)] mod ...;` declarations.
