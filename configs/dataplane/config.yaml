@@ -28,6 +28,8 @@ accessLog:
   enabled: false
   path: "stdout"
   format: "%TIMESTAMP% %EVENT% %PROTOCOL% %LISTENER% %CLIENT_IP% %HOST% %METHOD% %PATH% %REQUEST_ID% %ROUTE_NAMESPACE% %ROUTE_NAME% %BACKEND% %STATUS% %LATENCY_MS% %BYTES_RECEIVED% %BYTES_SENT% %SNAPSHOT_VERSION% %RETRY_ATTEMPTS% %RESPONSE_FLAGS%"
+  # text-mode example with mixed legacy and Nginx-style variables:
+  # format: '$remote_addr $request_id "$request" $status $request_time "$http_user_agent" $ntgw_route_namespace/$ntgw_route_name'
   mode: "json"
   sampleRate: 0.01
   routeAnnotationPrefix: "gateway.nantian.dev/access-log-"

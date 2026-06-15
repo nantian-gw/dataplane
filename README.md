@@ -91,6 +91,32 @@ scripts/verify-bsr-generated.sh
 cargo run --release -p ntgw-app -- --config configs/ntgw.yaml
 ```
 
+## Access Logging
+
+Text-mode access logs support both the existing `%TOKEN%` placeholders and
+Nginx-style variables in the same `accessLog.format` string.
+
+```yaml
+accessLog:
+  enabled: true
+  path: "stdout"
+  mode: "text"
+  format: '$remote_addr $request_id "$request" $status $request_time "$http_user_agent" $ntgw_backend'
+```
+
+Supported text-template forms:
+
+- Legacy placeholders such as `%STATUS%`, `%LATENCY_MS%`, and `%UPSTREAM_CONNECT_TIME_MS%`
+- Nginx-style variables such as `$remote_addr`, `$request`, `$status`, `$request_time`, `$upstream_addr`, and `$time_iso8601`
+- Request-header variables using `$http_<header_name>`, for example `$http_user_agent`, `$http_referer`, and `$http_x_forwarded_for`
+
+Notes:
+
+- `accessLog.mode: json` keeps the stable structured JSON output and does not use `accessLog.format`
+- `$http_*` captures only the named request headers needed by the effective text template
+- TCP, UDP, and TLS passthrough access logs share the same template engine; unsupported HTTP-only variables render as `-`
+- Route annotations can still override `enabled`, `format`, `mode`, and `sample-rate`, but not the local output path
+
 ## Docker
 
 Pre-built images are available on [GitHub Container Registry](https://github.com/nantian-gw/dataplane/pkgs/container/dataplane).
