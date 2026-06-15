@@ -1,5 +1,7 @@
+use anyhow::anyhow;
 use regex::Regex;
 use std::borrow::Cow;
+use std::sync::OnceLock;
 
 use crate::error::AIError;
 
@@ -59,41 +61,66 @@ pub struct PIIMasker {
 impl PIIMasker {
     /// Build a new masker with the default detection pattern set and the
     /// supplied masking mode.
-    pub fn new(mode: PIIMode) -> Self {
-        Self {
-            patterns: vec![
-                (
-                    PIIEntityType::Email,
-                    Regex::new(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}")
-                        .expect("valid email regex"),
-                ),
-                (
-                    PIIEntityType::Phone,
-                    // Chinese mobile phone numbers (includes optional +86 prefix)
-                    Regex::new(r"(\+?86)?1[3-9]\d{9}").expect("valid phone regex"),
-                ),
-                (
-                    PIIEntityType::CreditCard,
-                    // 13-16 digit numbers with optional spaces / dashes
-                    Regex::new(r"\b(?:\d[ -]*?){13,16}\b").expect("valid credit-card regex"),
-                ),
-                (
-                    PIIEntityType::IDCard,
-                    // Chinese 18-digit ID numbers (last digit may be X)
-                    Regex::new(r"\d{17}[\dXx]").expect("valid id-card regex"),
-                ),
-                (
-                    PIIEntityType::URL,
-                    Regex::new(r#"https?://[^\s<>"{}|\\^`\[\]]+"#).expect("valid url regex"),
-                ),
-                (
-                    PIIEntityType::IPAddress,
-                    Regex::new(r"\b(?:\d{1,3}\.){3}\d{1,3}\b").expect("valid ip regex"),
-                ),
-            ],
+    pub fn new(mode: PIIMode) -> Result<Self, AIError> {
+        Ok(Self {
+            patterns: Self::default_patterns()?,
             mode,
             enabled: true,
-        }
+        })
+    }
+
+    fn compile_builtin_pattern(
+        label: &'static str,
+        entity_type: PIIEntityType,
+        pattern: &'static str,
+    ) -> Result<(PIIEntityType, Regex), String> {
+        Regex::new(pattern)
+            .map(|regex| (entity_type, regex))
+            .map_err(|err| format!("invalid built-in pii regex {label}: {err}"))
+    }
+
+    fn default_patterns() -> Result<Vec<(PIIEntityType, Regex)>, AIError> {
+        static DEFAULT_PATTERNS: OnceLock<Result<Vec<(PIIEntityType, Regex)>, String>> =
+            OnceLock::new();
+
+        DEFAULT_PATTERNS
+            .get_or_init(|| {
+                Ok(vec![
+                    Self::compile_builtin_pattern(
+                        "email",
+                        PIIEntityType::Email,
+                        r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}",
+                    )?,
+                    Self::compile_builtin_pattern(
+                        "phone",
+                        PIIEntityType::Phone,
+                        r"(\+?86)?1[3-9]\d{9}",
+                    )?,
+                    Self::compile_builtin_pattern(
+                        "credit-card",
+                        PIIEntityType::CreditCard,
+                        r"\b(?:\d[ -]*?){13,16}\b",
+                    )?,
+                    Self::compile_builtin_pattern(
+                        "id-card",
+                        PIIEntityType::IDCard,
+                        r"\d{17}[\dXx]",
+                    )?,
+                    Self::compile_builtin_pattern(
+                        "url",
+                        PIIEntityType::URL,
+                        r#"https?://[^\s<>"{}|\\^`\[\]]+"#,
+                    )?,
+                    Self::compile_builtin_pattern(
+                        "ip",
+                        PIIEntityType::IPAddress,
+                        r"\b(?:\d{1,3}\.){3}\d{1,3}\b",
+                    )?,
+                ])
+            })
+            .as_ref()
+            .map(Clone::clone)
+            .map_err(|message| AIError::Internal(anyhow!(message.clone())))
     }
 
     /// Return the currently configured masking mode.
@@ -190,19 +217,13 @@ impl PIIMasker {
     }
 }
 
-impl Default for PIIMasker {
-    fn default() -> Self {
-        Self::new(PIIMode::Mask)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_detect_email() {
-        let masker = PIIMasker::new(PIIMode::Mask);
+        let masker = PIIMasker::new(PIIMode::Mask).expect("default pii regex patterns compile");
         let matches = masker.detect("Contact user@example.com for help");
         assert_eq!(matches.len(), 1);
         assert_eq!(matches[0].entity_type, PIIEntityType::Email);
@@ -211,7 +232,7 @@ mod tests {
 
     #[test]
     fn test_detect_phone() {
-        let masker = PIIMasker::new(PIIMode::Mask);
+        let masker = PIIMasker::new(PIIMode::Mask).expect("default pii regex patterns compile");
         // Chinese mobile number
         let matches = masker.detect("Call 13812345678 now");
         assert_eq!(matches.len(), 1);
@@ -221,7 +242,7 @@ mod tests {
 
     #[test]
     fn test_detect_id_card() {
-        let masker = PIIMasker::new(PIIMode::Mask);
+        let masker = PIIMasker::new(PIIMode::Mask).expect("default pii regex patterns compile");
         let matches = masker.detect("ID: 11010110900101123X is valid");
         assert_eq!(matches.len(), 1);
         assert_eq!(matches[0].entity_type, PIIEntityType::IDCard);
@@ -229,7 +250,7 @@ mod tests {
 
     #[test]
     fn test_mask_removes_pii() {
-        let masker = PIIMasker::new(PIIMode::Mask);
+        let masker = PIIMasker::new(PIIMode::Mask).expect("default pii regex patterns compile");
         let input = "Email user@test.com and call 13812345678";
         let (masked, count, _) = masker.mask(input);
         assert_eq!(count, 2);
@@ -242,9 +263,9 @@ mod tests {
     #[test]
     fn test_mode_mask_vs_redact() {
         let input = "user@test.com";
-        let mask = PIIMasker::new(PIIMode::Mask);
-        let redact = PIIMasker::new(PIIMode::Redact);
-        let anon = PIIMasker::new(PIIMode::Anonymize);
+        let mask = PIIMasker::new(PIIMode::Mask).expect("default pii regex patterns compile");
+        let redact = PIIMasker::new(PIIMode::Redact).expect("default pii regex patterns compile");
+        let anon = PIIMasker::new(PIIMode::Anonymize).expect("default pii regex patterns compile");
 
         assert_eq!(mask.mask(input).0, "[email]");
         assert_eq!(redact.mask(input).0, "[REDACTED]");
@@ -253,7 +274,7 @@ mod tests {
 
     #[test]
     fn test_no_pii_unchanged() {
-        let masker = PIIMasker::new(PIIMode::Mask);
+        let masker = PIIMasker::new(PIIMode::Mask).expect("default pii regex patterns compile");
         let input = "Hello, this is a clean message with no PII.";
         let (masked, count, _) = masker.mask(input);
         assert_eq!(count, 0);
@@ -264,7 +285,8 @@ mod tests {
     fn test_overlapping_matches_deduplicated() {
         // "12345.67890.1234" could match both IP (12345.67890.1234) and credit-card (12345678901234)
         // The longer match wins, overlapping shorter one is dropped.
-        let masker = PIIMasker::new(PIIMode::Anonymize);
+        let masker =
+            PIIMasker::new(PIIMode::Anonymize).expect("default pii regex patterns compile");
         let input = "123.45.67.89";
         let (masked, count, _) = masker.mask(input);
         // IP pattern matches this, credit-card digits embedded should not duplicate
@@ -274,7 +296,7 @@ mod tests {
 
     #[test]
     fn test_mask_bytes_valid_utf8() {
-        let masker = PIIMasker::new(PIIMode::Mask);
+        let masker = PIIMasker::new(PIIMode::Mask).expect("default pii regex patterns compile");
         let payload = b"user@example.com";
         let result = masker.mask_bytes(payload).unwrap();
         assert_eq!(result, b"[email]");
@@ -282,7 +304,7 @@ mod tests {
 
     #[test]
     fn test_mask_bytes_invalid_utf8_is_error() {
-        let masker = PIIMasker::new(PIIMode::Mask);
+        let masker = PIIMasker::new(PIIMode::Mask).expect("default pii regex patterns compile");
         // Invalid UTF-8 sequence
         let payload = &[0xFF, 0xFE, 0xFD];
         assert!(masker.mask_bytes(payload).is_err());
@@ -290,7 +312,9 @@ mod tests {
 
     #[test]
     fn test_disabled() {
-        let masker = PIIMasker::new(PIIMode::Mask).with_enabled(false);
+        let masker = PIIMasker::new(PIIMode::Mask)
+            .expect("default pii regex patterns compile")
+            .with_enabled(false);
         let original = "alice@example.com";
         let (result, count, _) = masker.mask(original);
         assert_eq!(result, original);
@@ -299,7 +323,7 @@ mod tests {
 
     #[test]
     fn test_mask_credit_card() {
-        let masker = PIIMasker::new(PIIMode::Mask);
+        let masker = PIIMasker::new(PIIMode::Mask).expect("default pii regex patterns compile");
         let (result, count, _) = masker.mask("Card: 4111-1111-1111-1111");
         assert!(result.contains("[credit_card]"));
         assert_eq!(count, 1);
@@ -307,7 +331,7 @@ mod tests {
 
     #[test]
     fn test_mask_no_pii_is_zero_allocation() {
-        let masker = PIIMasker::new(PIIMode::Mask);
+        let masker = PIIMasker::new(PIIMode::Mask).expect("default pii regex patterns compile");
         let input = "This is a clean message with no personal information whatsoever.";
         let (result, count, _details) = masker.mask(input);
         assert_eq!(count, 0);
@@ -316,7 +340,9 @@ mod tests {
 
     #[test]
     fn test_mask_disabled_is_zero_allocation() {
-        let masker = PIIMasker::new(PIIMode::Mask).with_enabled(false);
+        let masker = PIIMasker::new(PIIMode::Mask)
+            .expect("default pii regex patterns compile")
+            .with_enabled(false);
         let input = "test@example.com call 13912345678";
         let (result, count, _details) = masker.mask(input);
         assert_eq!(count, 0);
@@ -325,7 +351,7 @@ mod tests {
 
     #[test]
     fn test_mask_with_pii_is_owned() {
-        let masker = PIIMasker::new(PIIMode::Mask);
+        let masker = PIIMasker::new(PIIMode::Mask).expect("default pii regex patterns compile");
         let input = "Contact test@example.com for details.";
         let (result, count, _details) = masker.mask(input);
         assert!(count > 0);
