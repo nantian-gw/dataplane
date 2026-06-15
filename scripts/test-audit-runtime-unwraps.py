@@ -10,7 +10,16 @@ from pathlib import Path
 
 
 SCRIPT_PATH = Path(__file__).with_name("audit-runtime-unwraps.sh")
-DOC_PATH = Path(__file__).resolve().parent.parent / "docs" / "runtime-unwrap-ntgw-ai-zero-tolerance.md"
+AI_DOC_PATH = Path(__file__).resolve().parent.parent / "docs" / "runtime-unwrap-ntgw-ai-zero-tolerance.md"
+STREAM_DOC_FIXTURE = """# ntgw-stream Runtime Unwrap Governance
+
+Date: 2026-06-15
+
+This note records the multi-target guardrail expansion for `ntgw-stream`.
+Governed scope is `crates/ntgw-stream/src/` production code only.
+Inline `#[cfg(test)]` items/modules and files reached only through
+`#[cfg(test)] mod ...;` remain excluded from enforcement.
+"""
 
 
 @dataclass
@@ -19,6 +28,7 @@ class Case:
     files: dict[str, str | bytes]
     report_code: int
     enforce_code: int
+    docs: dict[str, str] = field(default_factory=dict)
     report_contains: list[str] = field(default_factory=list)
     report_not_contains: list[str] = field(default_factory=list)
     enforce_contains: list[str] = field(default_factory=list)
@@ -48,11 +58,14 @@ def assert_case(case: Case) -> None:
         repo = Path(td) / "repo"
         (repo / "scripts").mkdir(parents=True)
         (repo / "docs").mkdir()
-        (repo / "crates" / "ntgw-ai" / "src").mkdir(parents=True)
         (repo / "scripts" / "audit-runtime-unwraps.sh").write_text(SCRIPT_PATH.read_text())
-        (repo / "docs" / "runtime-unwrap-ntgw-ai-zero-tolerance.md").write_text(
-            DOC_PATH.read_text()
-        )
+
+        default_docs = {
+            "docs/runtime-unwrap-ntgw-ai-zero-tolerance.md": AI_DOC_PATH.read_text(),
+            "docs/runtime-unwrap-ntgw-stream-zero-tolerance.md": STREAM_DOC_FIXTURE,
+        }
+        for relpath, content in {**default_docs, **case.docs}.items():
+            write_fixture(repo, relpath, content)
 
         for relpath, content in case.files.items():
             write_fixture(repo, relpath, content)
@@ -99,6 +112,44 @@ def assert_case(case: Case) -> None:
 
 def main() -> int:
     cases = [
+        Case(
+            name="multi_target_clean_repo_reports_each_target",
+            files={
+                "crates/ntgw-ai/src/lib.rs": "pub fn ai_ok() {}\n",
+                "crates/ntgw-stream/src/lib.rs": "pub fn stream_ok() {}\n",
+            },
+            docs={"docs/runtime-unwrap-ntgw-stream-zero-tolerance.md": STREAM_DOC_FIXTURE},
+            report_code=0,
+            enforce_code=0,
+            report_contains=[
+                "== ntgw-ai (crates/ntgw-ai/src) ==",
+                "== ntgw-stream (crates/ntgw-stream/src) ==",
+                "clean",
+            ],
+            enforce_contains=[
+                "== ntgw-ai (crates/ntgw-ai/src) ==",
+                "== ntgw-stream (crates/ntgw-stream/src) ==",
+                "clean",
+            ],
+        ),
+        Case(
+            name="multi_target_second_crate_production_match_detected",
+            files={
+                "crates/ntgw-ai/src/lib.rs": "pub fn ai_ok() {}\n",
+                "crates/ntgw-stream/src/lib.rs": "pub fn stream_bad() { let _ = Some(1).unwrap(); }\n",
+            },
+            docs={"docs/runtime-unwrap-ntgw-stream-zero-tolerance.md": STREAM_DOC_FIXTURE},
+            report_code=0,
+            enforce_code=1,
+            report_contains=[
+                "== ntgw-stream (crates/ntgw-stream/src) ==",
+                "crates/ntgw-stream/src/lib.rs:1:pub fn stream_bad() { let _ = Some(1).unwrap(); }",
+            ],
+            enforce_contains=[
+                "== ntgw-stream (crates/ntgw-stream/src) ==",
+                "crates/ntgw-stream/src/lib.rs:1:pub fn stream_bad() { let _ = Some(1).unwrap(); }",
+            ],
+        ),
         Case(
             name="clean_repo",
             files={"crates/ntgw-ai/src/lib.rs": "pub fn ok() {}\n"},

@@ -5,7 +5,7 @@ usage() {
   cat <<'USAGE'
 Usage: scripts/audit-runtime-unwraps.sh [--report|--enforce]
 
-Reports the runtime unwrap governance state for ntgw-ai production sources.
+Reports the runtime unwrap governance state for governed production sources.
 `--enforce` fails if any governed production source still contains unwrap/expect.
 USAGE
 }
@@ -31,25 +31,42 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "${script_dir}/.." && pwd)"
 cd "$repo_root"
 
-audit_doc="docs/runtime-unwrap-ntgw-ai-zero-tolerance.md"
-if [[ ! -f "$audit_doc" ]]; then
-  echo "::error::${audit_doc} is missing" >&2
-  exit 1
-fi
-
-if ! grep -Fq "2026-06-15" "$audit_doc"; then
-  echo "::error::${audit_doc} is missing the 2026-06-15 batch marker" >&2
-  exit 1
-fi
-
 set +e
 governed_output="$(
   python - <<'PY'
+from dataclasses import dataclass
 from pathlib import Path
 import re
 import sys
 
-root = Path("crates/ntgw-ai/src")
+
+@dataclass(frozen=True)
+class GovernedTarget:
+    name: str
+    root: Path
+    doc: Path
+    marker: str
+
+
+class TargetValidationError(Exception):
+    pass
+
+
+targets = [
+    GovernedTarget(
+        name="ntgw-ai",
+        root=Path("crates/ntgw-ai/src"),
+        doc=Path("docs/runtime-unwrap-ntgw-ai-zero-tolerance.md"),
+        marker="2026-06-15",
+    ),
+    GovernedTarget(
+        name="ntgw-stream",
+        root=Path("crates/ntgw-stream/src"),
+        doc=Path("docs/runtime-unwrap-ntgw-stream-zero-tolerance.md"),
+        marker="2026-06-15",
+    ),
+]
+
 pattern = re.compile(r"(?<![A-Za-z0-9_])(?:unwrap|expect)\s*\(")
 cfg_test_attr = re.compile(r"^#\[\s*cfg\s*\(\s*test\s*\)\s*\]$")
 path_attr = re.compile(r'^#\[\s*path\s*=\s*"([^"]+)"\s*\]$')
@@ -413,7 +430,7 @@ def production_lines(path: Path, lines, sanitized_lines):
     return matches
 
 
-try:
+def scan_target(root: Path):
     matches = []
     excluded_paths = set()
     excluded_dirs = set()
@@ -440,10 +457,37 @@ try:
         for lineno, line in file_matches:
             matches.append(f"{path}:{lineno}:{line}")
 
-    if matches:
-        print("\n".join(matches))
+    return matches
+
+
+try:
+    results = []
+
+    for target in targets:
+        if not target.doc.is_file():
+            raise TargetValidationError(f"{target.doc} is missing")
+        if target.marker not in target.doc.read_text():
+            raise TargetValidationError(
+                f"{target.doc} is missing the {target.marker} batch marker"
+            )
+        results.append((target, scan_target(target.root)))
+
+    failed = False
+    for index, (target, matches) in enumerate(results):
+        if index:
+            print()
+        print(f"== {target.name} ({target.root}) ==")
+        if matches:
+            failed = True
+            print("\n".join(matches))
+        else:
+            print("clean")
+
+    if failed:
         sys.exit(1)
-    print("clean")
+except TargetValidationError as exc:
+    print(f"::error::{exc}", file=sys.stderr)
+    sys.exit(1)
 except Exception as exc:
     print(f"::error::runtime unwrap scanner failed: {exc}", file=sys.stderr)
     sys.exit(2)
