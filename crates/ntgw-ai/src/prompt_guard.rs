@@ -1,6 +1,8 @@
+use anyhow::anyhow;
 use regex::Regex;
-use std::sync::LazyLock;
+use std::sync::OnceLock;
 
+use crate::error::AIError;
 use crate::format::ir::{AIContent, AIRequest};
 
 /// Result of a prompt guard check.
@@ -16,6 +18,7 @@ pub enum GuardResult {
 ///
 /// Checks all messages in a request against configurable regex patterns
 /// and keywords. Supports three modes: `block`, `warn`, `log`.
+#[derive(Debug)]
 pub struct PromptGuardFilter {
     pub(crate) patterns: Vec<Regex>,
     pub(crate) keywords: Vec<String>,
@@ -25,13 +28,13 @@ pub struct PromptGuardFilter {
 
 impl PromptGuardFilter {
     /// Create with default injection detection patterns.
-    pub fn new() -> Self {
-        Self {
-            patterns: Self::default_patterns(),
+    pub fn new() -> Result<Self, AIError> {
+        Ok(Self {
+            patterns: Self::default_patterns()?,
             keywords: vec![],
             enabled: true,
             mode: "block".into(),
-        }
+        })
     }
 
     /// Create with custom settings.
@@ -40,41 +43,65 @@ impl PromptGuardFilter {
         mode: &str,
         custom_patterns: Vec<String>,
         keywords: Vec<String>,
-    ) -> Self {
+    ) -> Result<Self, AIError> {
         let patterns = if custom_patterns.is_empty() {
-            Self::default_patterns()
+            Self::default_patterns()?
         } else {
             custom_patterns
                 .iter()
-                .filter_map(|p| Regex::new(p).ok())
-                .collect()
+                .map(|pattern| {
+                    Regex::new(pattern).map_err(|err| {
+                        AIError::Internal(anyhow!(
+                            "invalid custom prompt guard regex: {err}"
+                        ))
+                    })
+                })
+                .collect::<Result<Vec<_>, AIError>>()?
         };
-        Self {
+        Ok(Self {
             patterns,
             keywords,
             enabled,
             mode: mode.into(),
-        }
+        })
     }
 
-    fn default_patterns() -> Vec<Regex> {
-        static PATTERNS: LazyLock<Vec<Regex>> = LazyLock::new(|| {
-            vec![
-                Regex::new(
-                r"(?i)(ignore|forget|override)\s+(all\s+)?(previous|above|prior)\s+(instructions?|prompts?)",
-            )
-            .expect("valid prompt-guard regex: ignore-previous"),
-            Regex::new(r"(?i)(you\s+are|act\s+as|pretend\s+to\s+be)\s+(DAN|jailbroken)").expect("valid prompt-guard regex: dan"),
-            Regex::new(
-                r"(?i)respond\s+in\s+(a\s+)?(different|new)\s+(persona|role|character)",
-            )
-            .expect("valid prompt-guard regex: persona"),
-            Regex::new(r"(?i)(do\s+not|don't|never)\s+follow\s+(your|the)\s+(guidelines|rules|instructions)")
-                .expect("valid prompt-guard regex: dont-follow"),
-            Regex::new(r"(?i)system\s*prompt\s*[:=].*you\s+are").expect("valid prompt-guard regex: system-prompt"),
-            ]
-        });
-        PATTERNS.clone()
+    fn compile_builtin_pattern(label: &str, pattern: &str) -> Result<Regex, String> {
+        Regex::new(pattern)
+            .map_err(|err| format!("invalid built-in prompt guard regex {label}: {err}"))
+    }
+
+    fn default_patterns() -> Result<Vec<Regex>, AIError> {
+        static PATTERNS: OnceLock<Result<Vec<Regex>, String>> = OnceLock::new();
+
+        PATTERNS
+            .get_or_init(|| {
+                Ok(vec![
+                    Self::compile_builtin_pattern(
+                        "ignore-previous",
+                        r"(?i)(ignore|forget|override)\s+(all\s+)?(previous|above|prior)\s+(instructions?|prompts?)",
+                    )?,
+                    Self::compile_builtin_pattern(
+                        "dan",
+                        r"(?i)(you\s+are|act\s+as|pretend\s+to\s+be)\s+(DAN|jailbroken)",
+                    )?,
+                    Self::compile_builtin_pattern(
+                        "persona",
+                        r"(?i)respond\s+in\s+(a\s+)?(different|new)\s+(persona|role|character)",
+                    )?,
+                    Self::compile_builtin_pattern(
+                        "dont-follow",
+                        r"(?i)(do\s+not|don't|never)\s+follow\s+(your|the)\s+(guidelines|rules|instructions)",
+                    )?,
+                    Self::compile_builtin_pattern(
+                        "system-prompt",
+                        r"(?i)system\s*prompt\s*[:=].*you\s+are",
+                    )?,
+                ])
+            })
+            .as_ref()
+            .map(Clone::clone)
+            .map_err(|message| AIError::Internal(anyhow!(message.clone())))
     }
 
     /// Returns the configured mode.
@@ -133,11 +160,5 @@ pub(crate) fn message_text(content: &AIContent) -> Option<String> {
             }
         }
         AIContent::None => None,
-    }
-}
-
-impl Default for PromptGuardFilter {
-    fn default() -> Self {
-        Self::new()
     }
 }
