@@ -225,17 +225,58 @@ async fn test_noop_observability() {
     assert_eq!(parsed["choices"][0]["message"]["content"], "ok");
 }
 
-#[test]
-fn test_builder_constructs_filter_with_required_dependencies() {
-    let registry = prometheus::Registry::new();
+#[tokio::test]
+async fn test_builder_constructs_filter_with_required_dependencies() {
+    let registry = Registry::new();
     let metrics = AIMetrics::new(&registry).expect("ai metrics");
-    let adapters = AdapterRegistry::new();
+    let mut adapters = AdapterRegistry::new();
+    adapters.register("openai", Arc::new(OpenAIAdapter));
 
     let filter = AIGatewayFilterBuilder::new(Arc::new(adapters), Arc::new(metrics)).build();
 
-    assert!(filter.langfuse.is_none());
-    assert!(filter.tracer.is_none());
-    assert!(filter.rate_limiter.is_none());
+    let request_body =
+        br#"{"model": "gpt-4o", "messages": [{"role": "user", "content": "builder seam"}]}"#;
+    let ctx = filter
+        .pre_process("/v1/chat/completions", request_body, None)
+        .await
+        .expect("pre_process should use registered adapter");
+
+    let response_body = br#"{
+        "id": "chatcmpl-builder",
+        "object": "chat.completion",
+        "model": "gpt-4o",
+        "created": 1700000000,
+        "choices": [{
+            "index": 0,
+            "message": {"role": "assistant", "content": "wired"},
+            "finish_reason": "stop"
+        }],
+        "usage": {"prompt_tokens": 4, "completion_tokens": 1, "total_tokens": 5}
+    }"#;
+
+    let output = filter
+        .post_process(ctx, response_body, 200)
+        .await
+        .expect("post_process should use metrics dependency");
+
+    let parsed: serde_json::Value =
+        serde_json::from_slice(&output).expect("output should be valid JSON");
+    assert_eq!(parsed["choices"][0]["message"]["content"], "wired");
+
+    let request_count = gather_metric_value(
+        &registry,
+        "ai_requests_total",
+        &[
+            ("model", "gpt-4o"),
+            ("format", "openai"),
+            ("status", "success"),
+        ],
+    );
+    assert!(
+        request_count >= 1.0,
+        "request count should be >= 1, got {}",
+        request_count
+    );
 }
 
 #[test]
