@@ -34,6 +34,22 @@ pub struct ABTestEngine {
     experiments: HashMap<String, ABTest>,
 }
 
+fn select_variant_for_roll(experiment: &ABTest, roll: f64) -> Option<Variant> {
+    if experiment.variants.is_empty() {
+        return None;
+    }
+
+    let mut cumulative = 0.0_f64;
+    for variant in &experiment.variants {
+        cumulative += variant.weight;
+        if roll < cumulative {
+            return Some(variant.clone());
+        }
+    }
+
+    experiment.variants.last().cloned()
+}
+
 impl ABTestEngine {
     /// Create a new engine.
     pub fn new() -> Self {
@@ -55,29 +71,8 @@ impl ABTestEngine {
     /// returned. If all weights are zero the first variant is returned.
     pub fn select_variant(&self, experiment_id: &str) -> Option<Variant> {
         let experiment = self.experiments.get(experiment_id)?;
-        if experiment.variants.is_empty() {
-            return None;
-        }
-
         let roll: f64 = rand::thread_rng().r#gen();
-
-        let mut cumulative = 0.0_f64;
-        for variant in &experiment.variants {
-            cumulative += variant.weight;
-            if roll < cumulative {
-                return Some(variant.clone());
-            }
-        }
-
-        // Fallback: return last variant if roll >= total weight
-        // (can happen when weights sum < 1.0)
-        Some(
-            experiment
-                .variants
-                .last()
-                .expect("ab-test has non-empty variants")
-                .clone(),
-        )
+        select_variant_for_roll(experiment, roll)
     }
 
     /// Generate a unique experiment identifier.
@@ -166,6 +161,41 @@ mod tests {
     fn test_returns_none_for_unknown_experiment() {
         let engine = ABTestEngine::new();
         assert!(engine.select_variant("nonexistent").is_none());
+    }
+
+    #[test]
+    fn test_select_variant_falls_back_to_last_variant_for_uncovered_roll() {
+        let experiment = ABTest {
+            experiment_id: "fallback".into(),
+            variants: vec![
+                Variant {
+                    name: "a".into(),
+                    model: "gpt-4".into(),
+                    weight: 0.1,
+                    config: serde_json::Value::Null,
+                },
+                Variant {
+                    name: "b".into(),
+                    model: "gpt-4-turbo".into(),
+                    weight: 0.2,
+                    config: serde_json::Value::Null,
+                },
+            ],
+        };
+
+        let selected = select_variant_for_roll(&experiment, 0.95).unwrap();
+        assert_eq!(selected.name, "b");
+        assert_eq!(selected.model, "gpt-4-turbo");
+    }
+
+    #[test]
+    fn test_select_variant_returns_none_for_empty_variants() {
+        let experiment = ABTest {
+            experiment_id: "empty".into(),
+            variants: vec![],
+        };
+
+        assert!(select_variant_for_roll(&experiment, 0.5).is_none());
     }
 
     #[test]
