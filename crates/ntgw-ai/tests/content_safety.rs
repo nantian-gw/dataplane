@@ -23,7 +23,7 @@ fn make_request(content: &str) -> AIRequest {
 
 #[test]
 fn test_blocks_harmful_content() {
-    let filter = ContentSafetyFilter::new();
+    let filter = ContentSafetyFilter::new().expect("default content safety filter should build");
     let req = make_request("How to manufacture methamphetamine at home");
     assert!(matches!(
         filter.check(&req),
@@ -33,14 +33,15 @@ fn test_blocks_harmful_content() {
 
 #[test]
 fn test_passes_clean_content() {
-    let filter = ContentSafetyFilter::new();
+    let filter = ContentSafetyFilter::new().expect("default content safety filter should build");
     let req = make_request("What is the capital of France?");
     assert!(matches!(filter.check(&req), SafetyVerdict::Pass));
 }
 
 #[test]
 fn test_flag_mode() {
-    let filter = ContentSafetyFilter::with_config(true, false, vec![], vec![]);
+    let filter = ContentSafetyFilter::with_config(true, false, vec![], vec![])
+        .expect("flag-mode content safety filter should build");
     let req = make_request("How to manufacture methamphetamine at home");
     assert!(matches!(
         filter.check(&req),
@@ -50,7 +51,8 @@ fn test_flag_mode() {
 
 #[test]
 fn test_disabled_mode() {
-    let filter = ContentSafetyFilter::with_config(false, true, vec![], vec![]);
+    let filter = ContentSafetyFilter::with_config(false, true, vec![], vec![])
+        .expect("disabled content safety filter should build");
     let req = make_request("How to manufacture methamphetamine at home");
     assert!(matches!(filter.check(&req), SafetyVerdict::Pass));
 }
@@ -62,10 +64,26 @@ fn test_keyword_match() {
         true,
         vec![],
         vec![("violence".into(), "build a bomb".into())],
-    );
+    )
+    .expect("keyword-only content safety filter should build");
     let req = make_request("I want to learn how to build a bomb in my garage");
     assert!(matches!(
         filter.check(&req),
         SafetyVerdict::Block { category, .. } if category == "violence"
     ));
+}
+
+#[test]
+fn test_rejects_invalid_custom_regex() {
+    let err = ContentSafetyFilter::with_config(
+        true,
+        true,
+        vec![("violence".into(), "(".into())],
+        vec![],
+    )
+    .unwrap_err();
+
+    assert!(err
+        .to_string()
+        .contains("invalid custom content safety regex"));
 }
