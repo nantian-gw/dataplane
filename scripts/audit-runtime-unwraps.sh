@@ -62,6 +62,122 @@ def module_roots(path: Path):
     return path.parent / path.stem
 
 
+def cfg_test_module_targets(path: Path, module_name: str):
+    base = module_roots(path)
+    module_dir = base / module_name
+    return {base / f"{module_name}.rs", module_dir / "mod.rs"}, {module_dir}
+
+
+def sanitize_lines(lines):
+    sanitized = []
+    in_block_comment = False
+    in_string = False
+    string_escape = False
+    in_char = False
+    char_escape = False
+    in_raw_string = False
+    raw_hashes = 0
+
+    for line in lines:
+        chars = list(line)
+        out = chars[:]
+        i = 0
+        while i < len(chars):
+            ch = chars[i]
+
+            if in_block_comment:
+                out[i] = " "
+                if ch == "*" and i + 1 < len(chars) and chars[i + 1] == "/":
+                    out[i + 1] = " "
+                    in_block_comment = False
+                    i += 2
+                    continue
+                i += 1
+                continue
+
+            if in_string:
+                out[i] = " "
+                if string_escape:
+                    string_escape = False
+                elif ch == "\\":
+                    string_escape = True
+                elif ch == '"':
+                    in_string = False
+                i += 1
+                continue
+
+            if in_char:
+                out[i] = " "
+                if char_escape:
+                    char_escape = False
+                elif ch == "\\":
+                    char_escape = True
+                elif ch == "'":
+                    in_char = False
+                i += 1
+                continue
+
+            if in_raw_string:
+                out[i] = " "
+                if ch == '"' and chars[i + 1 : i + 1 + raw_hashes] == ["#"] * raw_hashes:
+                    for j in range(i + 1, min(len(chars), i + 1 + raw_hashes)):
+                        out[j] = " "
+                    in_raw_string = False
+                    i += 1 + raw_hashes
+                    continue
+                i += 1
+                continue
+
+            if ch == "/" and i + 1 < len(chars) and chars[i + 1] == "/":
+                for j in range(i, len(chars)):
+                    out[j] = " "
+                break
+
+            if ch == "/" and i + 1 < len(chars) and chars[i + 1] == "*":
+                out[i] = " "
+                out[i + 1] = " "
+                in_block_comment = True
+                i += 2
+                continue
+
+            if ch == "r":
+                j = i + 1
+                while j < len(chars) and chars[j] == "#":
+                    j += 1
+                if j < len(chars) and chars[j] == '"':
+                    for k in range(i, j + 1):
+                        out[k] = " "
+                    in_raw_string = True
+                    raw_hashes = j - (i + 1)
+                    i = j + 1
+                    continue
+
+            if ch == '"':
+                out[i] = " "
+                in_string = True
+                string_escape = False
+                i += 1
+                continue
+
+            if ch == "'":
+                prev = chars[i - 1] if i > 0 else ""
+                nxt = chars[i + 1] if i + 1 < len(chars) else ""
+                if prev.isalnum() or prev == "_" or nxt == "_":
+                    i += 1
+                    continue
+                out[i] = " "
+                in_char = True
+                char_escape = False
+                i += 1
+                continue
+
+            i += 1
+
+        sanitized.append("".join(out))
+
+    return sanitized
+
+
 def skip_item_state(line: str, brace_depth: int):
     next_depth = brace_depth + line.count("{") - line.count("}")
     if next_depth > 0:
@@ -73,26 +189,43 @@ def skip_item_state(line: str, brace_depth: int):
     return True, 0
 
 
-def cfg_test_module_targets(path: Path, module_name: str):
-    base = module_roots(path)
-    module_dir = base / module_name
-    return {base / f"{module_name}.rs", module_dir / "mod.rs"}, {module_dir}
-
-
-def production_lines(path: Path):
-    lines = path.read_text().splitlines()
-    out = []
-    skip_test_item = False
-    brace_depth = 0
+def collect_cfg_test_module_targets(path: Path, sanitized_lines):
     pending_test_attr = False
     excluded_paths = set()
     excluded_dirs = set()
 
-    for lineno, line in enumerate(lines, 1):
+    for line in sanitized_lines:
         stripped = line.lstrip()
+        if stripped.startswith("#[cfg(test)]"):
+            pending_test_attr = True
+            continue
+        if not pending_test_attr:
+            continue
+        if not stripped:
+            continue
+        if stripped.startswith("#["):
+            continue
+        module_match = module_decl.match(stripped)
+        if module_match and ";" in line and "{" not in line:
+            item_paths, item_dirs = cfg_test_module_targets(path, module_match.group("name"))
+            excluded_paths.update(item_paths)
+            excluded_dirs.update(item_dirs)
+        pending_test_attr = False
+
+    return excluded_paths, excluded_dirs
+
+
+def production_lines(path: Path, lines, sanitized_lines):
+    out = []
+    skip_test_item = False
+    brace_depth = 0
+    pending_test_attr = False
+
+    for lineno, (line, sanitized_line) in enumerate(zip(lines, sanitized_lines), 1):
+        stripped = sanitized_line.lstrip()
 
         if skip_test_item:
-            skip_test_item, brace_depth = skip_item_state(line, brace_depth)
+            skip_test_item, brace_depth = skip_item_state(sanitized_line, brace_depth)
             continue
 
         if stripped.startswith("#[cfg(test)]"):
@@ -104,37 +237,41 @@ def production_lines(path: Path):
                 continue
             if stripped.startswith("#["):
                 continue
-            module_match = module_decl.match(stripped)
-            if module_match and ";" in line and "{" not in line:
-                item_paths, item_dirs = cfg_test_module_targets(
-                    path, module_match.group("name")
-                )
-                excluded_paths.update(item_paths)
-                excluded_dirs.update(item_dirs)
             pending_test_attr = False
-            skip_test_item, brace_depth = skip_item_state(line, 0)
+            skip_test_item, brace_depth = skip_item_state(sanitized_line, 0)
             continue
 
-        if pattern.search(line):
+        if pattern.search(sanitized_line):
             out.append((lineno, line))
 
-    return out, excluded_paths, excluded_dirs
+    return out
 
 
 matches = []
 excluded_paths = set()
 excluded_dirs = set()
+files = sorted(root.rglob("*.rs"))
+file_cache = {}
 
-for path in sorted(root.rglob("*.rs")):
+for path in files:
+    lines = path.read_text().splitlines()
+    sanitized_lines = sanitize_lines(lines)
+    file_cache[path] = (lines, sanitized_lines)
+    file_excluded_paths, file_excluded_dirs = collect_cfg_test_module_targets(
+        path, sanitized_lines
+    )
+    excluded_paths.update(file_excluded_paths)
+    excluded_dirs.update(file_excluded_dirs)
+
+for path in files:
     if path in excluded_paths:
         continue
     if any(parent in excluded_dirs for parent in [path, *path.parents]):
         continue
     if "/tests/" in str(path):
         continue
-    file_matches, file_excluded_paths, file_excluded_dirs = production_lines(path)
-    excluded_paths.update(file_excluded_paths)
-    excluded_dirs.update(file_excluded_dirs)
+    lines, sanitized_lines = file_cache[path]
+    file_matches = production_lines(path, lines, sanitized_lines)
     for lineno, line in file_matches:
         matches.append(f"{path}:{lineno}:{line}")
 
