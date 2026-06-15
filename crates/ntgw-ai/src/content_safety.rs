@@ -1,5 +1,8 @@
 use anyhow::anyhow;
 use regex::Regex;
+#[cfg(test)]
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::OnceLock;
 
 use crate::error::AIError;
 use crate::format::ir::AIRequest;
@@ -66,6 +69,20 @@ impl ContentSafetyFilter {
 
     /// Default regex patterns for the five content safety categories.
     fn default_patterns() -> Result<Vec<(String, Regex)>, AIError> {
+        static DEFAULT_PATTERNS: OnceLock<Result<Vec<(String, Regex)>, String>> = OnceLock::new();
+
+        match DEFAULT_PATTERNS.get_or_init(|| {
+            Self::compile_builtin_patterns().map_err(|err| err.to_string())
+        }) {
+            Ok(patterns) => Ok(patterns.clone()),
+            Err(message) => Err(AIError::Internal(anyhow!(message.clone()))),
+        }
+    }
+
+    fn compile_builtin_patterns() -> Result<Vec<(String, Regex)>, AIError> {
+        #[cfg(test)]
+        BUILTIN_PATTERN_COMPILE_COUNT.fetch_add(1, Ordering::SeqCst);
+
         [
             (
                 "violence-1",
@@ -231,5 +248,25 @@ impl ContentSafetyFilter {
     /// Returns whether the filter is enabled.
     pub fn is_enabled(&self) -> bool {
         self.enabled
+    }
+}
+
+#[cfg(test)]
+static BUILTIN_PATTERN_COMPILE_COUNT: AtomicUsize = AtomicUsize::new(0);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_default_patterns_compile_once_across_constructors() {
+        assert_eq!(BUILTIN_PATTERN_COMPILE_COUNT.load(Ordering::SeqCst), 0);
+
+        let _first =
+            ContentSafetyFilter::new().expect("default content safety filter should build");
+        let _second =
+            ContentSafetyFilter::new().expect("default content safety filter should build");
+
+        assert_eq!(BUILTIN_PATTERN_COMPILE_COUNT.load(Ordering::SeqCst), 1);
     }
 }
