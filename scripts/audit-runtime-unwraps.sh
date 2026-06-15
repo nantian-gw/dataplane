@@ -51,6 +51,7 @@ import sys
 
 root = Path("crates/ntgw-ai/src")
 pattern = re.compile(r"unwrap\(|expect\(")
+module_decl = re.compile(r"(?:pub(?:\([^)]*\))?\s+)?mod\s+[A-Za-z_][A-Za-z0-9_]*\b")
 
 
 def production_lines(path: Path):
@@ -77,7 +78,9 @@ def production_lines(path: Path):
         if pending_test_attr:
             if not stripped:
                 continue
-            if stripped.startswith("mod tests"):
+            if stripped.startswith("#["):
+                continue
+            if module_decl.match(stripped):
                 skip_module = True
                 brace_depth = line.count("{") - line.count("}")
                 if brace_depth <= 0:
