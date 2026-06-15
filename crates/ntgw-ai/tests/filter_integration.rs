@@ -226,6 +226,19 @@ async fn test_noop_observability() {
 }
 
 #[test]
+fn test_builder_constructs_filter_with_required_dependencies() {
+    let registry = prometheus::Registry::new();
+    let metrics = AIMetrics::new(&registry).expect("ai metrics");
+    let adapters = AdapterRegistry::new();
+
+    let filter = AIGatewayFilterBuilder::new(Arc::new(adapters), Arc::new(metrics)).build();
+
+    assert!(filter.langfuse.is_none());
+    assert!(filter.tracer.is_none());
+    assert!(filter.rate_limiter.is_none());
+}
+
+#[test]
 fn test_parse_sse_chunks_basic() {
     let sse = r#"data: {"id":"1","model":"gpt-4o","choices":[{"index":0,"delta":{"content":"Hello"}}]}
 

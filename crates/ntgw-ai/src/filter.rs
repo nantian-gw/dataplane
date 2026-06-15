@@ -61,8 +61,8 @@ pub struct AIGatewayFilter {
 
 /// Builder for `AIGatewayFilter`.
 pub struct AIGatewayFilterBuilder {
-    adapters: Option<Arc<AdapterRegistry>>,
-    metrics: Option<Arc<AIMetrics>>,
+    adapters: Arc<AdapterRegistry>,
+    metrics: Arc<AIMetrics>,
     langfuse: Option<Arc<LangfuseClient>>,
     tracer: Option<Arc<AITracer>>,
     rate_limiter: Option<TokenRateLimiter>,
@@ -85,8 +85,8 @@ pub struct AIGatewayFilterBuilder {
 impl AIGatewayFilterBuilder {
     pub fn new(adapters: Arc<AdapterRegistry>, metrics: Arc<AIMetrics>) -> Self {
         Self {
-            adapters: Some(adapters),
-            metrics: Some(metrics),
+            adapters,
+            metrics,
             langfuse: None,
             tracer: None,
             rate_limiter: None,
@@ -178,8 +178,8 @@ impl AIGatewayFilterBuilder {
 
     pub fn build(self) -> AIGatewayFilter {
         AIGatewayFilter {
-            adapters: self.adapters.expect("adapters required"),
-            metrics: self.metrics.expect("metrics required"),
+            adapters: self.adapters,
+            metrics: self.metrics,
             langfuse: self.langfuse,
             tracer: self.tracer,
             rate_limiter: self.rate_limiter,
