@@ -21,6 +21,7 @@ use super::{
 };
 
 include!("tests/rendering.rs");
+include!("tests/nginx_style.rs");
 include!("tests/route_overrides.rs");
 include!("tests/sampling.rs");
 include!("tests/writer.rs");

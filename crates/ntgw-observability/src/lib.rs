@@ -16,8 +16,9 @@ mod traffic;
 mod udp_session;
 
 pub use access::{
-    AccessLogMode, AccessLogOptions, AccessLogRecord, AccessLogSampleKey, AccessLogWriterSnapshot,
-    access_log_enabled_for_route, current_timestamp, emit_access_log, epoch_millis,
+    AccessLogMode, AccessLogOptions, AccessLogRecord, AccessLogSampleKey,
+    AccessLogTemplateRequirements, AccessLogWriterSnapshot, access_log_enabled_for_route,
+    access_log_template_requirements, current_timestamp, emit_access_log, epoch_millis,
     render_access_log, resolve_access_log_options, resolve_access_log_write_options,
     shutdown_access_log_writer, snapshot_access_log_writers, write_access_log,
 };

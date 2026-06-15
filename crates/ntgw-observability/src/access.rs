@@ -1,12 +1,13 @@
 use std::{
     borrow::Cow,
-    collections::{BTreeMap, hash_map::DefaultHasher},
+    collections::{BTreeMap, BTreeSet, HashMap, HashSet, hash_map::DefaultHasher},
     hash::{Hash, Hasher},
-    sync::mpsc::SyncSender,
+    sync::{Arc, OnceLock, mpsc::SyncSender},
     time::{SystemTime, UNIX_EPOCH},
 };
 
 use anyhow::Result;
+use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
 use tracing::warn;
 
@@ -19,11 +20,17 @@ type FlushSyncSender = SyncSender<()>;
 mod tests;
 
 use self::{
-    template::render_access_log_template,
+    template::{
+        CompiledAccessLogTemplate, compile_access_log_template, render_compiled_access_log_template,
+    },
     writer::{access_log_writer_snapshot, emit_access_log_line, reset_access_log_writer},
 };
 
 const DEFAULT_ROUTE_ANNOTATION_PREFIX: &str = "gateway.nantian.dev/access-log-";
+
+static ACCESS_LOG_TEMPLATE_CACHE: OnceLock<Mutex<HashMap<String, Arc<CompiledAccessLogTemplate>>>> =
+    OnceLock::new();
+static ACCESS_LOG_UNKNOWN_TEMPLATE_WARNINGS: OnceLock<Mutex<HashSet<String>>> = OnceLock::new();
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -63,6 +70,14 @@ impl Default for AccessLogOptions {
             route_annotation_prefix: DEFAULT_ROUTE_ANNOTATION_PREFIX.to_string(),
         }
     }
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct AccessLogTemplateRequirements {
+    pub uses_request_line: bool,
+    pub uses_query_string: bool,
+    pub uses_http_only_variables: bool,
+    pub request_headers: BTreeSet<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -124,6 +139,8 @@ pub struct AccessLogRecord<'a> {
     pub content_type: String,
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub connection_id: String,
+    #[serde(skip)]
+    pub request_header_values: BTreeMap<String, String>,
 }
 
 impl Default for AccessLogRecord<'static> {
@@ -165,6 +182,7 @@ impl Default for AccessLogRecord<'static> {
             upstream_connect_time_ms: 0,
             content_type: String::new(),
             connection_id: String::new(),
+            request_header_values: BTreeMap::new(),
         }
     }
 }
@@ -211,10 +229,52 @@ pub struct AccessLogWriterSnapshot {
     pub sink_errors_total: u64,
 }
 
+pub fn access_log_template_requirements(format: &str) -> AccessLogTemplateRequirements {
+    compiled_access_log_template(format).requirements.clone()
+}
+
 pub fn render_access_log(options: &AccessLogOptions, record: &AccessLogRecord) -> Result<String> {
     match options.mode {
         AccessLogMode::Json => Ok(serde_json::to_string(record)?),
-        AccessLogMode::Text => Ok(render_access_log_template(&options.format, record)),
+        AccessLogMode::Text => {
+            let compiled = compiled_access_log_template(&options.format);
+            Ok(render_compiled_access_log_template(
+                compiled.as_ref(),
+                record,
+            ))
+        }
+    }
+}
+
+fn compiled_access_log_template(format: &str) -> Arc<CompiledAccessLogTemplate> {
+    let cache = ACCESS_LOG_TEMPLATE_CACHE.get_or_init(|| Mutex::new(HashMap::new()));
+    if let Some(existing) = cache.lock().get(format).cloned() {
+        return existing;
+    }
+
+    let compiled = Arc::new(compile_access_log_template(format));
+    warn_unknown_template_tokens(format, &compiled.unknown_tokens);
+
+    let mut cache = cache.lock();
+    cache
+        .entry(format.to_string())
+        .or_insert_with(|| Arc::clone(&compiled))
+        .clone()
+}
+
+fn warn_unknown_template_tokens(format: &str, unknown_tokens: &[String]) {
+    if unknown_tokens.is_empty() {
+        return;
+    }
+
+    let warned = ACCESS_LOG_UNKNOWN_TEMPLATE_WARNINGS.get_or_init(|| Mutex::new(HashSet::new()));
+    let mut warned = warned.lock();
+    if warned.insert(format.to_string()) {
+        warn!(
+            format = %format,
+            unknown = ?unknown_tokens,
+            "access log format contains unknown tokens"
+        );
     }
 }
 
