@@ -63,9 +63,11 @@ def module_roots(path: Path):
 
 
 def skip_item_state(line: str, brace_depth: int):
-    brace_depth += line.count("{") - line.count("}")
-    if brace_depth > 0:
-        return True, brace_depth
+    next_depth = brace_depth + line.count("{") - line.count("}")
+    if next_depth > 0:
+        return True, next_depth
+    if brace_depth > 0 and next_depth <= 0:
+        return False, 0
     if "{" in line or ";" in line:
         return False, 0
     return True, 0
