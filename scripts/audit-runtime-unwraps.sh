@@ -51,6 +51,7 @@ import sys
 
 root = Path("crates/ntgw-ai/src")
 pattern = re.compile(r"(?<![A-Za-z0-9_])(?:unwrap|expect)\s*\(")
+cfg_test_attr = re.compile(r"^#\[\s*cfg\s*\(\s*test\s*\)\s*\]$")
 module_decl = re.compile(
     r"(?:(?:pub(?:\([^)]*\))?)\s+)?mod\s+(?P<name>[A-Za-z_][A-Za-z0-9_]*)\b"
 )
@@ -213,21 +214,38 @@ def skip_item_state(line: str, brace_depth: int):
     return True, 0
 
 
+def cfg_test_attribute_matches(parts):
+    return cfg_test_attr.match(" ".join(parts)) is not None
+
+
 def collect_cfg_test_module_targets(path: Path, sanitized_lines):
     pending_test_attr = False
+    attribute_parts = None
     excluded_paths = set()
     excluded_dirs = set()
 
     for line in sanitized_lines:
-        stripped = line.lstrip()
-        if stripped.startswith("#[cfg(test)]"):
-            pending_test_attr = True
+        stripped = line.strip()
+
+        if attribute_parts is not None:
+            attribute_parts.append(stripped)
+            if "]" not in stripped:
+                continue
+            if cfg_test_attribute_matches(attribute_parts):
+                pending_test_attr = True
+            attribute_parts = None
+            continue
+
+        if stripped.startswith("#["):
+            if "]" in stripped:
+                if cfg_test_attribute_matches([stripped]):
+                    pending_test_attr = True
+            else:
+                attribute_parts = [stripped]
             continue
         if not pending_test_attr:
             continue
         if not stripped:
-            continue
-        if stripped.startswith("#["):
             continue
         module_match = module_decl.match(stripped)
         if module_match and ";" in line and "{" not in line:
@@ -240,35 +258,62 @@ def collect_cfg_test_module_targets(path: Path, sanitized_lines):
 
 
 def production_lines(path: Path, lines, sanitized_lines):
-    out = []
+    masked_lines = []
     skip_test_item = False
     brace_depth = 0
     pending_test_attr = False
+    attribute_parts = None
 
-    for lineno, (line, sanitized_line) in enumerate(zip(lines, sanitized_lines), 1):
-        stripped = sanitized_line.lstrip()
+    for sanitized_line in sanitized_lines:
+        stripped = sanitized_line.strip()
+        masked_line = " " * len(sanitized_line)
 
         if skip_test_item:
+            masked_lines.append(masked_line)
             skip_test_item, brace_depth = skip_item_state(sanitized_line, brace_depth)
             continue
 
-        if stripped.startswith("#[cfg(test)]"):
-            pending_test_attr = True
+        if attribute_parts is not None:
+            masked_lines.append(masked_line)
+            attribute_parts.append(stripped)
+            if "]" not in stripped:
+                continue
+            if cfg_test_attribute_matches(attribute_parts):
+                pending_test_attr = True
+            attribute_parts = None
+            continue
+
+        if stripped.startswith("#["):
+            masked_lines.append(masked_line)
+            if "]" in stripped:
+                if cfg_test_attribute_matches([stripped]):
+                    pending_test_attr = True
+            else:
+                attribute_parts = [stripped]
             continue
 
         if pending_test_attr:
+            masked_lines.append(masked_line)
             if not stripped:
-                continue
-            if stripped.startswith("#["):
                 continue
             pending_test_attr = False
             skip_test_item, brace_depth = skip_item_state(sanitized_line, 0)
             continue
 
-        if pattern.search(sanitized_line):
-            out.append((lineno, line))
+        masked_lines.append(sanitized_line)
 
-    return out
+    matches = []
+    masked_text = "\n".join(masked_lines)
+    seen_line_numbers = set()
+
+    for match in pattern.finditer(masked_text):
+        line_number = masked_text.count("\n", 0, match.start()) + 1
+        if line_number in seen_line_numbers:
+            continue
+        seen_line_numbers.add(line_number)
+        matches.append((line_number, lines[line_number - 1]))
+
+    return matches
 
 
 try:
