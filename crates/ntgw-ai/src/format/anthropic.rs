@@ -83,13 +83,27 @@ fn system_to_message(system: &AnthropicSystemContent) -> AIMessage {
 
 fn blocks_to_content(blocks: &[AnthropicContentBlock]) -> AIContent {
     let texts: Vec<String> = blocks.iter().filter_map(|b| b.text.clone()).collect();
-    if texts.is_empty() {
-        AIContent::None
-    } else if texts.len() == 1 {
-        AIContent::Text(texts.into_iter().next().expect("non-empty texts"))
-    } else {
-        AIContent::Text(texts.join("\n"))
+    match texts.as_slice() {
+        [] => AIContent::None,
+        [text] => AIContent::Text(text.clone()),
+        _ => AIContent::Text(texts.join("\n")),
     }
+}
+
+fn serialize_message_stop_event() -> Result<String, AIError> {
+    #[derive(Serialize)]
+    struct MessageStop {
+        #[serde(rename = "type")]
+        event_type: String,
+    }
+
+    serde_json::to_string(&MessageStop {
+        event_type: "message_stop".into(),
+    })
+    .map_err(|e| AIError::FormatSerialize {
+        format: "anthropic".into(),
+        message: e.to_string(),
+    })
 }
 
 impl From<AnthropicContent> for AIContent {
@@ -298,16 +312,7 @@ impl FormatAdapter for AnthropicAdapter {
         })?;
 
         if finish.is_some() {
-            #[derive(Serialize)]
-            struct MessageStop {
-                #[serde(rename = "type")]
-                event_type: String,
-            }
-            let stop = MessageStop {
-                event_type: "message_stop".into(),
-            };
-            #[allow(clippy::unwrap_used)]
-            let stop_json = serde_json::to_string(&stop).unwrap();
+            let stop_json = serialize_message_stop_event()?;
             Ok(format!(
                 "event: content_block_delta\ndata: {json}\n\nevent: message_stop\ndata: {stop_json}\n\n"
             ))
@@ -324,7 +329,47 @@ impl FormatAdapter for AnthropicAdapter {
                 "message": message
             }
         });
-        #[allow(clippy::unwrap_used)]
-        Ok(serde_json::to_vec(&error).unwrap())
+        match serde_json::to_vec(&error) {
+            Ok(body) => Ok(body),
+            Err(_) => Ok(
+                br#"{"type":"error","error":{"type":"invalid_request_error","message":"internal error"}}"#
+                    .to_vec(),
+            ),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::format::FormatAdapter;
+    use serde_json::Value;
+
+    #[test]
+    fn blocks_to_content_single_text_returns_text() {
+        let content = blocks_to_content(&[AnthropicContentBlock {
+            block_type: "text".into(),
+            text: Some("hello".into()),
+        }]);
+
+        assert!(matches!(content, AIContent::Text(ref text) if text == "hello"));
+    }
+
+    #[test]
+    fn serialize_message_stop_event_returns_json() {
+        let json = serialize_message_stop_event().expect("message stop event should serialize");
+        let value: Value = serde_json::from_str(&json).expect("valid json");
+        assert_eq!(value["type"], "message_stop");
+    }
+
+    #[test]
+    fn anthropic_error_response_returns_json_body() {
+        let body = AnthropicAdapter
+            .error_response(400, "bad request")
+            .expect("anthropic error response");
+        let value: Value = serde_json::from_slice(&body).expect("valid json");
+
+        assert_eq!(value["type"], "error");
+        assert_eq!(value["error"]["message"], "bad request");
     }
 }
