@@ -50,7 +50,7 @@ import re
 import sys
 
 root = Path("crates/ntgw-ai/src")
-pattern = re.compile(r"unwrap\(|expect\(")
+pattern = re.compile(r"(?<![A-Za-z0-9_])(?:unwrap|expect)\s*\(")
 module_decl = re.compile(
     r"(?:(?:pub(?:\([^)]*\))?)\s+)?mod\s+(?P<name>[A-Za-z_][A-Za-z0-9_]*)\b"
 )
@@ -271,38 +271,42 @@ def production_lines(path: Path, lines, sanitized_lines):
     return out
 
 
-matches = []
-excluded_paths = set()
-excluded_dirs = set()
-files = sorted(root.rglob("*.rs"))
-file_cache = {}
+try:
+    matches = []
+    excluded_paths = set()
+    excluded_dirs = set()
+    files = sorted(root.rglob("*.rs"))
+    file_cache = {}
 
-for path in files:
-    lines = path.read_text().splitlines()
-    sanitized_lines = sanitize_lines(lines)
-    file_cache[path] = (lines, sanitized_lines)
-    file_excluded_paths, file_excluded_dirs = collect_cfg_test_module_targets(
-        path, sanitized_lines
-    )
-    excluded_paths.update(file_excluded_paths)
-    excluded_dirs.update(file_excluded_dirs)
+    for path in files:
+        lines = path.read_text().splitlines()
+        sanitized_lines = sanitize_lines(lines)
+        file_cache[path] = (lines, sanitized_lines)
+        file_excluded_paths, file_excluded_dirs = collect_cfg_test_module_targets(
+            path, sanitized_lines
+        )
+        excluded_paths.update(file_excluded_paths)
+        excluded_dirs.update(file_excluded_dirs)
 
-for path in files:
-    if path in excluded_paths:
-        continue
-    if any(parent in excluded_dirs for parent in [path, *path.parents]):
-        continue
-    if "/tests/" in str(path):
-        continue
-    lines, sanitized_lines = file_cache[path]
-    file_matches = production_lines(path, lines, sanitized_lines)
-    for lineno, line in file_matches:
-        matches.append(f"{path}:{lineno}:{line}")
+    for path in files:
+        if path in excluded_paths:
+            continue
+        if any(parent in excluded_dirs for parent in [path, *path.parents]):
+            continue
+        if "/tests/" in str(path):
+            continue
+        lines, sanitized_lines = file_cache[path]
+        file_matches = production_lines(path, lines, sanitized_lines)
+        for lineno, line in file_matches:
+            matches.append(f"{path}:{lineno}:{line}")
 
-if matches:
-    print("\n".join(matches))
-    sys.exit(1)
-print("clean")
+    if matches:
+        print("\n".join(matches))
+        sys.exit(1)
+    print("clean")
+except Exception as exc:
+    print(f"::error::runtime unwrap scanner failed: {exc}", file=sys.stderr)
+    sys.exit(2)
 PY
 )"
 status=$?
@@ -310,6 +314,6 @@ set -e
 
 printf '%s\n' "$governed_output"
 
-if [[ "$mode" == "enforce" && $status -ne 0 ]]; then
+if [[ $status -ne 0 && ( "$mode" == "enforce" || $status -ne 1 ) ]]; then
   exit "$status"
 fi
