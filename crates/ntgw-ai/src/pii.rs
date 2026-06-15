@@ -357,4 +357,12 @@ mod tests {
         assert!(count > 0);
         assert!(matches!(result, Cow::Owned(_)));
     }
+
+    #[test]
+    fn test_compile_builtin_pattern_reports_label_in_error() {
+        let err = PIIMasker::compile_builtin_pattern("email", PIIEntityType::Email, "(")
+            .expect_err("invalid built-in regex should return an error");
+
+        assert!(err.contains("invalid built-in pii regex email:"));
+    }
 }
