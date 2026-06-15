@@ -171,47 +171,47 @@ impl From<OpenAIChatRequest> for AIRequest {
     }
 }
 
-impl From<&AIMessage> for OpenAIMessage {
-    fn from(msg: &AIMessage) -> Self {
-        let role = role_to_str(msg.role);
+fn openai_message_from_ir(msg: &AIMessage) -> Result<OpenAIMessage, AIError> {
+    let role = role_to_str(msg.role);
 
-        let content = match &msg.content {
-            AIContent::Text(text) => Some(serde_json::Value::String(text.clone())),
-            AIContent::MultiPart(parts) => {
-                Some(serde_json::to_value(parts).expect("MultiPart serialization should not fail"))
+    let content = match &msg.content {
+        AIContent::Text(text) => Some(serde_json::Value::String(text.clone())),
+        AIContent::MultiPart(parts) => Some(serde_json::to_value(parts).map_err(|e| {
+            AIError::FormatSerialize {
+                format: "openai".into(),
+                message: e.to_string(),
             }
-            AIContent::None => None,
-        };
+        })?),
+        AIContent::None => None,
+    };
 
-        OpenAIMessage {
-            role,
-            content,
-            name: msg.name.clone(),
-            tool_calls: tool_calls_to_openai(&msg.tool_calls),
-            tool_call_id: msg.tool_call_id.clone(),
-        }
-    }
+    Ok(OpenAIMessage {
+        role,
+        content,
+        name: msg.name.clone(),
+        tool_calls: tool_calls_to_openai(&msg.tool_calls),
+        tool_call_id: msg.tool_call_id.clone(),
+    })
 }
 
-impl From<&AIResponse> for OpenAIChatResponse {
-    fn from(resp: &AIResponse) -> Self {
-        OpenAIChatResponse {
-            id: resp.id.clone(),
-            object: "chat.completion".to_string(),
-            model: resp.model.clone(),
-            created: resp.created.unwrap_or(0),
-            choices: resp
-                .choices
-                .iter()
-                .map(|c| OpenAIChoice {
-                    index: c.index,
-                    message: OpenAIMessage::from(&c.message),
-                    finish_reason: c.finish_reason.clone(),
-                })
-                .collect(),
-            usage: resp.usage.as_ref().map(usage_to_openai),
-        }
+fn openai_response_from_ir(resp: &AIResponse) -> Result<OpenAIChatResponse, AIError> {
+    let mut choices = Vec::with_capacity(resp.choices.len());
+    for choice in &resp.choices {
+        choices.push(OpenAIChoice {
+            index: choice.index,
+            message: openai_message_from_ir(&choice.message)?,
+            finish_reason: choice.finish_reason.clone(),
+        });
     }
+
+    Ok(OpenAIChatResponse {
+        id: resp.id.clone(),
+        object: "chat.completion".to_string(),
+        model: resp.model.clone(),
+        created: resp.created.unwrap_or(0),
+        choices,
+        usage: resp.usage.as_ref().map(usage_to_openai),
+    })
 }
 
 impl From<OpenAIChatResponse> for AIResponse {
@@ -329,7 +329,7 @@ impl FormatAdapter for OpenAIAdapter {
     }
 
     fn serialize_response(&self, response: &AIResponse) -> Result<Vec<u8>, AIError> {
-        let openai_resp = OpenAIChatResponse::from(response);
+        let openai_resp = openai_response_from_ir(response)?;
         serde_json::to_vec(&openai_resp).map_err(|e| AIError::FormatSerialize {
             format: "openai".into(),
             message: e.to_string(),
@@ -353,7 +353,53 @@ impl FormatAdapter for OpenAIAdapter {
                 "code": status
             }
         });
-        #[allow(clippy::unwrap_used)]
-        Ok(serde_json::to_vec(&error).unwrap())
+        match serde_json::to_vec(&error) {
+            Ok(body) => Ok(body),
+            Err(_) => Ok(
+                br#"{"error":{"message":"internal error","type":"invalid_request_error","code":500}}"#
+                    .to_vec(),
+            ),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::format::FormatAdapter;
+    use serde_json::Value;
+
+    #[test]
+    fn multipart_message_conversion_returns_serializable_value() {
+        let message = AIMessage {
+            role: AIRole::Assistant,
+            content: AIContent::MultiPart(vec![AIContentPart {
+                content_type: "text".into(),
+                text: Some("hello".into()),
+                image_url: None,
+            }]),
+            name: None,
+            tool_calls: vec![],
+            tool_call_id: None,
+        };
+
+        let openai =
+            openai_message_from_ir(&message).expect("multipart content should serialize");
+        let json = serde_json::to_value(&openai).expect("serialize converted message");
+
+        assert!(json["content"].is_array());
+        assert_eq!(json["content"][0]["type"], "text");
+        assert_eq!(json["content"][0]["text"], "hello");
+    }
+
+    #[test]
+    fn openai_error_response_returns_json_body() {
+        let body = OpenAIAdapter
+            .error_response(429, "slow down")
+            .expect("openai error response");
+        let value: Value = serde_json::from_slice(&body).expect("valid json");
+
+        assert_eq!(value["error"]["message"], "slow down");
+        assert_eq!(value["error"]["code"], 429);
     }
 }
