@@ -346,12 +346,12 @@ def production_lines(path: Path, lines, sanitized_lines):
             continue
 
         if buffered_sanitized is not None:
-            masked_lines.append(masked_line)
             combined_sanitized = " ".join(
                 part for part in (buffered_sanitized, stripped) if part
             )
             attrs, rest = split_single_line_attributes(combined_sanitized)
             if attrs is None:
+                masked_lines.append(masked_line)
                 buffered_sanitized = combined_sanitized
                 continue
             buffered_sanitized = None
@@ -361,8 +361,10 @@ def production_lines(path: Path, lines, sanitized_lines):
             sanitized_line = rest
             masked_line = " " * len(rest)
             if not stripped:
+                masked_lines.append(" " * len(sanitized_line))
                 continue
             if pending_test_attr:
+                masked_lines.append(" " * len(sanitized_line))
                 pending_test_attr = False
                 skip_test_item, brace_depth = skip_item_state(rest, 0)
                 continue
