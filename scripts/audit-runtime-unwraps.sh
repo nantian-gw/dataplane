@@ -52,6 +52,7 @@ import sys
 root = Path("crates/ntgw-ai/src")
 pattern = re.compile(r"(?<![A-Za-z0-9_])(?:unwrap|expect)\s*\(")
 cfg_test_attr = re.compile(r"^#\[\s*cfg\s*\(\s*test\s*\)\s*\]$")
+path_attr = re.compile(r'^#\[\s*path\s*=\s*"([^"]+)"\s*\]$')
 module_decl = re.compile(
     r"(?:(?:pub(?:\([^)]*\))?)\s+)?mod\s+(?P<name>[A-Za-z_][A-Za-z0-9_]*)\b"
 )
@@ -63,7 +64,13 @@ def module_roots(path: Path):
     return path.parent / path.stem
 
 
-def cfg_test_module_targets(path: Path, module_name: str):
+def cfg_test_module_targets(path: Path, module_name: str, explicit_path: str | None = None):
+    if explicit_path is not None:
+        target = (path.parent / explicit_path).resolve().relative_to(Path.cwd())
+        paths = {target}
+        dirs = {target.parent} if target.name == "mod.rs" else set()
+        return paths, dirs
+
     base = module_roots(path)
     module_dir = base / module_name
     return {base / f"{module_name}.rs", module_dir / "mod.rs"}, {module_dir}
@@ -218,6 +225,14 @@ def cfg_test_attribute_matches(parts):
     return cfg_test_attr.match(" ".join(parts)) is not None
 
 
+def path_attribute_value(parts):
+    for part in parts:
+        match = path_attr.match(part)
+        if match is not None:
+            return match.group(1)
+    return None
+
+
 def split_single_line_attributes(text):
     attrs = []
     rest = text
@@ -242,46 +257,74 @@ def split_single_line_attributes(text):
     return attrs, rest
 
 
-def collect_cfg_test_module_targets(path: Path, sanitized_lines):
+def collect_cfg_test_module_targets(path: Path, lines, sanitized_lines):
     pending_test_attr = False
-    attribute_parts = None
+    pending_test_path = None
+    buffered_original = None
+    buffered_sanitized = None
     excluded_paths = set()
     excluded_dirs = set()
 
-    for line in sanitized_lines:
+    for line, sanitized_line in zip(lines, sanitized_lines):
         stripped = line.strip()
+        sanitized_stripped = sanitized_line.strip()
 
-        if attribute_parts is not None:
-            attribute_parts.append(stripped)
-            if "]" not in stripped:
+        if buffered_sanitized is not None:
+            combined_original = " ".join(
+                part for part in (buffered_original, stripped) if part
+            )
+            combined_sanitized = " ".join(
+                part for part in (buffered_sanitized, sanitized_stripped) if part
+            )
+            attrs, rest = split_single_line_attributes(combined_original)
+            sanitized_attrs, sanitized_rest = split_single_line_attributes(combined_sanitized)
+            if attrs is None or sanitized_attrs is None:
+                buffered_original = combined_original
+                buffered_sanitized = combined_sanitized
                 continue
-            if cfg_test_attribute_matches(attribute_parts):
+            buffered_original = None
+            buffered_sanitized = None
+            if any(cfg_test_attribute_matches([attr]) for attr in sanitized_attrs):
                 pending_test_attr = True
-            attribute_parts = None
-            continue
-
-        if stripped.startswith("#["):
-            attrs, rest = split_single_line_attributes(stripped)
-            if attrs is None:
-                attribute_parts = [stripped]
-                continue
-            if any(cfg_test_attribute_matches([attr]) for attr in attrs):
-                pending_test_attr = True
+            explicit_path = path_attribute_value(attrs)
+            if explicit_path is not None:
+                pending_test_path = explicit_path
             stripped = rest
+            sanitized_stripped = sanitized_rest
+
+        elif sanitized_stripped.startswith("#["):
+            attrs, rest = split_single_line_attributes(stripped)
+            sanitized_attrs, sanitized_rest = split_single_line_attributes(sanitized_stripped)
+            if attrs is None or sanitized_attrs is None:
+                buffered_original = stripped
+                buffered_sanitized = sanitized_stripped
+                continue
+            if any(cfg_test_attribute_matches([attr]) for attr in sanitized_attrs):
+                pending_test_attr = True
+            explicit_path = path_attribute_value(attrs)
+            if explicit_path is not None:
+                pending_test_path = explicit_path
+            stripped = rest
+            sanitized_stripped = sanitized_rest
             if not stripped:
                 continue
             if not pending_test_attr:
                 continue
         if not pending_test_attr:
             continue
-        if not stripped:
+        if not sanitized_stripped:
             continue
-        module_match = module_decl.match(stripped)
-        if module_match and ";" in line and "{" not in line:
-            item_paths, item_dirs = cfg_test_module_targets(path, module_match.group("name"))
+        module_match = module_decl.match(sanitized_stripped)
+        if module_match and ";" in sanitized_stripped and "{" not in sanitized_stripped:
+            item_paths, item_dirs = cfg_test_module_targets(
+                path,
+                module_match.group("name"),
+                pending_test_path,
+            )
             excluded_paths.update(item_paths)
             excluded_dirs.update(item_dirs)
         pending_test_attr = False
+        pending_test_path = None
 
     return excluded_paths, excluded_dirs
 
@@ -291,7 +334,7 @@ def production_lines(path: Path, lines, sanitized_lines):
     skip_test_item = False
     brace_depth = 0
     pending_test_attr = False
-    attribute_parts = None
+    buffered_sanitized = None
 
     for sanitized_line in sanitized_lines:
         stripped = sanitized_line.strip()
@@ -302,21 +345,33 @@ def production_lines(path: Path, lines, sanitized_lines):
             skip_test_item, brace_depth = skip_item_state(sanitized_line, brace_depth)
             continue
 
-        if attribute_parts is not None:
+        if buffered_sanitized is not None:
             masked_lines.append(masked_line)
-            attribute_parts.append(stripped)
-            if "]" not in stripped:
+            combined_sanitized = " ".join(
+                part for part in (buffered_sanitized, stripped) if part
+            )
+            attrs, rest = split_single_line_attributes(combined_sanitized)
+            if attrs is None:
+                buffered_sanitized = combined_sanitized
                 continue
-            if cfg_test_attribute_matches(attribute_parts):
+            buffered_sanitized = None
+            if any(cfg_test_attribute_matches([attr]) for attr in attrs):
                 pending_test_attr = True
-            attribute_parts = None
-            continue
+            stripped = rest
+            sanitized_line = rest
+            masked_line = " " * len(rest)
+            if not stripped:
+                continue
+            if pending_test_attr:
+                pending_test_attr = False
+                skip_test_item, brace_depth = skip_item_state(rest, 0)
+                continue
 
         if stripped.startswith("#["):
             attrs, rest = split_single_line_attributes(stripped)
             if attrs is None:
                 masked_lines.append(masked_line)
-                attribute_parts = [stripped]
+                buffered_sanitized = stripped
                 continue
             if any(cfg_test_attribute_matches([attr]) for attr in attrs):
                 pending_test_attr = True
@@ -325,6 +380,7 @@ def production_lines(path: Path, lines, sanitized_lines):
                 continue
             if pending_test_attr:
                 masked_lines.append(masked_line)
+                pending_test_attr = False
                 skip_test_item, brace_depth = skip_item_state(rest, 0)
                 continue
             sanitized_line = rest
@@ -367,7 +423,7 @@ try:
         sanitized_lines = sanitize_lines(lines)
         file_cache[path] = (lines, sanitized_lines)
         file_excluded_paths, file_excluded_dirs = collect_cfg_test_module_targets(
-            path, sanitized_lines
+            path, lines, sanitized_lines
         )
         excluded_paths.update(file_excluded_paths)
         excluded_dirs.update(file_excluded_dirs)
