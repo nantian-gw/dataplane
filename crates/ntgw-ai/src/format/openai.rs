@@ -176,12 +176,14 @@ fn openai_message_from_ir(msg: &AIMessage) -> Result<OpenAIMessage, AIError> {
 
     let content = match &msg.content {
         AIContent::Text(text) => Some(serde_json::Value::String(text.clone())),
-        AIContent::MultiPart(parts) => Some(serde_json::to_value(parts).map_err(|e| {
-            AIError::FormatSerialize {
-                format: "openai".into(),
-                message: e.to_string(),
-            }
-        })?),
+        AIContent::MultiPart(parts) => {
+            Some(
+                serde_json::to_value(parts).map_err(|e| AIError::FormatSerialize {
+                    format: "openai".into(),
+                    message: e.to_string(),
+                })?,
+            )
+        }
         AIContent::None => None,
     };
 
@@ -383,8 +385,7 @@ mod tests {
             tool_call_id: None,
         };
 
-        let openai =
-            openai_message_from_ir(&message).expect("multipart content should serialize");
+        let openai = openai_message_from_ir(&message).expect("multipart content should serialize");
         let json = serde_json::to_value(&openai).expect("serialize converted message");
 
         assert!(json["content"].is_array());

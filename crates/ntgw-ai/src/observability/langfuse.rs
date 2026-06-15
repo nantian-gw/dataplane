@@ -113,8 +113,8 @@ impl LangfuseClient {
             AIError::Observability(format!("invalid Langfuse host URL `{host}`: {e}"))
         })?;
 
-        let basic = base64::engine::general_purpose::STANDARD
-            .encode(format!("{public_key}:{secret_key}"));
+        let basic =
+            base64::engine::general_purpose::STANDARD.encode(format!("{public_key}:{secret_key}"));
         let auth_value = HeaderValue::from_str(&format!("Basic {basic}")).map_err(|e| {
             AIError::Observability(format!(
                 "failed to build Langfuse authorization header: {e}"
