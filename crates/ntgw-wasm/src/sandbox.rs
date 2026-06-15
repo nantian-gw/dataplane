@@ -2,10 +2,49 @@ use std::collections::HashMap;
 use std::fmt;
 
 use anyhow::Result;
-use wasmtime::{Engine, Linker, Module, Store};
+use wasmtime::{Engine, Linker, Module, ResourceLimiter, Store};
 
 use crate::engine::PluginContext;
 use crate::error::WasmError;
+
+/// Resource limiter for AI sandbox to prevent OOM from malicious WASM modules.
+///
+/// Limits memory growth to 64 MiB and table elements to 1M entries.
+/// This is a defense-in-depth measure complementing the epoch-deadline timeout.
+struct AISandboxLimiter {
+    max_memory_bytes: usize,
+    max_table_elements: u32,
+}
+
+impl AISandboxLimiter {
+    fn new(max_memory_bytes: usize, max_table_elements: u32) -> Self {
+        Self {
+            max_memory_bytes,
+            max_table_elements,
+        }
+    }
+}
+
+impl ResourceLimiter for AISandboxLimiter {
+    fn memory_growing(
+        &mut self,
+        _current: usize,
+        desired: usize,
+        _maximum: Option<usize>,
+    ) -> anyhow::Result<bool> {
+        Ok(desired <= self.max_memory_bytes)
+    }
+
+    fn table_growing(
+        &mut self,
+        _current: u32,
+        desired: u32,
+        _maximum: Option<u32>,
+    ) -> anyhow::Result<bool> {
+        Ok(desired <= self.max_table_elements)
+    }
+}
+
 
 /// AI inference sandbox for running LLM-related operations in Wasm.
 ///
@@ -73,6 +112,7 @@ impl AISandbox {
 
         let mut store = Store::new(&self.engine, PluginContext::default());
         store.set_epoch_deadline(100); // 100 ticks ≈ 100 ms with 1 ms epoch thread
+        store.limiter(|_| AISandboxLimiter::new(64 * 1024 * 1024, 1_000_000));
 
         let instance = self.linker.instantiate(&mut store, module).map_err(|e| {
             WasmError::PluginExecution(
@@ -144,6 +184,7 @@ impl AISandbox {
 
         let mut store = Store::new(&self.engine, PluginContext::default());
         store.set_epoch_deadline(100);
+        store.limiter(|_| AISandboxLimiter::new(64 * 1024 * 1024, 1_000_000));
 
         let instance = self.linker.instantiate(&mut store, module).map_err(|e| {
             WasmError::PluginExecution(

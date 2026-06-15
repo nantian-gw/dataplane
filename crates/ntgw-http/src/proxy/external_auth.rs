@@ -36,35 +36,14 @@ pub(crate) async fn run_external_auth(
         return run_grpc_external_auth(request, auth, endpoint, body).await;
     }
 
-    warn!(
-        address = %endpoint.address,
-        port = endpoint.port,
-        "external auth is using plaintext TCP without TLS — authentication tokens may be exposed; configure TLS for the auth backend"
-    );
+    return Err(pingora::Error::explain(
+        pingora::ErrorType::HTTPStatus(500),
+        format!(
+            "external auth plaintext TCP blocked for security — authentication tokens must not be sent over unencrypted connections; configure TLS for auth backend {}:{}",
+            endpoint.address, endpoint.port,
+        ),
+    ));
 
-    let address = format!("{}:{}", endpoint.address, endpoint.port);
-    let mut stream = TcpStream::connect(address)
-        .await
-        .map_err(external_auth_error)?;
-    let request = build_auth_request(request, auth, body)?;
-    stream
-        .write_all(&request)
-        .await
-        .map_err(external_auth_error)?;
-    let response = read_auth_response(&mut stream).await?;
-    if (200..=299).contains(&response.status) {
-        return Ok(ExternalAuthDecision::Allow(allowed_response_headers(
-            &response.headers,
-            &auth.http.allowed_response_headers,
-        )));
-    }
-
-    let mut header = ResponseHeader::build(response.status, None)?;
-    header.insert_header(CONTENT_LENGTH, response.body.len().to_string())?;
-    Ok(ExternalAuthDecision::Deny(
-        Box::new(header),
-        response.body.freeze(),
-    ))
 }
 
 fn build_auth_request(
