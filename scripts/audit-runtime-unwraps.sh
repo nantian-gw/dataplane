@@ -338,8 +338,6 @@ try:
             continue
         if any(parent in excluded_dirs for parent in [path, *path.parents]):
             continue
-        if "/tests/" in str(path):
-            continue
         lines, sanitized_lines = file_cache[path]
         file_matches = production_lines(path, lines, sanitized_lines)
         for lineno, line in file_matches:
