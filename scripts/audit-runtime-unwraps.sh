@@ -218,6 +218,30 @@ def cfg_test_attribute_matches(parts):
     return cfg_test_attr.match(" ".join(parts)) is not None
 
 
+def split_single_line_attributes(text):
+    attrs = []
+    rest = text
+
+    while rest.startswith("#["):
+        depth = 0
+        i = 2
+        while i < len(rest):
+            ch = rest[i]
+            if ch == "[":
+                depth += 1
+            elif ch == "]":
+                if depth == 0:
+                    attrs.append(rest[: i + 1].strip())
+                    rest = rest[i + 1 :].lstrip()
+                    break
+                depth -= 1
+            i += 1
+        else:
+            return None, None
+
+    return attrs, rest
+
+
 def collect_cfg_test_module_targets(path: Path, sanitized_lines):
     pending_test_attr = False
     attribute_parts = None
@@ -237,12 +261,17 @@ def collect_cfg_test_module_targets(path: Path, sanitized_lines):
             continue
 
         if stripped.startswith("#["):
-            if "]" in stripped:
-                if cfg_test_attribute_matches([stripped]):
-                    pending_test_attr = True
-            else:
+            attrs, rest = split_single_line_attributes(stripped)
+            if attrs is None:
                 attribute_parts = [stripped]
-            continue
+                continue
+            if any(cfg_test_attribute_matches([attr]) for attr in attrs):
+                pending_test_attr = True
+            stripped = rest
+            if not stripped:
+                continue
+            if not pending_test_attr:
+                continue
         if not pending_test_attr:
             continue
         if not stripped:
@@ -284,13 +313,23 @@ def production_lines(path: Path, lines, sanitized_lines):
             continue
 
         if stripped.startswith("#["):
-            masked_lines.append(masked_line)
-            if "]" in stripped:
-                if cfg_test_attribute_matches([stripped]):
-                    pending_test_attr = True
-            else:
+            attrs, rest = split_single_line_attributes(stripped)
+            if attrs is None:
+                masked_lines.append(masked_line)
                 attribute_parts = [stripped]
-            continue
+                continue
+            if any(cfg_test_attribute_matches([attr]) for attr in attrs):
+                pending_test_attr = True
+            if not rest:
+                masked_lines.append(masked_line)
+                continue
+            if pending_test_attr:
+                masked_lines.append(masked_line)
+                skip_test_item, brace_depth = skip_item_state(rest, 0)
+                continue
+            sanitized_line = rest
+            stripped = rest
+            masked_line = " " * len(rest)
 
         if pending_test_attr:
             masked_lines.append(masked_line)
