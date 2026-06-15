@@ -6,6 +6,8 @@ use base64::Engine as _;
 use reqwest::header::{self, HeaderMap, HeaderValue};
 use serde::Serialize;
 
+use crate::error::AIError;
+
 /// Langfuse trace ingestion payload.
 #[derive(Debug, Serialize)]
 struct LangfuseTracePayload {
@@ -94,42 +96,62 @@ impl LangfuseClient {
     ///
     /// If `public_key` is empty, the client operates in noop mode: all
     /// ingest methods return `Ok(())` without making HTTP calls.
-    pub fn new(public_key: &str, secret_key: &str, host: &str) -> Self {
+    pub fn new(public_key: &str, secret_key: &str, host: &str) -> Result<Self, AIError> {
         let enabled = !public_key.is_empty();
 
-        let client = if enabled {
-            let basic = base64::engine::general_purpose::STANDARD
-                .encode(format!("{public_key}:{secret_key}"));
-            let auth_value = HeaderValue::from_str(&format!("Basic {basic}"))
-                .expect("valid basic auth header — base64 output is always ASCII-safe");
-            let mut headers = HeaderMap::new();
-            headers.insert(header::AUTHORIZATION, auth_value);
-            headers.insert(
-                header::CONTENT_TYPE,
-                HeaderValue::from_static("application/json"),
-            );
-            {
-                reqwest::Client::builder()
-                    .default_headers(headers)
-                    .build()
-                    .expect("reqwest client build with valid default headers")
-            }
-        } else {
-            reqwest::Client::new()
-        };
+        if !enabled {
+            return Ok(Self {
+                public_key: public_key.to_string(),
+                secret_key: secret_key.to_string(),
+                host: host.to_string(),
+                client: reqwest::Client::new(),
+                enabled: false,
+            });
+        }
 
-        Self {
+        reqwest::Url::parse(host).map_err(|e| {
+            AIError::Observability(format!("invalid Langfuse host URL `{host}`: {e}"))
+        })?;
+
+        let basic = base64::engine::general_purpose::STANDARD
+            .encode(format!("{public_key}:{secret_key}"));
+        let auth_value = HeaderValue::from_str(&format!("Basic {basic}")).map_err(|e| {
+            AIError::Observability(format!(
+                "failed to build Langfuse authorization header: {e}"
+            ))
+        })?;
+        let mut headers = HeaderMap::new();
+        headers.insert(header::AUTHORIZATION, auth_value);
+        headers.insert(
+            header::CONTENT_TYPE,
+            HeaderValue::from_static("application/json"),
+        );
+
+        let client = reqwest::Client::builder()
+            .default_headers(headers)
+            .build()
+            .map_err(|e| {
+                AIError::Observability(format!("failed to build Langfuse HTTP client: {e}"))
+            })?;
+
+        Ok(Self {
             public_key: public_key.to_string(),
             secret_key: secret_key.to_string(),
             host: host.to_string(),
             client,
-            enabled,
-        }
+            enabled: true,
+        })
     }
 
     /// Create a noop client that silently discards all ingest calls.
     pub fn noop_client() -> Self {
-        Self::new("", "", "")
+        Self {
+            public_key: String::new(),
+            secret_key: String::new(),
+            host: String::new(),
+            client: reqwest::Client::new(),
+            enabled: false,
+        }
     }
 
     /// Returns whether this client is enabled (will send HTTP requests).
@@ -578,7 +600,8 @@ mod tests {
 
     #[test]
     fn test_noop_client_new_with_empty_key() {
-        let client = LangfuseClient::new("", "", "");
+        let client =
+            LangfuseClient::new("", "", "").expect("empty public key should disable the client");
         assert!(!client.enabled);
         assert_eq!(client.public_key, "");
         assert_eq!(client.secret_key, "");
@@ -587,11 +610,22 @@ mod tests {
 
     #[test]
     fn test_client_new_with_credentials() {
-        let client = LangfuseClient::new("pk-123", "sk-secret", "https://cloud.langfuse.com");
+        let client = LangfuseClient::new("pk-123", "sk-secret", "https://cloud.langfuse.com")
+            .expect("valid Langfuse config should construct a client");
         assert!(client.enabled);
         assert_eq!(client.public_key, "pk-123");
         assert_eq!(client.secret_key, "sk-secret");
         assert_eq!(client.host, "https://cloud.langfuse.com");
+    }
+
+    #[test]
+    fn test_client_new_with_invalid_host() {
+        let err = match LangfuseClient::new("pk-123", "sk-secret", "not a url") {
+            Ok(_) => panic!("invalid Langfuse host should not construct a client"),
+            Err(err) => err,
+        };
+        assert!(matches!(err, AIError::Observability(_)));
+        assert!(err.to_string().contains("invalid Langfuse host URL"));
     }
 
     #[test]

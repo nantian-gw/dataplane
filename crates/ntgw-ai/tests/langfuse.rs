@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
 
+use ntgw_ai::error::AIError;
 use ntgw_ai::observability::langfuse::LangfuseClient;
 
 #[test]
@@ -10,7 +11,8 @@ fn test_noop_client_construction() {
 
 #[test]
 fn test_client_construction_with_credentials() {
-    let client = LangfuseClient::new("pk-test", "sk-test", "https://example.com");
+    let client = LangfuseClient::new("pk-test", "sk-test", "https://example.com")
+        .expect("valid Langfuse config should construct a client");
     assert!(
         client.enabled(),
         "client should be enabled when public_key is non-empty"
@@ -53,7 +55,8 @@ async fn test_noop_ingest_generation() {
 
 #[tokio::test]
 async fn test_noop_client_with_empty_keys_is_equivalent_to_noop() {
-    let empty_client = LangfuseClient::new("", "", "");
+    let empty_client =
+        LangfuseClient::new("", "", "").expect("empty public key should disable the client");
     let noop_client = LangfuseClient::noop_client();
 
     assert_eq!(
@@ -71,4 +74,14 @@ async fn test_noop_client_with_empty_keys_is_equivalent_to_noop() {
 
     assert!(empty_result.is_ok());
     assert!(noop_result.is_ok());
+}
+
+#[test]
+fn test_client_construction_rejects_invalid_host() {
+    let err = match LangfuseClient::new("pk-test", "sk-test", "not a url") {
+        Ok(_) => panic!("invalid Langfuse host should not construct a client"),
+        Err(err) => err,
+    };
+    assert!(matches!(err, AIError::Observability(_)));
+    assert!(err.to_string().contains("invalid Langfuse host URL"));
 }
