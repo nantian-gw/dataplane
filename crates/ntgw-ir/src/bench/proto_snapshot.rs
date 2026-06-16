@@ -75,6 +75,10 @@ pub fn build_proto_snapshot_fixture(config: SnapshotBenchConfig) -> ProtoSnapsho
                 name: http_route_name,
                 namespace: "default".to_string(),
                 hostnames: vec![format!("http-{listener_index}.example.com")],
+                labels: std::collections::HashMap::from([(
+                    "team".to_string(),
+                    format!("http-team-{listener_index}-{route_index}"),
+                )]),
                 parent_refs: vec![proto::ParentRef {
                     namespace: "default".to_string(),
                     name: format!("gw-http-{listener_index}"),
@@ -140,6 +144,10 @@ pub fn build_proto_snapshot_fixture(config: SnapshotBenchConfig) -> ProtoSnapsho
                 name: grpc_route_name,
                 namespace: "default".to_string(),
                 hostnames: vec![format!("grpc-{listener_index}.example.com")],
+                labels: std::collections::HashMap::from([(
+                    "team".to_string(),
+                    format!("grpc-team-{listener_index}-{route_index}"),
+                )]),
                 parent_refs: vec![proto::ParentRef {
                     namespace: "default".to_string(),
                     name: format!("gw-grpc-{listener_index}"),
@@ -205,6 +213,10 @@ pub fn build_proto_snapshot_fixture(config: SnapshotBenchConfig) -> ProtoSnapsho
                 name: stream_route_name,
                 namespace: "default".to_string(),
                 kind: proto::RouteKind::Tls as i32,
+                labels: std::collections::HashMap::from([(
+                    "team".to_string(),
+                    format!("stream-team-{listener_index}-{route_index}"),
+                )]),
                 parent_refs: vec![proto::ParentRef {
                     namespace: "default".to_string(),
                     name: format!("gw-tls-{listener_index}"),
