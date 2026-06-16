@@ -18,6 +18,7 @@ fn prefers_http_persistent_session_backend_over_weighted_selection() {
                 retry: None,
                 session_persistence: Some(session_policy("sticky-http")),
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![
@@ -88,6 +89,7 @@ fn falls_back_to_weighted_selection_when_session_target_is_unavailable() {
                 retry: None,
                 session_persistence: Some(session_policy("sticky-http")),
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![

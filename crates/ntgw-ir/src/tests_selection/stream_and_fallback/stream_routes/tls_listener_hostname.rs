@@ -27,6 +27,7 @@ fn rejects_tls_sni_outside_listener_hostname_even_when_route_hostname_matches() 
                 }],
                 backend_refs: vec![backend_ref("default", "tls-upstream", 8443)],
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {

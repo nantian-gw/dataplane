@@ -15,6 +15,7 @@ fn endpoint_success_clears_passive_failure_streak() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {

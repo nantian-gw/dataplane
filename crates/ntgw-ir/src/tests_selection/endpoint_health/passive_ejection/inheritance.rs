@@ -15,6 +15,7 @@ fn inherited_runtime_state_preserves_passive_endpoint_ejection() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {

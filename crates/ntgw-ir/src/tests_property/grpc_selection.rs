@@ -31,6 +31,7 @@ proptest! {
                     backend_refs: vec![backend_ref("default", "generated", 8080)],
                     session_persistence: None,
                 }],
+                labels: std::collections::BTreeMap::new(),
                 annotations: std::collections::BTreeMap::new(),
             }],
             backends: vec![BackendCluster {

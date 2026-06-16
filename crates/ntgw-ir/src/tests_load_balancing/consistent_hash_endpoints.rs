@@ -15,6 +15,7 @@ fn consistent_hash_by_header_keeps_same_endpoint_for_same_key() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {

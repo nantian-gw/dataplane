@@ -18,6 +18,7 @@ fn inherited_runtime_state_reintroduces_recovered_backend_into_rotation() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![

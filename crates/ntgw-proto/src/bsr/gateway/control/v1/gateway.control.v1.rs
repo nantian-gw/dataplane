@@ -16,6 +16,8 @@ pub struct DiscoveryRequest {
     pub result_status: i32,
     #[prost(string, tag="7")]
     pub error_detail: ::prost::alloc::string::String,
+    #[prost(string, repeated, tag="8")]
+    pub supported_features: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DiscoveryResponse {
@@ -64,6 +66,10 @@ pub struct ConfigSnapshot {
     pub secrets: ::prost::alloc::vec::Vec<SecretMaterial>,
     #[prost(message, optional, tag="9")]
     pub extensions: ::core::option::Option<::prost_types::Struct>,
+    #[prost(string, repeated, tag="10")]
+    pub required_features: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, tag="11")]
+    pub compatibility_profile: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Listener {

@@ -31,6 +31,7 @@ fn keeps_valid_backends_when_rule_contains_mixed_refs() {
                 ],
                 ..HttpRule::default()
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![

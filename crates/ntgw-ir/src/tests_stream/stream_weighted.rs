@@ -30,6 +30,7 @@ fn selects_stream_backend_refs_by_weighted_round_robin() {
                     weighted_backend_ref("default", "tcp-b", 9002, 2),
                 ],
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![

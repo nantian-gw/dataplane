@@ -15,6 +15,7 @@ fn selects_http_backend_with_wildcard_hostname() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {

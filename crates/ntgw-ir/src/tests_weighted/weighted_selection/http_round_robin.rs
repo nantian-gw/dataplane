@@ -18,6 +18,7 @@ fn selects_http_backend_refs_by_weighted_round_robin() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![

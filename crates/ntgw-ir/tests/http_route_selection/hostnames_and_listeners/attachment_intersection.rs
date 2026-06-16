@@ -34,7 +34,8 @@ fn ignores_routes_not_attached_to_matching_listener_hostname() {
                 hostnames: vec!["very.specific.com".to_string()],
                 parent_refs: vec![],
                 rules: vec![path_rule("/s1", "default", "infra-backend-v1", 8080)],
-                annotations: BTreeMap::new(),
+                labels: BTreeMap::new(),
+            annotations: BTreeMap::new(),
             },
             HttpRoute {
                 name: "wildcard-route".to_string(),
@@ -42,7 +43,8 @@ fn ignores_routes_not_attached_to_matching_listener_hostname() {
                 hostnames: vec!["foo.wildcard.io".to_string()],
                 parent_refs: vec![],
                 rules: vec![path_rule("/s2", "default", "infra-backend-v2", 8080)],
-                annotations: BTreeMap::new(),
+                labels: BTreeMap::new(),
+            annotations: BTreeMap::new(),
             },
             HttpRoute {
                 name: "non-intersecting-route".to_string(),
@@ -50,7 +52,8 @@ fn ignores_routes_not_attached_to_matching_listener_hostname() {
                 hostnames: vec!["wildcard.io".to_string()],
                 parent_refs: vec![],
                 rules: vec![path_rule("/s2", "default", "infra-backend-v3", 8080)],
-                annotations: BTreeMap::new(),
+                labels: BTreeMap::new(),
+            annotations: BTreeMap::new(),
             },
         ],
         backends: vec![

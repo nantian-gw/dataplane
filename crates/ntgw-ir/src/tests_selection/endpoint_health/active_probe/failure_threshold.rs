@@ -15,6 +15,7 @@ fn active_probe_failure_threshold_temporarily_removes_endpoint_from_rotation() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
@@ -96,6 +97,7 @@ fn active_probe_flapping_below_threshold_keeps_endpoint_in_rotation() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
@@ -175,6 +177,7 @@ fn all_active_unhealthy_endpoints_return_after_probe_recovery() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {

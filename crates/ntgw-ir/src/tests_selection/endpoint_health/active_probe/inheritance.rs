@@ -15,6 +15,7 @@ fn inherited_runtime_state_preserves_active_probe_unhealthy_state() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {

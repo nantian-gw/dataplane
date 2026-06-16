@@ -18,6 +18,7 @@ fn inherited_runtime_state_applies_updated_backend_weights() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![
@@ -77,6 +78,7 @@ fn inherited_runtime_state_applies_updated_backend_weights() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: current.backends.clone(),

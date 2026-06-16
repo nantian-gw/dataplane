@@ -23,6 +23,7 @@ fn selects_udp_backend_by_listener() {
                 matches: vec![StreamMatch::default()],
                 backend_refs: vec![backend_ref("default", "dns", 5353)],
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {

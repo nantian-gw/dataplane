@@ -14,6 +14,7 @@ fn runtime_store_test_snapshot() -> Snapshot {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {

@@ -28,6 +28,7 @@ fn selects_grpc_backend_refs_by_weighted_round_robin() {
                 ],
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![

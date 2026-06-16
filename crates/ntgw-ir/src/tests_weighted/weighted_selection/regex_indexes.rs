@@ -31,6 +31,7 @@ fn rebuild_runtime_indexes_precompiles_regex_matchers() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         grpc_routes: vec![GrpcRoute {
@@ -56,6 +57,7 @@ fn rebuild_runtime_indexes_precompiles_regex_matchers() {
                 backend_refs: vec![backend_ref("default", "greeter", 9090)],
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         ..Snapshot::default()

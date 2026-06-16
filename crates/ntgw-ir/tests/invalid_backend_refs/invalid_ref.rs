@@ -23,6 +23,7 @@ fn marks_invalid_backend_refs_as_route_errors() {
                 }],
                 ..HttpRule::default()
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![backend_cluster("default", "infra-backend-v1", true)],

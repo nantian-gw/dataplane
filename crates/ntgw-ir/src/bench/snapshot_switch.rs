@@ -137,7 +137,8 @@ pub fn build_snapshot_switch_fixture(config: SnapshotBenchConfig) -> SnapshotSwi
                     backend_refs,
                     ..HttpRule::default()
                 }],
-                annotations: BTreeMap::new(),
+                labels: BTreeMap::new(),
+            annotations: BTreeMap::new(),
             };
             current.http_routes.push(route.clone());
             next.http_routes.push(route);

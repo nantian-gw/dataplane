@@ -18,6 +18,7 @@ fn route_session_persistence_overrides_backend_policy() {
                 retry: None,
                 session_persistence: Some(session_policy("sticky-route")),
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![

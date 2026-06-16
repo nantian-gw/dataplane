@@ -15,6 +15,7 @@ fn rotates_healthy_endpoints_within_cluster() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {

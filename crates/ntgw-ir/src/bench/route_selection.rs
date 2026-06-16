@@ -122,7 +122,8 @@ pub fn build_route_selection_fixture(config: SnapshotBenchConfig) -> RouteSelect
                     backend_refs: http_backend_refs,
                     ..HttpRule::default()
                 }],
-                annotations: BTreeMap::new(),
+                labels: BTreeMap::new(),
+            annotations: BTreeMap::new(),
             });
             snapshot.listeners[http_listener_slot]
                 .attached_routes
@@ -192,7 +193,8 @@ pub fn build_route_selection_fixture(config: SnapshotBenchConfig) -> RouteSelect
                     backend_refs: grpc_backend_refs,
                     ..GrpcRule::default()
                 }],
-                annotations: BTreeMap::new(),
+                labels: BTreeMap::new(),
+            annotations: BTreeMap::new(),
             });
             snapshot.listeners[grpc_listener_slot]
                 .attached_routes
@@ -259,7 +261,8 @@ pub fn build_route_selection_fixture(config: SnapshotBenchConfig) -> RouteSelect
                     }],
                     backend_refs: stream_backend_refs,
                 }],
-                annotations: BTreeMap::new(),
+                labels: BTreeMap::new(),
+            annotations: BTreeMap::new(),
             });
             snapshot.listeners[stream_listener_slot]
                 .attached_routes

@@ -15,6 +15,7 @@ fn expired_endpoint_ejection_reintroduces_endpoint_into_rotation() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {

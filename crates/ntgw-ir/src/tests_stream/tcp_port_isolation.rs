@@ -42,7 +42,8 @@ fn selects_tcp_backend_by_listener_port_isolation() {
                     }],
                     backend_refs: vec![backend_ref("default", "tcp-a", 7000)],
                 }],
-                annotations: BTreeMap::new(),
+                labels: BTreeMap::new(),
+            annotations: BTreeMap::new(),
             },
             StreamRoute {
                 name: "tcp-b".to_string(),
@@ -58,7 +59,8 @@ fn selects_tcp_backend_by_listener_port_isolation() {
                     }],
                     backend_refs: vec![backend_ref("default", "tcp-b", 7001)],
                 }],
-                annotations: BTreeMap::new(),
+                labels: BTreeMap::new(),
+            annotations: BTreeMap::new(),
             },
         ],
         backends: vec![

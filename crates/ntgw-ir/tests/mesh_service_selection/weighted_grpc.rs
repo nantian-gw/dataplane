@@ -49,6 +49,7 @@ fn mesh_grpc_service_frontend_weighted_backends_keep_expected_distribution() {
                 ],
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![

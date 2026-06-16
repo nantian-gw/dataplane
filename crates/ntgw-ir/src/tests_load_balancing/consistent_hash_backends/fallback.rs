@@ -18,6 +18,7 @@ fn missing_consistent_hash_key_falls_back_to_weighted_round_robin() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![

@@ -76,6 +76,7 @@ fn live_like_cross_namespace_mesh_route_matches_consumer_on_service_frontend() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![

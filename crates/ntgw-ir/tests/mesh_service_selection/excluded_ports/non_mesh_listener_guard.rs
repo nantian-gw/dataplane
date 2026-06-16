@@ -51,6 +51,7 @@ fn excluded_mesh_port_fallback_ignores_non_mesh_listeners_when_checking_attached
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![

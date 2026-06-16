@@ -13,6 +13,7 @@ fn does_not_select_grpc_backend_for_non_grpc_request_with_parseable_path() {
                 backend_refs: vec![backend_ref("default", "greeter", 9090)],
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {

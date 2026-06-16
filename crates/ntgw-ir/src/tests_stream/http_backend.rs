@@ -18,6 +18,7 @@ fn select_http_backend_preserves_route_timeouts() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
@@ -71,6 +72,7 @@ fn skips_zero_weight_backend_refs() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![

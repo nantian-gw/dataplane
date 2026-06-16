@@ -64,6 +64,7 @@ fn selects_most_specific_header_match_on_attached_listener() {
                     session_persistence: None,
                 },
             ],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![
@@ -101,7 +102,8 @@ fn prefers_lexicographically_earlier_route_when_http_scores_tie() {
                 hostnames: vec!["api.example.com".to_string()],
                 parent_refs: vec![],
                 rules: vec![path_rule("/", "default", "backend-z", 8080)],
-                annotations: BTreeMap::new(),
+                labels: BTreeMap::new(),
+            annotations: BTreeMap::new(),
             },
             HttpRoute {
                 name: "a-route".to_string(),
@@ -109,7 +111,8 @@ fn prefers_lexicographically_earlier_route_when_http_scores_tie() {
                 hostnames: vec!["api.example.com".to_string()],
                 parent_refs: vec![],
                 rules: vec![path_rule("/", "default", "backend-a", 8080)],
-                annotations: BTreeMap::new(),
+                labels: BTreeMap::new(),
+            annotations: BTreeMap::new(),
             },
         ],
         backends: vec![

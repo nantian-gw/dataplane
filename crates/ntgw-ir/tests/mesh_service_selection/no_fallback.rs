@@ -111,6 +111,7 @@ fn attached_mesh_route_without_match_does_not_fallback_to_service_backend() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {

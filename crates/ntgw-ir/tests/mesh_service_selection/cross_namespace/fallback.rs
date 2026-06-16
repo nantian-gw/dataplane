@@ -33,6 +33,7 @@ fn mesh_service_backend_fallback_still_applies_when_attached_route_is_not_eligib
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {

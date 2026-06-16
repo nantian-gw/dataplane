@@ -34,7 +34,8 @@ fn selects_listener_attachments_by_request_port() {
                 hostnames: vec!["foo.com".to_string()],
                 parent_refs: vec![],
                 rules: vec![path_rule("/", "default", "infra-backend-v1", 8080)],
-                annotations: BTreeMap::new(),
+                labels: BTreeMap::new(),
+            annotations: BTreeMap::new(),
             },
             HttpRoute {
                 name: "backend-v2".to_string(),
@@ -42,7 +43,8 @@ fn selects_listener_attachments_by_request_port() {
                 hostnames: vec!["foo.com".to_string()],
                 parent_refs: vec![],
                 rules: vec![path_rule("/", "default", "infra-backend-v2", 8080)],
-                annotations: BTreeMap::new(),
+                labels: BTreeMap::new(),
+            annotations: BTreeMap::new(),
             },
         ],
         backends: vec![

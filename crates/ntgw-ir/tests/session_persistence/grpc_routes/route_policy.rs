@@ -22,6 +22,7 @@ fn prefers_grpc_persistent_session_backend_over_weighted_selection() {
                 ],
                 session_persistence: Some(session_policy("sticky-grpc")),
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![

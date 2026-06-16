@@ -19,6 +19,7 @@ fn reports_unhealthy_backends_when_route_matches_without_healthy_endpoints() {
                 }],
                 ..HttpRule::default()
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![backend_cluster("default", "infra-backend-v1", false)],

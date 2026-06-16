@@ -22,6 +22,7 @@ fn returns_none_when_routes_exist_but_request_does_not_match() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {

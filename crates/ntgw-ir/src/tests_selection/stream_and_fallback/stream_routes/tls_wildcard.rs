@@ -27,6 +27,7 @@ fn selects_tls_backend_by_listener_and_sni() {
                 }],
                 backend_refs: vec![backend_ref("default", "tls-upstream", 8443)],
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {

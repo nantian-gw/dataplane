@@ -80,7 +80,8 @@ fn hostname_intersection_conformance_case_does_not_leak_to_unspecified_listener(
                     "infra-backend-v1",
                     8080,
                 )],
-                annotations: BTreeMap::new(),
+                labels: BTreeMap::new(),
+            annotations: BTreeMap::new(),
             },
             HttpRoute {
                 name: "httproute-hostname-intersection-all".to_string(),
@@ -105,7 +106,8 @@ fn hostname_intersection_conformance_case_does_not_leak_to_unspecified_listener(
                     retry: None,
                     session_persistence: None,
                 }],
-                annotations: BTreeMap::new(),
+                labels: BTreeMap::new(),
+            annotations: BTreeMap::new(),
             },
         ],
         backends: vec![

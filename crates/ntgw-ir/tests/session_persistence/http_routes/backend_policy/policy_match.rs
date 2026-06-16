@@ -18,6 +18,7 @@ fn applies_backend_policy_session_persistence_for_http_routes() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![

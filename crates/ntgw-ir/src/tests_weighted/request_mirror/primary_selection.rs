@@ -33,6 +33,7 @@ fn request_mirror_does_not_change_primary_backend_selection() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![

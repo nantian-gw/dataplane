@@ -715,6 +715,7 @@ pub struct HttpRoute {
     pub hostnames: Vec<String>,
     pub parent_refs: Vec<ParentRef>,
     pub rules: Vec<HttpRule>,
+    pub labels: BTreeMap<String, String>,
     pub annotations: BTreeMap<String, String>,
 }
 
@@ -748,6 +749,7 @@ pub struct GrpcRoute {
     pub hostnames: Vec<String>,
     pub parent_refs: Vec<ParentRef>,
     pub rules: Vec<GrpcRule>,
+    pub labels: BTreeMap<String, String>,
     pub annotations: BTreeMap<String, String>,
 }
 
@@ -781,6 +783,7 @@ pub struct StreamRoute {
     pub kind: String,
     pub parent_refs: Vec<ParentRef>,
     pub rules: Vec<StreamRule>,
+    pub labels: BTreeMap<String, String>,
     pub annotations: BTreeMap<String, String>,
 }
 

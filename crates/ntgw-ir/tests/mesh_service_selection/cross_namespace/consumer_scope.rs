@@ -37,6 +37,7 @@ fn cross_namespace_mesh_route_only_matches_consumer_workload() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {

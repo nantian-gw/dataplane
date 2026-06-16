@@ -21,6 +21,7 @@ fn selects_http_backend_refs_by_weighted_round_robin_with_rule_filters() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![

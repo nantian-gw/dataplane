@@ -15,6 +15,7 @@ fn active_probe_success_recovers_passively_ejected_endpoint() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {

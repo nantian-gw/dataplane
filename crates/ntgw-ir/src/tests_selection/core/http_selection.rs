@@ -32,6 +32,7 @@ fn selects_http_backend_by_host_path_method_header_and_query() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {

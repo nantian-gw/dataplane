@@ -28,6 +28,7 @@ fn spreads_large_weighted_grpc_backends_across_short_request_batches() {
                 ],
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![

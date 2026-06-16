@@ -15,7 +15,8 @@ fn selects_exact_path_before_prefix_match() {
                 hostnames: vec!["api.example.com".to_string()],
                 parent_refs: vec![],
                 rules: vec![path_rule("/orders", "default", "orders-prefix", 8080)],
-                annotations: BTreeMap::new(),
+                labels: BTreeMap::new(),
+            annotations: BTreeMap::new(),
             },
             HttpRoute {
                 name: "exact-route".to_string(),
@@ -35,7 +36,8 @@ fn selects_exact_path_before_prefix_match() {
                     retry: None,
                     session_persistence: None,
                 }],
-                annotations: BTreeMap::new(),
+                labels: BTreeMap::new(),
+            annotations: BTreeMap::new(),
             },
         ],
         backends: vec![
@@ -84,6 +86,7 @@ fn http_and_grpc_routes_on_same_listener_are_selected_by_request_type() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         grpc_routes: vec![GrpcRoute {
@@ -103,6 +106,7 @@ fn http_and_grpc_routes_on_same_listener_are_selected_by_request_type() {
                 backend_refs: vec![backend_ref("default", "grpc-backend", 8080)],
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![

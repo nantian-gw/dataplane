@@ -36,6 +36,7 @@ fn falls_back_to_service_backend_for_excluded_mesh_port_when_same_service_has_ro
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![

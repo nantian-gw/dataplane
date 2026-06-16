@@ -24,6 +24,7 @@ fn selects_grpc_backend_by_service_method_and_header() {
                 backend_refs: vec![backend_ref("default", "greeter", 9090)],
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {

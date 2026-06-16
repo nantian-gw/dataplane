@@ -79,6 +79,7 @@ impl Snapshot {
                         .map(parent_ref_from_proto)
                         .collect(),
                     rules: item.rules.into_iter().map(http_rule_from_proto).collect(),
+                    labels: item.labels.into_iter().collect(),
                     annotations: item.annotations.into_iter().collect(),
                 })
                 .collect(),
@@ -95,6 +96,7 @@ impl Snapshot {
                         .map(parent_ref_from_proto)
                         .collect(),
                     rules: item.rules.into_iter().map(grpc_rule_from_proto).collect(),
+                    labels: item.labels.into_iter().collect(),
                     annotations: item.annotations.into_iter().collect(),
                 })
                 .collect(),
@@ -113,6 +115,7 @@ impl Snapshot {
                             .map(parent_ref_from_proto)
                             .collect(),
                         rules: item.rules.into_iter().map(stream_rule_from_proto).collect(),
+                        labels: item.labels.into_iter().collect(),
                         annotations: item.annotations.into_iter().collect(),
                     }
                 })

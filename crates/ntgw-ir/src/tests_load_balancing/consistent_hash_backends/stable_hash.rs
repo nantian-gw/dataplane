@@ -18,6 +18,7 @@ fn consistent_hash_by_header_uses_stable_non_crypto_backend_hash() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![

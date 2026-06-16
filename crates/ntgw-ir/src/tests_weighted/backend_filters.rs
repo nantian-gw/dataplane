@@ -27,6 +27,7 @@ fn select_http_backend_merges_backend_ref_filters() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {

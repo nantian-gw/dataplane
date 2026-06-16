@@ -21,6 +21,7 @@ fn treats_serviceimport_backend_refs_as_routable() {
                 }],
                 ..HttpRule::default()
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {

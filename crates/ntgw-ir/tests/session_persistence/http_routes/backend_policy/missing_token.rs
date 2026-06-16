@@ -15,6 +15,7 @@ fn applies_backend_policy_session_persistence_without_existing_token() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {

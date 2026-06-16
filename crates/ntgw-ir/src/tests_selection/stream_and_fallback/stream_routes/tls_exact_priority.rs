@@ -31,7 +31,8 @@ fn prefers_exact_tls_sni_match_over_wildcard() {
                     }],
                     backend_refs: vec![backend_ref("default", "wildcard-upstream", 8443)],
                 }],
-                annotations: BTreeMap::new(),
+                labels: BTreeMap::new(),
+            annotations: BTreeMap::new(),
             },
             StreamRoute {
                 name: "exact-route".to_string(),
@@ -47,7 +48,8 @@ fn prefers_exact_tls_sni_match_over_wildcard() {
                     }],
                     backend_refs: vec![backend_ref("default", "exact-upstream", 9443)],
                 }],
-                annotations: BTreeMap::new(),
+                labels: BTreeMap::new(),
+            annotations: BTreeMap::new(),
             },
         ],
         backends: vec![

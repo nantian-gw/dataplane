@@ -33,7 +33,8 @@ fn tcproute_route(
             matches,
             backend_refs,
         }],
-        annotations: BTreeMap::new(),
+        labels: BTreeMap::new(),
+            annotations: BTreeMap::new(),
     }
 }
 

@@ -16,6 +16,7 @@ fn inherited_runtime_state_keeps_weighted_selection_progress() {
                 ],
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![
