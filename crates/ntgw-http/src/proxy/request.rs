@@ -583,6 +583,29 @@ pub(crate) fn cache_access_log_sent_response_headers_if_needed(
     );
 }
 
+pub(crate) fn cache_access_log_sent_response_headers_from_written_response_if_needed(
+    ctx: &mut RequestContext,
+    written_response: Option<&ResponseHeader>,
+    access_log: &AccessLogOptions,
+    route_annotations: &BTreeMap<String, String>,
+) {
+    let Some(requirements) = access_log_response_requirements(access_log, route_annotations) else {
+        return;
+    };
+    if requirements.sent_response_headers.is_empty() {
+        return;
+    }
+    let Some(response) = written_response else {
+        return;
+    };
+
+    cache_access_log_response_headers(
+        &mut ctx.access_log_sent_response_headers,
+        response,
+        &requirements.sent_response_headers,
+    );
+}
+
 #[allow(dead_code)]
 pub(crate) fn cache_access_log_upstream_response_headers_if_needed(
     ctx: &mut RequestContext,

@@ -85,6 +85,7 @@ pub(crate) use self::request::{
 };
 use self::request::{
     access_log_route_annotations, build_request_meta, build_selection_request_meta,
+    cache_access_log_sent_response_headers_from_written_response_if_needed,
     cache_access_log_sent_response_headers_if_needed,
     cache_access_log_upstream_response_headers_if_needed, cache_request_headers_if_needed,
     capture_request_context, capture_request_context_from_view_for_limits, client_ip,
@@ -747,6 +748,14 @@ impl ProxyHttp for GatewayProxy {
             .response_written()
             .map(|resp| resp.status.as_u16())
             .unwrap_or(ctx.status);
+
+        let route_access_log_annotations = access_log_route_annotations(ctx).clone();
+        cache_access_log_sent_response_headers_from_written_response_if_needed(
+            ctx,
+            session.response_written(),
+            &self.access_log,
+            &route_access_log_annotations,
+        );
 
         if let Some(http_cache) = ctx.http_cache.0.as_mut()
             && let Some(miss_handler) = http_cache.miss_handler()
