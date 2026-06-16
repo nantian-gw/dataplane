@@ -293,6 +293,9 @@ pub(crate) async fn do_request_filter(
                 &selected.filters,
                 Some(&response_request.method),
                 Some(&response_request.headers),
+                ctx,
+                &proxy.access_log,
+                &selected.route_annotations,
             )
             .await?;
             return Ok(true);
@@ -395,7 +398,15 @@ pub(crate) async fn do_request_filter(
         if request_is_grpc(&request) {
             ctx.status = write_grpc_no_route_response(session).await?;
         } else {
-            ctx.status = write_http_no_route_response(session).await?;
+            let route_access_log_annotations =
+                super::request::access_log_route_annotations(ctx).clone();
+            ctx.status = write_http_no_route_response(
+                session,
+                ctx,
+                &proxy.access_log,
+                &route_access_log_annotations,
+            )
+            .await?;
         }
         record_request_span(ctx);
         return Ok(true);
@@ -463,9 +474,15 @@ pub(crate) async fn do_request_filter(
         cache_selected_http_route_context(ctx, &proxy.access_log, &route);
         ctx.status = response.status.as_u16();
         record_request_span(ctx);
-        session
-            .write_response_header(Box::new(response), true)
-            .await?;
+        write_response_header_with_access_log_capture(
+            session,
+            response,
+            true,
+            ctx,
+            &proxy.access_log,
+            &route.route_annotations,
+        )
+        .await?;
         return Ok(true);
     }
     if let Some(direct_response) = direct_response_filter(&route.filters) {
@@ -476,6 +493,9 @@ pub(crate) async fn do_request_filter(
             &route.filters,
             Some(&filter_request.method),
             Some(&filter_request.headers),
+            ctx,
+            &proxy.access_log,
+            &route.route_annotations,
         )
         .await?;
         record_request_span(ctx);
@@ -493,9 +513,15 @@ pub(crate) async fn do_request_filter(
             Some(&filter_request.method),
             Some(&filter_request.headers),
         )?;
-        session
-            .write_response_header(Box::new(response), true)
-            .await?;
+        write_response_header_with_access_log_capture(
+            session,
+            response,
+            true,
+            ctx,
+            &proxy.access_log,
+            &route.route_annotations,
+        )
+        .await?;
         ctx.status = redirect.status_code;
         return Ok(true);
     }
@@ -573,13 +599,25 @@ pub(crate) async fn do_request_filter(
                 assign_ctx_string(&mut ctx.response_flags, "EA");
                 record_request_span(ctx);
                 if body.is_empty() {
-                    session
-                        .write_response_header(Box::new(response), true)
-                        .await?;
+                    write_response_header_with_access_log_capture(
+                        session,
+                        response,
+                        true,
+                        ctx,
+                        &proxy.access_log,
+                        &route.route_annotations,
+                    )
+                    .await?;
                 } else {
-                    session
-                        .write_response_header(Box::new(response), false)
-                        .await?;
+                    write_response_header_with_access_log_capture(
+                        session,
+                        response,
+                        false,
+                        ctx,
+                        &proxy.access_log,
+                        &route.route_annotations,
+                    )
+                    .await?;
                     session.write_response_body(Some(body), true).await?;
                 }
                 return Ok(true);
@@ -780,9 +818,17 @@ async fn try_cache_hit(
             http_cache.cache_found(meta, hit_handler, HitStatus::Fresh);
 
             let status = cached_header.status.as_u16();
-            session
-                .write_response_header(Box::new(cached_header), false)
-                .await?;
+            let route_access_log_annotations =
+                super::request::access_log_route_annotations(ctx).clone();
+            write_response_header_with_access_log_capture(
+                session,
+                cached_header,
+                false,
+                ctx,
+                &proxy.access_log,
+                &route_access_log_annotations,
+            )
+            .await?;
 
             {
                 let body_reader = http_cache.hit_handler();

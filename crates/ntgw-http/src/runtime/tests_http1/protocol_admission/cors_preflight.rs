@@ -12,12 +12,16 @@ async fn cors_preflight_is_handled_without_proxying_to_upstream() {
         ..RuntimeOptions::default()
     };
     let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let log_path = temp_log_path("cors-preflight-access-log");
     let server = start_server(
         plan,
         snapshot.clone(),
         runtime,
         AccessLogOptions {
-            enabled: false,
+            enabled: true,
+            path: log_path.display().to_string(),
+            mode: ntgw_observability::AccessLogMode::Text,
+            format: "$sent_http_access_control_allow_origin $upstream_status".to_string(),
             ..AccessLogOptions::default()
         },
         SessionPersistenceOptions::build(None, None).expect("session options"),
@@ -51,4 +55,10 @@ async fn cors_preflight_is_handled_without_proxying_to_upstream() {
 
     let no_upstream = timeout(Duration::from_millis(300), upstream_listener.accept()).await;
     assert!(no_upstream.is_err(), "preflight should not reach upstream");
+
+    let log_contents = wait_for_log_contents(&log_path).await;
+    assert!(log_contents.contains("https://app.example -"));
+
+    shutdown_access_log_writer(&log_path.display().to_string());
+    let _ = fs::remove_file(log_path);
 }

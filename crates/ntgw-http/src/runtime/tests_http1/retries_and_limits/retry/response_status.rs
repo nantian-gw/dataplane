@@ -120,9 +120,20 @@ async fn response_side_access_log_variables_capture_proxied_retry_response() {
             ),
             (
                 "gateway.nantian.dev/access-log-format".to_string(),
-                r#"$scheme $remote_port "$sent_http_content_type" "$upstream_http_server" $upstream_status"#.to_string(),
+                r#"$scheme $remote_port "$sent_http_content_type" "$upstream_http_content_type" $upstream_status"#.to_string(),
             ),
         ]);
+        current.http_routes[0].rules[0].filters = vec![Filter {
+            filter_type: "ResponseHeaderModifier".to_string(),
+            header_modifier: Some(HeaderModifier {
+                set: vec![HeaderOperation {
+                    name: "content-type".to_string(),
+                    value: "text/plain".to_string(),
+                }],
+                ..HeaderModifier::default()
+            }),
+            ..Filter::default()
+        }];
         current.rebuild_runtime_indexes();
     }
     let runtime = RuntimeOptions {
@@ -178,8 +189,10 @@ async fn response_side_access_log_variables_capture_proxied_retry_response() {
             .write_all(b"GET /response-vars HTTP/1.1\r\nHost: example.com\r\n\r\n")
             .await?;
         let response = read_http_response(&mut client).await?;
+        let response_lower = response.to_ascii_lowercase();
         assert!(response.starts_with("HTTP/1.1 200"));
-        assert!(response.contains("Content-Type: application/json\r\n"));
+        assert!(response_lower.contains("content-type: text/plain\r\n"));
+        assert!(!response_lower.contains("content-type: application/json\r\n"));
         assert!(response.ends_with("\r\n\r\nok"));
         Ok::<(), anyhow::Error>(())
     }
@@ -199,7 +212,7 @@ async fn response_side_access_log_variables_capture_proxied_retry_response() {
     let log_contents = wait_for_log_contents(&log_path).await;
     let line = log_contents
         .lines()
-        .find(|line| line.contains(r#""application/json" "orders-upstream" 502, 200"#))
+        .find(|line| line.contains(r#""text/plain" "application/json" 502, 200"#))
         .expect("response-side access-log line");
     let mut parts = line.splitn(3, ' ');
     assert_eq!(parts.next(), Some("http"));
@@ -208,7 +221,7 @@ async fn response_side_access_log_variables_capture_proxied_retry_response() {
         remote_port.parse::<u16>().is_ok(),
         "expected numeric remote port, got {remote_port}"
     );
-    assert!(line.contains(r#""application/json" "orders-upstream" 502, 200"#));
+    assert!(line.contains(r#""text/plain" "application/json" 502, 200"#));
 
     shutdown_access_log_writer(&log_path.display().to_string());
     let _ = fs::remove_file(log_path);

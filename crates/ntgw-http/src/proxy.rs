@@ -16,6 +16,7 @@ use pingora::{
     protocols::l4::ext::TcpKeepalive,
     proxy::{FailToProxy, ProxyHttp, Session},
 };
+use pingora_cache::NoCacheReason;
 use pingora_cache::cache_control::CacheControl;
 use tracing::error;
 
@@ -93,7 +94,7 @@ use self::request::{
 };
 use self::responses::{
     request_is_grpc, write_direct_response, write_grpc_no_route_response,
-    write_http_no_route_response,
+    write_http_no_route_response, write_response_header_with_access_log_capture,
 };
 use self::retry::{
     is_downstream_connection_closed, proxy_error_code, proxy_error_flag_for,
@@ -671,7 +672,17 @@ impl ProxyHttp for GatewayProxy {
                     has_auth,
                 ) {
                     http_cache.set_cache_meta(meta);
+                    if http_cache.set_miss_handler().await.is_err() {
+                        http_cache.disable(NoCacheReason::StorageError);
+                        ctx.http_cache = context::CacheState::default();
+                    }
+                } else {
+                    http_cache.disable(NoCacheReason::OriginNotCache);
+                    ctx.http_cache = context::CacheState::default();
                 }
+            } else {
+                http_cache.disable(NoCacheReason::OriginNotCache);
+                ctx.http_cache = context::CacheState::default();
             }
         }
 
@@ -713,6 +724,9 @@ impl ProxyHttp for GatewayProxy {
                 chunk.len(),
                 self.cache.max_entry_size_bytes(),
             ) {
+                if let Some(http_cache) = ctx.http_cache.0.as_mut() {
+                    http_cache.disable(NoCacheReason::ResponseTooLarge);
+                }
                 ctx.http_cache = context::CacheState::default();
                 ctx.cached_response_body.clear();
                 ctx.cached_response_body_bytes = 0;

@@ -7,34 +7,82 @@ use pingora::{http::ResponseHeader, protocols::http::HttpTask, proxy::Session};
 use crate::extensions::build_direct_response;
 use crate::filters::apply_response_filters;
 use ntgw_ir::{Filter, RequestMeta};
+use ntgw_observability::AccessLogOptions;
 
+use super::{RequestContext, request::cache_access_log_sent_response_headers_if_needed};
+
+pub(crate) async fn write_response_header_with_access_log_capture(
+    session: &mut Session,
+    response: ResponseHeader,
+    end_of_stream: bool,
+    ctx: &mut RequestContext,
+    access_log: &AccessLogOptions,
+    route_annotations: &BTreeMap<String, String>,
+) -> pingora::Result<()> {
+    cache_access_log_sent_response_headers_if_needed(ctx, &response, access_log, route_annotations);
+    session
+        .write_response_header(Box::new(response), end_of_stream)
+        .await
+}
+
+#[allow(clippy::too_many_arguments)]
 pub(crate) async fn write_direct_response(
     session: &mut Session,
     filter: &ntgw_ir::DirectResponseFilter,
     filters: &[Filter],
     request_method: Option<&str>,
     request_headers: Option<&BTreeMap<String, Vec<String>>>,
+    ctx: &mut RequestContext,
+    access_log: &AccessLogOptions,
+    route_annotations: &BTreeMap<String, String>,
 ) -> pingora::Result<u16> {
     let (mut response, body) = build_direct_response(filter)?;
     apply_response_filters(&mut response, filters, request_method, request_headers)?;
     let status = response.status.as_u16();
     if let Some(body) = body {
-        session
-            .write_response_header(Box::new(response), false)
-            .await?;
+        write_response_header_with_access_log_capture(
+            session,
+            response,
+            false,
+            ctx,
+            access_log,
+            route_annotations,
+        )
+        .await?;
         session.write_response_body(Some(body), true).await?;
     } else {
-        session
-            .write_response_header(Box::new(response), true)
-            .await?;
+        write_response_header_with_access_log_capture(
+            session,
+            response,
+            true,
+            ctx,
+            access_log,
+            route_annotations,
+        )
+        .await?;
     }
     Ok(status)
 }
 
-pub(crate) async fn write_http_no_route_response(session: &mut Session) -> pingora::Result<u16> {
-    session
-        .respond_error_with_body(404, Bytes::from_static(b"route not found"))
-        .await?;
+pub(crate) async fn write_http_no_route_response(
+    session: &mut Session,
+    ctx: &mut RequestContext,
+    access_log: &AccessLogOptions,
+    route_annotations: &BTreeMap<String, String>,
+) -> pingora::Result<u16> {
+    let body = Bytes::from_static(b"route not found");
+    let mut response = ResponseHeader::build(404, None)?;
+    response.insert_header("content-length", body.len().to_string())?;
+    write_response_header_with_access_log_capture(
+        session,
+        response,
+        false,
+        ctx,
+        access_log,
+        route_annotations,
+    )
+    .await?;
+    session.write_response_body(Some(body), true).await?;
     Ok(404)
 }
 
