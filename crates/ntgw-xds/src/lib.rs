@@ -104,6 +104,7 @@ pub struct ControlPlaneClient {
 
 impl ControlPlaneClient {
     pub async fn connect(options: ConnectOptions) -> Result<Self> {
+        tls::ensure_rustls_provider();
         let endpoint = normalize_endpoint(&options.endpoint, options.tls.is_some())?;
         let mut endpoint = Endpoint::from_shared(endpoint)?;
         endpoint = endpoint

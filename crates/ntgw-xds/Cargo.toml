@@ -6,6 +6,7 @@ license.workspace = true
 
 [dependencies]
 anyhow.workspace = true
+rustls.workspace = true
 serde.workspace = true
 tokio.workspace = true
 tokio-stream.workspace = true

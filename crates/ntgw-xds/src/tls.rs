@@ -1,6 +1,7 @@
-use std::{fs, time::Duration};
+use std::{fs, sync::OnceLock, time::Duration};
 
 use anyhow::{Result, anyhow};
+use rustls::crypto::{CryptoProvider, ring};
 use tonic::transport::{Certificate, ClientTlsConfig, Identity};
 
 #[cfg(test)]
@@ -51,6 +52,20 @@ pub fn normalize_endpoint(raw: &str, tls_enabled: bool) -> Result<String> {
 
     let scheme = if tls_enabled { "https" } else { "http" };
     Ok(format!("{scheme}://{endpoint}"))
+}
+
+pub(crate) fn ensure_rustls_provider() {
+    static INSTALL: OnceLock<()> = OnceLock::new();
+
+    if CryptoProvider::get_default().is_some() {
+        return;
+    }
+
+    INSTALL.get_or_init(|| {
+        if CryptoProvider::get_default().is_none() {
+            let _ = ring::default_provider().install_default();
+        }
+    });
 }
 
 pub fn build_client_tls_config(opts: &ClientTlsOptions) -> Result<ClientTlsConfig> {

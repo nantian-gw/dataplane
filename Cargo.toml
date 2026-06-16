@@ -57,13 +57,14 @@ stats_alloc = "0.1.10"
 subtle = "2.6.1"
 tokio = { version = "1.52.3", features = ["full"] }
 tokio-stream = "0.1.17"
-tonic = { version = "0.14.1", features = ["transport", "tls-native-roots"] }
+tonic = { version = "0.14.1", features = ["transport", "tls-native-roots", "tls-ring"] }
 tonic-build = "0.14.1"
 tower = { version = "0.5.2", features = ["util"] }
 tracing = "0.1.41"
 tracing-appender = "0.2.3"
 tracing-opentelemetry = "0.32.0"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter", "fmt", "json"] }
+rustls = { version = "0.23.39", default-features = false, features = ["ring"] }
 zeroize = { version = "1", features = ["derive"] }
 ntgw-allocator = { version = "0.1.0", path = "crates/ntgw-allocator" }
 ntgw-config = { version = "0.1.0", path = "crates/ntgw-config" }

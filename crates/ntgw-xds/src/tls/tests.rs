@@ -1,5 +1,8 @@
 use std::time::Duration;
 
+use rustls::crypto::CryptoProvider;
+
+use super::ensure_rustls_provider;
 use crate::{ClientTlsOptions, TransportOptions, normalize_endpoint};
 
 #[test]
@@ -38,4 +41,23 @@ fn transport_options_default_include_stale_stream_timeout() {
         TransportOptions::default().stale_stream_timeout,
         Duration::from_secs(30)
     );
+}
+
+#[test]
+fn ensure_rustls_provider_installs_default() {
+    ensure_rustls_provider();
+    assert!(CryptoProvider::get_default().is_some());
+}
+
+#[test]
+fn ensure_rustls_provider_is_idempotent() {
+    ensure_rustls_provider();
+    let first = CryptoProvider::get_default()
+        .expect("provider should be installed")
+        .clone();
+    ensure_rustls_provider();
+    let second = CryptoProvider::get_default()
+        .expect("provider should stay installed")
+        .clone();
+    assert!(std::sync::Arc::ptr_eq(&first, &second));
 }
