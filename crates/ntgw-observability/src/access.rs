@@ -78,6 +78,11 @@ pub struct AccessLogTemplateRequirements {
     pub uses_query_string: bool,
     pub uses_http_only_variables: bool,
     pub request_headers: BTreeSet<String>,
+    pub sent_response_headers: BTreeSet<String>,
+    pub upstream_response_headers: BTreeSet<String>,
+    pub needs_upstream_status: bool,
+    pub needs_scheme: bool,
+    pub needs_remote_port: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -141,6 +146,16 @@ pub struct AccessLogRecord<'a> {
     pub connection_id: String,
     #[serde(skip)]
     pub request_header_values: BTreeMap<String, String>,
+    #[serde(skip)]
+    pub sent_response_header_values: BTreeMap<String, String>,
+    #[serde(skip)]
+    pub upstream_response_header_values: BTreeMap<String, String>,
+    #[serde(skip)]
+    pub upstream_statuses: Vec<u16>,
+    #[serde(skip)]
+    pub scheme: String,
+    #[serde(skip)]
+    pub remote_port: Option<u16>,
 }
 
 impl Default for AccessLogRecord<'static> {
@@ -183,6 +198,11 @@ impl Default for AccessLogRecord<'static> {
             content_type: String::new(),
             connection_id: String::new(),
             request_header_values: BTreeMap::new(),
+            sent_response_header_values: BTreeMap::new(),
+            upstream_response_header_values: BTreeMap::new(),
+            upstream_statuses: Vec::new(),
+            scheme: String::new(),
+            remote_port: None,
         }
     }
 }

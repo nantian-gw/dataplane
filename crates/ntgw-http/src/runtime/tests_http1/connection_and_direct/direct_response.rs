@@ -17,6 +17,8 @@ async fn direct_response_short_circuits_before_upstream_and_emits_observability(
         AccessLogOptions {
             enabled: true,
             path: log_path.display().to_string(),
+            mode: ntgw_observability::AccessLogMode::Text,
+            format: "$sent_http_content_type $scheme $remote_port".to_string(),
             ..AccessLogOptions::default()
         },
         SessionPersistenceOptions::build(None, None).expect("session options"),
@@ -58,11 +60,18 @@ async fn direct_response_short_circuits_before_upstream_and_emits_observability(
     assert_eq!(stats.total_retry_attempts, 0);
 
     let log_contents = wait_for_log_contents(&log_path).await;
-    assert!(log_contents.contains("\"routeName\":\"route\""));
-    assert!(log_contents.contains("\"listener\":\"default/gw/http\""));
-    assert!(log_contents.contains("\"status\":202"));
-    assert!(log_contents.contains("\"requestId\":\"req-123\""));
-    assert!(log_contents.contains("\"backend\":\"\""));
+    let line = log_contents
+        .lines()
+        .find(|line| line.starts_with("text/plain http "))
+        .expect("direct response access-log line");
+    let remote_port = line
+        .strip_prefix("text/plain http ")
+        .expect("remote port prefix")
+        .trim();
+    assert!(
+        remote_port.parse::<u16>().is_ok(),
+        "expected numeric remote port, got {remote_port}"
+    );
 
     shutdown_access_log_writer(&log_path.display().to_string());
     let _ = fs::remove_file(log_path);

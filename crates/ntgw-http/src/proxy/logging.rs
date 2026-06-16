@@ -1,5 +1,4 @@
 use std::borrow::Cow;
-use std::collections::BTreeMap;
 
 use ntgw_observability::{
     AccessLogOptions, AccessLogRecord, AccessLogSampleKey, SharedTrafficStats,
@@ -11,6 +10,7 @@ use tracing::error;
 use super::context::{
     RequestContext, clear_completed_request_context, route_kind_name, saturating_latency_ms,
 };
+use super::request::access_log_route_annotations;
 use super::retry::retry_completed_successfully;
 
 fn extract_request_header(ctx: &RequestContext, name: &str) -> String {
@@ -96,7 +96,7 @@ pub(crate) fn observe_completed_request(
         return;
     }
 
-    let route_annotations = route_annotations_for_log(ctx);
+    let route_annotations = access_log_route_annotations(ctx);
     let sample_key = access_log_sample_key(ctx);
     let Some(resolved_access_log) =
         resolve_access_log_write_options(access_log, route_annotations, &sample_key)
@@ -145,6 +145,11 @@ pub(crate) fn observe_completed_request(
             content_type: ctx.response_content_type.clone(),
             connection_id: ctx.connection_id.clone(),
             request_header_values: ctx.access_log_request_headers.clone(),
+            sent_response_header_values: ctx.access_log_sent_response_headers.clone(),
+            upstream_response_header_values: ctx.access_log_upstream_response_headers.clone(),
+            upstream_statuses: ctx.access_log_upstream_statuses.clone(),
+            scheme: ctx.access_log_scheme.clone(),
+            remote_port: ctx.access_log_remote_port,
         };
         render_access_log(&resolved_access_log, &record)
             .and_then(|line| emit_access_log(&resolved_access_log.path, &line))
@@ -233,16 +238,10 @@ fn request_route_labels(ctx: &RequestContext) -> RequestRouteLabels<'_> {
     }
 }
 
-fn route_annotations_for_log(ctx: &RequestContext) -> &BTreeMap<String, String> {
-    ctx.selected_backend
-        .as_ref()
-        .map(|selected| &selected.route_annotations)
-        .unwrap_or(&ctx.route_annotations)
-}
-
 #[cfg(test)]
 mod tests {
     use std::{
+        collections::BTreeMap,
         fs,
         path::Path,
         sync::Arc,
@@ -289,7 +288,7 @@ mod tests {
             ..RequestContext::default()
         };
 
-        let annotations = route_annotations_for_log(&ctx);
+        let annotations = access_log_route_annotations(&ctx);
         assert_eq!(
             annotations
                 .get("gateway.nantian.dev/access-log-mode")
@@ -310,7 +309,7 @@ mod tests {
         };
 
         assert_eq!(
-            route_annotations_for_log(&ctx)
+            access_log_route_annotations(&ctx)
                 .get("gateway.nantian.dev/access-log-mode")
                 .map(String::as_str),
             Some("json")
@@ -366,6 +365,60 @@ mod tests {
         assert!(
             contents.contains(r#"192.0.2.10 "GET /orders?id=1 HTTP/2" 200 0.123 "curl/8.7.1""#)
         );
+
+        shutdown_access_log_writer(&path_text);
+        let _ = fs::remove_file(log_path);
+    }
+
+    #[test]
+    fn observe_completed_request_renders_response_side_nginx_variables() {
+        let log_path = temp_log_path("nginx-style-response-vars");
+        let path_text = log_path.display().to_string();
+        let traffic = SharedTrafficStats::shared();
+        let mut ctx = RequestContext {
+            started_at_unix_ms: 123,
+            client_ip: "192.0.2.10".to_string(),
+            host: "orders.example.com".to_string(),
+            method: "GET".to_string(),
+            path: "/orders".to_string(),
+            request_id: "req-1".to_string(),
+            status: 200,
+            listener_name: "default/gw/http".to_string(),
+            listener_protocol: "HTTP".to_string(),
+            route_name: "orders".to_string(),
+            route_namespace: "default".to_string(),
+            route_kind: "HTTPRoute".to_string(),
+            backend: "default/orders:8080".to_string(),
+            access_log_scheme: "https".to_string(),
+            access_log_remote_port: Some(54432),
+            access_log_sent_response_headers: BTreeMap::from([(
+                "content-type".to_string(),
+                "application/json".to_string(),
+            )]),
+            access_log_upstream_response_headers: BTreeMap::from([(
+                "server".to_string(),
+                "orders-upstream".to_string(),
+            )]),
+            access_log_upstream_statuses: vec![502, 200],
+            ..RequestContext::default()
+        };
+
+        observe_completed_request(
+            &AccessLogOptions {
+                enabled: true,
+                path: path_text.clone(),
+                mode: ntgw_observability::AccessLogMode::Text,
+                format: r#"$scheme $remote_port "$sent_http_content_type" "$upstream_http_server" $upstream_status"#.to_string(),
+                ..AccessLogOptions::default()
+            },
+            &traffic,
+            &mut ctx,
+            123,
+            128,
+        );
+
+        let contents = wait_for_log_contents(&log_path);
+        assert!(contents.contains(r#"https 54432 "application/json" "orders-upstream" 502, 200"#));
 
         shutdown_access_log_writer(&path_text);
         let _ = fs::remove_file(log_path);

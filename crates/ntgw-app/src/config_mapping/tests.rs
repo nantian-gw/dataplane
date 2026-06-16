@@ -1,5 +1,6 @@
 use super::{
-    to_http_runtime_options, to_stream_runtime_options, to_tracing_options, to_xds_runtime_config,
+    to_access_log_options, to_http_runtime_options, to_stream_runtime_options, to_tracing_options,
+    to_xds_runtime_config,
 };
 use ntgw_config::{
     AccessLogConfig, AdminAuthConfig, DataPlaneConfig, ExperimentalConfig, HttpCapacityConfig,
@@ -7,6 +8,7 @@ use ntgw_config::{
     SessionPersistenceConfig, XdsTlsConfig, XdsTransportConfig,
 };
 
+include!("tests/access_log.rs");
 include!("tests/runtime_tuning.rs");
 include!("tests/tracing.rs");
 include!("tests/xds_transport.rs");

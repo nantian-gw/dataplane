@@ -184,3 +184,34 @@ fn without_shared_secret_still_resolves_secret_key() {
     let snapshot = build_config_snapshot(&cfg).expect("snapshot with secret_key");
     assert!(!snapshot.http.session_persistence.uses_ephemeral_secret());
 }
+
+#[test]
+fn build_config_snapshot_rejects_unknown_named_text_access_log_format() {
+    let mut cfg = test_config();
+    cfg.access_log.mode = "text".to_string();
+    cfg.access_log.format_name = "missing".to_string();
+
+    let err = build_config_snapshot(&cfg).expect_err("missing named format should fail");
+    assert!(err.to_string().contains("accessLog.formatName"));
+    assert!(err.to_string().contains("missing"));
+}
+
+#[test]
+fn build_config_snapshot_ignores_unknown_named_access_log_format_in_json_mode() {
+    let mut cfg = test_config();
+    cfg.access_log.mode = "json".to_string();
+    cfg.access_log.format = "%EVENT%".to_string();
+    cfg.access_log.format_name = "missing".to_string();
+
+    let snapshot = build_config_snapshot(&cfg).expect("json mode should ignore named formats");
+    assert_eq!(
+        snapshot.http.access_log.mode,
+        ntgw_observability::AccessLogMode::Json
+    );
+    assert_eq!(snapshot.http.access_log.format, "%EVENT%");
+    assert_eq!(
+        snapshot.stream.access_log.mode,
+        ntgw_observability::AccessLogMode::Json
+    );
+    assert_eq!(snapshot.stream.access_log.format, "%EVENT%");
+}

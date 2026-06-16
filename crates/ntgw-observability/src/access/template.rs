@@ -77,6 +77,11 @@ pub(super) enum AccessLogVariable {
     NtgwRetryAttempts,
     NtgwResponseFlags,
     RequestHeader(String),
+    SentResponseHeader(String),
+    UpstreamResponseHeader(String),
+    UpstreamStatus,
+    Scheme,
+    RemotePort,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -212,7 +217,19 @@ impl AccessLogTemplateRequirements {
         self.uses_query_string |= other.uses_query_string;
         self.uses_http_only_variables |= other.uses_http_only_variables;
         self.request_headers.extend(other.request_headers);
+        self.sent_response_headers
+            .extend(other.sent_response_headers);
+        self.upstream_response_headers
+            .extend(other.upstream_response_headers);
+        self.needs_upstream_status |= other.needs_upstream_status;
+        self.needs_scheme |= other.needs_scheme;
+        self.needs_remote_port |= other.needs_remote_port;
     }
+}
+
+enum ResponseHeaderDomain {
+    Sent,
+    Upstream,
 }
 
 fn parse_nginx_style_variable(chars: &[char]) -> Option<(String, usize)> {
@@ -266,6 +283,11 @@ fn parse_access_log_variable(
             uses_query_string,
             uses_http_only_variables,
             request_headers: BTreeSet::new(),
+            sent_response_headers: BTreeSet::new(),
+            upstream_response_headers: BTreeSet::new(),
+            needs_upstream_status: false,
+            needs_scheme: false,
+            needs_remote_port: false,
         }
     };
 
@@ -276,6 +298,23 @@ fn parse_access_log_variable(
         };
         reqs.request_headers.insert(name.clone());
         (AccessLogVariable::RequestHeader(name), reqs)
+    };
+
+    let response_header = |name: String, domain: ResponseHeaderDomain| {
+        let mut reqs = AccessLogTemplateRequirements {
+            uses_http_only_variables: true,
+            ..AccessLogTemplateRequirements::default()
+        };
+        match domain {
+            ResponseHeaderDomain::Sent => {
+                reqs.sent_response_headers.insert(name.clone());
+                (AccessLogVariable::SentResponseHeader(name), reqs)
+            }
+            ResponseHeaderDomain::Upstream => {
+                reqs.upstream_response_headers.insert(name.clone());
+                (AccessLogVariable::UpstreamResponseHeader(name), reqs)
+            }
+        }
     };
 
     match normalized.as_str() {
@@ -367,6 +406,39 @@ fn parse_access_log_variable(
         _ if normalized.starts_with("http_") => Some(request_header(
             normalized.trim_start_matches("http_").replace('_', "-"),
         )),
+        _ if normalized.starts_with("sent_http_") => Some(response_header(
+            normalized
+                .trim_start_matches("sent_http_")
+                .replace('_', "-"),
+            ResponseHeaderDomain::Sent,
+        )),
+        _ if normalized.starts_with("upstream_http_") => Some(response_header(
+            normalized
+                .trim_start_matches("upstream_http_")
+                .replace('_', "-"),
+            ResponseHeaderDomain::Upstream,
+        )),
+        "upstream_status" => Some((
+            AccessLogVariable::UpstreamStatus,
+            AccessLogTemplateRequirements {
+                needs_upstream_status: true,
+                ..requirements(false, false, true)
+            },
+        )),
+        "scheme" => Some((
+            AccessLogVariable::Scheme,
+            AccessLogTemplateRequirements {
+                needs_scheme: true,
+                ..requirements(false, false, true)
+            },
+        )),
+        "remote_port" => Some((
+            AccessLogVariable::RemotePort,
+            AccessLogTemplateRequirements {
+                needs_remote_port: true,
+                ..requirements(false, false, true)
+            },
+        )),
         _ => None,
     }
 }
@@ -386,7 +458,15 @@ fn seconds_with_millis(value_ms: u128) -> String {
     format!("{}.{:03}", value_ms / 1_000, value_ms % 1_000)
 }
 
+fn is_stream_access_log_record(record: &AccessLogRecord) -> bool {
+    matches!(
+        record.event.as_str(),
+        "tcp_session" | "tls_session" | "udp_datagram"
+    ) || matches!(record.protocol.as_ref(), "TCP" | "TLS_PASSTHROUGH" | "UDP")
+}
+
 fn render_variable(out: &mut String, variable: &AccessLogVariable, record: &AccessLogRecord) {
+    let is_stream_record = is_stream_access_log_record(record);
     match variable {
         AccessLogVariable::RemoteAddr => push_value_or_dash(out, &record.client_ip),
         AccessLogVariable::Host => push_value_or_dash(out, &record.host),
@@ -430,6 +510,55 @@ fn render_variable(out: &mut String, variable: &AccessLogVariable, record: &Acce
         AccessLogVariable::RequestHeader(name) => match record.request_header_values.get(name) {
             Some(value) => push_value_or_dash(out, value),
             None => out.push('-'),
+        },
+        AccessLogVariable::SentResponseHeader(name) => {
+            if is_stream_record {
+                out.push('-');
+                return;
+            }
+            match record.sent_response_header_values.get(name) {
+                Some(value) => push_value_or_dash(out, value),
+                None => out.push('-'),
+            }
+        }
+        AccessLogVariable::UpstreamResponseHeader(name) => {
+            if is_stream_record {
+                out.push('-');
+                return;
+            }
+            match record.upstream_response_header_values.get(name) {
+                Some(value) => push_value_or_dash(out, value),
+                None => out.push('-'),
+            }
+        }
+        AccessLogVariable::UpstreamStatus => {
+            if is_stream_record {
+                out.push('-');
+                return;
+            }
+            if record.upstream_statuses.is_empty() {
+                out.push('-');
+            } else {
+                for (index, status) in record.upstream_statuses.iter().enumerate() {
+                    if index > 0 {
+                        out.push_str(", ");
+                    }
+                    let _ = write!(out, "{status}");
+                }
+            }
+        }
+        AccessLogVariable::Scheme => {
+            if is_stream_record {
+                out.push('-');
+            } else {
+                push_value_or_dash(out, &record.scheme);
+            }
+        }
+        AccessLogVariable::RemotePort => match record.remote_port {
+            Some(port) if !is_stream_record => {
+                let _ = write!(out, "{port}");
+            }
+            _ => out.push('-'),
         },
     }
 }
@@ -593,6 +722,15 @@ fn variable_token(variable: &AccessLogVariable) -> String {
         AccessLogVariable::RequestHeader(name) => {
             format!("$http_{}", name.replace('-', "_"))
         }
+        AccessLogVariable::SentResponseHeader(name) => {
+            format!("$sent_http_{}", name.replace('-', "_"))
+        }
+        AccessLogVariable::UpstreamResponseHeader(name) => {
+            format!("$upstream_http_{}", name.replace('-', "_"))
+        }
+        AccessLogVariable::UpstreamStatus => "$upstream_status".to_string(),
+        AccessLogVariable::Scheme => "$scheme".to_string(),
+        AccessLogVariable::RemotePort => "$remote_port".to_string(),
     }
 }
 

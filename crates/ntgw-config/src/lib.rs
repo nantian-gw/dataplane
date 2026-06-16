@@ -5,6 +5,8 @@ mod defaults_impl;
 mod impls;
 mod reload;
 
+use std::collections::BTreeMap;
+
 use defaults::*;
 use serde::{Deserialize, Serialize};
 
@@ -96,6 +98,10 @@ pub struct AccessLogConfig {
     pub format: String,
     #[serde(default = "default_access_mode")]
     pub mode: String,
+    #[serde(default)]
+    pub formats: BTreeMap<String, String>,
+    #[serde(default)]
+    pub format_name: String,
     #[serde(default = "default_access_sample_rate")]
     pub sample_rate: f64,
     #[serde(default = "default_route_annotation_prefix")]

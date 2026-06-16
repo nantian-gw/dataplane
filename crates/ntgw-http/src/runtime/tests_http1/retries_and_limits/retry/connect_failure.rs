@@ -271,3 +271,146 @@ async fn default_transport_retry_avoids_failed_endpoint_for_concurrent_fast_path
     assert_eq!(stats.total_events, request_count as u64);
     assert_eq!(stats.status_5xx, 0);
 }
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn no_healthy_backend_fast_fails_and_emits_error_headers_in_access_log() {
+    install_rustls_provider();
+    let gateway_port = free_tcp_port();
+    let backend_port = free_tcp_port() as u32;
+    let snapshot = unhealthy_backend_http_snapshot(
+        gateway_port,
+        "/no-healthy-backend",
+        backend_port,
+    );
+    let runtime = RuntimeOptions {
+        enable_ipv6: false,
+        ..RuntimeOptions::default()
+    };
+    let log_path = temp_log_path("no-healthy-backend-access-log");
+    let traffic = SharedTrafficStats::shared();
+    let server = start_server(
+        build_listener_plan(&snapshot.read(), &runtime, None).expect("plan"),
+        snapshot.clone(),
+        runtime,
+        AccessLogOptions {
+            enabled: true,
+            path: log_path.display().to_string(),
+            mode: ntgw_observability::AccessLogMode::Text,
+            format: "$status|$sent_http_server|$sent_http_cache_control|$sent_http_content_length"
+                .to_string(),
+            ..AccessLogOptions::default()
+        },
+        SessionPersistenceOptions::build(None, None).expect("session options"),
+        traffic.clone(),
+    )
+    .expect("start server");
+
+    wait_for_listener(gateway_port).await;
+
+    let result = async {
+        let mut client = TcpStream::connect(("127.0.0.1", gateway_port)).await?;
+        client
+            .write_all(b"GET /no-healthy-backend HTTP/1.1\r\nHost: example.com\r\n\r\n")
+            .await?;
+        let response = read_http_response(&mut client).await?;
+        assert!(
+            response.starts_with("HTTP/1.1 503"),
+            "expected 503 response, got: {response}"
+        );
+        Ok::<(), anyhow::Error>(())
+    }
+    .await;
+
+    stop_server(server);
+    result.expect("no healthy backend client flow");
+
+    let stats = wait_for_traffic_snapshot(&traffic, |stats| {
+        stats.total_events == 1
+            && stats.status_5xx == 1
+            && stats.response_flags.get("UH").copied() == Some(1)
+    })
+    .await;
+    assert_eq!(stats.total_events, 1);
+    assert_eq!(stats.status_5xx, 1);
+    assert_eq!(stats.total_retry_attempts, 0);
+    assert_eq!(stats.total_retried_events, 0);
+    assert_eq!(stats.response_flags.get("UH").copied(), Some(1));
+
+    let log_contents = wait_for_log_contents(&log_path).await;
+    let line = log_contents
+        .lines()
+        .find(|line| line.starts_with("503|"))
+        .expect("503 access-log line");
+    let parts: Vec<_> = line.split('|').collect();
+    assert_eq!(parts.len(), 4, "expected four pipe-separated fields");
+    assert_ne!(parts[1], "-", "server header should be captured");
+    assert_eq!(parts[2], "private, no-store");
+    assert_eq!(parts[3], "0");
+
+    shutdown_access_log_writer(&log_path.display().to_string());
+    let _ = fs::remove_file(log_path);
+}
+
+fn unhealthy_backend_http_snapshot(
+    listener_port: u16,
+    path: &str,
+    backend_port: u32,
+) -> ntgw_ir::SharedSnapshot {
+    let shared = Snapshot::shared();
+    *shared.write() = Snapshot {
+        listeners: vec![Listener {
+            name: "default/gw/http".to_string(),
+            address: "127.0.0.1".to_string(),
+            addresses: vec!["127.0.0.1".to_string()],
+            port: listener_port as u32,
+            protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+            attached_routes: vec!["default/route".to_string()],
+            ..Listener::default()
+        }],
+        http_routes: vec![HttpRoute {
+            name: "route".to_string(),
+            namespace: "default".to_string(),
+            hostnames: Vec::new(),
+            parent_refs: vec![ParentRef {
+                namespace: "default".to_string(),
+                name: "gw".to_string(),
+                section_name: String::new(),
+                port: listener_port as u32,
+                ..ParentRef::default()
+            }],
+            rules: vec![HttpRule {
+                name: String::new(),
+                matches: vec![HttpMatch {
+                    path: path.to_string(),
+                    path_type: "Exact".to_string(),
+                    ..HttpMatch::default()
+                }],
+                backend_refs: vec![BackendRef {
+                    namespace: "default".to_string(),
+                    name: "backend".to_string(),
+                    port: backend_port,
+                    ..BackendRef::default()
+                }],
+                ..HttpRule::default()
+            }],
+            labels: BTreeMap::new(),
+            annotations: BTreeMap::new(),
+        }],
+        backends: vec![BackendCluster {
+            ai_service: None,
+            token_policy: None,
+            name: format!("backend:{backend_port}"),
+            namespace: "default".to_string(),
+            protocol: "HTTP".to_string(),
+            endpoints: vec![BackendEndpoint {
+                address: "127.0.0.1".to_string(),
+                port: backend_port,
+                healthy: false,
+            }],
+            wasm_plugin: None,
+        }],
+        ..Snapshot::default()
+    };
+    shared.write().rebuild_runtime_indexes();
+    shared
+}

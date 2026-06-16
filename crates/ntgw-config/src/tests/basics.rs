@@ -19,6 +19,8 @@ adminAddr: 127.0.0.1:19080
     assert_eq!(cfg.access_log.mode, "json");
     assert_eq!(cfg.access_log.sample_rate, 0.5);
     assert!(cfg.access_log.format.contains("%REQUEST%"));
+    assert!(cfg.access_log.formats.is_empty());
+    assert!(cfg.access_log.format_name.is_empty());
     assert_eq!(
         cfg.access_log.route_annotation_prefix,
         "gateway.nantian.dev/access-log-"
@@ -38,8 +40,16 @@ fn bundled_dataplane_configs_match_schema() {
     ] {
         let path = repo_root.join(relative_path);
         let raw = fs::read_to_string(&path).expect("bundled dataplane config should be readable");
-        serde_yaml::from_str::<DataPlaneConfig>(&raw)
+        let cfg = serde_yaml::from_str::<DataPlaneConfig>(&raw)
             .unwrap_or_else(|err| panic!("{relative_path} should match dataplane schema: {err}"));
+        assert!(
+            cfg.access_log.formats.is_empty(),
+            "{relative_path} should keep accessLog.formats empty when omitted"
+        );
+        assert!(
+            cfg.access_log.format_name.is_empty(),
+            "{relative_path} should keep accessLog.formatName empty when omitted"
+        );
     }
 }
 

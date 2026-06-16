@@ -163,6 +163,11 @@ pub struct RequestContext {
     pub(crate) backend_observation_recorded: bool,
     pub(crate) request_body_bytes_seen: usize,
     pub(crate) access_log_request_headers: BTreeMap<String, String>,
+    pub(crate) access_log_sent_response_headers: BTreeMap<String, String>,
+    pub(crate) access_log_upstream_response_headers: BTreeMap<String, String>,
+    pub(crate) access_log_upstream_statuses: Vec<u16>,
+    pub(crate) access_log_scheme: String,
+    pub(crate) access_log_remote_port: Option<u16>,
     pub http_version: String,
     pub query_string: String,
     pub upstream_addr: String,
@@ -282,6 +287,11 @@ fn clear_request_context(ctx: &mut RequestContext) {
     clear_string(&mut ctx.request_id);
     ctx.request_headers = None;
     ctx.access_log_request_headers.clear();
+    ctx.access_log_sent_response_headers.clear();
+    ctx.access_log_upstream_response_headers.clear();
+    ctx.access_log_upstream_statuses.clear();
+    clear_string(&mut ctx.access_log_scheme);
+    ctx.access_log_remote_port = None;
     ctx.status = 0;
     clear_string(&mut ctx.listener_name);
     clear_string(&mut ctx.listener_protocol);

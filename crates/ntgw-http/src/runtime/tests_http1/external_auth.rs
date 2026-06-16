@@ -655,12 +655,16 @@ async fn external_auth_grpc_denied_response_returns_status_and_body_without_back
         ..RuntimeOptions::default()
     };
     let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let log_path = temp_log_path("grpc-external-auth-denied-access-log");
     let server = start_server(
         plan,
         snapshot,
         runtime,
         AccessLogOptions {
-            enabled: false,
+            enabled: true,
+            path: log_path.display().to_string(),
+            mode: ntgw_observability::AccessLogMode::Text,
+            format: "$sent_http_content_length $upstream_status".to_string(),
             ..AccessLogOptions::default()
         },
         SessionPersistenceOptions::build(None, None).expect("session options"),
@@ -716,6 +720,12 @@ async fn external_auth_grpc_denied_response_returns_status_and_body_without_back
         .await
         .expect("backend task")
         .expect("backend result");
+
+    let log_contents = wait_for_log_contents(&log_path).await;
+    assert!(log_contents.contains("11 -"));
+
+    shutdown_access_log_writer(&log_path.display().to_string());
+    let _ = fs::remove_file(log_path);
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]

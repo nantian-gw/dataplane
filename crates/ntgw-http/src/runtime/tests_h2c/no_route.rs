@@ -13,12 +13,16 @@ async fn http2_unmatched_route_returns_404_without_upstream() {
         ..RuntimeOptions::default()
     };
     let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let log_path = temp_log_path("http2-no-route-access-log");
     let server = start_server(
         plan,
         snapshot.clone(),
         runtime,
         AccessLogOptions {
-            enabled: false,
+            enabled: true,
+            path: log_path.display().to_string(),
+            mode: ntgw_observability::AccessLogMode::Text,
+            format: "$sent_http_content_length $upstream_status".to_string(),
             ..AccessLogOptions::default()
         },
         SessionPersistenceOptions::build(None, None).expect("session options"),
@@ -55,6 +59,12 @@ async fn http2_unmatched_route_returns_404_without_upstream() {
     stop_server(server);
     result.expect("http2 no-route client flow");
     drop(upstream_listener);
+
+    let log_contents = wait_for_log_contents(&log_path).await;
+    assert!(log_contents.contains("15 -"));
+
+    shutdown_access_log_writer(&log_path.display().to_string());
+    let _ = fs::remove_file(log_path);
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]

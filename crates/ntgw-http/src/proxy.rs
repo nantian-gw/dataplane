@@ -16,6 +16,7 @@ use pingora::{
     protocols::l4::ext::TcpKeepalive,
     proxy::{FailToProxy, ProxyHttp, Session},
 };
+use pingora_cache::NoCacheReason;
 use pingora_cache::cache_control::CacheControl;
 use tracing::error;
 
@@ -83,14 +84,18 @@ pub(crate) use self::request::{
     start_request_span_from_header_if_enabled,
 };
 use self::request::{
-    build_request_meta, build_selection_request_meta, cache_request_headers_if_needed,
+    access_log_route_annotations, build_request_meta, build_selection_request_meta,
+    cache_access_log_sent_response_headers_from_written_response_if_needed,
+    cache_access_log_sent_response_headers_if_needed,
+    cache_access_log_upstream_response_headers_if_needed, cache_request_headers_if_needed,
     capture_request_context, capture_request_context_from_view_for_limits, client_ip,
-    inject_request_span_context, record_request_span, request_header_bytes_for_limit,
-    response_filters_need_request_headers, server_port, start_request_span_if_enabled,
+    inject_request_span_context, record_access_log_upstream_status_if_needed, record_request_span,
+    request_header_bytes_for_limit, response_filters_need_request_headers, server_port,
+    start_request_span_if_enabled,
 };
 use self::responses::{
     request_is_grpc, write_direct_response, write_grpc_no_route_response,
-    write_http_no_route_response,
+    write_http_no_route_response, write_response_header_with_access_log_capture,
 };
 use self::retry::{
     is_downstream_connection_closed, proxy_error_code, proxy_error_flag_for,
@@ -572,6 +577,19 @@ impl ProxyHttp for GatewayProxy {
         if let Some(ct) = upstream_response.headers.get("content-type") {
             ctx.response_content_type = ct.to_str().unwrap_or("-").to_string();
         }
+        let route_access_log_annotations = access_log_route_annotations(ctx).clone();
+        record_access_log_upstream_status_if_needed(
+            ctx,
+            upstream_response.status.as_u16(),
+            &self.access_log,
+            &route_access_log_annotations,
+        );
+        cache_access_log_upstream_response_headers_if_needed(
+            ctx,
+            upstream_response,
+            &self.access_log,
+            &route_access_log_annotations,
+        );
         let status = upstream_response.status.as_u16();
         if status >= 500 {
             observe_selected_backend_failure(&self.snapshot, ctx);
@@ -628,6 +646,13 @@ impl ProxyHttp for GatewayProxy {
                 ctx.resolved_session.as_ref(),
             )?;
         }
+        let route_access_log_annotations = access_log_route_annotations(ctx).clone();
+        cache_access_log_sent_response_headers_if_needed(
+            ctx,
+            upstream_response,
+            &self.access_log,
+            &route_access_log_annotations,
+        );
 
         if !ctx.request_mirrors.is_empty() {
             wait_for_request_mirrors(&mut ctx.request_mirrors).await;
@@ -648,7 +673,17 @@ impl ProxyHttp for GatewayProxy {
                     has_auth,
                 ) {
                     http_cache.set_cache_meta(meta);
+                    if http_cache.set_miss_handler().await.is_err() {
+                        http_cache.disable(NoCacheReason::StorageError);
+                        ctx.http_cache = context::CacheState::default();
+                    }
+                } else {
+                    http_cache.disable(NoCacheReason::OriginNotCache);
+                    ctx.http_cache = context::CacheState::default();
                 }
+            } else {
+                http_cache.disable(NoCacheReason::OriginNotCache);
+                ctx.http_cache = context::CacheState::default();
             }
         }
 
@@ -690,6 +725,9 @@ impl ProxyHttp for GatewayProxy {
                 chunk.len(),
                 self.cache.max_entry_size_bytes(),
             ) {
+                if let Some(http_cache) = ctx.http_cache.0.as_mut() {
+                    http_cache.disable(NoCacheReason::ResponseTooLarge);
+                }
                 ctx.http_cache = context::CacheState::default();
                 ctx.cached_response_body.clear();
                 ctx.cached_response_body_bytes = 0;
@@ -710,6 +748,14 @@ impl ProxyHttp for GatewayProxy {
             .response_written()
             .map(|resp| resp.status.as_u16())
             .unwrap_or(ctx.status);
+
+        let route_access_log_annotations = access_log_route_annotations(ctx).clone();
+        cache_access_log_sent_response_headers_from_written_response_if_needed(
+            ctx,
+            session.response_written(),
+            &self.access_log,
+            &route_access_log_annotations,
+        );
 
         if let Some(http_cache) = ctx.http_cache.0.as_mut()
             && let Some(miss_handler) = http_cache.miss_handler()

@@ -1,3 +1,4 @@
+use anyhow::{Result, anyhow};
 use ntgw_config::{AccessLogConfig, DataPlaneConfig, HttpCapacityConfig, RuntimeProtectionConfig};
 use ntgw_observability::{
     AccessLogMode, HttpAdmissionOptions, HttpCircuitBreakerOptions, HttpRateLimitOptions,
@@ -34,15 +35,38 @@ pub(crate) fn to_tracing_options(cfg: &DataPlaneConfig) -> TracingOptions {
     }
 }
 
-pub(crate) fn to_access_log_options(cfg: &AccessLogConfig) -> ntgw_observability::AccessLogOptions {
-    ntgw_observability::AccessLogOptions {
+pub(crate) fn to_access_log_options(
+    cfg: &AccessLogConfig,
+) -> Result<ntgw_observability::AccessLogOptions> {
+    let mode = AccessLogMode::parse(&cfg.mode);
+    let format = resolve_access_log_format(cfg, &mode)?;
+
+    Ok(ntgw_observability::AccessLogOptions {
         enabled: cfg.enabled,
         path: cfg.path.clone(),
-        format: cfg.format.clone(),
-        mode: AccessLogMode::parse(&cfg.mode),
+        format,
+        mode,
         sample_rate: cfg.sample_rate.clamp(0.0, 1.0),
         route_annotation_prefix: cfg.route_annotation_prefix.clone(),
+    })
+}
+
+fn resolve_access_log_format(cfg: &AccessLogConfig, mode: &AccessLogMode) -> Result<String> {
+    if *mode == AccessLogMode::Json {
+        return Ok(cfg.format.clone());
     }
+
+    let format_name = cfg.format_name.trim();
+    if format_name.is_empty() {
+        return Ok(cfg.format.clone());
+    }
+
+    cfg.formats.get(format_name).cloned().ok_or_else(|| {
+        anyhow!(
+            "accessLog.formatName '{}' was not found in accessLog.formats",
+            format_name
+        )
+    })
 }
 
 pub(crate) fn to_http_admission_options(cfg: &RuntimeProtectionConfig) -> HttpAdmissionOptions {

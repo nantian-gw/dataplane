@@ -34,6 +34,7 @@ use super::{
         default_xds_stale_stream_timeout_ms,
     },
 };
+use std::collections::BTreeMap;
 
 impl Default for LogConfig {
     fn default() -> Self {
@@ -74,6 +75,8 @@ impl Default for AccessLogConfig {
             path: default_access_path(),
             format: default_access_format(),
             mode: default_access_mode(),
+            formats: BTreeMap::new(),
+            format_name: String::new(),
             sample_rate: default_access_sample_rate(),
             route_annotation_prefix: default_route_annotation_prefix(),
         }

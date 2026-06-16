@@ -122,3 +122,42 @@ runtime:
 
     assert_eq!(cfg.runtime.tls_asset_dir, "/var/lib/nantian-gw/tls");
 }
+
+#[test]
+fn parses_named_access_log_formats() {
+    let cfg: DataPlaneConfig = serde_yaml::from_str(
+        r#"
+nodeId: dp
+cluster: kind
+controlPlaneAddr: http://127.0.0.1:18080
+adminAddr: 127.0.0.1:19080
+accessLog:
+  enabled: true
+  path: /var/log/ntgw/access.log
+  mode: text
+  formatName: main
+  formats:
+    main: '$remote_addr "$request" $status'
+    upstream_debug: '$request_id $upstream_addr $upstream_status'
+  format: "%EVENT% %ROUTE_NAME%"
+  sampleRate: 0.5
+  routeAnnotationPrefix: custom.dev/access-log-
+"#,
+    )
+    .expect("config should parse");
+
+    assert_eq!(cfg.access_log.mode, "text");
+    assert_eq!(cfg.access_log.format_name, "main");
+    assert_eq!(
+        cfg.access_log.formats.get("main").map(String::as_str),
+        Some(r#"$remote_addr "$request" $status"#)
+    );
+    assert_eq!(
+        cfg.access_log
+            .formats
+            .get("upstream_debug")
+            .map(String::as_str),
+        Some("$request_id $upstream_addr $upstream_status")
+    );
+    assert_eq!(cfg.access_log.format, "%EVENT% %ROUTE_NAME%");
+}

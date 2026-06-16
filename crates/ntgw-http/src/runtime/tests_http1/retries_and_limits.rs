@@ -24,12 +24,17 @@ async fn route_rate_limit_fast_fails_second_request_with_429() {
         ..RuntimeOptions::default()
     };
     let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let log_path = temp_log_path("route-rate-limit-access-log");
     let server = start_server(
         plan,
         snapshot.clone(),
         runtime,
         AccessLogOptions {
-            enabled: false,
+            enabled: true,
+            path: log_path.display().to_string(),
+            mode: ntgw_observability::AccessLogMode::Text,
+            format: "$status|$sent_http_server|$sent_http_cache_control|$sent_http_content_length"
+                .to_string(),
             ..AccessLogOptions::default()
         },
         SessionPersistenceOptions::build(None, None).expect("session options"),
@@ -85,6 +90,20 @@ async fn route_rate_limit_fast_fails_second_request_with_429() {
         no_second_upstream,
         "second request should be rejected locally by the route rate limit"
     );
+
+    let log_contents = wait_for_log_contents(&log_path).await;
+    let line = log_contents
+        .lines()
+        .find(|line| line.starts_with("429|"))
+        .expect("429 access-log line");
+    let parts: Vec<_> = line.split('|').collect();
+    assert_eq!(parts.len(), 4, "expected four pipe-separated fields");
+    assert_ne!(parts[1], "-", "server header should be captured");
+    assert_eq!(parts[2], "private, no-store");
+    assert_eq!(parts[3], "0");
+
+    shutdown_access_log_writer(&log_path.display().to_string());
+    let _ = fs::remove_file(log_path);
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]

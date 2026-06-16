@@ -91,6 +91,17 @@ fn clear_completed_request_context_clears_request_buffers() {
         backend: "default/orders:8080".to_string(),
         response_flags: "UF".to_string(),
         route_annotations: BTreeMap::from([("team".to_string(), "edge".to_string())]),
+        access_log_sent_response_headers: BTreeMap::from([(
+            "content-type".to_string(),
+            "application/json".to_string(),
+        )]),
+        access_log_upstream_response_headers: BTreeMap::from([(
+            "server".to_string(),
+            "orders-upstream".to_string(),
+        )]),
+        access_log_upstream_statuses: vec![502, 200],
+        access_log_scheme: "https".to_string(),
+        access_log_remote_port: Some(54432),
         request_mirrors: vec![],
         ..RequestContext::default()
     };
@@ -107,6 +118,11 @@ fn clear_completed_request_context_clears_request_buffers() {
     assert!(ctx.backend.is_empty());
     assert!(ctx.response_flags.is_empty());
     assert!(ctx.route_annotations.is_empty());
+    assert!(ctx.access_log_sent_response_headers.is_empty());
+    assert!(ctx.access_log_upstream_response_headers.is_empty());
+    assert!(ctx.access_log_upstream_statuses.is_empty());
+    assert!(ctx.access_log_scheme.is_empty());
+    assert!(ctx.access_log_remote_port.is_none());
 }
 
 #[test]
