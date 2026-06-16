@@ -130,6 +130,7 @@ pub(crate) fn discovery_ack(
     cluster: &str,
     version: &str,
     nonce: &str,
+    supported_features: &[String],
 ) -> DiscoveryRequest {
     DiscoveryRequest {
         node_id: node_id.to_string(),
@@ -139,6 +140,25 @@ pub(crate) fn discovery_ack(
         subscriptions: vec!["*".to_string()],
         result_status: DiscoveryResultStatus::Ack as i32,
         error_detail: String::new(),
+        supported_features: supported_features.to_vec(),
+    }
+}
+
+pub(crate) fn discovery_open(
+    node_id: &str,
+    cluster: &str,
+    version: &str,
+    supported_features: &[String],
+) -> DiscoveryRequest {
+    DiscoveryRequest {
+        node_id: node_id.to_string(),
+        cluster: cluster.to_string(),
+        version: version.to_string(),
+        nonce: String::new(),
+        subscriptions: vec!["*".to_string()],
+        result_status: DiscoveryResultStatus::Unspecified as i32,
+        error_detail: String::new(),
+        supported_features: supported_features.to_vec(),
     }
 }
 
@@ -148,6 +168,7 @@ pub(crate) fn discovery_nack(
     version: &str,
     nonce: &str,
     error_detail: &str,
+    supported_features: &[String],
 ) -> DiscoveryRequest {
     DiscoveryRequest {
         node_id: node_id.to_string(),
@@ -157,6 +178,7 @@ pub(crate) fn discovery_nack(
         subscriptions: vec!["*".to_string()],
         result_status: DiscoveryResultStatus::Nack as i32,
         error_detail: error_detail.to_string(),
+        supported_features: supported_features.to_vec(),
     }
 }
 

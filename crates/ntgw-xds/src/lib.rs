@@ -12,14 +12,15 @@ use tokio_stream::wrappers::ReceiverStream;
 use tonic::transport::{Channel, Endpoint};
 use tracing::{info, warn};
 
+use crate::features::{preflight_required_features, supported_features};
 use ntgw_ir::{SharedSnapshot, SharedSnapshotSignal, Snapshot};
 use ntgw_observability::SharedRuntimeStats;
 use ntgw_proto::gateway::control::v1::{
-    DiscoveryRequest, DiscoveryResultStatus,
-    configuration_discovery_service_client::ConfigurationDiscoveryServiceClient,
+    ConfigSnapshot, configuration_discovery_service_client::ConfigurationDiscoveryServiceClient,
 };
 
 pub mod bench;
+mod features;
 mod reconnect;
 mod stats;
 mod status;
@@ -39,7 +40,7 @@ pub(crate) use reconnect::{
 };
 pub use stats::{ClientStats, ClientStatsSnapshot, SharedClientStats};
 pub(crate) use status::{
-    RuntimeApplyRequirements, build_status_report, discovery_ack, discovery_nack,
+    RuntimeApplyRequirements, build_status_report, discovery_ack, discovery_nack, discovery_open,
     snapshot_runtime_apply_requirements, wait_for_runtime_apply_result,
 };
 #[cfg(test)]
@@ -136,16 +137,14 @@ impl ControlPlaneClient {
         let (tx, rx) = mpsc::channel(8);
         let mut status_client = self.inner.clone();
         let version = { snapshot.read().id.clone() };
+        let supported_features = supported_features();
         if let Err(err) = tx
-            .send(DiscoveryRequest {
-                node_id: node_id.clone(),
-                cluster: cluster.clone(),
-                version,
-                nonce: String::new(),
-                subscriptions: vec!["*".to_string()],
-                result_status: DiscoveryResultStatus::Unspecified as i32,
-                error_detail: String::new(),
-            })
+            .send(discovery_open(
+                &node_id,
+                &cluster,
+                &version,
+                &supported_features,
+            ))
             .await
         {
             return StreamRunResult {
@@ -200,6 +199,29 @@ impl ControlPlaneClient {
                         snapshot.read().id.as_str(),
                         next_version.as_deref(),
                     ) {
+                        if let Err((version, error_detail)) = preflight_snapshot_before_swap(
+                            &config,
+                            next_version.as_deref(),
+                            &supported_features,
+                            &stats,
+                        ) {
+                            warn!(
+                                version = %version,
+                                compatibility_profile = %config.compatibility_profile,
+                                error = %error_detail,
+                                "rejected snapshot before decode due to unsupported required features"
+                            );
+                            tx.send(discovery_nack(
+                                &node_id,
+                                &cluster,
+                                &version,
+                                &message.nonce,
+                                &error_detail,
+                                &supported_features,
+                            ))
+                            .await?;
+                            continue;
+                        }
                         let stage = Instant::now();
                         let mut next = Snapshot::from_proto_without_runtime_indexes(config);
                         observe_apply_stage_elapsed(&stats, "decode", stage);
@@ -240,6 +262,7 @@ impl ControlPlaneClient {
                                     &cluster,
                                     &version,
                                     &message.nonce,
+                                    &supported_features,
                                 ))
                                 .await?;
                                 status_client
@@ -264,6 +287,7 @@ impl ControlPlaneClient {
                                     &version,
                                     &message.nonce,
                                     &error_detail,
+                                    &supported_features,
                                 ))
                                 .await?;
                                 observe_apply_stage_elapsed(&stats, "ack_wait", stage);
@@ -274,7 +298,13 @@ impl ControlPlaneClient {
                         let version = next_version.unwrap_or_else(|| snapshot.read().id.clone());
                         stats.observe_snapshot_skipped();
                         log_duplicate_snapshot_skipped(&version);
-                        tx.send(discovery_ack(&node_id, &cluster, &version, &message.nonce))
+                        tx.send(discovery_ack(
+                            &node_id,
+                            &cluster,
+                            &version,
+                            &message.nonce,
+                            &supported_features,
+                        ))
                             .await?;
                         status_client
                             .report_status(build_status_report(&node_id, &snapshot, &runtime, true))
@@ -303,4 +333,24 @@ fn observe_apply_stage_elapsed(stats: &SharedClientStats, stage: &str, started_a
         stage,
         started_at.elapsed().as_millis().min(u64::MAX as u128) as u64,
     );
+}
+
+pub(crate) fn preflight_snapshot_before_swap(
+    config: &ConfigSnapshot,
+    version_hint: Option<&str>,
+    supported_features: &[String],
+    stats: &SharedClientStats,
+) -> std::result::Result<(), (String, String)> {
+    match preflight_required_features(config, supported_features) {
+        Ok(()) => Ok(()),
+        Err(error_detail) => {
+            let version = version_hint
+                .map(str::trim)
+                .filter(|version| !version.is_empty())
+                .map(ToOwned::to_owned)
+                .unwrap_or_else(|| config.id.clone());
+            stats.observe_snapshot_nacked(&version, &error_detail);
+            Err((version, error_detail))
+        }
+    }
 }

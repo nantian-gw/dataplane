@@ -1,12 +1,38 @@
 #[test]
 fn discovery_requests_encode_ack_and_nack_status() {
-    let ack = discovery_ack("dp-1", "kind", "v1", "nonce-1");
+    let ack = discovery_ack("dp-1", "kind", "v1", "nonce-1", &supported_features());
     assert_eq!(ack.result_status, DiscoveryResultStatus::Ack as i32);
     assert_eq!(ack.error_detail, "");
 
-    let nack = discovery_nack("dp-1", "kind", "v2", "nonce-2", "listener reload failed");
+    let nack = discovery_nack(
+        "dp-1",
+        "kind",
+        "v2",
+        "nonce-2",
+        "listener reload failed",
+        &supported_features(),
+    );
     assert_eq!(nack.result_status, DiscoveryResultStatus::Nack as i32);
     assert_eq!(nack.error_detail, "listener reload failed");
+}
+
+#[test]
+fn discovery_messages_include_supported_features() {
+    let supported = canonicalize_supported_features([
+        " backend.wasm_plugin.v1 ",
+        "route.labels.v1",
+        "",
+        "core.v1",
+        "route.labels.v1",
+    ]);
+
+    let open = discovery_open("dp-1", "kind", "v1", &supported);
+    let ack = discovery_ack("dp-1", "kind", "v1", "nonce-1", &supported);
+    let nack = discovery_nack("dp-1", "kind", "v1", "nonce-1", "nope", &supported);
+
+    assert_eq!(open.supported_features, supported);
+    assert_eq!(ack.supported_features, supported);
+    assert_eq!(nack.supported_features, supported);
 }
 
 #[test]
@@ -73,5 +99,40 @@ fn required_runtime_names_describes_combined_requirements() {
             stream: true,
         }),
         "stream"
+    );
+}
+
+#[test]
+fn preflight_required_features_reports_sorted_missing_features() {
+    let snapshot = ConfigSnapshot {
+        required_features: vec![
+            "route.labels.v1".to_string(),
+            "backend.wasm_plugin.v1".to_string(),
+        ],
+        ..ConfigSnapshot::default()
+    };
+    let supported = canonicalize_supported_features(["core.v1"]);
+
+    let result = preflight_required_features(&snapshot, &supported);
+
+    assert_eq!(
+        result,
+        Err(
+            "snapshot requires unsupported features: backend.wasm_plugin.v1, route.labels.v1"
+                .to_string()
+        )
+    );
+}
+
+#[test]
+fn preflight_required_features_accepts_supported_snapshot() {
+    let snapshot = ConfigSnapshot {
+        required_features: vec!["core.v1".to_string(), "route.labels.v1".to_string()],
+        ..ConfigSnapshot::default()
+    };
+
+    assert_eq!(
+        preflight_required_features(&snapshot, &supported_features()),
+        Ok(())
     );
 }

@@ -2,9 +2,14 @@ use super::status::required_runtime_names;
 use super::{
     ReconnectBackoff, RuntimeApplyRequirements, SNAPSHOT_APPLIED_MESSAGE,
     SNAPSHOT_REJECTED_MESSAGE_PREFIX, TransportOptions, WAITING_FOR_SNAPSHOT_MESSAGE,
-    build_status_report, discovery_ack, discovery_nack, retry_delay_after_stream_failure,
-    should_apply_snapshot, snapshot_runtime_apply_requirements, snapshot_version_from_response,
+    build_status_report, discovery_ack, discovery_nack, discovery_open,
+    preflight_snapshot_before_swap, retry_delay_after_stream_failure, should_apply_snapshot,
+    snapshot_runtime_apply_requirements, snapshot_version_from_response,
     wait_for_runtime_apply_result, wait_for_stream_message,
+};
+use crate::ClientStats;
+use crate::features::{
+    canonicalize_supported_features, preflight_required_features, supported_features,
 };
 use ntgw_ir::{Listener, Snapshot};
 use ntgw_observability::RuntimeStats;
