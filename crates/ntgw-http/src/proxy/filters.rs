@@ -241,6 +241,12 @@ pub(crate) async fn do_request_filter(
     if let Some((selected, mirrors, config, frontend_client_certificate_requirement)) =
         grpc_selection
     {
+        super::request::cache_access_log_connection_fields_if_needed(
+            session,
+            ctx,
+            &proxy.access_log,
+            &selected.route_annotations,
+        );
         if frontend_client_certificate_requirement
             .closes_connection_without_valid_client_certificate(
                 downstream_tls_client_certificate_present(session),
@@ -319,6 +325,12 @@ pub(crate) async fn do_request_filter(
         if let Some((selected, config, frontend_client_certificate_requirement)) =
             fallback_selection
         {
+            super::request::cache_access_log_connection_fields_if_needed(
+                session,
+                ctx,
+                &proxy.access_log,
+                &selected.route_annotations,
+            );
             if frontend_client_certificate_requirement
                 .closes_connection_without_valid_client_certificate(
                     downstream_tls_client_certificate_present(session),
