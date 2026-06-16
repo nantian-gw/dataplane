@@ -48,6 +48,12 @@ pub(crate) struct ConfigSnapshot {
     pub(crate) request_mirror_max_concurrency: usize,
 }
 
+impl std::fmt::Debug for ConfigSnapshot {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ConfigSnapshot").finish_non_exhaustive()
+    }
+}
+
 pub(crate) struct ReloadTargets {
     pub(crate) admin: SharedAdminConfig,
     pub(crate) http: watch::Sender<Arc<ntgw_http::ReloadableRuntimeConfig>>,
@@ -74,13 +80,13 @@ pub(crate) fn build_config_snapshot(cfg: &DataPlaneConfig) -> Result<ConfigSnaps
     let session_persistence_uses_ephemeral_secret = session_persistence.uses_ephemeral_secret();
     let http = ntgw_http::ReloadableRuntimeConfig {
         runtime: to_http_runtime_options(cfg),
-        access_log: to_access_log_options(&cfg.access_log),
+        access_log: to_access_log_options(&cfg.access_log)?,
         session_persistence,
     };
     let retry_budget = http.runtime.retry_budget.clone();
     let stream = ntgw_stream::ReloadableRuntimeConfig {
         runtime: to_stream_runtime_options(cfg),
-        access_log: to_access_log_options(&cfg.access_log),
+        access_log: to_access_log_options(&cfg.access_log)?,
     };
 
     Ok(ConfigSnapshot {
