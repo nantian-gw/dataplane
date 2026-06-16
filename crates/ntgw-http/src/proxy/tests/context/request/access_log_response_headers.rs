@@ -156,10 +156,10 @@ fn cache_access_log_connection_fields_leaves_remote_port_empty_without_inet_sour
 #[test]
 fn cache_access_log_sent_response_headers_fallback_overwrites_with_written_response() {
     let mut ctx = RequestContext {
-        access_log_sent_response_headers: BTreeMap::from([(
-            "server".to_string(),
-            "stale-provisional".to_string(),
-        )]),
+        access_log_sent_response_headers: BTreeMap::from([
+            ("content-length".to_string(), "99".to_string()),
+            ("server".to_string(), "stale-provisional".to_string()),
+        ]),
         ..RequestContext::default()
     };
     let mut response = ResponseHeader::build(503, None).expect("response");

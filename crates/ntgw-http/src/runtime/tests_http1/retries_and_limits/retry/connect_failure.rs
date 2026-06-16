@@ -287,6 +287,7 @@ async fn no_healthy_backend_fast_fails_and_emits_error_headers_in_access_log() {
         ..RuntimeOptions::default()
     };
     let log_path = temp_log_path("no-healthy-backend-access-log");
+    let traffic = SharedTrafficStats::shared();
     let server = start_server(
         build_listener_plan(&snapshot.read(), &runtime, None).expect("plan"),
         snapshot.clone(),
@@ -300,7 +301,7 @@ async fn no_healthy_backend_fast_fails_and_emits_error_headers_in_access_log() {
             ..AccessLogOptions::default()
         },
         SessionPersistenceOptions::build(None, None).expect("session options"),
-        SharedTrafficStats::shared(),
+        traffic.clone(),
     )
     .expect("start server");
 
@@ -322,6 +323,18 @@ async fn no_healthy_backend_fast_fails_and_emits_error_headers_in_access_log() {
 
     stop_server(server);
     result.expect("no healthy backend client flow");
+
+    let stats = wait_for_traffic_snapshot(&traffic, |stats| {
+        stats.total_events == 1
+            && stats.status_5xx == 1
+            && stats.response_flags.get("UH").copied() == Some(1)
+    })
+    .await;
+    assert_eq!(stats.total_events, 1);
+    assert_eq!(stats.status_5xx, 1);
+    assert_eq!(stats.total_retry_attempts, 0);
+    assert_eq!(stats.total_retried_events, 0);
+    assert_eq!(stats.response_flags.get("UH").copied(), Some(1));
 
     let log_contents = wait_for_log_contents(&log_path).await;
     let line = log_contents
