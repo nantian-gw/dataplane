@@ -371,6 +371,60 @@ mod tests {
     }
 
     #[test]
+    fn observe_completed_request_renders_response_side_nginx_variables() {
+        let log_path = temp_log_path("nginx-style-response-vars");
+        let path_text = log_path.display().to_string();
+        let traffic = SharedTrafficStats::shared();
+        let mut ctx = RequestContext {
+            started_at_unix_ms: 123,
+            client_ip: "192.0.2.10".to_string(),
+            host: "orders.example.com".to_string(),
+            method: "GET".to_string(),
+            path: "/orders".to_string(),
+            request_id: "req-1".to_string(),
+            status: 200,
+            listener_name: "default/gw/http".to_string(),
+            listener_protocol: "HTTP".to_string(),
+            route_name: "orders".to_string(),
+            route_namespace: "default".to_string(),
+            route_kind: "HTTPRoute".to_string(),
+            backend: "default/orders:8080".to_string(),
+            access_log_scheme: "https".to_string(),
+            access_log_remote_port: Some(54432),
+            access_log_sent_response_headers: BTreeMap::from([(
+                "content-type".to_string(),
+                "application/json".to_string(),
+            )]),
+            access_log_upstream_response_headers: BTreeMap::from([(
+                "server".to_string(),
+                "orders-upstream".to_string(),
+            )]),
+            access_log_upstream_statuses: vec![502, 200],
+            ..RequestContext::default()
+        };
+
+        observe_completed_request(
+            &AccessLogOptions {
+                enabled: true,
+                path: path_text.clone(),
+                mode: ntgw_observability::AccessLogMode::Text,
+                format: r#"$scheme $remote_port "$sent_http_content_type" "$upstream_http_server" $upstream_status"#.to_string(),
+                ..AccessLogOptions::default()
+            },
+            &traffic,
+            &mut ctx,
+            123,
+            128,
+        );
+
+        let contents = wait_for_log_contents(&log_path);
+        assert!(contents.contains(r#"https 54432 "application/json" "orders-upstream" 502, 200"#));
+
+        shutdown_access_log_writer(&path_text);
+        let _ = fs::remove_file(log_path);
+    }
+
+    #[test]
     fn observe_completed_request_honors_nginx_style_route_override_format() {
         let log_path = temp_log_path("nginx-style-override");
         let path_text = log_path.display().to_string();

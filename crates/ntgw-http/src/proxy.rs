@@ -83,10 +83,13 @@ pub(crate) use self::request::{
     start_request_span_from_header_if_enabled,
 };
 use self::request::{
-    build_request_meta, build_selection_request_meta, cache_request_headers_if_needed,
+    access_log_route_annotations, build_request_meta, build_selection_request_meta,
+    cache_access_log_sent_response_headers_if_needed,
+    cache_access_log_upstream_response_headers_if_needed, cache_request_headers_if_needed,
     capture_request_context, capture_request_context_from_view_for_limits, client_ip,
-    inject_request_span_context, record_request_span, request_header_bytes_for_limit,
-    response_filters_need_request_headers, server_port, start_request_span_if_enabled,
+    inject_request_span_context, record_access_log_upstream_status_if_needed, record_request_span,
+    request_header_bytes_for_limit, response_filters_need_request_headers, server_port,
+    start_request_span_if_enabled,
 };
 use self::responses::{
     request_is_grpc, write_direct_response, write_grpc_no_route_response,
@@ -572,6 +575,19 @@ impl ProxyHttp for GatewayProxy {
         if let Some(ct) = upstream_response.headers.get("content-type") {
             ctx.response_content_type = ct.to_str().unwrap_or("-").to_string();
         }
+        let route_access_log_annotations = access_log_route_annotations(ctx).clone();
+        record_access_log_upstream_status_if_needed(
+            ctx,
+            upstream_response.status.as_u16(),
+            &self.access_log,
+            &route_access_log_annotations,
+        );
+        cache_access_log_upstream_response_headers_if_needed(
+            ctx,
+            upstream_response,
+            &self.access_log,
+            &route_access_log_annotations,
+        );
         let status = upstream_response.status.as_u16();
         if status >= 500 {
             observe_selected_backend_failure(&self.snapshot, ctx);
@@ -628,6 +644,13 @@ impl ProxyHttp for GatewayProxy {
                 ctx.resolved_session.as_ref(),
             )?;
         }
+        let route_access_log_annotations = access_log_route_annotations(ctx).clone();
+        cache_access_log_sent_response_headers_if_needed(
+            ctx,
+            upstream_response,
+            &self.access_log,
+            &route_access_log_annotations,
+        );
 
         if !ctx.request_mirrors.is_empty() {
             wait_for_request_mirrors(&mut ctx.request_mirrors).await;
