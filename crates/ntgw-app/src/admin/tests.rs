@@ -97,6 +97,7 @@ fn fixture_snapshot() -> Snapshot {
                 }],
                 ..Default::default()
             }],
+            labels: Default::default(),
             annotations: Default::default(),
         }],
         backends: vec![

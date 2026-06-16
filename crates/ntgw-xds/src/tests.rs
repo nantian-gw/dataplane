@@ -27,6 +27,22 @@ mod reconnect_backoff;
 mod runtime_apply;
 mod status_reports;
 
+pub(crate) fn run_exact_discovery_messages_include_supported_features() {
+    status_reports::run_discovery_messages_include_supported_features();
+}
+
+pub(crate) fn run_exact_preflight_required_features_reports_sorted_missing_features() {
+    status_reports::run_preflight_required_features_reports_sorted_missing_features();
+}
+
+pub(crate) fn run_exact_preflight_required_features_accepts_supported_snapshot() {
+    status_reports::run_preflight_required_features_accepts_supported_snapshot();
+}
+
+pub(crate) fn run_exact_preflight_rejection_keeps_last_good_snapshot() {
+    runtime_apply::run_preflight_rejection_keeps_last_good_snapshot();
+}
+
 #[derive(Clone, Default)]
 struct SharedTestWriter {
     buffer: Arc<Mutex<Vec<u8>>>,

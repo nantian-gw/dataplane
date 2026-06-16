@@ -29,6 +29,7 @@ fn observe_selected_backend_success_clears_failure_streak() {
                     retry: None,
                     session_persistence: None,
                 }],
+                labels: BTreeMap::new(),
                 annotations: BTreeMap::new(),
             }],
             backends: vec![BackendCluster {

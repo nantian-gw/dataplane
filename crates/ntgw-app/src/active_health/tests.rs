@@ -99,6 +99,7 @@ fn apply_probe_results_updates_snapshot_runtime_health() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {

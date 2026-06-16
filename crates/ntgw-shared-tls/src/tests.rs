@@ -215,6 +215,7 @@ fn shared_tls_snapshot(
                 }],
                 ..HttpRule::default()
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         stream_routes: vec![StreamRoute {
@@ -236,6 +237,7 @@ fn shared_tls_snapshot(
                     ..BackendRef::default()
                 }],
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![

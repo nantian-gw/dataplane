@@ -43,6 +43,7 @@ fn http_route_miss_uses_mesh_default_backend_for_ineligible_cross_namespace_rout
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
@@ -140,6 +141,7 @@ fn http_route_miss_preserves_no_route_for_attached_mesh_rule_miss() {
                 retry: None,
                 session_persistence: None,
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {

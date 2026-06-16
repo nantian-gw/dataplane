@@ -131,6 +131,7 @@ fn test_snapshot(
                     ..BackendRef::default()
                 }],
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {

@@ -50,6 +50,7 @@ fn weighted_grpc_h2c_snapshot(
                 ],
                 ..GrpcRule::default()
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![
@@ -113,7 +114,10 @@ fn weighted_mesh_grpc_h2c_snapshot_with_addresses(
             protocol: "GRPC".to_string(),
             attached_routes: vec!["default/mesh-grpc-route".to_string()],
             metadata: BTreeMap::from([
-                ("nantian.dev/frontend-kind".to_string(), "Service".to_string()),
+                (
+                    "nantian.dev/frontend-kind".to_string(),
+                    "Service".to_string(),
+                ),
                 (
                     "nantian.dev/frontend-namespace".to_string(),
                     "default".to_string(),
@@ -154,6 +158,7 @@ fn weighted_mesh_grpc_h2c_snapshot_with_addresses(
                 ],
                 ..GrpcRule::default()
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![

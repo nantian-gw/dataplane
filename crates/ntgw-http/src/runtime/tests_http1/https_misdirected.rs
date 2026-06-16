@@ -6,8 +6,11 @@ async fn https_misdirected_request_returns_421_before_upstream() {
         .expect("upstream bind");
     let upstream_addr = upstream_listener.local_addr().expect("upstream addr");
     let gateway_port = free_tcp_port();
-    let snapshot =
-        https_misdirected_snapshot(gateway_port, upstream_addr.port() as u32, upstream_addr.port());
+    let snapshot = https_misdirected_snapshot(
+        gateway_port,
+        upstream_addr.port() as u32,
+        upstream_addr.port(),
+    );
     let runtime = RuntimeOptions {
         enable_ipv6: false,
         ..RuntimeOptions::default()
@@ -110,8 +113,7 @@ async fn https_http1_request(
     let mut stream = https_tls_connect(gateway_port, sni, b"").await?;
     stream
         .write_all(
-            format!("GET {path} HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\n\r\n")
-                .as_bytes(),
+            format!("GET {path} HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\n\r\n").as_bytes(),
         )
         .await?;
     read_tls_http_response(&mut stream).await
@@ -145,8 +147,8 @@ async fn read_tls_http_response(stream: &mut SslStream<TcpStream>) -> anyhow::Re
     }
     let headers_text = String::from_utf8(headers.clone())?;
     let mut body = Vec::new();
-    if let Some(content_length) = header_value(&headers_text, "content-length")
-        .and_then(|value| value.parse::<usize>().ok())
+    if let Some(content_length) =
+        header_value(&headers_text, "content-length").and_then(|value| value.parse::<usize>().ok())
     {
         body.resize(content_length, 0);
         stream.read_exact(&mut body).await?;
@@ -183,6 +185,7 @@ fn https_misdirected_snapshot(
                     ..ParentRef::default()
                 }],
                 rules: vec![https_misdirected_rule(first_backend_port)],
+                labels: BTreeMap::new(),
                 annotations: BTreeMap::new(),
             },
             HttpRoute {
@@ -197,6 +200,7 @@ fn https_misdirected_snapshot(
                     ..ParentRef::default()
                 }],
                 rules: vec![https_misdirected_rule(second_backend_port as u32)],
+                labels: BTreeMap::new(),
                 annotations: BTreeMap::new(),
             },
         ],
@@ -224,10 +228,7 @@ fn https_misdirected_listener(name: &str, port: u16, hostnames: Vec<&str>) -> Li
         port: port as u32,
         protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
         hostnames: hostnames.into_iter().map(str::to_string).collect(),
-        attached_routes: vec![
-            "default/example".to_string(),
-            "default/second".to_string(),
-        ],
+        attached_routes: vec!["default/example".to_string(), "default/second".to_string()],
         tls: Some(TlsConfig {
             enabled: true,
             secret_refs: vec!["default/example-cert".to_string()],

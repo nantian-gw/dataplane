@@ -1,9 +1,8 @@
 use ntgw_ir::{
     BackendCluster, BackendEndpoint, BackendRef, HttpMatch, HttpRoute, HttpRule, ParentRef,
-    SecretMaterial, SharedSnapshot, StreamMatch, StreamRoute, StreamRule,
-    TlsRouteMode,
+    SecretMaterial, SharedSnapshot, StreamMatch, StreamRoute, StreamRule, TlsRouteMode,
 };
-use tokio::time::{timeout, Duration};
+use tokio::time::{Duration, timeout};
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn shared_tls_terminate_negotiates_h2_alpn() -> Result<()> {
@@ -39,7 +38,10 @@ async fn shared_tls_terminate_negotiates_h2_alpn() -> Result<()> {
         .into_ssl("server-san.example")?;
     let mut client_stream = SslStream::new(ssl, tcp)?;
     Pin::new(&mut client_stream).connect().await?;
-    assert_eq!(client_stream.ssl().selected_alpn_protocol(), Some(&b"h2"[..]));
+    assert_eq!(
+        client_stream.ssl().selected_alpn_protocol(),
+        Some(&b"h2"[..])
+    );
 
     let mut response = [0_u8; 2];
     client_stream.read_exact(&mut response).await?;
@@ -147,8 +149,7 @@ async fn shared_tls_rejects_invalid_frontend_validation_after_listener_selection
     let http_backend_addr = http_backend.local_addr()?;
     let gateway_port = free_port();
     let bind_addr = format!("127.0.0.1:{gateway_port}");
-    let snapshot =
-        shared_tls_frontend_validation_snapshot(gateway_port, http_backend_addr.port());
+    let snapshot = shared_tls_frontend_validation_snapshot(gateway_port, http_backend_addr.port());
     let plan = build_listener_plan(&snapshot.read(), &RuntimeOptions::default())?;
     let bind = Arc::new(plan.binds.get(&bind_addr).cloned().expect("bind"));
     let gateway_listener = TcpListener::bind(&bind_addr).await?;
@@ -209,8 +210,8 @@ async fn shared_tls_rejects_invalid_frontend_validation_after_listener_selection
         Ok::<(), anyhow::Error>(())
     });
 
-    let valid_response = https_request_local(&bind_addr, "good.example", "good.example", "/")
-        .await?;
+    let valid_response =
+        https_request_local(&bind_addr, "good.example", "good.example", "/").await?;
     assert!(
         valid_response.starts_with("HTTP/1.1 200"),
         "unexpected valid listener response: {valid_response}"
@@ -322,10 +323,7 @@ async fn https_request_local(bind: &str, sni: &str, host: &str, path: &str) -> R
     let tcp = tokio::net::TcpStream::connect(bind).await?;
     let mut connector = SslConnector::builder(SslMethod::tls())?;
     connector.set_verify(SslVerifyMode::NONE);
-    let ssl = connector
-        .build()
-        .configure()?
-        .into_ssl(sni)?;
+    let ssl = connector.build().configure()?.into_ssl(sni)?;
     let mut stream = SslStream::new(ssl, tcp)?;
     Pin::new(&mut stream).connect().await?;
     stream
@@ -412,6 +410,7 @@ fn shared_tls_frontend_validation_snapshot(
                     }],
                     ..HttpRule::default()
                 }],
+                labels: BTreeMap::new(),
                 annotations: BTreeMap::new(),
             },
             HttpRoute {
@@ -440,6 +439,7 @@ fn shared_tls_frontend_validation_snapshot(
                     }],
                     ..HttpRule::default()
                 }],
+                labels: BTreeMap::new(),
                 annotations: BTreeMap::new(),
             },
         ],
@@ -559,6 +559,7 @@ fn shared_tls_misdirected_snapshot(
                     }],
                     ..HttpRule::default()
                 }],
+                labels: BTreeMap::new(),
                 annotations: BTreeMap::new(),
             },
             HttpRoute {
@@ -587,6 +588,7 @@ fn shared_tls_misdirected_snapshot(
                     }],
                     ..HttpRule::default()
                 }],
+                labels: BTreeMap::new(),
                 annotations: BTreeMap::new(),
             },
         ],
@@ -609,6 +611,7 @@ fn shared_tls_misdirected_snapshot(
                     ..BackendRef::default()
                 }],
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![

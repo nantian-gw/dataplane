@@ -41,6 +41,7 @@ fn simple_http_snapshot(
                 }],
                 ..HttpRule::default()
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
@@ -62,7 +63,11 @@ fn simple_http_snapshot(
     shared
 }
 
-fn cors_http_snapshot(listener_port: u16, path: &str, backend_port: u32) -> ntgw_ir::SharedSnapshot {
+fn cors_http_snapshot(
+    listener_port: u16,
+    path: &str,
+    backend_port: u32,
+) -> ntgw_ir::SharedSnapshot {
     let shared = Snapshot::shared();
     *shared.write() = Snapshot {
         listeners: vec![Listener {
@@ -114,6 +119,7 @@ fn cors_http_snapshot(listener_port: u16, path: &str, backend_port: u32) -> ntgw
                 }],
                 ..HttpRule::default()
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
@@ -181,6 +187,7 @@ fn dual_protocol_snapshot(
                     }],
                     ..HttpRule::default()
                 }],
+                labels: BTreeMap::new(),
                 annotations: BTreeMap::new(),
             },
             HttpRoute {
@@ -209,6 +216,7 @@ fn dual_protocol_snapshot(
                     }],
                     ..HttpRule::default()
                 }],
+                labels: BTreeMap::new(),
                 annotations: BTreeMap::new(),
             },
         ],

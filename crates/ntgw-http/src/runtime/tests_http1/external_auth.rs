@@ -2,18 +2,18 @@ use std::net::SocketAddr;
 
 use ntgw_proto::{
     envoy::{
-        r#type::v3::{HttpStatus, StatusCode as EnvoyStatusCode},
         service::auth::v3::{
+            CheckRequest, CheckResponse, DeniedHttpResponse, OkHttpResponse,
             authorization_server::{Authorization, AuthorizationServer},
-            check_response::HttpResponse, CheckRequest, CheckResponse, DeniedHttpResponse,
-            OkHttpResponse,
+            check_response::HttpResponse,
         },
+        r#type::v3::{HttpStatus, StatusCode as EnvoyStatusCode},
     },
     google::rpc::Status,
 };
 use tonic::{
-    transport::Server as TonicServer, Request as TonicRequest, Response as TonicResponse,
-    Status as TonicStatus,
+    Request as TonicRequest, Response as TonicResponse, Status as TonicStatus,
+    transport::Server as TonicServer,
 };
 
 #[derive(Clone)]
@@ -34,9 +34,7 @@ impl Authorization for TestGrpcAuth {
             .send(request.into_inner())
             .await
             .map_err(|_| TonicStatus::internal("observer dropped"))?;
-        self.response
-            .clone()
-            .map(TonicResponse::new)
+        self.response.clone().map(TonicResponse::new)
     }
 }
 
@@ -110,6 +108,7 @@ fn external_auth_http_snapshot(
                 }],
                 ..HttpRule::default()
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![
@@ -192,7 +191,10 @@ fn external_auth_grpc_snapshot(
                             ..BackendRef::default()
                         },
                         grpc: ntgw_ir::ExternalGRPCAuthConfig {
-                            allowed_headers: allowed_headers.into_iter().map(str::to_string).collect(),
+                            allowed_headers: allowed_headers
+                                .into_iter()
+                                .map(str::to_string)
+                                .collect(),
                         },
                         ..ntgw_ir::ExternalAuthFilter::default()
                     }),
@@ -259,7 +261,9 @@ fn grpc_allow_response() -> CheckResponse {
             message: String::new(),
             details: Vec::new(),
         }),
-        http_response: Some(HttpResponse::OkResponse(OkHttpResponse { headers: Vec::new() })),
+        http_response: Some(HttpResponse::OkResponse(OkHttpResponse {
+            headers: Vec::new(),
+        })),
     }
 }
 
@@ -271,7 +275,9 @@ fn grpc_deny_response(status: EnvoyStatusCode, body: &str) -> CheckResponse {
             details: Vec::new(),
         }),
         http_response: Some(HttpResponse::DeniedResponse(DeniedHttpResponse {
-            status: Some(HttpStatus { code: status as i32 }),
+            status: Some(HttpStatus {
+                code: status as i32,
+            }),
             body: body.to_string(),
             headers: Vec::new(),
         })),
@@ -376,10 +382,16 @@ async fn external_auth_grpc_ok_allows_request_and_sends_selected_headers() {
     assert_eq!(http.method, "GET");
     assert_eq!(http.path, "/protected?x=1");
     assert_eq!(http.host, "example.com");
-    assert_eq!(http.headers.get("authorization").map(String::as_str), Some("Bearer ok"));
+    assert_eq!(
+        http.headers.get("authorization").map(String::as_str),
+        Some("Bearer ok")
+    );
     assert!(!http.headers.contains_key("x-extra"));
     assert!(http.body.is_empty());
-    backend.await.expect("backend task").expect("backend result");
+    backend
+        .await
+        .expect("backend task")
+        .expect("backend result");
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
@@ -460,7 +472,10 @@ async fn external_auth_grpc_forward_body_sends_buffered_body_to_auth_and_backend
         .map(|http| http.body)
         .expect("auth http body");
     assert_eq!(body, b"grpc-body".to_vec());
-    backend.await.expect("backend task").expect("backend result");
+    backend
+        .await
+        .expect("backend task")
+        .expect("backend result");
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
@@ -505,7 +520,11 @@ async fn external_auth_http_forward_body_sends_buffered_body_to_auth_and_backend
             .context("auth accept timeout")??;
         let headers = read_http_headers(&mut stream).await?;
         assert!(headers.starts_with("POST /auth HTTP/1.1\r\n"));
-        assert!(headers.to_ascii_lowercase().contains("content-length: 9\r\n"));
+        assert!(
+            headers
+                .to_ascii_lowercase()
+                .contains("content-length: 9\r\n")
+        );
         let body = read_http_body(&mut stream, &headers).await?;
         assert_eq!(body, b"auth-body".to_vec());
         stream
@@ -545,7 +564,10 @@ async fn external_auth_http_forward_body_sends_buffered_body_to_auth_and_backend
     stop_server(server);
     result.expect("client flow");
     auth.await.expect("auth task").expect("auth result");
-    backend.await.expect("backend task").expect("backend result");
+    backend
+        .await
+        .expect("backend task")
+        .expect("backend result");
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
@@ -599,12 +621,16 @@ async fn external_auth_http_forward_body_rejects_oversized_body_before_auth_or_b
     .await;
 
     result.expect("client flow");
-    assert!(timeout(Duration::from_millis(100), auth_listener.accept())
-        .await
-        .is_err());
-    assert!(timeout(Duration::from_millis(100), backend_listener.accept())
-        .await
-        .is_err());
+    assert!(
+        timeout(Duration::from_millis(100), auth_listener.accept())
+            .await
+            .is_err()
+    );
+    assert!(
+        timeout(Duration::from_millis(100), backend_listener.accept())
+            .await
+            .is_err()
+    );
     stop_server(server);
 }
 
@@ -644,7 +670,10 @@ async fn external_auth_grpc_denied_response_returns_status_and_body_without_back
 
     let mut observed_auth = spawn_grpc_auth_server(
         auth_port,
-        Ok(grpc_deny_response(EnvoyStatusCode::Forbidden, "grpc denied")),
+        Ok(grpc_deny_response(
+            EnvoyStatusCode::Forbidden,
+            "grpc denied",
+        )),
     );
     let backend = tokio::spawn(async move {
         timeout(Duration::from_millis(250), backend_listener.accept())
@@ -679,8 +708,14 @@ async fn external_auth_grpc_denied_response_returns_status_and_body_without_back
         .expect("request")
         .http
         .expect("http request");
-    assert_eq!(http.headers.get("x-extra").map(String::as_str), Some("forwarded-when-list-empty"));
-    backend.await.expect("backend task").expect("backend result");
+    assert_eq!(
+        http.headers.get("x-extra").map(String::as_str),
+        Some("forwarded-when-list-empty")
+    );
+    backend
+        .await
+        .expect("backend task")
+        .expect("backend result");
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
@@ -717,10 +752,8 @@ async fn external_auth_grpc_rpc_error_fails_closed_without_backend() {
     )
     .expect("start server");
 
-    let _observed_auth = spawn_grpc_auth_server(
-        auth_port,
-        Err(TonicStatus::unavailable("auth unavailable")),
-    );
+    let _observed_auth =
+        spawn_grpc_auth_server(auth_port, Err(TonicStatus::unavailable("auth unavailable")));
     let backend = tokio::spawn(async move {
         timeout(Duration::from_millis(250), backend_listener.accept())
             .await
@@ -742,7 +775,10 @@ async fn external_auth_grpc_rpc_error_fails_closed_without_backend() {
 
     stop_server(server);
     result.expect("client flow");
-    backend.await.expect("backend task").expect("backend result");
+    backend
+        .await
+        .expect("backend task")
+        .expect("backend result");
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
@@ -785,10 +821,16 @@ async fn external_auth_http_always_forwards_authorization_even_without_allowed_h
             .await
             .context("auth accept timeout")??;
         let request = read_http_headers(&mut stream).await?;
-        assert!(request
-            .to_ascii_lowercase()
-            .contains("authorization: bearer ok\r\n"));
-        assert!(!request.to_ascii_lowercase().contains("x-extra: should-not-forward\r\n"));
+        assert!(
+            request
+                .to_ascii_lowercase()
+                .contains("authorization: bearer ok\r\n")
+        );
+        assert!(
+            !request
+                .to_ascii_lowercase()
+                .contains("x-extra: should-not-forward\r\n")
+        );
         stream
             .write_all(b"HTTP/1.1 204 No Content\r\nContent-Length: 0\r\n\r\n")
             .await?;
@@ -824,7 +866,10 @@ async fn external_auth_http_always_forwards_authorization_even_without_allowed_h
     stop_server(server);
     result.expect("client flow");
     auth.await.expect("auth task").expect("auth result");
-    backend.await.expect("backend task").expect("backend result");
+    backend
+        .await
+        .expect("backend task")
+        .expect("backend result");
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
@@ -867,9 +912,11 @@ async fn external_auth_http_copies_allowed_auth_response_headers_to_backend_requ
             .await
             .context("auth accept timeout")??;
         let request = read_http_headers(&mut stream).await?;
-        assert!(request
-            .to_ascii_lowercase()
-            .contains("authorization: bearer ok\r\n"));
+        assert!(
+            request
+                .to_ascii_lowercase()
+                .contains("authorization: bearer ok\r\n")
+        );
         stream
             .write_all(
                 b"HTTP/1.1 204 No Content\r\nContent-Length: 0\r\nX-User: alice\r\nX-Scope: admin\r\nHost: auth.example\r\n\r\n",
@@ -910,7 +957,10 @@ async fn external_auth_http_copies_allowed_auth_response_headers_to_backend_requ
     stop_server(server);
     result.expect("client flow");
     auth.await.expect("auth task").expect("auth result");
-    backend.await.expect("backend task").expect("backend result");
+    backend
+        .await
+        .expect("backend task")
+        .expect("backend result");
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
@@ -954,7 +1004,11 @@ async fn external_auth_http_2xx_allows_request_to_backend() {
             .context("auth accept timeout")??;
         let request = read_http_headers(&mut stream).await?;
         assert!(request.starts_with("GET /auth HTTP/1.1\r\n"));
-        assert!(request.to_ascii_lowercase().contains("authorization: bearer ok\r\n"));
+        assert!(
+            request
+                .to_ascii_lowercase()
+                .contains("authorization: bearer ok\r\n")
+        );
         stream
             .write_all(b"HTTP/1.1 204 No Content\r\nContent-Length: 0\r\n\r\n")
             .await?;
@@ -990,7 +1044,10 @@ async fn external_auth_http_2xx_allows_request_to_backend() {
     stop_server(server);
     result.expect("client flow");
     auth.await.expect("auth task").expect("auth result");
-    backend.await.expect("backend task").expect("backend result");
+    backend
+        .await
+        .expect("backend task")
+        .expect("backend result");
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
@@ -1062,7 +1119,10 @@ async fn external_auth_http_non_2xx_denies_without_backend() {
     stop_server(server);
     result.expect("client flow");
     auth.await.expect("auth task").expect("auth result");
-    backend.await.expect("backend task").expect("backend result");
+    backend
+        .await
+        .expect("backend task")
+        .expect("backend result");
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
@@ -1120,7 +1180,10 @@ async fn external_auth_http_connection_error_fails_closed_without_backend() {
 
     stop_server(server);
     result.expect("client flow");
-    backend.await.expect("backend task").expect("backend result");
+    backend
+        .await
+        .expect("backend task")
+        .expect("backend result");
 }
 
 #[test]
@@ -1178,7 +1241,9 @@ fn external_auth_backend_tls_validation_in_snapshot() {
 
 #[test]
 fn external_auth_with_backend_tls_and_session_persistence_combo_snapshot() {
-    use ntgw_ir::{BackendPolicy, BackendTlsValidation, LoadBalancingPolicy, SessionPersistence, Snapshot};
+    use ntgw_ir::{
+        BackendPolicy, BackendTlsValidation, LoadBalancingPolicy, SessionPersistence, Snapshot,
+    };
 
     let snapshot = Snapshot {
         backends: vec![
@@ -1260,7 +1325,11 @@ fn external_auth_with_backend_tls_and_session_persistence_combo_snapshot() {
         .expect("backend policy");
     assert!(backend_policy.session_persistence.is_some());
     assert_eq!(
-        backend_policy.session_persistence.as_ref().unwrap().session_name,
+        backend_policy
+            .session_persistence
+            .as_ref()
+            .unwrap()
+            .session_name,
         "test-session"
     );
     assert!(backend_policy.load_balancing.is_some());

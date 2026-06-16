@@ -33,6 +33,30 @@ mod bench_tests;
 #[cfg(test)]
 mod tests;
 
+#[cfg(test)]
+#[test]
+fn discovery_messages_include_supported_features() {
+    tests::run_exact_discovery_messages_include_supported_features();
+}
+
+#[cfg(test)]
+#[test]
+fn preflight_required_features_reports_sorted_missing_features() {
+    tests::run_exact_preflight_required_features_reports_sorted_missing_features();
+}
+
+#[cfg(test)]
+#[test]
+fn preflight_required_features_accepts_supported_snapshot() {
+    tests::run_exact_preflight_required_features_accepts_supported_snapshot();
+}
+
+#[cfg(test)]
+#[test]
+fn preflight_rejection_keeps_last_good_snapshot() {
+    tests::run_exact_preflight_rejection_keeps_last_good_snapshot();
+}
+
 pub use reconnect::ReconnectBackoff;
 pub(crate) use reconnect::{
     log_duplicate_snapshot_skipped, log_heartbeat_report_failure, log_stream_failure_retry,

@@ -148,6 +148,7 @@ fn tcp_snapshot(
                     ..ntgw_ir::BackendRef::default()
                 }],
             }],
+            labels: std::collections::BTreeMap::new(),
             annotations: std::collections::BTreeMap::new(),
         }],
         backends: vec![ntgw_ir::BackendCluster {

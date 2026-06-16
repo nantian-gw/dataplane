@@ -41,6 +41,7 @@ async fn tls_passthrough_prefers_exact_sni_match_over_wildcard() -> Result<()> {
                         ..BackendRef::default()
                     }],
                 }],
+                labels: BTreeMap::new(),
                 annotations: BTreeMap::new(),
             },
             StreamRoute {
@@ -62,6 +63,7 @@ async fn tls_passthrough_prefers_exact_sni_match_over_wildcard() -> Result<()> {
                         ..BackendRef::default()
                     }],
                 }],
+                labels: BTreeMap::new(),
                 annotations: BTreeMap::new(),
             },
         ],
@@ -129,7 +131,10 @@ async fn tls_passthrough_prefers_exact_sni_match_over_wildcard() -> Result<()> {
             TCP_PROXY_BUFFER_BYTES,
             None,
             None,
-            std::sync::Arc::new(crate::pool::TcpConnectionPool::new(0, Duration::from_secs(30))),
+            std::sync::Arc::new(crate::pool::TcpConnectionPool::new(
+                0,
+                Duration::from_secs(30),
+            )),
         )
         .await
     });

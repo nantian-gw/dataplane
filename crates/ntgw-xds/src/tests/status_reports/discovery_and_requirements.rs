@@ -18,6 +18,10 @@ fn discovery_requests_encode_ack_and_nack_status() {
 
 #[test]
 fn discovery_messages_include_supported_features() {
+    run_discovery_messages_include_supported_features();
+}
+
+pub(super) fn run_discovery_messages_include_supported_features() {
     let supported = canonicalize_supported_features([
         " backend.wasm_plugin.v1 ",
         "route.labels.v1",
@@ -104,6 +108,10 @@ fn required_runtime_names_describes_combined_requirements() {
 
 #[test]
 fn preflight_required_features_reports_sorted_missing_features() {
+    run_preflight_required_features_reports_sorted_missing_features();
+}
+
+pub(super) fn run_preflight_required_features_reports_sorted_missing_features() {
     let snapshot = ConfigSnapshot {
         required_features: vec![
             "route.labels.v1".to_string(),
@@ -126,6 +134,10 @@ fn preflight_required_features_reports_sorted_missing_features() {
 
 #[test]
 fn preflight_required_features_accepts_supported_snapshot() {
+    run_preflight_required_features_accepts_supported_snapshot();
+}
+
+pub(super) fn run_preflight_required_features_accepts_supported_snapshot() {
     let snapshot = ConfigSnapshot {
         required_features: vec!["core.v1".to_string(), "route.labels.v1".to_string()],
         ..ConfigSnapshot::default()

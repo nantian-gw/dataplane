@@ -54,6 +54,7 @@ fn mirrored_http_snapshot(
                 }],
                 ..HttpRule::default()
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![
@@ -97,9 +98,7 @@ async fn request_mirror_filter_sends_get_to_mirror_backend() {
         .await
         .expect("primary bind");
     let primary_addr = primary_listener.local_addr().expect("primary addr");
-    let mirror_listener = TcpListener::bind("127.0.0.1:0")
-        .await
-        .expect("mirror bind");
+    let mirror_listener = TcpListener::bind("127.0.0.1:0").await.expect("mirror bind");
     let mirror_addr = mirror_listener.local_addr().expect("mirror addr");
     let gateway_port = free_tcp_port();
     let snapshot = mirrored_http_snapshot(

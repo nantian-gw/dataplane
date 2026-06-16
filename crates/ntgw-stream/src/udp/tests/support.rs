@@ -39,6 +39,7 @@ fn test_snapshot(listener: Listener, upstream_addr: std::net::SocketAddr) -> Sha
                     ..BackendRef::default()
                 }],
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {

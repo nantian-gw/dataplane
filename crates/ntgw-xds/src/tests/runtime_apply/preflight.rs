@@ -1,5 +1,9 @@
 #[test]
 fn preflight_rejection_keeps_last_good_snapshot() {
+    run_preflight_rejection_keeps_last_good_snapshot();
+}
+
+pub(super) fn run_preflight_rejection_keeps_last_good_snapshot() {
     let snapshot = Snapshot::shared();
     *snapshot.write() = Snapshot {
         id: "last-good-v1".to_string(),

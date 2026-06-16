@@ -278,6 +278,7 @@ fn tlsroute_terminate_snapshot(
                         ..BackendRef::default()
                     }],
                 }],
+                labels: BTreeMap::new(),
                 annotations: BTreeMap::new(),
             },
             StreamRoute {
@@ -299,6 +300,7 @@ fn tlsroute_terminate_snapshot(
                         ..BackendRef::default()
                     }],
                 }],
+                labels: BTreeMap::new(),
                 annotations: BTreeMap::new(),
             },
         ],

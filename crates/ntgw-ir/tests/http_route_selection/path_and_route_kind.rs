@@ -16,7 +16,7 @@ fn selects_exact_path_before_prefix_match() {
                 parent_refs: vec![],
                 rules: vec![path_rule("/orders", "default", "orders-prefix", 8080)],
                 labels: BTreeMap::new(),
-            annotations: BTreeMap::new(),
+                annotations: BTreeMap::new(),
             },
             HttpRoute {
                 name: "exact-route".to_string(),
@@ -37,7 +37,7 @@ fn selects_exact_path_before_prefix_match() {
                     session_persistence: None,
                 }],
                 labels: BTreeMap::new(),
-            annotations: BTreeMap::new(),
+                annotations: BTreeMap::new(),
             },
         ],
         backends: vec![

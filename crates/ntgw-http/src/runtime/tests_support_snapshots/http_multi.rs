@@ -46,6 +46,7 @@ fn multi_backend_http_snapshot(
                 retry,
                 ..HttpRule::default()
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         backends: backends

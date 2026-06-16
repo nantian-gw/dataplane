@@ -29,6 +29,7 @@ fn observe_selected_backend_failure_ejects_endpoint_after_threshold() {
                     retry: None,
                     session_persistence: None,
                 }],
+                labels: BTreeMap::new(),
                 annotations: BTreeMap::new(),
             }],
             backends: vec![BackendCluster {

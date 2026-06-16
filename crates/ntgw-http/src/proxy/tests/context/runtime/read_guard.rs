@@ -29,6 +29,7 @@ fn observe_selected_backend_failure_completes_while_snapshot_read_guard_is_held(
                     retry: None,
                     session_persistence: None,
                 }],
+                labels: BTreeMap::new(),
                 annotations: BTreeMap::new(),
             }],
             backends: vec![BackendCluster {

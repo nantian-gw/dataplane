@@ -62,6 +62,7 @@ fn direct_response_snapshot(listener_port: u16, path: &str) -> ntgw_ir::SharedSn
                 backend_refs: Vec::new(),
                 ..HttpRule::default()
             }],
+            labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
         ..Snapshot::default()

@@ -103,7 +103,7 @@ fn prefers_lexicographically_earlier_route_when_http_scores_tie() {
                 parent_refs: vec![],
                 rules: vec![path_rule("/", "default", "backend-z", 8080)],
                 labels: BTreeMap::new(),
-            annotations: BTreeMap::new(),
+                annotations: BTreeMap::new(),
             },
             HttpRoute {
                 name: "a-route".to_string(),
@@ -112,7 +112,7 @@ fn prefers_lexicographically_earlier_route_when_http_scores_tie() {
                 parent_refs: vec![],
                 rules: vec![path_rule("/", "default", "backend-a", 8080)],
                 labels: BTreeMap::new(),
-            annotations: BTreeMap::new(),
+                annotations: BTreeMap::new(),
             },
         ],
         backends: vec![
