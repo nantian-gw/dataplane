@@ -516,17 +516,41 @@ pub(crate) fn cache_access_log_connection_fields_if_needed(
     access_log: &AccessLogOptions,
     route_annotations: &BTreeMap<String, String>,
 ) {
+    cache_access_log_connection_fields_from_sources_if_needed(
+        ctx,
+        access_log,
+        route_annotations,
+        session
+            .as_downstream()
+            .digest()
+            .and_then(|digest| digest.ssl_digest.as_ref())
+            .is_some(),
+        session
+            .client_addr()
+            .and_then(|addr| addr.as_inet().map(|inet| inet.port())),
+        session
+            .as_downstream()
+            .digest()
+            .and_then(|digest| digest.socket_digest.as_ref())
+            .and_then(|socket| socket.peer_addr())
+            .and_then(|addr| addr.as_inet().map(|inet| inet.port())),
+    );
+}
+
+pub(crate) fn cache_access_log_connection_fields_from_sources_if_needed(
+    ctx: &mut RequestContext,
+    access_log: &AccessLogOptions,
+    route_annotations: &BTreeMap<String, String>,
+    downstream_tls_present: bool,
+    client_remote_port: Option<u16>,
+    digest_peer_remote_port: Option<u16>,
+) {
     let Some(requirements) = access_log_response_requirements(access_log, route_annotations) else {
         return;
     };
 
     if requirements.needs_scheme {
-        ctx.access_log_scheme = if session
-            .as_downstream()
-            .digest()
-            .and_then(|digest| digest.ssl_digest.as_ref())
-            .is_some()
-        {
+        ctx.access_log_scheme = if downstream_tls_present {
             "https".to_string()
         } else {
             "http".to_string()
@@ -534,16 +558,7 @@ pub(crate) fn cache_access_log_connection_fields_if_needed(
     }
 
     if requirements.needs_remote_port {
-        ctx.access_log_remote_port = session
-            .client_addr()
-            .or_else(|| {
-                session
-                    .as_downstream()
-                    .digest()
-                    .and_then(|digest| digest.socket_digest.as_ref())
-                    .and_then(|socket| socket.peer_addr())
-            })
-            .and_then(|addr| addr.as_inet().map(|inet| inet.port()));
+        ctx.access_log_remote_port = client_remote_port.or(digest_peer_remote_port);
     }
 }
 
