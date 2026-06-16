@@ -103,25 +103,16 @@ pub(crate) async fn do_request_filter(
             config,
             frontend_client_certificate_requirement,
         } = fast_path_selected;
-        cache_fast_selected_backend_state(
-            ctx,
-            selected.clone(),
-            proxy.selected_display_fields_needed(ctx),
-        );
-        ctx.selected_backend_config = Some(config);
-        let access_log_route_annotations =
-            super::request::access_log_route_annotations(ctx).clone();
-        super::request::cache_access_log_connection_fields_if_needed(
-            session,
-            ctx,
-            &proxy.access_log,
-            &access_log_route_annotations,
-        );
         if frontend_client_certificate_requirement
             .closes_connection_without_valid_client_certificate(
                 downstream_tls_client_certificate_present(session),
             )
         {
+            cache_fast_selected_backend_state(
+                ctx,
+                selected,
+                proxy.selected_display_fields_needed(ctx),
+            );
             return Err(missing_frontend_client_certificate_error(ctx));
         }
         if !proxy
@@ -139,6 +130,12 @@ pub(crate) async fn do_request_filter(
         if ctx.rate_limit_applied {
             proxy.rate_limit.observe_allow();
         }
+        cache_fast_selected_backend_state(
+            ctx,
+            selected.clone(),
+            proxy.selected_display_fields_needed(ctx),
+        );
+        ctx.selected_backend_config = Some(config);
         record_request_span(ctx);
         let fast_host = ctx.host.clone();
         let fast_path = ctx.path.clone();
