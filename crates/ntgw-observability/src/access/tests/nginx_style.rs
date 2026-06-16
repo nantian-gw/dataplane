@@ -98,3 +98,72 @@ fn stream_records_render_http_only_nginx_variables_as_dash() {
 
     assert_eq!(line, "- - - tcp_session");
 }
+
+#[test]
+fn parses_response_side_nginx_variables_into_requirements() {
+    let compiled = compile_access_log_template(
+        r#"$sent_http_content_type $upstream_http_server $upstream_status $scheme $remote_port"#,
+    );
+
+    assert_eq!(
+        compiled.requirements.sent_response_headers,
+        BTreeSet::from(["content-type".to_string()])
+    );
+    assert_eq!(
+        compiled.requirements.upstream_response_headers,
+        BTreeSet::from(["server".to_string()])
+    );
+    assert!(compiled.requirements.needs_upstream_status);
+    assert!(compiled.requirements.needs_scheme);
+    assert!(compiled.requirements.needs_remote_port);
+}
+
+#[test]
+fn renders_response_side_nginx_variables() {
+    let line = render_access_log(
+        &AccessLogOptions {
+            mode: AccessLogMode::Text,
+            format: r#"$scheme $remote_port "$sent_http_content_type" "$upstream_http_server" $upstream_status"#.to_string(),
+            ..AccessLogOptions::default()
+        },
+        &AccessLogRecord {
+            scheme: "https".to_string(),
+            remote_port: Some(54432),
+            sent_response_header_values: BTreeMap::from([(
+                "content-type".to_string(),
+                "application/json".to_string(),
+            )]),
+            upstream_response_header_values: BTreeMap::from([(
+                "server".to_string(),
+                "orders-upstream".to_string(),
+            )]),
+            upstream_statuses: vec![502, 200],
+            ..AccessLogRecord::default()
+        },
+    )
+    .expect("line should render");
+
+    assert_eq!(
+        line,
+        r#"https 54432 "application/json" "orders-upstream" 502, 200"#
+    );
+}
+
+#[test]
+fn stream_records_render_response_side_http_variables_as_dash() {
+    let line = render_access_log(
+        &AccessLogOptions {
+            mode: AccessLogMode::Text,
+            format: r#"$sent_http_content_type $upstream_http_server $upstream_status $scheme $remote_port"#.to_string(),
+            ..AccessLogOptions::default()
+        },
+        &AccessLogRecord {
+            event: "tcp_session".to_string(),
+            protocol: Cow::Borrowed("TCP"),
+            ..AccessLogRecord::default()
+        },
+    )
+    .expect("line should render");
+
+    assert_eq!(line, "- - - - -");
+}
