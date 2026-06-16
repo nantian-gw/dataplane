@@ -160,6 +160,17 @@ fn stream_records_render_response_side_http_variables_as_dash() {
         &AccessLogRecord {
             event: "tcp_session".to_string(),
             protocol: Cow::Borrowed("TCP"),
+            scheme: "https".to_string(),
+            remote_port: Some(54432),
+            sent_response_header_values: BTreeMap::from([(
+                "content-type".to_string(),
+                "application/json".to_string(),
+            )]),
+            upstream_response_header_values: BTreeMap::from([(
+                "server".to_string(),
+                "orders-upstream".to_string(),
+            )]),
+            upstream_statuses: vec![502, 200],
             ..AccessLogRecord::default()
         },
     )

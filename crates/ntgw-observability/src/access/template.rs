@@ -458,7 +458,15 @@ fn seconds_with_millis(value_ms: u128) -> String {
     format!("{}.{:03}", value_ms / 1_000, value_ms % 1_000)
 }
 
+fn is_stream_access_log_record(record: &AccessLogRecord) -> bool {
+    matches!(
+        record.event.as_str(),
+        "tcp_session" | "tls_session" | "udp_datagram"
+    ) || matches!(record.protocol.as_ref(), "TCP" | "TLS_PASSTHROUGH" | "UDP")
+}
+
 fn render_variable(out: &mut String, variable: &AccessLogVariable, record: &AccessLogRecord) {
+    let is_stream_record = is_stream_access_log_record(record);
     match variable {
         AccessLogVariable::RemoteAddr => push_value_or_dash(out, &record.client_ip),
         AccessLogVariable::Host => push_value_or_dash(out, &record.host),
@@ -504,18 +512,30 @@ fn render_variable(out: &mut String, variable: &AccessLogVariable, record: &Acce
             None => out.push('-'),
         },
         AccessLogVariable::SentResponseHeader(name) => {
+            if is_stream_record {
+                out.push('-');
+                return;
+            }
             match record.sent_response_header_values.get(name) {
                 Some(value) => push_value_or_dash(out, value),
                 None => out.push('-'),
             }
         }
         AccessLogVariable::UpstreamResponseHeader(name) => {
+            if is_stream_record {
+                out.push('-');
+                return;
+            }
             match record.upstream_response_header_values.get(name) {
                 Some(value) => push_value_or_dash(out, value),
                 None => out.push('-'),
             }
         }
         AccessLogVariable::UpstreamStatus => {
+            if is_stream_record {
+                out.push('-');
+                return;
+            }
             if record.upstream_statuses.is_empty() {
                 out.push('-');
             } else {
@@ -527,12 +547,18 @@ fn render_variable(out: &mut String, variable: &AccessLogVariable, record: &Acce
                 }
             }
         }
-        AccessLogVariable::Scheme => push_value_or_dash(out, &record.scheme),
+        AccessLogVariable::Scheme => {
+            if is_stream_record {
+                out.push('-');
+            } else {
+                push_value_or_dash(out, &record.scheme);
+            }
+        }
         AccessLogVariable::RemotePort => match record.remote_port {
-            Some(port) => {
+            Some(port) if !is_stream_record => {
                 let _ = write!(out, "{port}");
             }
-            None => out.push('-'),
+            _ => out.push('-'),
         },
     }
 }
