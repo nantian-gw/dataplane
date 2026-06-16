@@ -19,6 +19,8 @@ adminAddr: 127.0.0.1:19080
     assert_eq!(cfg.access_log.mode, "json");
     assert_eq!(cfg.access_log.sample_rate, 0.5);
     assert!(cfg.access_log.format.contains("%REQUEST%"));
+    assert!(cfg.access_log.formats.is_empty());
+    assert!(cfg.access_log.format_name.is_empty());
     assert_eq!(
         cfg.access_log.route_annotation_prefix,
         "gateway.nantian.dev/access-log-"
