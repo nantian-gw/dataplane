@@ -5,19 +5,30 @@ async fn retry_after_connect_failure_reselects_next_backend_and_records_retry_me
         .await
         .expect("healthy backend bind");
     let healthy_addr = healthy_listener.local_addr().expect("healthy addr");
-    let failing_port = free_tcp_port();
     let gateway_port = free_tcp_port();
     let retry = RetryPolicy {
         codes: vec![503],
         attempts: 2,
         backoff: None,
     };
-    let snapshot = multi_backend_http_snapshot(
+    let snapshot = multi_backend_http_snapshot_with_addresses(
         gateway_port,
         "/retry-connect",
         &[
-            ("failing", failing_port as u32, "HTTP", 1),
-            ("healthy", healthy_addr.port() as u32, "HTTP", 1),
+            (
+                "failing",
+                "127.0.0.2",
+                healthy_addr.port() as u32,
+                "HTTP",
+                1,
+            ),
+            (
+                "healthy",
+                "127.0.0.1",
+                healthy_addr.port() as u32,
+                "HTTP",
+                1,
+            ),
         ],
         Some(retry),
     );
@@ -88,14 +99,25 @@ async fn default_transport_retry_after_connect_failure_reselects_fast_path_backe
         .await
         .expect("healthy backend bind");
     let healthy_addr = healthy_listener.local_addr().expect("healthy addr");
-    let stale_port = free_tcp_port();
     let gateway_port = free_tcp_port();
-    let snapshot = multi_backend_http_snapshot(
+    let snapshot = multi_backend_http_snapshot_with_addresses(
         gateway_port,
         "/retry-connect-default",
         &[
-            ("stale", stale_port as u32, "HTTP", 1),
-            ("healthy", healthy_addr.port() as u32, "HTTP", 1),
+            (
+                "stale",
+                "127.0.0.2",
+                healthy_addr.port() as u32,
+                "HTTP",
+                1,
+            ),
+            (
+                "healthy",
+                "127.0.0.1",
+                healthy_addr.port() as u32,
+                "HTTP",
+                1,
+            ),
         ],
         None,
     );
@@ -171,15 +193,26 @@ async fn default_transport_retry_avoids_failed_endpoint_for_concurrent_fast_path
         .await
         .expect("healthy backend bind");
     let healthy_addr = healthy_listener.local_addr().expect("healthy addr");
-    let stale_port = free_tcp_port();
     let gateway_port = free_tcp_port();
     let request_count = 8usize;
-    let snapshot = multi_backend_http_snapshot(
+    let snapshot = multi_backend_http_snapshot_with_addresses(
         gateway_port,
         "/retry-connect-concurrent",
         &[
-            ("stale", stale_port as u32, "HTTP", 1),
-            ("healthy", healthy_addr.port() as u32, "HTTP", 1),
+            (
+                "stale",
+                "127.0.0.2",
+                healthy_addr.port() as u32,
+                "HTTP",
+                1,
+            ),
+            (
+                "healthy",
+                "127.0.0.1",
+                healthy_addr.port() as u32,
+                "HTTP",
+                1,
+            ),
         ],
         None,
     );

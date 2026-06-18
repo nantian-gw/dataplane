@@ -4,6 +4,24 @@ fn multi_backend_http_snapshot(
     backends: &[(&str, u32, &str, u32)],
     retry: Option<RetryPolicy>,
 ) -> ntgw_ir::SharedSnapshot {
+    let backends_with_addresses: Vec<_> = backends
+        .iter()
+        .map(|(name, port, protocol, weight)| (*name, "127.0.0.1", *port, *protocol, *weight))
+        .collect();
+    multi_backend_http_snapshot_with_addresses(
+        listener_port,
+        path,
+        &backends_with_addresses,
+        retry,
+    )
+}
+
+fn multi_backend_http_snapshot_with_addresses(
+    listener_port: u16,
+    path: &str,
+    backends: &[(&str, &str, u32, &str, u32)],
+    retry: Option<RetryPolicy>,
+) -> ntgw_ir::SharedSnapshot {
     let shared = Snapshot::shared();
     *shared.write() = Snapshot {
         listeners: vec![Listener {
@@ -35,7 +53,7 @@ fn multi_backend_http_snapshot(
                 }],
                 backend_refs: backends
                     .iter()
-                    .map(|(name, port, _, weight)| BackendRef {
+                    .map(|(name, _, port, _, weight)| BackendRef {
                         namespace: "default".to_string(),
                         name: (*name).to_string(),
                         port: *port,
@@ -51,14 +69,14 @@ fn multi_backend_http_snapshot(
         }],
         backends: backends
             .iter()
-            .map(|(name, port, protocol, _)| BackendCluster {
+            .map(|(name, address, port, protocol, _)| BackendCluster {
                 ai_service: None,
                 token_policy: None,
                 name: format!("{name}:{port}"),
                 namespace: "default".to_string(),
                 protocol: (*protocol).to_string(),
                 endpoints: vec![BackendEndpoint {
-                    address: "127.0.0.1".to_string(),
+                    address: (*address).to_string(),
                     port: *port,
                     healthy: true,
                 }],
