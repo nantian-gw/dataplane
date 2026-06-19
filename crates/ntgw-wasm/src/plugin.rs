@@ -1,6 +1,7 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::OnceLock;
 use std::time::Duration;
 
 use parking_lot::RwLock;
@@ -65,10 +66,11 @@ pub enum HookResult {
 
 /// A loaded and compiled plugin module.
 struct LoadedPlugin {
-    module: Module,
-    config: serde_json::Value,
-    hooks: Vec<WasmHook>,
-    sandbox: WasmSandboxConfig,
+	module: Module,
+	config: serde_json::Value,
+	hooks: Vec<WasmHook>,
+	sandbox: WasmSandboxConfig,
+	sha256: Option<String>,
 }
 
 /// Manages the lifecycle of all loaded Wasm plugins.
@@ -130,12 +132,13 @@ impl PluginManager {
             }
         })?;
 
-        let loaded = LoadedPlugin {
-            module,
-            config,
-            hooks,
-            sandbox,
-        };
+		let loaded = LoadedPlugin {
+			module,
+			config,
+			hooks,
+			sandbox,
+			sha256: None,
+		};
 
         let mut plugins = self.plugins.write();
         plugins.insert(name.to_string(), loaded);
@@ -154,12 +157,130 @@ impl PluginManager {
         }
     }
 
-    /// Check if a plugin with the given name is loaded.
-    pub fn has_plugin(&self, name: &str) -> bool {
-        self.plugins.read().contains_key(name)
-    }
+	/// Check if a plugin with the given name is loaded.
+	pub fn has_plugin(&self, name: &str) -> bool {
+		self.plugins.read().contains_key(name)
+	}
 
-    /// Invoke a hook on a loaded plugin.
+	/// Load a new plugin or update an existing one in-place.
+	///
+	/// Returns Ok(true) if the plugin was newly loaded or its WASM bytes changed,
+	/// Ok(false) if the plugin was unchanged (same SHA256), or an error on failure.
+	pub fn load_or_update(
+		&self,
+		name: &str,
+		wasm_bytes: &[u8],
+		config: serde_json::Value,
+		hooks: Vec<WasmHook>,
+		sandbox: WasmSandboxConfig,
+		sha256: Option<&str>,
+	) -> Result<bool, WasmError> {
+		// Skip if SHA256 hasn't changed and plugin already loaded.
+		if let Some(sha) = sha256 {
+			let plugins = self.plugins.read();
+			if let Some(existing) = plugins.get(name)
+				&& existing.sha256.as_deref() == Some(sha) {
+					debug!(plugin = name, sha256 = sha, "plugin unchanged, skipping reload");
+					return Ok(false);
+				}
+		}
+
+		let module = wasmtime::Module::from_binary(&self.engine, wasm_bytes).map_err(|e| {
+			WasmError::LoadFailed {
+				name: name.to_string(),
+				reason: format!("compilation error: {e}"),
+			}
+		})?;
+
+		let loaded = LoadedPlugin {
+			module,
+			config,
+			hooks,
+			sandbox,
+			sha256: sha256.map(String::from),
+		};
+
+		let was_update = {
+			let mut plugins = self.plugins.write();
+			let existed = plugins.contains_key(name);
+			plugins.insert(name.to_string(), loaded);
+			existed
+		};
+
+		if was_update {
+			info!(plugin = name, "reloaded plugin (wasm bytes changed)");
+		} else {
+			info!(plugin = name, "loaded new plugin");
+		}
+		Ok(true)
+	}
+
+	/// Synchronize the plugin set to match the desired state.
+	///
+	/// - Loads or updates plugins present in `desired`
+	/// - Unloads plugins not present in `desired`
+	/// - Skips plugins whose SHA256 hasn't changed
+	///
+	/// Returns counts of (loaded, updated, skipped, unloaded) plugins.
+	pub fn diff_and_apply(
+		&self,
+		desired: &[WasmPluginSpec],
+	) -> (usize, usize, usize, usize) {
+		let mut loaded = 0;
+		let mut updated = 0;
+		let mut skipped = 0;
+		let mut unloaded = 0;
+
+		let desired_names: HashSet<&str> =
+			desired.iter().map(|(name, _, _, _, _, _)| name.as_str()).collect();
+
+		// Unload plugins not in the desired set.
+		{
+			let plugins = self.plugins.read();
+			let to_remove: Vec<String> = plugins
+				.keys()
+				.filter(|name| !desired_names.contains(name.as_str()))
+				.cloned()
+				.collect();
+			drop(plugins);
+
+			for name in &to_remove {
+				self.unload_plugin(name);
+				unloaded += 1;
+			}
+		}
+
+		// Load or update desired plugins.
+		for (name, wasm_bytes, config, hooks, sandbox, sha256) in desired {
+			match self.load_or_update(name, wasm_bytes, config.clone(), hooks.clone(), sandbox.clone(), sha256.as_deref()) {
+				Ok(true) => {
+					if self.plugins.read().contains_key(name.as_str()) && !self.plugins.read().is_empty() {
+						updated += 1;
+					} else {
+						loaded += 1;
+					}
+				}
+				Ok(false) => skipped += 1,
+				Err(e) => {
+					tracing::warn!(
+						target: "wasm",
+						plugin = %name,
+						error = %e,
+						"failed to load/reload plugin, keeping previous version"
+					);
+				}
+			}
+		}
+
+		(loaded, updated, skipped, unloaded)
+	}
+
+	/// Returns the names of all currently loaded plugins.
+	pub fn plugin_names(&self) -> Vec<String> {
+		self.plugins.read().keys().cloned().collect()
+	}
+
+	/// Invoke a hook on a loaded plugin.
     ///
     /// Creates a fresh Store with the sandbox config applied as a resource
     /// limiter, instantiates the module, calls the hook export, and returns
@@ -236,6 +357,21 @@ impl PluginManager {
             }
         }
     }
+}
+
+/// Specification for loading or updating a WASM plugin.
+pub type WasmPluginSpec = (String, Vec<u8>, serde_json::Value, Vec<WasmHook>, WasmSandboxConfig, Option<String>);
+
+static GLOBAL_PLUGIN_MANAGER: OnceLock<Arc<PluginManager>> = OnceLock::new();
+
+/// Returns the global PluginManager, creating it from the global Engine if needed.
+pub fn global_plugin_manager() -> Arc<PluginManager> {
+	GLOBAL_PLUGIN_MANAGER
+		.get_or_init(|| {
+			let engine = crate::engine::global_engine();
+			Arc::new(PluginManager::new((*engine).clone()).expect("failed to create global PluginManager"))
+		})
+		.clone()
 }
 
 #[cfg(test)]
