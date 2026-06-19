@@ -1,4 +1,5 @@
 use super::*;
+use std::borrow::Cow;
 
 const RENDEZVOUS_HASH_OFFSET_BASIS: u64 = 0xcbf29ce484222325;
 const RENDEZVOUS_HASH_PRIME: u64 = 0x100000001b3;
@@ -85,20 +86,20 @@ pub(super) fn route_kind_for_listener(protocol: &str) -> Option<RouteKind> {
     }
 }
 
-pub(super) fn consistent_hash_key(
-    policy: &LoadBalancingPolicy,
-    request: &RequestMeta,
-) -> Option<String> {
+pub(super) fn consistent_hash_key<'a>(
+    policy: &'_ LoadBalancingPolicy,
+    request: &'a RequestMeta,
+) -> Option<Cow<'a, str>> {
     let hash = policy.consistent_hash.as_ref()?;
     match hash.key_type.as_str() {
-        "SourceIP" => request.source_ip.clone(),
+        "SourceIP" => request.source_ip.as_deref().map(Cow::Borrowed),
         "Header" => request_header_value(request, hash.header_name.as_str()),
-        "Hostname" => request.host.clone(),
+        "Hostname" => request.host.as_deref().map(Cow::Borrowed),
         _ => None,
     }
 }
 
-fn request_header_value(request: &RequestMeta, header_name: &str) -> Option<String> {
+fn request_header_value<'a>(request: &'a RequestMeta, header_name: &str) -> Option<Cow<'a, str>> {
     if header_name.is_empty() {
         return None;
     }
@@ -107,14 +108,14 @@ fn request_header_value(request: &RequestMeta, header_name: &str) -> Option<Stri
         .headers
         .get(header_name)
         .and_then(|values| values.first())
-        .cloned()
+        .map(|v| Cow::Borrowed(v.as_str()))
         .or_else(|| {
             request
                 .headers
                 .iter()
                 .find(|(name, _)| name.eq_ignore_ascii_case(header_name))
                 .and_then(|(_, values)| values.first())
-                .cloned()
+                .map(|v| Cow::Borrowed(v.as_str()))
         })
 }
 

@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use std::time::Duration;
 
 use ntgw_ir::{BackendEndpoint, SharedSnapshot, Snapshot};
@@ -74,7 +75,7 @@ async fn run(
         }
 
         let targets = {
-            let current = snapshot.read();
+            let current = snapshot.load();
             collect_probe_targets(&current)
         };
         if targets.is_empty() {
@@ -103,8 +104,9 @@ async fn run(
         }
 
         let unhealthy_threshold = current.unhealthy_threshold;
-        let mut current_snapshot = snapshot.write();
+        let mut current_snapshot = Snapshot::clone(&snapshot.load());
         apply_probe_results(&mut current_snapshot, &results, unhealthy_threshold);
+        snapshot.store(Arc::new(current_snapshot));
     }
 }
 

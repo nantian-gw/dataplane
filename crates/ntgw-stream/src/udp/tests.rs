@@ -86,14 +86,16 @@ fn cleanup_access_log(path: &Path) {
 }
 
 fn rebuild_runtime_indexes(snapshot: &SharedSnapshot) {
-    snapshot.write().rebuild_runtime_indexes();
+    let mut s = (**snapshot.load()).clone();
+    s.rebuild_runtime_indexes();
+    snapshot.store(Arc::new(s));
 }
 
 fn selected_runtime_ids(
     snapshot: &SharedSnapshot,
     listener_name: &str,
 ) -> SelectedBackendRuntimeIds {
-    let current = snapshot.read();
+    let current = snapshot.load();
     let selected = current
         .select_stream_backend(listener_name, None)
         .expect("stream backend should match");

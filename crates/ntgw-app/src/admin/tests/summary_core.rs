@@ -27,7 +27,7 @@ fn build_runtime_rejection_summary_value() -> serde_json::Value {
         ..Snapshot::default()
     };
     let shared = Snapshot::shared();
-    *shared.write() = snapshot;
+    shared.store(Arc::new(snapshot));
     let xds = ClientStats::shared();
     xds.observe_connect_failure_with_error("dial tcp 127.0.0.1:18080: connection refused");
     xds.observe_stream_failure_with_error(
@@ -93,7 +93,7 @@ fn build_named_listener_pending_summary_value() -> (serde_json::Value, NamedList
             .to_string(),
     };
     let shared = Snapshot::shared();
-    *shared.write() = snapshot;
+    shared.store(Arc::new(snapshot));
     let state = build_state_with_parts(
         test_admin_runtime_config(),
         shared,

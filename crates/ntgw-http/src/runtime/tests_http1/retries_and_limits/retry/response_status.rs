@@ -27,7 +27,7 @@ async fn retryable_response_status_reselects_next_backend() {
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let server = start_server(
         plan,
         snapshot.clone(),
@@ -112,7 +112,7 @@ async fn response_side_access_log_variables_capture_proxied_retry_response() {
         }),
     );
     {
-        let mut current = snapshot.write();
+        let mut current = (**snapshot.load()).clone();
         current.http_routes[0].annotations = BTreeMap::from([
             (
                 "gateway.nantian.dev/access-log-mode".to_string(),
@@ -135,12 +135,13 @@ async fn response_side_access_log_variables_capture_proxied_retry_response() {
             ..Filter::default()
         }];
         current.rebuild_runtime_indexes();
+        snapshot.store(Arc::new(current));
     }
     let runtime = RuntimeOptions {
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let log_path = temp_log_path("response-side-access-log-vars");
     let traffic = SharedTrafficStats::shared();
     let server = start_server(

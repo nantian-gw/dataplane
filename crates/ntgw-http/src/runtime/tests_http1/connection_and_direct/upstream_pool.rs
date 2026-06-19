@@ -12,7 +12,7 @@ async fn upstream_connection_pool_reuses_idle_http1_connection_across_clients() 
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let server = start_server(
         plan,
         snapshot.clone(),
@@ -88,7 +88,7 @@ async fn downstream_connection_close_does_not_disable_upstream_pool_reuse() {
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let server = start_server(
         plan,
         snapshot.clone(),

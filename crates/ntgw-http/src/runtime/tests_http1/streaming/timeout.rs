@@ -13,18 +13,19 @@ async fn streaming_http_explicit_backend_request_timeout_records_ut_without_retr
         "HTTP",
     );
     {
-        let mut current = snapshot.write();
+        let mut current = (**snapshot.load()).clone();
         current.http_routes[0].rules[0].timeouts = Some(ntgw_ir::RouteTimeouts {
             request: None,
             backend_request: Some(Duration::from_millis(75)),
         });
         current.rebuild_runtime_indexes();
+        snapshot.store(Arc::new(current));
     }
     let runtime = RuntimeOptions {
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let log_path = temp_log_path("streaming-http-explicit-backend-timeout");
     let traffic = SharedTrafficStats::shared();
     let server = start_server(

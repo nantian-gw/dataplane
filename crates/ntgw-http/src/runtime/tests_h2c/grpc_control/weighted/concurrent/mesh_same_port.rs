@@ -18,7 +18,7 @@ async fn mesh_grpc_weighted_backends_reselect_concurrent_streams_when_backends_s
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let traffic = SharedTrafficStats::shared();
     let server = start_server(
         plan,

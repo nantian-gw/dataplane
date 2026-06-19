@@ -8,8 +8,7 @@ fn observe_selected_backend_failure_completes_while_snapshot_read_guard_is_held(
         BTreeMap::new(),
     );
     {
-        let mut current = snapshot.write();
-        *current = Snapshot {
+        snapshot.store(Arc::new(Snapshot {
             http_routes: vec![HttpRoute {
                 name: "route".to_string(),
                 namespace: "default".to_string(),
@@ -53,17 +52,17 @@ fn observe_selected_backend_failure_completes_while_snapshot_read_guard_is_held(
                 wasm_plugin: None,
             }],
             ..Snapshot::default()
-        };
+        }));
     }
 
     let selected = snapshot
-        .read()
+        .load()
         .select_backend(&request)
         .expect("selected backend");
     let mut ctx = RequestContext::default();
     cache_selected_backend(&mut ctx, selected, true);
 
-    let held_read = snapshot.read();
+    let held_read = snapshot.load();
     let worker_snapshot = snapshot.clone();
     let (tx, rx) = mpsc::channel();
     let worker = thread::spawn(move || {

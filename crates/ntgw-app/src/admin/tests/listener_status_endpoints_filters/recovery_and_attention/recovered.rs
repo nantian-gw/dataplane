@@ -19,7 +19,7 @@ async fn listener_status_endpoint_filters_by_recovered_from_failure() {
         ],
         ..Snapshot::default()
     };
-    *state.snapshot.write() = snapshot;
+    state.snapshot.store(Arc::new(snapshot));
     state
         .runtime
         .observe_http_listener_reload_failure("v1", "recovered", "bind conflict");

@@ -5,7 +5,7 @@ fn mirrored_http_snapshot(
     mirror_port: u32,
 ) -> ntgw_ir::SharedSnapshot {
     let shared = Snapshot::shared();
-    *shared.write() = Snapshot {
+    shared.store(Arc::new(Snapshot {
         listeners: vec![Listener {
             name: "default/gw/http".to_string(),
             address: "127.0.0.1".to_string(),
@@ -86,8 +86,10 @@ fn mirrored_http_snapshot(
             },
         ],
         ..Snapshot::default()
-    };
-    shared.write().rebuild_runtime_indexes();
+    }));
+    let mut s = (**shared.load()).clone();
+    s.rebuild_runtime_indexes();
+    shared.store(Arc::new(s));
     shared
 }
 
@@ -111,7 +113,7 @@ async fn request_mirror_filter_sends_get_to_mirror_backend() {
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let server = start_server(
         plan,
         snapshot.clone(),

@@ -12,7 +12,7 @@ async fn strict_frontend_validation_closes_request_when_tls_acceptor_has_not_rel
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let server = start_server(
         plan,
         snapshot.clone(),
@@ -42,7 +42,7 @@ async fn strict_frontend_validation_closes_request_when_tls_acceptor_has_not_rel
 
     wait_for_listener(gateway_port).await;
     {
-        let mut current = snapshot.write();
+        let mut current = (**snapshot.load()).clone();
         let tls = current.listeners[0]
             .tls
             .as_mut()
@@ -52,6 +52,7 @@ async fn strict_frontend_validation_closes_request_when_tls_acceptor_has_not_rel
             mode: "RequireClientCertificate".to_string(),
         });
         current.rebuild_runtime_indexes();
+        snapshot.store(Arc::new(current));
     }
 
     let result = https_http1_request(
@@ -93,7 +94,7 @@ async fn strict_frontend_validation_rejects_non_matching_client_certificate() {
     let snapshot =
         https_misdirected_snapshot(gateway_port, upstream_addr.port() as u32, upstream_addr.port());
     {
-        let mut current = snapshot.write();
+        let mut current = (**snapshot.load()).clone();
         let tls = current.listeners[0]
             .tls
             .as_mut()
@@ -103,12 +104,13 @@ async fn strict_frontend_validation_rejects_non_matching_client_certificate() {
             mode: "RequireClientCertificate".to_string(),
         });
         current.rebuild_runtime_indexes();
+        snapshot.store(Arc::new(current));
     }
     let runtime = RuntimeOptions {
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let server = start_server(
         plan,
         snapshot.clone(),

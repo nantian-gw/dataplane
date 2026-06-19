@@ -89,16 +89,16 @@ impl Snapshot {
             .get(requested_backend_name.as_str())
             .copied()?;
         let cluster = self.backends.get(backend_index)?;
-        let backend_name = backend_cluster_name(cluster);
+        let backend_name = Arc::<str>::from(backend_cluster_name(cluster));
         let endpoint_runtime_ids = cluster
             .endpoints
             .iter()
-            .map(|endpoint| self.endpoint_runtime_id(backend_name.as_str(), endpoint))
+            .map(|endpoint| self.endpoint_runtime_id(backend_name.as_ref(), endpoint))
             .collect();
 
         Some(CompiledHttpFastBackendRef {
             backend_index,
-            backend_runtime_id: self.backend_runtime_id(backend_name.as_str()),
+            backend_runtime_id: self.backend_runtime_id(backend_name.as_ref()),
             backend_name,
             weight: backend_ref.weight,
             endpoint_runtime_ids,
@@ -115,7 +115,7 @@ impl Snapshot {
             .filter_map(|compiled| {
                 let cluster = self.backends.get(compiled.backend_index)?;
                 (self
-                    .endpoint_selection_availability(cluster, compiled.backend_name.as_str(), now)
+                    .endpoint_selection_availability(cluster, compiled.backend_name.as_ref(), now)
                     .count
                     > 0)
                 .then_some(compiled.weight as u64)
@@ -133,7 +133,7 @@ impl Snapshot {
                 continue;
             };
             let availability =
-                self.endpoint_selection_availability(cluster, compiled.backend_name.as_str(), now);
+                self.endpoint_selection_availability(cluster, compiled.backend_name.as_ref(), now);
             if availability.count == 0 {
                 continue;
             }
@@ -412,12 +412,12 @@ impl Snapshot {
             let Some(endpoint) = self.select_cluster_endpoint_by_hash(
                 candidate.cluster,
                 backend_name_ref,
-                hash_key.as_str(),
+                hash_key.as_ref(),
             ) else {
                 return true;
             };
             let score = weighted_rendezvous_score(
-                hash_key.as_str(),
+                hash_key.as_ref(),
                 backend_name_ref,
                 candidate.backend_ref.weight.max(1) as f64,
             );
@@ -560,7 +560,7 @@ impl Snapshot {
         let mut seen = 0usize;
         for (endpoint_index, endpoint) in cluster.endpoints.iter().enumerate() {
             if !self.endpoint_matches_selection_availability(
-                compiled.backend_name.as_str(),
+                compiled.backend_name.as_ref(),
                 endpoint,
                 now,
                 availability,
@@ -570,7 +570,7 @@ impl Snapshot {
             if seen == target {
                 return Some(CompiledHttpFastBackendSelection {
                     endpoint: endpoint.clone(),
-                    backend_name: compiled.backend_name.clone(),
+                    backend_name: Arc::clone(&compiled.backend_name),
                     backend_runtime_id: compiled.backend_runtime_id,
                     endpoint_runtime_id: compiled
                         .endpoint_runtime_ids

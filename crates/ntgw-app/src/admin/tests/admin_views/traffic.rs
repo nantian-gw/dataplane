@@ -125,7 +125,7 @@ async fn traffic_view_nodes_expose_runtime_refs() {
         .backend_runtime_id("default/api:80")
         .expect("backend id");
     let snapshot = Snapshot::shared();
-    *snapshot.write() = indexed;
+    snapshot.store(Arc::new(indexed));
     let mut config = test_admin_runtime_config();
     config.admin_bearer_token = Some("top-secret".to_string());
     let state = build_state_with_parts(

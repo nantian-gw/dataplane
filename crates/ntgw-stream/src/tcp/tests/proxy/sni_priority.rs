@@ -1,3 +1,4 @@
+
 #[tokio::test]
 async fn tls_passthrough_prefers_exact_sni_match_over_wildcard() -> Result<()> {
     let hello = build_client_hello("api.example.com");
@@ -19,7 +20,7 @@ async fn tls_passthrough_prefers_exact_sni_match_over_wildcard() -> Result<()> {
         )
     };
     let snapshot = Snapshot::shared();
-    *snapshot.write() = Snapshot {
+    snapshot.store(Arc::new(Snapshot {
         listeners: vec![listener.clone()],
         stream_routes: vec![
             StreamRoute {
@@ -96,8 +97,7 @@ async fn tls_passthrough_prefers_exact_sni_match_over_wildcard() -> Result<()> {
             },
         ],
         ..Snapshot::default()
-    };
-
+    }));
     let expected_hello = hello.clone();
     let exact = tokio::spawn(async move {
         let (mut stream, _) = exact_listener.accept().await?;

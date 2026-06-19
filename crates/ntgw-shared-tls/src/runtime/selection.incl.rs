@@ -84,7 +84,7 @@ fn select_shared_tls_listeners(
     Option<SharedTlsListenerMatch>,
     Option<SharedTlsListenerMatch>,
 ) {
-    let current = snapshot.read();
+    let current = snapshot.load();
     (
         select_listener_match(
             &current,
@@ -107,7 +107,7 @@ fn select_passthrough_listener(
     listener_names: &[String],
     server_name: Option<&str>,
 ) -> Option<String> {
-    let current = snapshot.read();
+    let current = snapshot.load();
     select_listener_match(
         &current,
         listener_names,
@@ -123,7 +123,7 @@ fn select_terminate_listener(
     listener_names: &[String],
     server_name: Option<&str>,
 ) -> Option<String> {
-    let current = snapshot.read();
+    let current = snapshot.load();
     select_listener_match(
         &current,
         listener_names,
@@ -236,7 +236,7 @@ fn terminate_match_uses_tls_stream_route(
     listener_name: &str,
     server_name: Option<&str>,
 ) -> bool {
-    let current = snapshot.read();
+    let current = snapshot.load();
     let Some(listener) = current
         .listeners
         .iter()

@@ -11,7 +11,7 @@ async fn websocket_large_payload_tunnels_in_both_directions() {
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let server = start_server(
         plan,
         snapshot.clone(),

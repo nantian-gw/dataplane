@@ -8,8 +8,7 @@ fn observe_selected_backend_success_clears_failure_streak() {
         BTreeMap::new(),
     );
     {
-        let mut current = snapshot.write();
-        *current = Snapshot {
+        snapshot.store(Arc::new(Snapshot {
             http_routes: vec![HttpRoute {
                 name: "route".to_string(),
                 namespace: "default".to_string(),
@@ -53,15 +52,14 @@ fn observe_selected_backend_success_clears_failure_streak() {
                 wasm_plugin: None,
             }],
             ..Snapshot::default()
-        };
+        }));
     }
-
     let selected = snapshot
-        .read()
+        .load()
         .select_backend(&request)
         .expect("selected backend");
     {
-        let current = snapshot.write();
+        let current = snapshot.load();
         for _ in 0..(PASSIVE_EJECTION_CONSECUTIVE_FAILURES - 1) {
             current.record_endpoint_failure(&selected);
         }
@@ -76,7 +74,7 @@ fn observe_selected_backend_success_clears_failure_streak() {
         ctx.backend_observation_recorded = false;
     }
 
-    let addresses = collect_selected_addresses(&snapshot.read(), &request, 4);
+    let addresses = collect_selected_addresses(&snapshot.load(), &request, 4);
     assert_eq!(
         addresses
             .iter()

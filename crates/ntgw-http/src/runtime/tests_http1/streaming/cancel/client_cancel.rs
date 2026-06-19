@@ -27,7 +27,7 @@ async fn streaming_http_client_cancel_does_not_retry_to_next_backend() {
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let log_path = temp_log_path("streaming-http-client-cancel");
     let traffic = SharedTrafficStats::shared();
     let server = start_server(

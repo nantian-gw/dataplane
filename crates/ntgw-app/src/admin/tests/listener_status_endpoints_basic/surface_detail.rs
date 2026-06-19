@@ -97,12 +97,14 @@ async fn listener_status_endpoints_expose_runtime_state() {
 async fn listener_status_endpoints_expose_runtime_ids() {
     let state = test_state(Some("top-secret"));
     let expected_web_runtime_id = {
-        let mut snapshot = state.snapshot.write();
-        snapshot.rebuild_runtime_indexes();
-        snapshot
+        let mut s = (**state.snapshot.load()).clone();
+        s.rebuild_runtime_indexes();
+        let id = s
             .listener_runtime_id("web")
             .expect("listener runtime id")
-            .to_string()
+            .to_string();
+        state.snapshot.store(Arc::new(s));
+        id
     };
     let app = super::build_router(state);
 

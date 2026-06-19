@@ -21,7 +21,7 @@ async fn http1_route_inflight_budget_fast_fails_second_request() {
         },
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let server = start_server_with_overload_stats(
         plan,
         snapshot.clone(),

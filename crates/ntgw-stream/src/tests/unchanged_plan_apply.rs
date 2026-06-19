@@ -1,4 +1,5 @@
 use super::*;
+use std::sync::Arc;
 
 #[tokio::test]
 async fn run_marks_unchanged_stream_plan_as_applied_for_new_version() -> Result<()> {
@@ -14,11 +15,11 @@ async fn run_marks_unchanged_stream_plan_as_applied_for_new_version() -> Result<
         attached_routes: vec!["default/route-a".to_string()],
         ..Listener::default()
     };
-    *snapshot.write() = ntgw_ir::Snapshot {
+    snapshot.store(Arc::new(ntgw_ir::Snapshot {
         id: "v1".to_string(),
         listeners: vec![listener.clone()],
         ..ntgw_ir::Snapshot::default()
-    };
+    }));
 
     let (shutdown_tx, shutdown_rx) = watch::channel(false);
     let (_config_tx, config_rx) = watch::channel(Arc::new(ReloadableRuntimeConfig {
@@ -58,14 +59,14 @@ async fn run_marks_unchanged_stream_plan_as_applied_for_new_version() -> Result<
 
     let mut unchanged_topology = listener.clone();
     unchanged_topology.attached_routes = vec!["default/route-b".to_string()];
-    let previous = snapshot.read().clone();
+    let previous = (*snapshot.load()).clone();
     let mut next = ntgw_ir::Snapshot {
         id: "v2".to_string(),
         listeners: vec![unchanged_topology],
         ..ntgw_ir::Snapshot::default()
     };
     next.inherit_runtime_state_from(&previous);
-    *snapshot.write() = next;
+    snapshot.store(Arc::new(next));
     updates.notify_changed();
 
     let unchanged_plan_apply = tokio::time::timeout(Duration::from_millis(250), async {

@@ -63,7 +63,7 @@ async fn shared_tls_runtime_detects_misdirected_https_requests() -> Result<()> {
         http_backend_addr.port(),
         stream_backend_addr.port(),
     );
-    let plan = build_listener_plan(&snapshot.read(), &RuntimeOptions::default())?;
+    let plan = build_listener_plan(&snapshot.load(), &RuntimeOptions::default())?;
     let bind = Arc::new(plan.binds.get(&bind_addr).cloned().expect("bind"));
     let gateway_listener = TcpListener::bind(&bind_addr).await?;
     let app = build_http_app(
@@ -150,7 +150,7 @@ async fn shared_tls_rejects_invalid_frontend_validation_after_listener_selection
     let gateway_port = free_port();
     let bind_addr = format!("127.0.0.1:{gateway_port}");
     let snapshot = shared_tls_frontend_validation_snapshot(gateway_port, http_backend_addr.port());
-    let plan = build_listener_plan(&snapshot.read(), &RuntimeOptions::default())?;
+    let plan = build_listener_plan(&snapshot.load(), &RuntimeOptions::default())?;
     let bind = Arc::new(plan.binds.get(&bind_addr).cloned().expect("bind"));
     let gateway_listener = TcpListener::bind(&bind_addr).await?;
     let app = build_http_app(
@@ -339,7 +339,7 @@ fn shared_tls_frontend_validation_snapshot(
     http_backend_port: u16,
 ) -> SharedSnapshot {
     let shared = Snapshot::shared();
-    *shared.write() = Snapshot {
+    shared.store(Arc::new(Snapshot {
         listeners: vec![
             Listener {
                 name: "default/gw/good".to_string(),
@@ -463,8 +463,10 @@ fn shared_tls_frontend_validation_snapshot(
             key_pem: SERVER_KEY_PEM.to_string(),
         }],
         ..Snapshot::default()
-    };
-    shared.write().rebuild_runtime_indexes();
+    }));
+    let mut s = (**shared.load()).clone();
+    s.rebuild_runtime_indexes();
+    shared.store(Arc::new(s));
     shared
 }
 
@@ -474,7 +476,7 @@ fn shared_tls_misdirected_snapshot(
     stream_backend_port: u16,
 ) -> SharedSnapshot {
     let shared = Snapshot::shared();
-    *shared.write() = Snapshot {
+    shared.store(Arc::new(Snapshot {
         listeners: vec![
             Listener {
                 name: "default/gw/https".to_string(),
@@ -649,7 +651,9 @@ fn shared_tls_misdirected_snapshot(
             key_pem: SERVER_KEY_PEM.to_string(),
         }],
         ..Snapshot::default()
-    };
-    shared.write().rebuild_runtime_indexes();
+    }));
+    let mut s = (**shared.load()).clone();
+    s.rebuild_runtime_indexes();
+    shared.store(Arc::new(s));
     shared
 }

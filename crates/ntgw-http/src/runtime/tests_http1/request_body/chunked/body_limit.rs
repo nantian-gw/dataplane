@@ -13,7 +13,7 @@ async fn http1_request_body_limit_rejects_chunked_upload_once_limit_is_exceeded(
         max_request_body_bytes: 5,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let server = start_server(
         plan,
         snapshot.clone(),

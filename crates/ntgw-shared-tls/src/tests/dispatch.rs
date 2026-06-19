@@ -24,7 +24,7 @@ async fn passthrough_dispatch_replays_preread_bytes_to_upstream() -> Result<()> 
     let gateway_port = super::free_tcp_port();
     let snapshot =
         super::shared_tls_snapshot(gateway_port, super::free_tcp_port(), upstream_addr.port());
-    let plan = build_listener_plan(&snapshot.read(), &RuntimeOptions::default())?;
+    let plan = build_listener_plan(&snapshot.load(), &RuntimeOptions::default())?;
     let bind = Arc::new(
         plan.binds
             .get(&format!("127.0.0.1:{gateway_port}"))

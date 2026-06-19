@@ -25,7 +25,7 @@ async fn retry_after_connect_failure_reselects_next_backend_and_records_retry_me
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let traffic = SharedTrafficStats::shared();
     let server = start_server(
         plan,
@@ -103,7 +103,7 @@ async fn default_transport_retry_after_connect_failure_reselects_fast_path_backe
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let traffic = SharedTrafficStats::shared();
     let server = start_server(
         plan,
@@ -187,7 +187,7 @@ async fn default_transport_retry_avoids_failed_endpoint_for_concurrent_fast_path
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let traffic = SharedTrafficStats::shared();
     let server = start_server(
         plan,
@@ -289,7 +289,7 @@ async fn no_healthy_backend_fast_fails_and_emits_error_headers_in_access_log() {
     let log_path = temp_log_path("no-healthy-backend-access-log");
     let traffic = SharedTrafficStats::shared();
     let server = start_server(
-        build_listener_plan(&snapshot.read(), &runtime, None).expect("plan"),
+        build_listener_plan(&snapshot.load(), &runtime, None).expect("plan"),
         snapshot.clone(),
         runtime,
         AccessLogOptions {
@@ -357,7 +357,7 @@ fn unhealthy_backend_http_snapshot(
     backend_port: u32,
 ) -> ntgw_ir::SharedSnapshot {
     let shared = Snapshot::shared();
-    *shared.write() = Snapshot {
+    shared.store(Arc::new(Snapshot {
         listeners: vec![Listener {
             name: "default/gw/http".to_string(),
             address: "127.0.0.1".to_string(),
@@ -410,7 +410,9 @@ fn unhealthy_backend_http_snapshot(
             wasm_plugin: None,
         }],
         ..Snapshot::default()
-    };
-    shared.write().rebuild_runtime_indexes();
+    }));
+    let mut s = (**shared.load()).clone();
+    s.rebuild_runtime_indexes();
+    shared.store(Arc::new(s));
     shared
 }

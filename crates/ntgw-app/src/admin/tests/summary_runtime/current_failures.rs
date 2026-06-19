@@ -16,7 +16,7 @@ fn multiple_current_failures_summary_value() -> serde_json::Value {
         ..Snapshot::default()
     };
     let shared = Snapshot::shared();
-    *shared.write() = snapshot;
+    shared.store(Arc::new(snapshot));
     let runtime = RuntimeStats::shared();
     runtime.observe_http_listener_reload_failures(
         "v-multi",

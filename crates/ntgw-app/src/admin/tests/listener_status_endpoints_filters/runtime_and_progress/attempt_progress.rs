@@ -29,7 +29,7 @@ async fn listener_status_endpoint_filters_by_attempt_progress_and_failure_age() 
         ],
         ..Snapshot::default()
     };
-    *state.snapshot.write() = snapshot;
+    state.snapshot.store(Arc::new(snapshot));
     state
         .runtime
         .observe_http_listener_reload_failure("v1", "pending-historical", "bind conflict");

@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use anyhow::Result;
 use ntgw_ir::Listener;
 use ntgw_observability::{

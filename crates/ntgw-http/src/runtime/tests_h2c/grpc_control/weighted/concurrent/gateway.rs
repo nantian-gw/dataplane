@@ -19,7 +19,7 @@ async fn grpc_weighted_backends_reselect_per_concurrent_stream_on_one_downstream
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let traffic = SharedTrafficStats::shared();
     let server = start_server(
         plan,

@@ -17,7 +17,7 @@ async fn http1_request_body_limit_rejects_large_content_length_before_proxying()
         max_request_body_bytes: 5,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let server = start_server(
         plan,
         snapshot.clone(),

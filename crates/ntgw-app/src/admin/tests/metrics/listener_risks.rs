@@ -24,7 +24,7 @@ fn render_metrics_exposes_listener_overlap_risks() {
         ..Snapshot::default()
     };
     let shared = Snapshot::shared();
-    *shared.write() = snapshot;
+    shared.store(Arc::new(snapshot));
     let runtime = RuntimeStats::shared();
     runtime.observe_http_listener_reload_failure("v1", "pending-failed", "bind conflict");
     runtime.observe_http_listener_reload_result("v1", &["stale-failed".to_string()], &[], &[]);

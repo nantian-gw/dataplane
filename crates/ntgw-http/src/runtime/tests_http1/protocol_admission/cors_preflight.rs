@@ -11,7 +11,7 @@ async fn cors_preflight_is_handled_without_proxying_to_upstream() {
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let log_path = temp_log_path("cors-preflight-access-log");
     let server = start_server(
         plan,

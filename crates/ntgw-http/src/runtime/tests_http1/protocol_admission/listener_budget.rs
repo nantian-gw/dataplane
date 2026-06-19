@@ -21,7 +21,7 @@ async fn http1_listener_inflight_budget_fast_fails_unmatched_second_request() {
         },
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let server = start_server_with_overload_stats(
         plan,
         snapshot.clone(),

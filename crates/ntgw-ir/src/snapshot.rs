@@ -20,7 +20,7 @@ const FRONTEND_VALIDATION_ALLOW_INSECURE_FALLBACK_MODE: &str = "AllowInsecureFal
 
 impl Snapshot {
     pub fn shared() -> SharedSnapshot {
-        Arc::new(RwLock::new(Self::default()))
+        Arc::new(ArcSwap::from_pointee(Self::default()))
     }
 
     pub fn rebuild_runtime_indexes(&mut self) {

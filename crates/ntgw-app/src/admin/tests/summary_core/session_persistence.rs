@@ -35,7 +35,7 @@ fn ephemeral_session_persistence_summary_value() -> serde_json::Value {
         ..Snapshot::default()
     };
     let shared = Snapshot::shared();
-    *shared.write() = snapshot;
+    shared.store(Arc::new(snapshot));
 
     let mut config = test_admin_runtime_config();
     config.session_persistence_uses_ephemeral_secret = true;

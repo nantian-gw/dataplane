@@ -19,7 +19,7 @@ use super::{
 
 pub(crate) fn build_summary_value(state: &AppState) -> Value {
     let config = state.current_config();
-    let snapshot = state.snapshot.read().clone();
+    let snapshot = (*state.snapshot.load()).clone();
     let runtime = state.runtime.snapshot();
     let traffic = state.traffic.snapshot();
     let xds = state.xds.snapshot();

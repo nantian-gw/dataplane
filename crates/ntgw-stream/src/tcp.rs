@@ -132,7 +132,7 @@ async fn handle_connection(
     }
 
     let (access_log_state, selected, runtime_ids) = {
-        let current = snapshot.read();
+        let current = snapshot.load();
         let selected = current
             .select_stream_backend(&listener_name, server_name.as_deref())
             .ok_or_else(|| anyhow!("no stream route matched listener {listener_name}"))?;

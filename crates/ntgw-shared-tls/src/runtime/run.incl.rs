@@ -28,7 +28,7 @@ pub async fn run(
 
         let (desired, version, failures, tls_required) = {
             let stage = Instant::now();
-            let current_snapshot = snapshot.read();
+            let current_snapshot = snapshot.load();
             let version = current_snapshot.id.clone();
             let tls_required = current_snapshot
                 .listeners

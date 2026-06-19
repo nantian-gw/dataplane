@@ -5,7 +5,7 @@ fn multi_backend_http_snapshot(
     retry: Option<RetryPolicy>,
 ) -> ntgw_ir::SharedSnapshot {
     let shared = Snapshot::shared();
-    *shared.write() = Snapshot {
+    shared.store(Arc::new(Snapshot {
         listeners: vec![Listener {
             name: "default/gw/http".to_string(),
             address: "127.0.0.1".to_string(),
@@ -66,7 +66,9 @@ fn multi_backend_http_snapshot(
             })
             .collect(),
         ..Snapshot::default()
-    };
-    shared.write().rebuild_runtime_indexes();
+    }));
+    let mut s = (**shared.load()).clone();
+    s.rebuild_runtime_indexes();
+    shared.store(Arc::new(s));
     shared
 }

@@ -22,7 +22,7 @@ fn test_listener(name: &str, port: u32) -> Listener {
 
 fn test_snapshot(listener: Listener, upstream_addr: std::net::SocketAddr) -> SharedSnapshot {
     let shared = Snapshot::shared();
-    *shared.write() = Snapshot {
+    shared.store(Arc::new(Snapshot {
         listeners: vec![listener],
         stream_routes: vec![StreamRoute {
             name: "udp-route".to_string(),
@@ -56,6 +56,6 @@ fn test_snapshot(listener: Listener, upstream_addr: std::net::SocketAddr) -> Sha
             wasm_plugin: None,
         }],
         ..Snapshot::default()
-    };
+    }));
     shared
 }

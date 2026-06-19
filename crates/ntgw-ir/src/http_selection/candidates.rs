@@ -97,7 +97,7 @@ pub(super) fn matched_listeners<'a>(
 ) -> CandidateListeners<'a> {
     let mut saw_candidate_listener = false;
     let mut best_score = None;
-    let mut listeners = Vec::new();
+    let mut listeners = Vec::with_capacity(snapshot.listeners.len());
 
     visit_candidate_listeners(snapshot, request_port, kind, |listener_index, listener| {
         saw_candidate_listener = true;

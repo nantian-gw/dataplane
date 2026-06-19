@@ -9,7 +9,7 @@ fn summary_view_reports_pending_runtime_when_snapshot_is_newer_than_runtime_stat
         ..Snapshot::default()
     };
     let shared = Snapshot::shared();
-    *shared.write() = snapshot;
+    shared.store(Arc::new(snapshot));
 
     let state = build_state_with_parts(
         test_admin_runtime_config(),

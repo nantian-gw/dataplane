@@ -11,7 +11,7 @@ async fn grpc_unary_request_body_is_forwarded_over_h2c() {
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let server = start_server(
         plan,
         snapshot.clone(),
@@ -115,7 +115,7 @@ async fn grpc_access_log_route_override_captures_connection_fields_for_proxied_r
     let gateway_port = free_tcp_port();
     let snapshot = grpc_h2c_snapshot(gateway_port, upstream_addr.port() as u32);
     {
-        let mut current = snapshot.write();
+        let mut current = (**snapshot.load()).clone();
         current.grpc_routes[0].annotations = BTreeMap::from([
             (
                 "gateway.nantian.dev/access-log-mode".to_string(),
@@ -127,12 +127,13 @@ async fn grpc_access_log_route_override_captures_connection_fields_for_proxied_r
             ),
         ]);
         current.rebuild_runtime_indexes();
+        snapshot.store(Arc::new(current));
     }
     let runtime = RuntimeOptions {
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let log_path = temp_log_path("grpc-response-side-connection-fields");
     let server = start_server(
         plan,

@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::{
     BackendEndpoint, BackendRef, HttpMatch, HttpRule, Listener, MatchedHttpPath, RouteKind,
     RuntimeId, SelectedBackendRuntimeIds, Snapshot, default_http_path_match, hostname_matches,
@@ -49,7 +51,7 @@ struct CompiledHttpFastRule {
 #[derive(Debug, Clone)]
 pub(crate) struct CompiledHttpFastBackendRef {
     pub(crate) backend_index: usize,
-    pub(crate) backend_name: String,
+    pub(crate) backend_name: Arc<str>,
     pub(crate) weight: u32,
     pub(crate) backend_runtime_id: Option<RuntimeId>,
     pub(crate) endpoint_runtime_ids: Vec<Option<RuntimeId>>,
@@ -58,7 +60,7 @@ pub(crate) struct CompiledHttpFastBackendRef {
 #[derive(Debug, Clone)]
 pub(crate) struct CompiledHttpFastBackendSelection {
     pub(crate) endpoint: BackendEndpoint,
-    pub(crate) backend_name: String,
+    pub(crate) backend_name: Arc<str>,
     pub(crate) backend_runtime_id: Option<RuntimeId>,
     pub(crate) endpoint_runtime_id: Option<RuntimeId>,
 }
@@ -294,7 +296,7 @@ impl HttpFastPathPlan {
                 listener_name,
                 listener_protocol,
                 backend: candidate.selected.endpoint,
-                backend_name: candidate.selected.backend_name,
+                backend_name: candidate.selected.backend_name.to_string(),
                 matched_http_path: candidate.matched_http_path,
                 runtime_ids: candidate.runtime_ids,
             })
@@ -364,7 +366,7 @@ fn fast_matched_listeners(
 ) -> FastCandidateListeners {
     let mut saw_candidate_listener = false;
     let mut best_score = None;
-    let mut listeners = Vec::new();
+    let mut listeners = Vec::with_capacity(snapshot.listeners.len());
 
     visit_fast_candidate_listeners(snapshot, request_port, |listener_index, listener| {
         saw_candidate_listener = true;

@@ -7,7 +7,7 @@ async fn direct_response_short_circuits_before_upstream_and_emits_observability(
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let log_path = temp_log_path("direct-response");
     let traffic = SharedTrafficStats::shared();
     let server = start_server(

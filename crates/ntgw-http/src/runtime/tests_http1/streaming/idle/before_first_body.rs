@@ -16,7 +16,7 @@ async fn streaming_http_response_allows_idle_period_before_first_body_chunk() {
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let log_path = temp_log_path("streaming-http-idle-first-body");
     let traffic = SharedTrafficStats::shared();
     let server = start_server(
@@ -119,7 +119,7 @@ async fn streaming_http_zero_backend_policy_timeout_waits_for_response_headers()
         "HTTP",
     );
     {
-        let mut current = snapshot.write();
+        let mut current = (**snapshot.load()).clone();
         current.backend_policies.insert(
             format!("default/backend:{}", upstream_addr.port()),
             BackendPolicy {
@@ -128,12 +128,13 @@ async fn streaming_http_zero_backend_policy_timeout_waits_for_response_headers()
                 ..BackendPolicy::default()
             },
         );
+        snapshot.store(Arc::new(current));
     }
     let runtime = RuntimeOptions {
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let log_path = temp_log_path("streaming-http-zero-backend-policy-timeout");
     let traffic = SharedTrafficStats::shared();
     let server = start_server(

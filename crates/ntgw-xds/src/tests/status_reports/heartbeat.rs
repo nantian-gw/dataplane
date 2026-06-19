@@ -1,7 +1,7 @@
 #[test]
 fn heartbeat_status_report_omits_version_but_preserves_readiness() {
     let snapshot = Snapshot::shared();
-    snapshot.write().id = "v1".to_string();
+    snapshot.store(Arc::new(Snapshot { id: "v1".to_string(), ..Snapshot::default() }));
     let runtime = RuntimeStats::shared();
     runtime.observe_http_listener_reload_success("v1");
 
@@ -23,7 +23,7 @@ fn heartbeat_status_report_omits_version_but_preserves_readiness() {
 #[test]
 fn status_report_observed_at_is_close_to_now() {
     let snapshot = Snapshot::shared();
-    snapshot.write().id = "v1".to_string();
+    snapshot.store(Arc::new(Snapshot { id: "v1".to_string(), ..Snapshot::default() }));
     let runtime = RuntimeStats::shared();
     runtime.observe_http_listener_reload_success("v1");
 
@@ -56,7 +56,7 @@ fn warming_status_report_stays_unready_without_snapshot_version() {
 #[test]
 fn heartbeat_status_report_surfaces_runtime_rejection_message() {
     let snapshot = Snapshot::shared();
-    snapshot.write().id = "v2".to_string();
+    snapshot.store(Arc::new(Snapshot { id: "v2".to_string(), ..Snapshot::default() }));
     let runtime = RuntimeStats::shared();
     runtime.observe_http_listener_reload_success("v1");
     runtime.observe_http_listener_reload_failure("v2", "default/web", "listener reload failed");
@@ -73,7 +73,7 @@ fn heartbeat_status_report_surfaces_runtime_rejection_message() {
 #[test]
 fn heartbeat_status_report_surfaces_stream_rejection_message() {
     let snapshot = Snapshot::shared();
-    snapshot.write().id = "v3".to_string();
+    snapshot.store(Arc::new(Snapshot { id: "v3".to_string(), ..Snapshot::default() }));
     let runtime = RuntimeStats::shared();
     runtime.observe_stream_listener_reload_success("v1");
     runtime.observe_stream_listener_reload_failure("v3", "default/tcp", "tcp bind conflict");
@@ -90,7 +90,7 @@ fn heartbeat_status_report_surfaces_stream_rejection_message() {
 #[test]
 fn heartbeat_status_report_surfaces_tls_rejection_message() {
     let snapshot = Snapshot::shared();
-    snapshot.write().id = "v4".to_string();
+    snapshot.store(Arc::new(Snapshot { id: "v4".to_string(), ..Snapshot::default() }));
     let runtime = RuntimeStats::shared();
     runtime.observe_tls_listener_reload_success("v1");
     runtime.observe_tls_listener_reload_failure("v4", "default/https", "tls bind conflict");

@@ -32,7 +32,7 @@ fn render_metrics_exposes_snapshot_inventory_and_session_persistence_state() {
         },
     ))
     .collect();
-    *state.snapshot.write() = snapshot;
+    state.snapshot.store(Arc::new(snapshot));
 
     state
         .xds
@@ -78,10 +78,10 @@ fn render_metrics_exposes_snapshot_inventory_and_session_persistence_state() {
 #[test]
 fn render_metrics_omits_header_only_families_without_known_labels() {
     let state = test_state(None);
-    *state.snapshot.write() = Snapshot {
+    state.snapshot.store(Arc::new(Snapshot {
         id: "v-empty".to_string(),
         ..Snapshot::default()
-    };
+    }));
 
     let metrics = render_metrics(&state);
     let empty_families = empty_metric_families(&metrics);
@@ -95,11 +95,10 @@ fn render_metrics_omits_header_only_families_without_known_labels() {
 #[test]
 fn render_metrics_stays_stable_for_empty_snapshot_with_default_runtime_controls() {
     let state = test_state(None);
-    *state.snapshot.write() = Snapshot::default();
+    state.snapshot.store(Arc::new(Snapshot::default()));
 
     let metrics = render_metrics(&state);
     let empty_families = empty_metric_families(&metrics);
-
     assert!(
         empty_families.is_empty(),
         "metrics contained header-only families: {empty_families:?}"
@@ -127,7 +126,7 @@ fn render_metrics_stays_stable_for_empty_snapshot_with_default_runtime_controls(
 #[test]
 fn render_metrics_omits_traffic_ratio_gauges_without_denominators() {
     let state = test_state(None);
-    *state.snapshot.write() = Snapshot::default();
+    state.snapshot.store(Arc::new(Snapshot::default()));
 
     let metrics = render_metrics(&state);
 
@@ -189,7 +188,7 @@ fn render_metrics_omits_traffic_ratio_gauges_without_denominators() {
 #[test]
 fn render_metrics_retry_rate_uses_request_event_denominator() {
     let state = test_state(None);
-    *state.snapshot.write() = Snapshot::default();
+    state.snapshot.store(Arc::new(Snapshot::default()));
 
     state.traffic.observe(TrafficObservation {
         listener_name: "web".to_string(),
@@ -283,7 +282,7 @@ fn render_metrics_retry_rate_uses_request_event_denominator() {
 #[test]
 fn render_metrics_upstream_pool_views_ignore_stream_events() {
     let state = test_state(None);
-    *state.snapshot.write() = Snapshot::default();
+    state.snapshot.store(Arc::new(Snapshot::default()));
     let mut buckets = [0; ntgw_observability::UPSTREAM_CONNECT_LATENCY_MS_BUCKET_COUNT];
     buckets[ntgw_observability::upstream_connect_latency_ms_bucket_index(17)] = 1;
 
@@ -367,8 +366,9 @@ fn render_metrics_upstream_pool_views_ignore_stream_events() {
 #[test]
 fn render_metrics_ready_matches_summary_readiness_for_pending_snapshot_without_last_good() {
     let shared = Snapshot::shared();
-    *shared.write() = fixture_snapshot();
-    shared.write().id = "v2".to_string();
+    let mut s = fixture_snapshot();
+    s.id = "v2".to_string();
+    shared.store(Arc::new(s));
     let state = build_state_with_parts(
         test_admin_runtime_config(),
         shared,

@@ -26,8 +26,9 @@ use std::{
     time::{Duration, Instant},
 };
 
+use arc_swap::ArcSwap;
 use form_urlencoded::parse;
-use parking_lot::{Condvar, Mutex, RwLock};
+use parking_lot::{Condvar, Mutex};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use tokio::sync::watch;
@@ -55,7 +56,7 @@ pub use session::{CookieConfig, PersistentSessionTarget, SessionPersistence};
 pub use stream_fast_path::StreamFastPathPlan;
 pub use timeouts::RouteTimeouts;
 
-pub type SharedSnapshot = Arc<RwLock<Snapshot>>;
+pub type SharedSnapshot = Arc<ArcSwap<Snapshot>>;
 pub type SharedSnapshotSignal = Arc<SnapshotSignal>;
 
 const BACKEND_REF_META_VALID: &str = "nantian.dev/backend-ref-valid";

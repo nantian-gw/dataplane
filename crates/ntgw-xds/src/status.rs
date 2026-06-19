@@ -23,7 +23,7 @@ pub(crate) fn build_status_report(
     runtime: &SharedRuntimeStats,
     include_version: bool,
 ) -> StatusReport {
-    let current = snapshot.read();
+    let current = snapshot.load();
     let runtime = runtime.snapshot();
     let rejection_message = current_runtime_rejection_message(&runtime, current.id.as_str());
     let ready = if rejection_message.is_some() {

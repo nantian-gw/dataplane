@@ -15,7 +15,7 @@ async fn https_misdirected_request_returns_421_before_upstream() {
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let server = start_server(
         plan,
         snapshot.clone(),
@@ -80,7 +80,7 @@ async fn https_listener_negotiates_h2_alpn_with_dynamic_certificate_callback() {
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let server = start_server(
         plan,
         snapshot,
@@ -163,7 +163,7 @@ fn https_misdirected_snapshot(
     second_backend_port: u16,
 ) -> ntgw_ir::SharedSnapshot {
     let shared = Snapshot::shared();
-    *shared.write() = Snapshot {
+    shared.store(Arc::new(Snapshot {
         listeners: vec![
             https_misdirected_listener("default/gw/https", listener_port, vec![]),
             https_misdirected_listener(
@@ -215,8 +215,10 @@ fn https_misdirected_snapshot(
             key_pem: VALID_SERVER_KEY_PEM.to_string(),
         }],
         ..Snapshot::default()
-    };
-    shared.write().rebuild_runtime_indexes();
+    }));
+    let mut s = (**shared.load()).clone();
+    s.rebuild_runtime_indexes();
+    shared.store(Arc::new(s));
     shared
 }
 

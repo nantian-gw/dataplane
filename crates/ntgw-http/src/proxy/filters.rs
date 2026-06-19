@@ -31,7 +31,7 @@ pub(crate) async fn do_request_filter(
         .unwrap_or_else(|| server_port(session));
     let request_context_needs_source_ip = proxy.access_log.enabled || proxy.request_tracing_enabled;
     let initial_request_state = {
-        let current = proxy.snapshot.read();
+        let current = proxy.snapshot.load();
         let request_source_ip =
             if current.request_materialization.source_ip || request_context_needs_source_ip {
                 client_ip(session)
@@ -155,7 +155,7 @@ pub(crate) async fn do_request_filter(
         return Ok(false);
     }
     let (request_headers_complete, request, grpc_selection, http_selection, fallback_selection) = {
-        let current = proxy.snapshot.read();
+        let current = proxy.snapshot.load();
         if request_source_ip.is_none() && current.request_materialization.source_ip {
             request_source_ip = client_ip(session);
         }
@@ -528,7 +528,7 @@ pub(crate) async fn do_request_filter(
 
     if let Some(auth) = external_auth_filter(&route.filters) {
         let endpoint = {
-            let current = proxy.snapshot.read();
+            let current = proxy.snapshot.load();
             current
                 .select_backend_ref(&auth.backend_ref)
                 .map(|(endpoint, _)| endpoint)
@@ -639,7 +639,7 @@ pub(crate) async fn do_request_filter(
     match selected_backend_from_http_route(route, proxy.access_log.enabled) {
         Ok(Some(selected)) => {
             let config = {
-                let current = proxy.snapshot.read();
+                let current = proxy.snapshot.load();
                 selected_backend_config_cached(
                     &proxy.selected_backend_config_cache,
                     &current,

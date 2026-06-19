@@ -12,7 +12,7 @@ async fn http1_max_connection_age_closes_downstream_after_current_request() {
         downstream_max_connection_age: Some(Duration::from_millis(500)),
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let traffic = SharedTrafficStats::shared();
     let server = start_server(
         plan,

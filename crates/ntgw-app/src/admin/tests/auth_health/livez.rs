@@ -46,7 +46,7 @@ async fn livez_returns_service_unavailable_when_stream_runtime_exits() {
         ..Snapshot::default()
     };
     let shared = Snapshot::shared();
-    *shared.write() = snapshot;
+    shared.store(Arc::new(snapshot));
     let state = build_state_with_parts(
         test_admin_runtime_config(),
         shared,

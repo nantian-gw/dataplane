@@ -1,5 +1,6 @@
 use super::*;
 use std::net::SocketAddr;
+use std::sync::Arc;
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::TcpStream,
@@ -16,7 +17,12 @@ async fn tcp_route_reload_preserves_existing_connection() -> Result<()> {
     let upstream_b = TcpListener::bind("127.0.0.1:0").await?;
     let upstream_b_addr = upstream_b.local_addr()?;
     let snapshot = ntgw_ir::Snapshot::shared();
-    *snapshot.write() = tcp_snapshot("v1", listener.clone(), "upstream-a", upstream_a_addr);
+    snapshot.store(Arc::new(tcp_snapshot(
+        "v1",
+        listener.clone(),
+        "upstream-a",
+        upstream_a_addr,
+    )));
     let updates = ntgw_ir::SnapshotSignal::shared();
     let runtime_stats = RuntimeStats::shared();
     let traffic = SharedTrafficStats::shared();
@@ -54,10 +60,10 @@ async fn tcp_route_reload_preserves_existing_connection() -> Result<()> {
     first.write_all(b"ping").await?;
     assert_response(&mut first, b"a-one").await?;
 
-    let previous = snapshot.read().clone();
+    let previous = (*snapshot.load()).clone();
     let mut next = tcp_snapshot("v2", listener, "upstream-b", upstream_b_addr);
     next.inherit_runtime_state_from(&previous);
-    *snapshot.write() = next;
+    snapshot.store(Arc::new(next));
     updates.notify_changed();
     config_tx
         .send(Arc::new(reloadable_config(8 * 1024)))

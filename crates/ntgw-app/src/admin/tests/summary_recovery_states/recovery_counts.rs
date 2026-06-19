@@ -30,7 +30,7 @@ fn summary_view_counts_listener_recovery_states() {
         ..Snapshot::default()
     };
     let shared = Snapshot::shared();
-    *shared.write() = snapshot;
+    shared.store(Arc::new(snapshot));
     let runtime = RuntimeStats::shared();
     runtime.observe_http_listener_reload_failure("v1", "recovered", "bind conflict");
     runtime.observe_http_listener_reload_result("v2", &["recovered".to_string()], &[], &[]);

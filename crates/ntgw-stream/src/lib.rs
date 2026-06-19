@@ -116,7 +116,7 @@ pub async fn run(
         }
 
         let (desired, version) = {
-            let current = snapshot.read();
+            let current = snapshot.load();
             (build_listener_plan(&current), current.id.clone())
         };
 

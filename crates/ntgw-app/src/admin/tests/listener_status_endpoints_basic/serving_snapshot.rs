@@ -22,7 +22,7 @@ async fn listener_status_endpoint_filters_by_serving_snapshot_and_version() {
         ],
         ..Snapshot::default()
     };
-    *state.snapshot.write() = snapshot;
+    state.snapshot.store(Arc::new(snapshot));
     state
         .runtime
         .observe_http_listener_reload_result("v1", &["retained".to_string()], &[], &[]);

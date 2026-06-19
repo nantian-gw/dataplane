@@ -2,8 +2,8 @@
 fn render_metrics_exposes_endpoint_health_runtime_state() {
     let state = test_state(None);
     {
-        let snapshot = state.snapshot.write();
-        let endpoint = snapshot.backends[0].endpoints[0].clone();
+        let s = (**state.snapshot.load()).clone();
+        let endpoint = s.backends[0].endpoints[0].clone();
         let selected = SelectedBackend {
             route_kind: RouteKind::Http,
             route_name: String::new(),
@@ -23,9 +23,10 @@ fn render_metrics_exposes_endpoint_health_runtime_state() {
         };
 
         for _ in 0..PASSIVE_EJECTION_CONSECUTIVE_FAILURES {
-            snapshot.record_endpoint_failure(&selected);
+            s.record_endpoint_failure(&selected);
         }
-        snapshot.record_endpoint_active_probe_failure(selected.backend_name.as_str(), &endpoint, 1);
+        s.record_endpoint_active_probe_failure(selected.backend_name.as_str(), &endpoint, 1);
+        state.snapshot.store(Arc::new(s));
     }
 
     let metrics = render_metrics(&state);
@@ -39,8 +40,8 @@ fn render_metrics_exposes_endpoint_health_runtime_state() {
 fn render_metrics_exposes_endpoint_recovery_latency_histogram() {
     let state = test_state(None);
     {
-        let snapshot = state.snapshot.write();
-        let endpoint = snapshot.backends[0].endpoints[0].clone();
+        let s = (**state.snapshot.load()).clone();
+        let endpoint = s.backends[0].endpoints[0].clone();
         let selected = SelectedBackend {
             route_kind: RouteKind::Http,
             route_name: String::new(),
@@ -60,9 +61,10 @@ fn render_metrics_exposes_endpoint_recovery_latency_histogram() {
         };
 
         for _ in 0..PASSIVE_EJECTION_CONSECUTIVE_FAILURES {
-            snapshot.record_endpoint_failure(&selected);
+            s.record_endpoint_failure(&selected);
         }
-        snapshot.record_endpoint_success(&selected);
+        s.record_endpoint_success(&selected);
+        state.snapshot.store(Arc::new(s));
     }
 
     let metrics = render_metrics(&state);

@@ -25,7 +25,7 @@ async fn metrics_view_matches_management_endpoint_state() {
         },
     ))
     .collect();
-    *state.snapshot.write() = snapshot;
+    state.snapshot.store(Arc::new(snapshot));
 
     state
         .xds

@@ -1,4 +1,5 @@
 use anyhow::Result;
+use std::sync::Arc;
 use tokio::net::{TcpListener, TcpStream};
 
 use super::*;
@@ -13,10 +14,10 @@ async fn returns_error_when_no_stream_route_matches() -> Result<()> {
         "LISTENER_PROTOCOL_TCP",
     );
     let snapshot = Snapshot::shared();
-    *snapshot.write() = Snapshot {
+    snapshot.store(Arc::new(Snapshot {
         listeners: vec![listener.clone()],
         ..Snapshot::default()
-    };
+    }));
 
     let server = tokio::spawn(async move {
         let (stream, _) = gateway_listener.accept().await?;

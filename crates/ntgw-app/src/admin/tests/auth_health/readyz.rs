@@ -51,7 +51,7 @@ async fn readyz_returns_service_unavailable_when_stream_runtime_exits() {
         ..Snapshot::default()
     };
     let shared = Snapshot::shared();
-    *shared.write() = snapshot;
+    shared.store(Arc::new(snapshot));
     let state = build_state_with_parts(
         test_admin_runtime_config(),
         shared,
@@ -121,8 +121,9 @@ async fn readyz_returns_service_unavailable_when_supervisor_shutdown_is_requeste
 #[tokio::test]
 async fn readyz_and_metrics_stay_consistent_after_rejected_snapshot_with_last_good() {
     let shared = Snapshot::shared();
-    *shared.write() = fixture_snapshot();
-    shared.write().id = "v2".to_string();
+    let mut s = fixture_snapshot();
+    s.id = "v2".to_string();
+    shared.store(Arc::new(s));
 
     let runtime = RuntimeStats::shared();
     runtime.observe_http_listener_reload_result("v1", &["web".to_string()], &[], &[]);

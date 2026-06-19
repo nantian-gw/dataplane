@@ -16,7 +16,7 @@ async fn slow_http1_request_body_upload_is_forwarded_intact() {
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let server = start_server(
         plan,
         snapshot.clone(),
@@ -92,7 +92,7 @@ async fn http1_downstream_read_timeout_rejects_stalled_upload() {
         downstream_read_timeout: Some(Duration::from_millis(75)),
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let log_path = temp_log_path("http1-downstream-read-timeout");
     let traffic = SharedTrafficStats::shared();
     let server = start_server(

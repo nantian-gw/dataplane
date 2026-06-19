@@ -13,7 +13,7 @@ pub(crate) async fn proxy_passthrough(
     server_name: Option<&str>,
 ) -> Result<()> {
     let selected = {
-        let current = snapshot.read();
+        let current = snapshot.load();
         current
             .select_tls_stream_backend(listener_name, server_name, TlsRouteMode::Passthrough)
             .ok_or_else(|| anyhow!("no tls passthrough route matched listener {listener_name}"))?
@@ -34,7 +34,7 @@ where
     T: AsyncRead + AsyncWrite + Unpin,
 {
     let selected = {
-        let current = snapshot.read();
+        let current = snapshot.load();
         current
             .select_tls_stream_backend(listener_name, server_name, TlsRouteMode::Terminate)
             .ok_or_else(|| anyhow!("no terminated tls route matched listener {listener_name}"))?

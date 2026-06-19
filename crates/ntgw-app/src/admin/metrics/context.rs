@@ -59,7 +59,7 @@ pub(super) struct MetricsContext {
 impl MetricsContext {
     pub(super) fn from_state(state: &AppState) -> Self {
         let config = state.current_config();
-        let snapshot = state.snapshot.read().clone();
+        let snapshot = Snapshot::clone(&state.snapshot.load());
         let runtime = state.runtime.snapshot();
         let traffic = state.traffic.snapshot();
         let udp_sessions = state.udp_sessions.snapshot();

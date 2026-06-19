@@ -620,7 +620,7 @@ fn build_ai_filter(
     let adapters = Arc::new(adapters);
 
     let rate_limiter = {
-        let snap = snapshot.read();
+        let snap = snapshot.load();
         snap.backends.iter().find_map(|b| {
             b.token_policy.as_ref().map(|tp| {
                 TokenRateLimiter::new(RateLimitConfig {
@@ -676,7 +676,7 @@ fn build_wasm_filter(
         }
     };
 
-    let snapshot_guard = snapshot.read();
+    let snapshot_guard = snapshot.load();
     let mut plugin_names: Vec<String> = Vec::new();
 
     for backend in &snapshot_guard.backends {

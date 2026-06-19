@@ -17,7 +17,7 @@ async fn http1_request_header_limit_rejects_large_headers_before_proxying() {
         max_request_header_bytes: 16,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let log_path = temp_log_path("header-limit-access-log");
     let server = start_server(
         plan,

@@ -8,16 +8,17 @@ async fn fallback_selection_access_log_captures_connection_fields_for_proxied_re
     let gateway_port = free_tcp_port();
     let snapshot = simple_http_snapshot(gateway_port, "/unreachable", upstream_addr.port() as u32, "HTTP");
     {
-        let mut current = snapshot.write();
+        let mut current = (**snapshot.load()).clone();
         current.http_routes.clear();
         current.listeners[0].attached_routes.clear();
         current.rebuild_runtime_indexes();
+        snapshot.store(Arc::new(current));
     }
     let runtime = RuntimeOptions {
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let log_path = temp_log_path("fallback-access-log-connection-fields");
     let server = start_server(
         plan,

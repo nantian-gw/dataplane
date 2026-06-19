@@ -1,5 +1,6 @@
 #![forbid(unsafe_code)]
 
+use std::sync::Arc;
 use std::time::Duration;
 use std::time::Instant;
 
@@ -161,7 +162,7 @@ impl ControlPlaneClient {
         } = args;
         let (tx, rx) = mpsc::channel(8);
         let mut status_client = self.inner.clone();
-        let version = { snapshot.read().id.clone() };
+        let version = { snapshot.load().id.clone() };
         let supported_features = supported_features();
         if let Err(err) = tx
             .send(discovery_open(
@@ -221,7 +222,7 @@ impl ControlPlaneClient {
                     let next_version =
                         snapshot_version_from_response(message.version.as_str(), &config);
                     let version = if should_apply_snapshot(
-                        snapshot.read().id.as_str(),
+                        snapshot.load().id.as_str(),
                         next_version.as_deref(),
                     ) {
                         if let Err((version, error_detail)) = preflight_snapshot_before_swap(
@@ -253,7 +254,7 @@ impl ControlPlaneClient {
                         let version = next_version.unwrap_or_else(|| next.id.clone());
                         {
                             let stage = Instant::now();
-                            let current = snapshot.read();
+                            let current = snapshot.load();
                             next.inherit_runtime_state_values_from(&current);
                             observe_apply_stage_elapsed(&stats, "inherit_runtime_state", stage);
                         }
@@ -261,11 +262,11 @@ impl ControlPlaneClient {
                         next.rebuild_runtime_indexes();
                         observe_apply_stage_elapsed(&stats, "rebuild_indexes", stage);
                         let stage = Instant::now();
-                        *snapshot.write() = next;
+                        snapshot.store(Arc::new(next));
                         updates.notify_changed();
                         observe_apply_stage_elapsed(&stats, "snapshot_swap", stage);
                         let apply_requirements = {
-                            let current = snapshot.read();
+                            let current = snapshot.load();
                             snapshot_runtime_apply_requirements(&current)
                         };
                         let stage = Instant::now();
@@ -320,7 +321,7 @@ impl ControlPlaneClient {
                         }
                         version
                     } else {
-                        let version = next_version.unwrap_or_else(|| snapshot.read().id.clone());
+                        let version = next_version.unwrap_or_else(|| snapshot.load().id.clone());
                         stats.observe_snapshot_skipped();
                         log_duplicate_snapshot_skipped(&version);
                         tx.send(discovery_ack(

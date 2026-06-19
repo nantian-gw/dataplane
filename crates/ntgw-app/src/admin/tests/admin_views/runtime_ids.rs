@@ -183,7 +183,7 @@ fn runtime_id_app() -> (axum::Router, ExpectedRuntimeIds) {
     };
 
     let snapshot = Snapshot::shared();
-    *snapshot.write() = indexed;
+    snapshot.store(Arc::new(indexed));
     let mut config = test_admin_runtime_config();
     config.admin_bearer_token = Some("top-secret".to_string());
     let app = build_router(build_state_with_parts(

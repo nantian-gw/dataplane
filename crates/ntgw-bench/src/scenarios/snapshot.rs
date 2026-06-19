@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use std::{hint::black_box, time::Instant};
 
 use anyhow::Result;
@@ -14,14 +15,14 @@ pub(crate) fn run_snapshot_read_rwlock(
 ) -> Result<ScenarioReport> {
     let fixture = ntgw_ir::bench::build_route_selection_fixture(config);
     let shared = ntgw_ir::Snapshot::shared();
-    *shared.write() = fixture.snapshot.clone();
+    shared.store(Arc::new(fixture.snapshot.clone()));
     let before = sample_resources();
     let mut durations = Vec::with_capacity(iterations as usize);
     let mut observed_routes = 0usize;
 
     for _ in 0..iterations {
         let started = Instant::now();
-        let snapshot = shared.read();
+        let snapshot = shared.load();
         observed_routes = snapshot.http_routes.len();
         black_box((
             snapshot.id.len(),

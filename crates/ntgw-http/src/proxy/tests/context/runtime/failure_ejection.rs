@@ -8,8 +8,7 @@ fn observe_selected_backend_failure_ejects_endpoint_after_threshold() {
         BTreeMap::new(),
     );
     {
-        let mut current = snapshot.write();
-        *current = Snapshot {
+        snapshot.store(Arc::new(Snapshot {
             http_routes: vec![HttpRoute {
                 name: "route".to_string(),
                 namespace: "default".to_string(),
@@ -53,11 +52,11 @@ fn observe_selected_backend_failure_ejects_endpoint_after_threshold() {
                 wasm_plugin: None,
             }],
             ..Snapshot::default()
-        };
+        }));
     }
 
     let selected = snapshot
-        .read()
+        .load()
         .select_backend(&request)
         .expect("selected backend");
     let mut ctx = RequestContext::default();
@@ -68,7 +67,7 @@ fn observe_selected_backend_failure_ejects_endpoint_after_threshold() {
         ctx.backend_observation_recorded = false;
     }
 
-    let addresses = collect_selected_addresses(&snapshot.read(), &request, 4);
+    let addresses = collect_selected_addresses(&snapshot.load(), &request, 4);
     assert_eq!(
         addresses,
         vec![

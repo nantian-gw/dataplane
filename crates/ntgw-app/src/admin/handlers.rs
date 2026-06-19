@@ -24,7 +24,7 @@ use crate::admin::summary::{build_liveness_state, build_readiness_state};
 use crate::admin::types::ApiError;
 
 pub(crate) async fn livez(State(state): State<Arc<AppState>>) -> impl IntoResponse {
-    let snapshot = state.snapshot.read().clone();
+    let snapshot = (*state.snapshot.load()).clone();
     let runtime = state.runtime.snapshot();
     let liveness = build_liveness_state(&snapshot, &runtime);
 
@@ -36,7 +36,7 @@ pub(crate) async fn livez(State(state): State<Arc<AppState>>) -> impl IntoRespon
 }
 
 pub(crate) async fn readyz(State(state): State<Arc<AppState>>) -> impl IntoResponse {
-    let snapshot = state.snapshot.read().clone();
+    let snapshot = (*state.snapshot.load()).clone();
     let runtime = state.runtime.snapshot();
     let xds = state.xds.snapshot();
     let config = state.current_config();
@@ -61,7 +61,7 @@ pub(crate) async fn metrics_view(State(state): State<Arc<AppState>>) -> impl Int
 }
 
 pub(crate) async fn snapshot_view(State(state): State<Arc<AppState>>) -> Json<Snapshot> {
-    Json(state.snapshot.read().clone())
+    Json(Snapshot::clone(&state.snapshot.load()))
 }
 
 pub(crate) async fn summary_view(State(state): State<Arc<AppState>>) -> Json<Value> {
@@ -75,7 +75,7 @@ pub(crate) async fn node_view(State(state): State<Arc<AppState>>) -> Json<Value>
 pub(crate) async fn traffic_view(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<Value>, ApiError> {
-    let snapshot = state.snapshot.read().clone();
+    let snapshot = (*state.snapshot.load()).clone();
     Ok(Json(traffic_view_value(
         &snapshot,
         state.traffic.snapshot(),
@@ -116,7 +116,7 @@ pub(crate) async fn listeners_view(
     State(state): State<Arc<AppState>>,
     Query(query): Query<ListenerListQuery>,
 ) -> Result<Json<Vec<Value>>, ApiError> {
-    let snapshot = state.snapshot.read().clone();
+    let snapshot = (*state.snapshot.load()).clone();
     Ok(Json(listener_list_values(&snapshot, &query)?))
 }
 
@@ -124,7 +124,7 @@ pub(crate) async fn listener_detail_view(
     State(state): State<Arc<AppState>>,
     Path(path): Path<ListenerPath>,
 ) -> Result<Json<Value>, ApiError> {
-    let snapshot = state.snapshot.read().clone();
+    let snapshot = (*state.snapshot.load()).clone();
     let listener = find_listener(&snapshot, path.name.trim())
         .ok_or_else(|| ApiError::not_found("listener not found"))?;
     Ok(Json(listener_detail_value(&snapshot, &listener)?))
@@ -134,7 +134,7 @@ pub(crate) async fn listener_statuses_view(
     State(state): State<Arc<AppState>>,
     Query(query): Query<ListenerListQuery>,
 ) -> Result<Json<Vec<ListenerRuntimeStatus>>, ApiError> {
-    let snapshot = state.snapshot.read().clone();
+    let snapshot = (*state.snapshot.load()).clone();
     let runtime = state.runtime.snapshot();
     Ok(Json(collect_listener_runtime_statuses(
         &snapshot, &runtime, &query,
@@ -145,7 +145,7 @@ pub(crate) async fn listener_status_detail_view(
     State(state): State<Arc<AppState>>,
     Path(path): Path<ListenerPath>,
 ) -> Result<Json<ListenerRuntimeStatus>, ApiError> {
-    let snapshot = state.snapshot.read().clone();
+    let snapshot = (*state.snapshot.load()).clone();
     let runtime = state.runtime.snapshot();
     let listener = find_listener(&snapshot, path.name.trim())
         .ok_or_else(|| ApiError::not_found("listener not found"))?;
@@ -159,7 +159,7 @@ pub(crate) async fn routes_view(
     State(state): State<Arc<AppState>>,
     Query(query): Query<RouteListQuery>,
 ) -> Result<Json<RouteListValueResponse>, ApiError> {
-    let snapshot = state.snapshot.read().clone();
+    let snapshot = (*state.snapshot.load()).clone();
     Ok(Json(route_list_values(&snapshot, &query)?))
 }
 
@@ -167,7 +167,7 @@ pub(crate) async fn route_detail_view(
     State(state): State<Arc<AppState>>,
     Path(path): Path<RoutePath>,
 ) -> Result<Json<Value>, ApiError> {
-    let snapshot = state.snapshot.read().clone();
+    let snapshot = (*state.snapshot.load()).clone();
     let route = find_route(
         &snapshot,
         path.kind.trim(),
@@ -182,7 +182,7 @@ pub(crate) async fn backends_view(
     State(state): State<Arc<AppState>>,
     Query(query): Query<BackendListQuery>,
 ) -> Result<Json<Vec<Value>>, ApiError> {
-    let snapshot = state.snapshot.read().clone();
+    let snapshot = (*state.snapshot.load()).clone();
     Ok(Json(backend_list_values(&snapshot, &query)?))
 }
 
@@ -190,7 +190,7 @@ pub(crate) async fn backend_detail_view(
     State(state): State<Arc<AppState>>,
     Path(path): Path<BackendPath>,
 ) -> Result<Json<Value>, ApiError> {
-    let snapshot = state.snapshot.read().clone();
+    let snapshot = (*state.snapshot.load()).clone();
     let backend = find_backend(&snapshot, path.namespace.trim(), path.name.trim())
         .ok_or_else(|| ApiError::not_found("backend not found"))?;
     Ok(Json(backend_detail_value(&snapshot, &backend)?))

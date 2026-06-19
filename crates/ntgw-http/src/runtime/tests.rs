@@ -101,7 +101,7 @@ impl ApplyStageRecorder for RecordingStageRecorder {
 #[test]
 fn http_runtime_records_listener_plan_and_tls_asset_reload_stages() -> anyhow::Result<()> {
     let snapshot = Snapshot::shared();
-    *snapshot.write() = Snapshot {
+    snapshot.store(Arc::new(Snapshot {
         id: "v1".to_string(),
         listeners: vec![Listener {
             name: "default/gw/http".to_string(),
@@ -111,7 +111,7 @@ fn http_runtime_records_listener_plan_and_tls_asset_reload_stages() -> anyhow::R
             ..Listener::default()
         }],
         ..Snapshot::default()
-    };
+    }));
     let updates = SnapshotSignal::shared();
     let (_config_tx, config_rx) = tokio::sync::watch::channel(Arc::new(ReloadableRuntimeConfig {
         runtime: RuntimeOptions {

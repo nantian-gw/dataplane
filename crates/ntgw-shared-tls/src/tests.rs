@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use std::{collections::BTreeMap, net::TcpListener as StdTcpListener, pin::Pin};
 
 use anyhow::{Context, Result};
@@ -150,7 +151,7 @@ fn shared_tls_snapshot(
     stream_backend_port: u16,
 ) -> SharedSnapshot {
     let shared = Snapshot::shared();
-    *shared.write() = Snapshot {
+    shared.store(Arc::new(Snapshot {
         listeners: vec![
             Listener {
                 name: "default/gw/https".to_string(),
@@ -270,8 +271,10 @@ fn shared_tls_snapshot(
         ],
         secrets: vec![example_secret_material("example-cert")],
         ..Snapshot::default()
-    };
-    shared.write().rebuild_runtime_indexes();
+    }));
+    let mut s = (**shared.load()).clone();
+    s.rebuild_runtime_indexes();
+    shared.store(Arc::new(s));
     shared
 }
 

@@ -5,7 +5,7 @@ fn simple_http_snapshot(
     protocol: &str,
 ) -> ntgw_ir::SharedSnapshot {
     let shared = Snapshot::shared();
-    *shared.write() = Snapshot {
+    shared.store(Arc::new(Snapshot {
         listeners: vec![Listener {
             name: "default/gw/http".to_string(),
             address: "127.0.0.1".to_string(),
@@ -58,8 +58,12 @@ fn simple_http_snapshot(
             wasm_plugin: None,
         }],
         ..Snapshot::default()
-    };
-    shared.write().rebuild_runtime_indexes();
+    }));
+    {
+        let mut s = (**shared.load()).clone();
+        s.rebuild_runtime_indexes();
+        shared.store(Arc::new(s));
+    }
     shared
 }
 
@@ -69,7 +73,7 @@ fn cors_http_snapshot(
     backend_port: u32,
 ) -> ntgw_ir::SharedSnapshot {
     let shared = Snapshot::shared();
-    *shared.write() = Snapshot {
+    shared.store(Arc::new(Snapshot {
         listeners: vec![Listener {
             name: "default/gw/http".to_string(),
             address: "127.0.0.1".to_string(),
@@ -136,8 +140,12 @@ fn cors_http_snapshot(
             wasm_plugin: None,
         }],
         ..Snapshot::default()
-    };
-    shared.write().rebuild_runtime_indexes();
+    }));
+    {
+        let mut s = (**shared.load()).clone();
+        s.rebuild_runtime_indexes();
+        shared.store(Arc::new(s));
+    }
     shared
 }
 
@@ -147,7 +155,7 @@ fn dual_protocol_snapshot(
     h2c_backend_port: u32,
 ) -> ntgw_ir::SharedSnapshot {
     let shared = Snapshot::shared();
-    *shared.write() = Snapshot {
+    shared.store(Arc::new(Snapshot {
         listeners: vec![Listener {
             name: "default/gw/http".to_string(),
             address: "127.0.0.1".to_string(),
@@ -249,7 +257,11 @@ fn dual_protocol_snapshot(
             },
         ],
         ..Snapshot::default()
-    };
-    shared.write().rebuild_runtime_indexes();
+    }));
+    {
+        let mut s = (**shared.load()).clone();
+        s.rebuild_runtime_indexes();
+        shared.store(Arc::new(s));
+    }
     shared
 }

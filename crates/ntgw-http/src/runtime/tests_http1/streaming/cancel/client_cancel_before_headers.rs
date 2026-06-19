@@ -16,7 +16,7 @@ async fn http_client_cancel_before_response_headers_records_client_closed() {
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let log_path = temp_log_path("http-client-cancel-before-response-headers");
     let traffic = SharedTrafficStats::shared();
     let server = start_server(

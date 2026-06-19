@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::{
     BackendEndpoint, Listener, RouteKind, SelectedBackend, Snapshot, StreamRoute, TlsRouteMode,
     best_stream_rule_match_with_tls_mode,
@@ -33,7 +35,7 @@ struct StreamFastCandidate {
 
 struct CompiledStreamBackendSelection {
     endpoint: BackendEndpoint,
-    backend_name: String,
+    backend_name: Arc<str>,
 }
 
 impl StreamFastPathPlan {
@@ -141,7 +143,7 @@ impl StreamFastPathPlan {
                     .select_compiled_http_fast_backend(&compiled_rule.backend_refs)
                     .map(|selected| CompiledStreamBackendSelection {
                         endpoint: selected.endpoint,
-                        backend_name: selected.backend_name,
+                        backend_name: Arc::clone(&selected.backend_name),
                     })
                 else {
                     continue;
@@ -167,7 +169,7 @@ impl StreamFastPathPlan {
                 listener_name: listener.name.clone(),
                 listener_protocol: listener.protocol.clone(),
                 backend: candidate.selected.endpoint,
-                backend_name: candidate.selected.backend_name,
+                backend_name: candidate.selected.backend_name.to_string(),
                 filters: Vec::new(),
                 matched_http_path: None,
                 timeouts: None,

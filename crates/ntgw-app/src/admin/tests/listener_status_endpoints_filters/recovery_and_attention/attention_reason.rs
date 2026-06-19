@@ -19,7 +19,7 @@ async fn listener_status_endpoint_filters_by_attention_reason() {
         ],
         ..Snapshot::default()
     };
-    *state.snapshot.write() = snapshot;
+    state.snapshot.store(Arc::new(snapshot));
     state
         .runtime
         .observe_http_listener_reload_failure("v2", "failed", "address in use");

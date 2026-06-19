@@ -150,7 +150,7 @@ impl SessionManager {
 
         if policy.is_cookie() {
             response.append_header(
-                "set-cookie".to_string(),
+                "set-cookie",
                 build_set_cookie(policy, selected, &token, payload.ax),
             )?;
         } else {

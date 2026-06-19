@@ -73,7 +73,7 @@ pub(crate) async fn do_upstream_peer(
         }
         let session_cache = SessionResolutionCache::new(&proxy.session_manager, &request.headers);
         let selected = {
-            let current = proxy.snapshot.read();
+            let current = proxy.snapshot.load();
             cache_snapshot_version_if_observed(
                 ctx,
                 current.id.as_str(),
@@ -127,7 +127,7 @@ pub(crate) async fn do_upstream_peer(
 
     let peer = {
         if ctx.selected_backend_config.is_none() {
-            let current = proxy.snapshot.read();
+            let current = proxy.snapshot.load();
             ctx.selected_backend_config = Some(selected_backend_config_cached(
                 &proxy.selected_backend_config_cache,
                 &current,

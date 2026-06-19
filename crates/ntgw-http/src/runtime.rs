@@ -231,7 +231,7 @@ pub fn spawn(
                     active_listener_binds_for_plan_build(active_plan.as_ref(), force_reload);
                 let desired = {
                     let stage = Instant::now();
-                    let current = snapshot.read();
+                    let current = snapshot.load();
                     let desired = build_listener_plan_for_runtime(
                         &current,
                         &runtime,
@@ -241,7 +241,7 @@ pub fn spawn(
                     observe_reload_stage_elapsed(stage_recorder.as_deref(), "listener_plan", stage);
                     desired
                 };
-                let version = snapshot.read().id.clone();
+                let version = snapshot.load().id.clone();
                 let active_circuit_breaker = circuit_breaker
                     .read()
                     .unwrap_or_else(|err| err.into_inner())

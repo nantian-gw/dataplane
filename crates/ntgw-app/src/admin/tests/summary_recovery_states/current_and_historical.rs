@@ -24,7 +24,7 @@ fn summary_view_distinguishes_current_and_historical_unrecovered_failures() {
         ..Snapshot::default()
     };
     let shared = Snapshot::shared();
-    *shared.write() = snapshot;
+    shared.store(Arc::new(snapshot));
     let runtime = RuntimeStats::shared();
     runtime.observe_http_listener_reload_failure("v1", "pending-historical", "bind conflict");
     runtime.observe_http_listener_reload_result("v1", &["stale-historical".to_string()], &[], &[]);

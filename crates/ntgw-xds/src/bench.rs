@@ -49,7 +49,7 @@ impl ReloadBench {
             ..Snapshot::default()
         };
         let requirements = snapshot_runtime_apply_requirements(&initial);
-        *snapshot.write() = initial;
+        snapshot.store(Arc::new(initial));
 
         Self {
             snapshot,
@@ -59,7 +59,10 @@ impl ReloadBench {
     }
 
     pub async fn apply_success(&self, version: &str) -> std::result::Result<ApplyOutcome, String> {
-        self.snapshot.write().id = version.to_string();
+        let current = self.snapshot.load();
+        let mut updated = Snapshot::clone(&current);
+        updated.id = version.to_string();
+        self.snapshot.store(Arc::new(updated));
         if self.requirements.http {
             self.runtime.observe_http_listener_reload_success(version);
         }
@@ -96,7 +99,10 @@ impl ReloadBench {
                 .observe_stream_listener_reload_success(last_good);
         }
 
-        self.snapshot.write().id = rejected.to_string();
+        let current = self.snapshot.load();
+        let mut updated = Snapshot::clone(&current);
+        updated.id = rejected.to_string();
+        self.snapshot.store(Arc::new(updated));
         if self.requirements.http {
             self.runtime.observe_http_listener_reload_failure(
                 rejected,

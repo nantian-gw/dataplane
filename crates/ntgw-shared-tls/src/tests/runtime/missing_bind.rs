@@ -28,7 +28,7 @@ impl ApplyStageRecorder for RecordingStageRecorder {
 async fn shared_tls_runtime_marks_version_applied_when_https_listener_has_no_bind_plan()
 -> Result<()> {
     let snapshot = Snapshot::shared();
-    *snapshot.write() = Snapshot {
+    snapshot.store(Arc::new(Snapshot {
         id: "v-missing-identity".to_string(),
         listeners: vec![Listener {
             name: "default/gw/https".to_string(),
@@ -47,8 +47,7 @@ async fn shared_tls_runtime_marks_version_applied_when_https_listener_has_no_bin
             ..Listener::default()
         }],
         ..Snapshot::default()
-    };
-
+    }));
     let updates = SnapshotSignal::shared();
     let runtime_stats = RuntimeStats::shared();
     let (_config_tx, config_rx) = watch::channel(Arc::new(ReloadableRuntimeConfig {

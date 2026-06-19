@@ -370,7 +370,7 @@ fn observe_selected_backend_result(
     let handle = if let Some(config) = ctx.selected_backend_config.as_ref() {
         config.runtime.clone()
     } else if let Some(selected) = ctx.selected_backend.as_ref() {
-        snapshot.read().endpoint_runtime_handle(selected)
+        snapshot.load().endpoint_runtime_handle(selected)
     } else {
         return;
     };

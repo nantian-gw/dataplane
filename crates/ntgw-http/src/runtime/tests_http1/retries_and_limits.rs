@@ -23,7 +23,7 @@ async fn route_rate_limit_fast_fails_second_request_with_429() {
         },
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let log_path = temp_log_path("route-rate-limit-access-log");
     let server = start_server(
         plan,
@@ -127,7 +127,7 @@ async fn backend_circuit_breaker_fast_fails_second_request_with_503() {
         },
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let server = start_server(
         plan,
         snapshot.clone(),

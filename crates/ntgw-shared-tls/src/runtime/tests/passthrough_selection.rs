@@ -1,7 +1,7 @@
 #[test]
 fn passthrough_listener_selection_does_not_fall_back_to_less_specific_listener() {
     let shared = Snapshot::shared();
-    *shared.write() = Snapshot {
+    shared.store(Arc::new(Snapshot {
         listeners: vec![
             tls_passthrough_listener(
                 "default/gw/less-specific",
@@ -51,8 +51,10 @@ fn passthrough_listener_selection_does_not_fall_back_to_less_specific_listener()
             stream_backend("wide-backend"),
         ],
         ..Snapshot::default()
-    };
-    shared.write().rebuild_runtime_indexes();
+    }));
+    let mut s = (**shared.load()).clone();
+    s.rebuild_runtime_indexes();
+    shared.store(Arc::new(s));
 
     let listener_names = vec![
         "default/gw/less-specific".to_string(),
@@ -74,7 +76,7 @@ fn passthrough_listener_selection_does_not_fall_back_to_less_specific_listener()
 #[test]
 fn passthrough_listener_selection_uses_listener_match_before_backend_resolution() {
     let shared = Snapshot::shared();
-    *shared.write() = Snapshot {
+    shared.store(Arc::new(Snapshot {
         listeners: vec![tls_passthrough_listener(
             "default/gw/tls",
             vec!["example.com"],
@@ -105,8 +107,10 @@ fn passthrough_listener_selection_uses_listener_match_before_backend_resolution(
             ..ntgw_ir::StreamRoute::default()
         }],
         ..Snapshot::default()
-    };
-    shared.write().rebuild_runtime_indexes();
+    }));
+    let mut s = (**shared.load()).clone();
+    s.rebuild_runtime_indexes();
+    shared.store(Arc::new(s));
 
     let listener_names = vec!["default/gw/tls".to_string()];
 
@@ -120,7 +124,7 @@ fn passthrough_listener_selection_uses_listener_match_before_backend_resolution(
 #[test]
 fn passthrough_listener_selection_prefers_same_score_listener_with_route() {
     let shared = Snapshot::shared();
-    *shared.write() = Snapshot {
+    shared.store(Arc::new(Snapshot {
         listeners: vec![
             tls_passthrough_listener(
                 "default/gw/no-route",
@@ -170,8 +174,10 @@ fn passthrough_listener_selection_prefers_same_score_listener_with_route() {
             stream_backend("matching-backend"),
         ],
         ..Snapshot::default()
-    };
-    shared.write().rebuild_runtime_indexes();
+    }));
+    let mut s = (**shared.load()).clone();
+    s.rebuild_runtime_indexes();
+    shared.store(Arc::new(s));
 
     let listener_names = vec![
         "default/gw/no-route".to_string(),
@@ -187,7 +193,7 @@ fn passthrough_listener_selection_prefers_same_score_listener_with_route() {
 #[test]
 fn passthrough_listener_selection_treats_wildcards_as_suffix_matches() {
     let shared = Snapshot::shared();
-    *shared.write() = Snapshot {
+    shared.store(Arc::new(Snapshot {
         listeners: vec![
             tls_passthrough_listener(
                 "default/gw/wildcard-com",
@@ -237,8 +243,10 @@ fn passthrough_listener_selection_treats_wildcards_as_suffix_matches() {
             stream_backend("fallback-backend"),
         ],
         ..Snapshot::default()
-    };
-    shared.write().rebuild_runtime_indexes();
+    }));
+    let mut s = (**shared.load()).clone();
+    s.rebuild_runtime_indexes();
+    shared.store(Arc::new(s));
 
     let listener_names = vec![
         "default/gw/wildcard-com".to_string(),
@@ -255,7 +263,7 @@ fn passthrough_listener_selection_treats_wildcards_as_suffix_matches() {
 #[test]
 fn terminate_listener_selection_rejects_unmatched_sni() {
     let shared = Snapshot::shared();
-    *shared.write() = Snapshot {
+    shared.store(Arc::new(Snapshot {
         listeners: vec![Listener {
             name: "default/gw/https".to_string(),
             address: "0.0.0.0".to_string(),
@@ -282,8 +290,10 @@ fn terminate_listener_selection_rejects_unmatched_sni() {
             ..ntgw_ir::HttpRoute::default()
         }],
         ..Snapshot::default()
-    };
-    shared.write().rebuild_runtime_indexes();
+    }));
+    let mut s = (**shared.load()).clone();
+    s.rebuild_runtime_indexes();
+    shared.store(Arc::new(s));
 
     let listener_names = vec!["default/gw/https".to_string()];
 

@@ -26,7 +26,7 @@ async fn shared_tls_runtime_routes_passthrough_and_terminate_on_same_bind() -> R
         http_backend_addr.port(),
         stream_backend_addr.port(),
     );
-    let plan = build_listener_plan(&snapshot.read(), &RuntimeOptions::default())?;
+    let plan = build_listener_plan(&snapshot.load(), &RuntimeOptions::default())?;
     let bind = Arc::new(plan.binds.get(&bind_addr).cloned().expect("bind"));
     let gateway_listener = TcpListener::bind(&bind_addr).await?;
     let app = build_http_app(
@@ -123,7 +123,7 @@ async fn shared_tls_runtime_terminates_tlsroute_to_raw_tcp_backend_on_same_bind(
         terminated_backend_addr.port(),
         passthrough_backend_addr.port(),
     );
-    let plan = build_listener_plan(&snapshot.read(), &RuntimeOptions::default())?;
+    let plan = build_listener_plan(&snapshot.load(), &RuntimeOptions::default())?;
     let bind = Arc::new(plan.binds.get(&bind_addr).cloned().expect("bind"));
     let gateway_listener = TcpListener::bind(&bind_addr).await?;
     let app = build_http_app(
@@ -217,7 +217,7 @@ fn tlsroute_terminate_snapshot(
     passthrough_backend_port: u16,
 ) -> SharedSnapshot {
     let shared = Snapshot::shared();
-    *shared.write() = Snapshot {
+    shared.store(Arc::new(Snapshot {
         listeners: vec![
             Listener {
                 name: "default/gw/tls-terminate".to_string(),
@@ -334,7 +334,9 @@ fn tlsroute_terminate_snapshot(
         ],
         secrets: vec![example_secret_material("example-cert")],
         ..Snapshot::default()
-    };
-    shared.write().rebuild_runtime_indexes();
+    }));
+    let mut s = (**shared.load()).clone();
+    s.rebuild_runtime_indexes();
+    shared.store(Arc::new(s));
     shared
 }

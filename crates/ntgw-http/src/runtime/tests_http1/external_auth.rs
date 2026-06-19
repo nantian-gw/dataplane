@@ -46,7 +46,7 @@ fn external_auth_http_snapshot(
     allowed_response_headers: Vec<&str>,
 ) -> ntgw_ir::SharedSnapshot {
     let shared = Snapshot::shared();
-    *shared.write() = Snapshot {
+    shared.store(Arc::new(Snapshot {
         listeners: vec![Listener {
             name: "default/gw/http".to_string(),
             address: "127.0.0.1".to_string(),
@@ -140,8 +140,10 @@ fn external_auth_http_snapshot(
             },
         ],
         ..Snapshot::default()
-    };
-    shared.write().rebuild_runtime_indexes();
+    }));
+    let mut s = (**shared.load()).clone();
+    s.rebuild_runtime_indexes();
+    shared.store(Arc::new(s));
     shared
 }
 
@@ -152,7 +154,7 @@ fn external_auth_grpc_snapshot(
     allowed_headers: Vec<&str>,
 ) -> ntgw_ir::SharedSnapshot {
     let shared = Snapshot::shared();
-    *shared.write() = Snapshot {
+    shared.store(Arc::new(Snapshot {
         listeners: vec![Listener {
             name: "default/gw/http".to_string(),
             address: "127.0.0.1".to_string(),
@@ -239,19 +241,22 @@ fn external_auth_grpc_snapshot(
             },
         ],
         ..Snapshot::default()
-    };
-    shared.write().rebuild_runtime_indexes();
+    }));
+    let mut s = (**shared.load()).clone();
+    s.rebuild_runtime_indexes();
+    shared.store(Arc::new(s));
     shared
 }
 
 fn enable_external_auth_forward_body(snapshot: &ntgw_ir::SharedSnapshot, max_size: u32) {
-    let mut snapshot = snapshot.write();
-    let auth = snapshot.http_routes[0].rules[0].filters[0]
+    let mut snap = (**snapshot.load()).clone();
+    let auth = snap.http_routes[0].rules[0].filters[0]
         .external_auth
         .as_mut()
         .expect("external auth filter");
     auth.forward_body_max_size = Some(max_size);
-    snapshot.rebuild_runtime_indexes();
+    snap.rebuild_runtime_indexes();
+    snapshot.store(Arc::new(snap));
 }
 
 fn grpc_allow_response() -> CheckResponse {
@@ -324,7 +329,7 @@ async fn external_auth_grpc_ok_allows_request_and_sends_selected_headers() {
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let server = start_server(
         plan,
         snapshot,
@@ -415,7 +420,7 @@ async fn external_auth_grpc_forward_body_sends_buffered_body_to_auth_and_backend
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let server = start_server(
         plan,
         snapshot,
@@ -500,7 +505,7 @@ async fn external_auth_http_forward_body_sends_buffered_body_to_auth_and_backend
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let server = start_server(
         plan,
         snapshot,
@@ -592,7 +597,7 @@ async fn external_auth_http_forward_body_rejects_oversized_body_before_auth_or_b
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let server = start_server(
         plan,
         snapshot,
@@ -654,7 +659,7 @@ async fn external_auth_grpc_denied_response_returns_status_and_body_without_back
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let log_path = temp_log_path("grpc-external-auth-denied-access-log");
     let server = start_server(
         plan,
@@ -748,7 +753,7 @@ async fn external_auth_grpc_rpc_error_fails_closed_without_backend() {
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let server = start_server(
         plan,
         snapshot,
@@ -812,7 +817,7 @@ async fn external_auth_http_always_forwards_authorization_even_without_allowed_h
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let server = start_server(
         plan,
         snapshot,
@@ -903,7 +908,7 @@ async fn external_auth_http_copies_allowed_auth_response_headers_to_backend_requ
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let server = start_server(
         plan,
         snapshot,
@@ -994,7 +999,7 @@ async fn external_auth_http_2xx_allows_request_to_backend() {
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let server = start_server(
         plan,
         snapshot,
@@ -1081,7 +1086,7 @@ async fn external_auth_http_non_2xx_denies_without_backend() {
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let server = start_server(
         plan,
         snapshot,
@@ -1155,7 +1160,7 @@ async fn external_auth_http_connection_error_fails_closed_without_backend() {
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let server = start_server(
         plan,
         snapshot,

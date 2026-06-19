@@ -12,7 +12,7 @@ async fn http1_chunked_request_body_is_forwarded_intact() {
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let traffic = SharedTrafficStats::shared();
     let server = start_server(
         plan,

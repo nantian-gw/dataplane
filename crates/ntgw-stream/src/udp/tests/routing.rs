@@ -4,11 +4,10 @@ async fn returns_error_when_no_udp_route_matches() -> Result<()> {
     let client = UdpSocket::bind("127.0.0.1:0").await?;
     let listener = test_listener("default/gw/udp", downstream.local_addr()?.port() as u32);
     let snapshot = Snapshot::shared();
-    *snapshot.write() = Snapshot {
+    snapshot.store(Arc::new(Snapshot {
         listeners: vec![listener.clone()],
         ..Snapshot::default()
-    };
-
+    }));
     let err = proxy_datagram(
         snapshot,
         listener.name,

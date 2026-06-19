@@ -35,7 +35,7 @@ fn summary_view_counts_listener_current_states() {
         ..Snapshot::default()
     };
     let shared = Snapshot::shared();
-    *shared.write() = snapshot;
+    shared.store(Arc::new(snapshot));
     let runtime = RuntimeStats::shared();
     runtime.observe_http_listener_reload_result("v1", &["retained".to_string()], &[], &[]);
     runtime.observe_http_listener_reload_result(

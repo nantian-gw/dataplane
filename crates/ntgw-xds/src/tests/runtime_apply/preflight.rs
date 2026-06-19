@@ -5,10 +5,10 @@ fn preflight_rejection_keeps_last_good_snapshot() {
 
 pub(super) fn run_preflight_rejection_keeps_last_good_snapshot() {
     let snapshot = Snapshot::shared();
-    *snapshot.write() = Snapshot {
+    snapshot.store(Arc::new(Snapshot {
         id: "last-good-v1".to_string(),
         ..Snapshot::default()
-    };
+    }));
 
     let stats = ClientStats::shared();
     stats.observe_snapshot_applied("last-good-v1");
@@ -22,7 +22,6 @@ pub(super) fn run_preflight_rejection_keeps_last_good_snapshot() {
         ],
         ..ConfigSnapshot::default()
     };
-
     let supported = canonicalize_supported_features(["core.v1"]);
     let result = preflight_snapshot_before_swap(&config, None, &supported, &stats);
 
@@ -34,7 +33,7 @@ pub(super) fn run_preflight_rejection_keeps_last_good_snapshot() {
                 .to_string(),
         ))
     );
-    assert_eq!(snapshot.read().id, "last-good-v1");
+    assert_eq!(snapshot.load().id, "last-good-v1");
 
     let stats = stats.snapshot();
     assert_eq!(stats.snapshots_applied, 1);

@@ -1,4 +1,5 @@
 use super::*;
+use std::sync::Arc;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 #[tokio::test]
@@ -15,8 +16,10 @@ async fn tls_passthrough_reload_preserves_existing_connection() -> Result<()> {
         http_backend_port,
         stream_backend_a_addr.port(),
     );
-    snapshot.write().id = "v1".to_string();
-    let plan = build_listener_plan(&snapshot.read(), &RuntimeOptions::default())?;
+    let mut s = (**snapshot.load()).clone();
+    s.id = "v1".to_string();
+    snapshot.store(Arc::new(s));
+    let plan = build_listener_plan(&snapshot.load(), &RuntimeOptions::default())?;
     let bind = Arc::new(plan.binds.get(&bind_addr).cloned().expect("bind"));
     let gateway_listener = TcpListener::bind(&bind_addr).await?;
     let app = build_http_app(
@@ -77,17 +80,17 @@ async fn tls_passthrough_reload_preserves_existing_connection() -> Result<()> {
     first.write_all(b"ping").await?;
     assert_passthrough_response(&mut first, b"a-one").await?;
 
-    let previous = snapshot.read().clone();
-    let mut next = shared_tls_snapshot(
+    let previous = (**snapshot.load()).clone();
+    let mut next = (**shared_tls_snapshot(
         gateway_port,
         http_backend_port,
         stream_backend_b_addr.port(),
     )
-    .read()
+    .load())
     .clone();
     next.id = "v2".to_string();
     next.inherit_runtime_state_from(&previous);
-    *snapshot.write() = next;
+    snapshot.store(Arc::new(next));
 
     let upstream_b = tokio::spawn(expect_passthrough_backend(
         stream_backend_b,

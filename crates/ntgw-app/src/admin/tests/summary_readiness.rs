@@ -3,8 +3,9 @@ use super::*;
 #[test]
 fn summary_view_marks_pending_snapshot_without_last_good_as_not_ready() {
     let shared = Snapshot::shared();
-    *shared.write() = fixture_snapshot();
-    shared.write().id = "v2".to_string();
+    let mut s = fixture_snapshot();
+    s.id = "v2".to_string();
+    shared.store(Arc::new(s));
     let runtime = RuntimeStats::shared();
     let state = build_state_with_parts(
         test_admin_runtime_config(),
@@ -25,8 +26,9 @@ fn summary_view_marks_pending_snapshot_without_last_good_as_not_ready() {
 #[test]
 fn summary_view_marks_pending_snapshot_with_last_good_as_serving_last_good() {
     let shared = Snapshot::shared();
-    *shared.write() = fixture_snapshot();
-    shared.write().id = "v2".to_string();
+    let mut s = fixture_snapshot();
+    s.id = "v2".to_string();
+    shared.store(Arc::new(s));
     let runtime = RuntimeStats::shared();
     runtime.observe_http_listener_reload_result("v1", &["web".to_string()], &[], &[]);
     let state = build_state_with_parts(

@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use pingora::{Error, http::RequestHeader, proxy::Session};
 
 use ntgw_ir::{
@@ -6,12 +8,14 @@ use ntgw_ir::{
 
 use super::INVALID_ROUTE_FILTER;
 
-pub(super) fn redirect_scheme(original_scheme: &str, redirect: &RequestRedirectFilter) -> String {
+pub(super) fn redirect_scheme<'a>(
+    original_scheme: &'a str,
+    redirect: &'a RequestRedirectFilter,
+) -> Cow<'a, str> {
     if !redirect.scheme.is_empty() {
-        return redirect.scheme.clone();
+        return Cow::Borrowed(&redirect.scheme);
     }
-
-    original_scheme.to_string()
+    Cow::Borrowed(original_scheme)
 }
 
 pub(super) fn request_scheme(session: &Session) -> &'static str {
@@ -27,24 +31,26 @@ pub(super) fn request_scheme(session: &Session) -> &'static str {
     }
 }
 
-pub(super) fn redirect_hostname(
+pub(super) fn redirect_hostname<'a>(
     session: &Session,
-    request: &RequestMeta,
-    redirect: &RequestRedirectFilter,
-) -> String {
+    request: &'a RequestMeta,
+    redirect: &'a RequestRedirectFilter,
+) -> Cow<'a, str> {
     if !redirect.hostname.is_empty() {
-        return redirect.hostname.clone();
+        return Cow::Borrowed(&redirect.hostname);
     }
 
     if let Some(host) = &request.host {
-        return host.clone();
+        return Cow::Borrowed(host.as_str());
     }
 
-    session
-        .as_downstream()
-        .server_addr()
-        .map(|addr| strip_port(&addr.to_string()))
-        .unwrap_or_else(|| "localhost".to_string())
+    Cow::Owned(
+        session
+            .as_downstream()
+            .server_addr()
+            .map(|addr| strip_port(&addr.to_string()))
+            .unwrap_or_else(|| "localhost".to_string()),
+    )
 }
 
 pub(super) fn request_port(session: &Session, request: &RequestMeta) -> u32 {
@@ -76,20 +82,25 @@ pub(super) fn redirect_port(
     default_port_for_scheme(target_scheme).unwrap_or(original_port)
 }
 
-pub(super) fn redirect_path_and_query(
-    request_header: &RequestHeader,
-    matched_http_path: &MatchedHttpPath,
-    redirect: &RequestRedirectFilter,
-) -> String {
+pub(super) fn redirect_path_and_query<'a>(
+    request_header: &'a RequestHeader,
+    matched_http_path: &'a MatchedHttpPath,
+    redirect: &'a RequestRedirectFilter,
+) -> Cow<'a, str> {
     let path = request_header.uri.path();
     let query = request_header.uri.query();
     match &redirect.path {
-        Some(modifier) => rewrite_path_and_query(path, query, modifier, Some(matched_http_path)),
+        Some(modifier) => Cow::Owned(rewrite_path_and_query(
+            path,
+            query,
+            modifier,
+            Some(matched_http_path),
+        )),
         None => request_header
             .uri
             .path_and_query()
-            .map(|value| value.as_str().to_string())
-            .unwrap_or_else(|| path.to_string()),
+            .map(|value| Cow::Owned(value.as_str().to_string()))
+            .unwrap_or_else(|| Cow::Borrowed(path)),
     }
 }
 

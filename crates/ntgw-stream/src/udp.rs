@@ -107,7 +107,7 @@ fn build_udp_session_task(
     traffic: SharedTrafficStats,
     permit: UdpAdmissionPermit,
 ) -> Result<UdpSessionTask> {
-    let current = snapshot.read();
+    let current = snapshot.load();
     let selected = current
         .select_stream_backend(listener_name.as_ref(), None)
         .ok_or_else(|| anyhow!("no stream route matched listener {listener_name}"))?;
@@ -144,7 +144,7 @@ async fn proxy_datagram(
 ) -> Result<()> {
     let started_at = Instant::now();
     let (access_log_state, selected, runtime_ids) = {
-        let current = snapshot.read();
+        let current = snapshot.load();
         let selected = current
             .select_stream_backend(&listener_name, None)
             .ok_or_else(|| anyhow!("no stream route matched listener {listener_name}"))?;

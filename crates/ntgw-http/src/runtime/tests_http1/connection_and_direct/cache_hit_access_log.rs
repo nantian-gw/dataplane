@@ -17,7 +17,7 @@ async fn cache_hit_preserves_sent_response_access_log_headers() {
         }),
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let log_path = temp_log_path("cache-hit-access-log");
     let server = start_server(
         plan,

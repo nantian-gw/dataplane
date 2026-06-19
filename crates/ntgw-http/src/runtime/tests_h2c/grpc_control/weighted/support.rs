@@ -4,7 +4,7 @@ fn weighted_grpc_h2c_snapshot(
     backend_b_port: u32,
 ) -> ntgw_ir::SharedSnapshot {
     let shared = Snapshot::shared();
-    *shared.write() = Snapshot {
+    shared.store(Arc::new(Snapshot {
         listeners: vec![Listener {
             name: "default/gw/http".to_string(),
             address: "127.0.0.1".to_string(),
@@ -82,8 +82,13 @@ fn weighted_grpc_h2c_snapshot(
             },
         ],
         ..Snapshot::default()
-    };
-    shared.write().rebuild_runtime_indexes();
+    }));
+
+    let mut s = (**shared.load()).clone();
+
+    s.rebuild_runtime_indexes();
+
+    shared.store(Arc::new(s));
     shared
 }
 
@@ -105,7 +110,7 @@ fn weighted_mesh_grpc_h2c_snapshot_with_addresses(
     backend_b: (&str, u32),
 ) -> ntgw_ir::SharedSnapshot {
     let shared = Snapshot::shared();
-    *shared.write() = Snapshot {
+    shared.store(Arc::new(Snapshot {
         listeners: vec![Listener {
             name: format!("mesh/default/echo/{listener_port}"),
             address: "127.0.0.1".to_string(),
@@ -190,8 +195,13 @@ fn weighted_mesh_grpc_h2c_snapshot_with_addresses(
             },
         ],
         ..Snapshot::default()
-    };
-    shared.write().rebuild_runtime_indexes();
+    }));
+
+    let mut s = (**shared.load()).clone();
+
+    s.rebuild_runtime_indexes();
+
+    shared.store(Arc::new(s));
     shared
 }
 

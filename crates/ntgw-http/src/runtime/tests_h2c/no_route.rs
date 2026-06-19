@@ -12,7 +12,7 @@ async fn http2_unmatched_route_returns_404_without_upstream() {
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let log_path = temp_log_path("http2-no-route-access-log");
     let server = start_server(
         plan,
@@ -80,7 +80,7 @@ async fn grpc_unmatched_route_returns_unimplemented_without_upstream() {
         enable_ipv6: false,
         ..RuntimeOptions::default()
     };
-    let plan = build_listener_plan(&snapshot.read(), &runtime, None).expect("plan");
+    let plan = build_listener_plan(&snapshot.load(), &runtime, None).expect("plan");
     let server = start_server(
         plan,
         snapshot.clone(),

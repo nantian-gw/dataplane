@@ -13,19 +13,20 @@ use super::context::{
 use super::request::access_log_route_annotations;
 use super::retry::retry_completed_successfully;
 
-fn extract_request_header(ctx: &RequestContext, name: &str) -> String {
+fn extract_request_header<'a>(ctx: &'a RequestContext, name: &str) -> Cow<'a, str> {
     ctx.access_log_request_headers
         .get(name)
-        .cloned()
+        .map(|s| s.as_str())
         .or_else(|| {
             ctx.request_headers
                 .as_ref()
                 .and_then(|headers| headers.get(name))
                 .and_then(|values| values.first())
-                .cloned()
+                .map(|s| s.as_str())
         })
-        .filter(|value| !value.is_empty())
-        .unwrap_or_else(|| "-".to_string())
+        .filter(|s| !s.is_empty())
+        .map(Cow::Borrowed)
+        .unwrap_or(Cow::Borrowed("-"))
 }
 
 fn build_request_line(ctx: &RequestContext) -> String {
@@ -137,9 +138,9 @@ pub(crate) fn observe_completed_request(
             request: build_request_line(ctx),
             http_version: ctx.http_version.clone(),
             query_string: ctx.query_string.clone(),
-            referer: extract_request_header(ctx, "referer"),
-            user_agent: extract_request_header(ctx, "user-agent"),
-            x_forwarded_for: extract_request_header(ctx, "x-forwarded-for"),
+            referer: extract_request_header(ctx, "referer").into_owned(),
+            user_agent: extract_request_header(ctx, "user-agent").into_owned(),
+            x_forwarded_for: extract_request_header(ctx, "x-forwarded-for").into_owned(),
             upstream_addr: ctx.upstream_addr.clone(),
             upstream_connect_time_ms: ctx.upstream_connect_latency_ms as u128,
             content_type: ctx.response_content_type.clone(),

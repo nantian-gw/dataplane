@@ -185,7 +185,7 @@ fn build_state_with_parts(
 
 fn test_state(token: Option<&str>) -> AppState {
     let snapshot = Snapshot::shared();
-    *snapshot.write() = fixture_snapshot();
+    snapshot.store(Arc::new(fixture_snapshot()));
 
     let mut config = test_admin_runtime_config();
     config.admin_bearer_token = token.map(str::to_string);
@@ -200,7 +200,7 @@ fn test_state(token: Option<&str>) -> AppState {
 
 fn test_state_with_file(path: &std::path::Path) -> AppState {
     let snapshot = Snapshot::shared();
-    *snapshot.write() = fixture_snapshot();
+    snapshot.store(Arc::new(fixture_snapshot()));
 
     let mut config = test_admin_runtime_config();
     config.admin_bearer_token_file = Some(path.display().to_string());
