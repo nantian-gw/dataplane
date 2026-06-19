@@ -2004,6 +2004,7 @@ dependencies = [
 name = "ntgw-ir"
 version = "0.1.0"
 dependencies = [
+ "arc-swap",
  "form_urlencoded",
  "ntgw-proto",
  "parking_lot",
@@ -3776,7 +3777,6 @@ dependencies = [
  "bytes",
  "libc",
  "mio",
- "parking_lot",
  "pin-project-lite",
  "signal-hook-registry",
  "socket2",

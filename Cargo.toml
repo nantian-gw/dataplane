@@ -55,7 +55,7 @@ sha2 = "0.10.8"
 socket2 = "0.6.4"
 stats_alloc = "0.1.10"
 subtle = "2.6.1"
-tokio = { version = "1.52.3", features = ["full"] }
+tokio = { version = "1.52.3", features = ["rt-multi-thread", "net", "signal", "sync", "time", "macros", "io-util"] }
 tokio-stream = "0.1.17"
 tonic = { version = "0.14.1", features = ["transport", "tls-native-roots", "tls-ring"] }
 tonic-build = "0.14.1"
@@ -83,3 +83,4 @@ ntgw-ai = { version = "0.1.0", path = "crates/ntgw-ai" }
 lto = "thin"
 codegen-units = 1
 panic = "abort"
+strip = "symbols"
