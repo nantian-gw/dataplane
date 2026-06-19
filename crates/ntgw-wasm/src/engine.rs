@@ -5,29 +5,29 @@ use anyhow::Result;
 use wasmtime::{Config, Engine, Linker, OptLevel};
 
 fn global_engine_config() -> Config {
-	let mut config = Config::default();
-	config.epoch_interruption(true);
-	config.wasm_multi_memory(true);
-	config.wasm_component_model(true);
-	config.wasm_backtrace_details(wasmtime::WasmBacktraceDetails::Enable);
-	config.cranelift_opt_level(OptLevel::Speed);
-	config
+    let mut config = Config::default();
+    config.epoch_interruption(true);
+    config.wasm_multi_memory(true);
+    config.wasm_component_model(true);
+    config.wasm_backtrace_details(wasmtime::WasmBacktraceDetails::Enable);
+    config.cranelift_opt_level(OptLevel::Speed);
+    config
 }
 
 static GLOBAL_ENGINE: OnceLock<Arc<Engine>> = OnceLock::new();
 
 pub fn create_engine() -> Result<Engine> {
-	Engine::new(&global_engine_config()).map_err(|e| anyhow::anyhow!("{e}"))
+    Engine::new(&global_engine_config()).map_err(|e| anyhow::anyhow!("{e}"))
 }
 
 pub fn global_engine() -> Arc<Engine> {
-	GLOBAL_ENGINE
-		.get_or_init(|| {
-			let engine = Engine::new(&global_engine_config())
-				.expect("failed to create global wasmtime engine");
-			Arc::new(engine)
-		})
-		.clone()
+    GLOBAL_ENGINE
+        .get_or_init(|| {
+            let engine = Engine::new(&global_engine_config())
+                .expect("failed to create global wasmtime engine");
+            Arc::new(engine)
+        })
+        .clone()
 }
 
 #[derive(Default)]
@@ -70,19 +70,19 @@ pub fn create_linker(engine: &Engine) -> Result<Linker<PluginContext>> {
 }
 
 pub struct WasmEngine {
-	pub engine: Arc<Engine>,
+    pub engine: Arc<Engine>,
 }
 
 impl WasmEngine {
-	pub fn new() -> Result<Self> {
-		Ok(Self {
-			engine: create_engine().map(Arc::new)?,
-		})
-	}
+    pub fn new() -> Result<Self> {
+        Ok(Self {
+            engine: create_engine().map(Arc::new)?,
+        })
+    }
 
-	pub fn global() -> Self {
-		Self {
-			engine: global_engine(),
-		}
-	}
+    pub fn global() -> Self {
+        Self {
+            engine: global_engine(),
+        }
+    }
 }

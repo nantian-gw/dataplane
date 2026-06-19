@@ -646,101 +646,105 @@ fn build_ai_filter(
 }
 
 fn build_wasm_filter(
-	snapshot: &SharedSnapshot,
+    snapshot: &SharedSnapshot,
 ) -> Option<Arc<ntgw_ai::wasm_filter::WasmPluginFilter>> {
-	use ntgw_ai::wasm_filter::WasmPluginFilter;
-	use ntgw_wasm::plugin::{global_plugin_manager, WasmHook, WasmSandboxConfig, WasmPluginSpec};
+    use ntgw_ai::wasm_filter::WasmPluginFilter;
+    use ntgw_wasm::plugin::{WasmHook, WasmPluginSpec, WasmSandboxConfig, global_plugin_manager};
 
-	let snapshot_guard = snapshot.load();
-	let mut desired: Vec<WasmPluginSpec> = Vec::new();
+    let snapshot_guard = snapshot.load();
+    let mut desired: Vec<WasmPluginSpec> = Vec::new();
 
-	for backend in &snapshot_guard.backends {
-		let Some(ref wp) = backend.wasm_plugin else {
-			continue;
-		};
-		if wp.wasm_bytes.is_empty() {
-			continue;
-		}
+    for backend in &snapshot_guard.backends {
+        let Some(ref wp) = backend.wasm_plugin else {
+            continue;
+        };
+        if wp.wasm_bytes.is_empty() {
+            continue;
+        }
 
-		let hooks: Vec<WasmHook> = wp
-			.hooks
-			.iter()
-			.filter_map(|h| {
-				serde_json::from_value(serde_json::Value::String(h.clone()))
-					.ok()
-					.or_else(|| {
-						tracing::warn!(
-							target: "wasm",
-							backend = %backend.name,
-							hook = %h,
-							"unknown wasm hook, skipping"
-						);
-						None
-					})
-			})
-			.collect();
+        let hooks: Vec<WasmHook> = wp
+            .hooks
+            .iter()
+            .filter_map(|h| {
+                serde_json::from_value(serde_json::Value::String(h.clone()))
+                    .ok()
+                    .or_else(|| {
+                        tracing::warn!(
+                            target: "wasm",
+                            backend = %backend.name,
+                            hook = %h,
+                            "unknown wasm hook, skipping"
+                        );
+                        None
+                    })
+            })
+            .collect();
 
-		if hooks.is_empty() {
-			tracing::warn!(
-				target: "wasm",
-				backend = %backend.name,
-				"no valid hooks configured for wasm plugin, skipping"
-			);
-			continue;
-		}
+        if hooks.is_empty() {
+            tracing::warn!(
+                target: "wasm",
+                backend = %backend.name,
+                "no valid hooks configured for wasm plugin, skipping"
+            );
+            continue;
+        }
 
-		let config: serde_json::Value =
-			serde_json::from_str(&wp.config_json).unwrap_or(serde_json::Value::Null);
+        let config: serde_json::Value =
+            serde_json::from_str(&wp.config_json).unwrap_or(serde_json::Value::Null);
 
-		let sandbox = WasmSandboxConfig {
-			max_memory_bytes: {
-				let mb = wp.sandbox.max_memory_bytes;
-				if mb > usize::MAX as u64 {
-					usize::MAX
-				} else {
-					mb as usize
-				}
-			},
-			max_execution_ms: wp.sandbox.max_execution_time_ms,
-		};
+        let sandbox = WasmSandboxConfig {
+            max_memory_bytes: {
+                let mb = wp.sandbox.max_memory_bytes;
+                if mb > usize::MAX as u64 {
+                    usize::MAX
+                } else {
+                    mb as usize
+                }
+            },
+            max_execution_ms: wp.sandbox.max_execution_time_ms,
+        };
 
-		desired.push((
-			wp.name.clone(),
-			wp.wasm_bytes.clone(),
-			config,
-			hooks,
-			sandbox,
-			if wp.sha256.is_empty() { None } else { Some(wp.sha256.clone()) },
-		));
-	}
+        desired.push((
+            wp.name.clone(),
+            wp.wasm_bytes.clone(),
+            config,
+            hooks,
+            sandbox,
+            if wp.sha256.is_empty() {
+                None
+            } else {
+                Some(wp.sha256.clone())
+            },
+        ));
+    }
 
-	drop(snapshot_guard);
+    drop(snapshot_guard);
 
-	if desired.is_empty() {
-		let pm = global_plugin_manager();
-		for name in pm.plugin_names() {
-			pm.unload_plugin(&name);
-		}
-		return None;
-	}
+    if desired.is_empty() {
+        let pm = global_plugin_manager();
+        for name in pm.plugin_names() {
+            pm.unload_plugin(&name);
+        }
+        return None;
+    }
 
-	let pm = global_plugin_manager();
-	let (loaded, updated, skipped, unloaded) = pm.diff_and_apply(&desired);
-	tracing::info!(
-		target: "wasm",
-		loaded,
-		updated,
-		skipped,
-		unloaded,
-		"applied wasm plugin snapshot"
-	);
+    let pm = global_plugin_manager();
+    let (loaded, updated, skipped, unloaded) = pm.diff_and_apply(&desired);
+    tracing::info!(
+        target: "wasm",
+        loaded,
+        updated,
+        skipped,
+        unloaded,
+        "applied wasm plugin snapshot"
+    );
 
-	let plugin_names = pm.plugin_names();
-	if plugin_names.is_empty() {
-		return None;
-	}
+    let plugin_names = pm.plugin_names();
+    if plugin_names.is_empty() {
+        return None;
+    }
 
-	Some(Arc::new(WasmPluginFilter::new(pm, plugin_names)))
+    Some(Arc::new(WasmPluginFilter::new(pm, plugin_names)))
 }
 
 fn listener_name_hint(listeners: &[&RuntimeListener]) -> Option<String> {
