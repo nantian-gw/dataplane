@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::OnceLock;
 use std::time::Duration;
 
 use parking_lot::RwLock;
@@ -274,6 +275,11 @@ impl PluginManager {
 		(loaded, updated, skipped, unloaded)
 	}
 
+	/// Returns the names of all currently loaded plugins.
+	pub fn plugin_names(&self) -> Vec<String> {
+		self.plugins.read().keys().cloned().collect()
+	}
+
 	/// Invoke a hook on a loaded plugin.
     ///
     /// Creates a fresh Store with the sandbox config applied as a resource
@@ -355,6 +361,18 @@ impl PluginManager {
 
 /// Specification for loading or updating a WASM plugin.
 pub type WasmPluginSpec = (String, Vec<u8>, serde_json::Value, Vec<WasmHook>, WasmSandboxConfig, Option<String>);
+
+static GLOBAL_PLUGIN_MANAGER: OnceLock<Arc<PluginManager>> = OnceLock::new();
+
+/// Returns the global PluginManager, creating it from the global Engine if needed.
+pub fn global_plugin_manager() -> Arc<PluginManager> {
+	GLOBAL_PLUGIN_MANAGER
+		.get_or_init(|| {
+			let engine = crate::engine::global_engine();
+			Arc::new(PluginManager::new((*engine).clone()).expect("failed to create global PluginManager"))
+		})
+		.clone()
+}
 
 #[cfg(test)]
 mod tests {
