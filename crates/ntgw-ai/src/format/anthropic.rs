@@ -70,7 +70,7 @@ struct AnthropicUsage {
 fn system_to_message(system: &AnthropicSystemContent) -> AIMessage {
     let content = match system {
         AnthropicSystemContent::Text(text) => AIContent::Text(text.clone()),
-        AnthropicSystemContent::Blocks(blocks) => blocks_to_content(blocks),
+        AnthropicSystemContent::Blocks(blocks) => blocks_to_content(blocks.clone()),
     };
     AIMessage {
         role: AIRole::System,
@@ -81,8 +81,8 @@ fn system_to_message(system: &AnthropicSystemContent) -> AIMessage {
     }
 }
 
-fn blocks_to_content(blocks: &[AnthropicContentBlock]) -> AIContent {
-    let texts: Vec<String> = blocks.iter().filter_map(|b| b.text.clone()).collect();
+fn blocks_to_content(blocks: Vec<AnthropicContentBlock>) -> AIContent {
+    let texts: Vec<String> = blocks.into_iter().filter_map(|b| b.text).collect();
     match texts.as_slice() {
         [] => AIContent::None,
         [text] => AIContent::Text(text.clone()),
@@ -110,7 +110,7 @@ impl From<AnthropicContent> for AIContent {
     fn from(content: AnthropicContent) -> Self {
         match content {
             AnthropicContent::Text(text) => AIContent::Text(text),
-            AnthropicContent::Blocks(blocks) => blocks_to_content(&blocks),
+            AnthropicContent::Blocks(blocks) => blocks_to_content(blocks),
         }
     }
 }
@@ -347,7 +347,7 @@ mod tests {
 
     #[test]
     fn blocks_to_content_single_text_returns_text() {
-        let content = blocks_to_content(&[AnthropicContentBlock {
+        let content = blocks_to_content(vec![AnthropicContentBlock {
             block_type: "text".into(),
             text: Some("hello".into()),
         }]);

@@ -5,7 +5,7 @@ use std::sync::OnceLock;
 
 use crate::error::AIError;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum PIIEntityType {
     Email,
     Phone,
@@ -148,7 +148,7 @@ impl PIIMasker {
         for (entity_type, pattern) in &self.patterns {
             for cap in pattern.find_iter(text) {
                 matches.push(PIIMatch {
-                    entity_type: entity_type.clone(),
+                    entity_type: *entity_type,
                     start: cap.start(),
                     end: cap.end(),
                     text: cap.as_str().to_string(),

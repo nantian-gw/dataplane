@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use anyhow::anyhow;
 use regex::Regex;
 use std::sync::OnceLock;
@@ -145,15 +147,15 @@ impl PromptGuardFilter {
 
 /// Extract text content from an AI message part for security scanning.
 /// MultiPart content parts are joined with spaces.
-pub(crate) fn message_text(content: &AIContent) -> Option<String> {
+pub(crate) fn message_text(content: &AIContent) -> Option<Cow<'_, str>> {
     match content {
-        AIContent::Text(s) => Some(s.clone()),
+        AIContent::Text(s) => Some(Cow::Borrowed(s.as_str())),
         AIContent::MultiPart(parts) => {
             let texts: Vec<&str> = parts.iter().filter_map(|p| p.text.as_deref()).collect();
             if texts.is_empty() {
                 None
             } else {
-                Some(texts.join(" "))
+                Some(Cow::Owned(texts.join(" ")))
             }
         }
         AIContent::None => None,

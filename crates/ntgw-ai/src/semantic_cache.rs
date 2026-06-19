@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::hash::{Hash, Hasher};
 use std::sync::Arc;
 
@@ -123,14 +124,14 @@ pub fn build_cache_key(request: &AIRequest) -> String {
     format!("cache:{:016x}", hasher.finish())
 }
 
-fn content_str(content: &AIContent) -> String {
+fn content_str(content: &AIContent) -> Cow<'_, str> {
     match content {
-        AIContent::Text(s) => s.clone(),
+        AIContent::Text(s) => Cow::Borrowed(s.as_str()),
         AIContent::MultiPart(parts) => {
             let texts: Vec<&str> = parts.iter().filter_map(|p| p.text.as_deref()).collect();
-            texts.join(" ")
+            Cow::Owned(texts.join(" "))
         }
-        AIContent::None => String::new(),
+        AIContent::None => Cow::Borrowed(""),
     }
 }
 
