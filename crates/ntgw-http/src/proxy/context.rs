@@ -592,14 +592,14 @@ pub(crate) fn route_kind_name(route_kind: &RouteKind) -> &'static str {
 }
 
 pub(crate) fn route_budget_key(route_kind: &str, namespace: &str, name: &str) -> String {
-	let cap = route_kind.len() + namespace.len() + name.len() + 2;
-	let mut s = String::with_capacity(cap);
-	s.push_str(route_kind);
-	s.push('/');
-	s.push_str(namespace);
-	s.push('/');
-	s.push_str(name);
-	s
+    let cap = route_kind.len() + namespace.len() + name.len() + 2;
+    let mut s = String::with_capacity(cap);
+    s.push_str(route_kind);
+    s.push('/');
+    s.push_str(namespace);
+    s.push('/');
+    s.push_str(name);
+    s
 }
 
 pub(crate) fn store_admission_permit(ctx: &mut RequestContext, permit: HttpAdmissionPermit) {
