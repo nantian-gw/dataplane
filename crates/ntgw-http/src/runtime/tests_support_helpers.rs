@@ -9,16 +9,49 @@ async fn wait_for_listener(port: u16) {
 }
 
 async fn wait_for_log_contents(path: &PathBuf) -> String {
+    wait_for_log_contents_matching(path, |contents| !contents.trim().is_empty()).await
+}
+
+async fn wait_for_log_contents_matching(
+    path: &PathBuf,
+    predicate: impl Fn(&str) -> bool,
+) -> String {
+    let mut last_contents = String::new();
     for _ in 0..20 {
         if let Ok(contents) = fs::read_to_string(path) {
-            if !contents.trim().is_empty() {
+            if predicate(&contents) {
                 return contents;
             }
+            last_contents = contents;
         }
         sleep(Duration::from_millis(50)).await;
     }
 
+    if !last_contents.is_empty() {
+        return last_contents;
+    }
+
     fs::read_to_string(path).expect("access log file")
+}
+
+#[tokio::test]
+async fn wait_for_log_contents_matching_waits_for_predicate() {
+    let log_path = temp_log_path("wait-for-log-contents-matching");
+    fs::write(&log_path, "text/plain 200\n").expect("initial log write");
+    let writer_path = log_path.clone();
+    let writer = tokio::spawn(async move {
+        sleep(Duration::from_millis(25)).await;
+        fs::write(&writer_path, "text/plain 200\ntext/plain -\n").expect("matching log write");
+    });
+
+    let log_contents =
+        wait_for_log_contents_matching(&log_path, |contents| contents.contains("text/plain -"))
+            .await;
+
+    writer.await.expect("log writer task");
+    assert!(log_contents.contains("text/plain 200"));
+    assert!(log_contents.contains("text/plain -"));
+    let _ = fs::remove_file(log_path);
 }
 
 async fn wait_for_traffic_snapshot<F>(

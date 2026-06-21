@@ -82,7 +82,10 @@ async fn cache_hit_preserves_sent_response_access_log_headers() {
     result.expect("cache client flow");
     upstream.await.expect("upstream task").expect("upstream result");
 
-    let log_contents = wait_for_log_contents(&log_path).await;
+    let log_contents = wait_for_log_contents_matching(&log_path, |contents| {
+        contents.contains("text/plain 200") && contents.contains("text/plain -")
+    })
+    .await;
     assert!(log_contents.contains("text/plain 200"));
     assert!(log_contents.contains("text/plain -"));
 
