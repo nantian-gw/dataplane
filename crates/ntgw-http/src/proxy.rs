@@ -123,14 +123,10 @@ pub(crate) fn unmatched_traffic_topology(listener_name: &str) -> Arc<TrafficTopo
 
 pub(crate) fn fast_path_request_features_are_safe(
     request_tracing_enabled: bool,
-    access_log_enabled: bool,
     request_headers_required: bool,
     request_source_ip_required: bool,
 ) -> bool {
-    !request_tracing_enabled
-        && !access_log_enabled
-        && !request_headers_required
-        && !request_source_ip_required
+    !request_tracing_enabled && !request_headers_required && !request_source_ip_required
 }
 
 #[allow(private_interfaces)]
@@ -187,7 +183,6 @@ pub(crate) fn prepare_initial_request_state(
     let fast_path_selected = if !misdirected_request
         && fast_path_request_features_are_safe(
             request_tracing_enabled,
-            access_log_enabled,
             current.request_materialization.requires_full_headers(),
             current.request_materialization.source_ip,
         ) {

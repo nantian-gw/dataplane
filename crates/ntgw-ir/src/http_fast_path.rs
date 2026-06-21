@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{collections::BTreeMap, sync::Arc};
 
 use crate::{
     BackendEndpoint, BackendRef, HttpMatch, HttpRule, Listener, MatchedHttpPath, RouteKind,
@@ -21,6 +21,7 @@ pub struct CompiledSelectedHttpBackend {
     pub route_name: String,
     pub route_namespace: String,
     pub rule_index: Option<usize>,
+    pub route_annotations: Arc<BTreeMap<String, String>>,
     pub listener_name: String,
     pub listener_protocol: String,
     pub backend: BackendEndpoint,
@@ -38,6 +39,7 @@ pub struct HttpFastPathPlan {
 #[derive(Debug, Clone)]
 struct CompiledHttpFastRoute {
     route_index: usize,
+    route_annotations: Arc<BTreeMap<String, String>>,
     eligible_rules: Vec<CompiledHttpFastRule>,
 }
 
@@ -100,6 +102,7 @@ struct FastCandidateListeners {
 struct FastCandidate {
     route_index: usize,
     rule_index: usize,
+    route_annotations: Arc<BTreeMap<String, String>>,
     listener_index: Option<usize>,
     matched_http_path: MatchedHttpPath,
     selected: CompiledHttpFastBackendSelection,
@@ -152,6 +155,7 @@ impl HttpFastPathPlan {
 
                 (!eligible_rules.is_empty()).then_some(CompiledHttpFastRoute {
                     route_index,
+                    route_annotations: Arc::new(route.annotations.clone()),
                     eligible_rules,
                 })
             })
@@ -271,6 +275,7 @@ impl HttpFastPathPlan {
                 best = Some(FastCandidate {
                     route_index: compiled_route.route_index,
                     rule_index: compiled_rule.rule_index,
+                    route_annotations: Arc::clone(&compiled_route.route_annotations),
                     listener_index: listener_match.map(|item| item.listener_index),
                     matched_http_path,
                     selected,
@@ -293,6 +298,7 @@ impl HttpFastPathPlan {
                 route_name: route.name.clone(),
                 route_namespace: route.namespace.clone(),
                 rule_index: Some(candidate.rule_index),
+                route_annotations: candidate.route_annotations,
                 listener_name,
                 listener_protocol,
                 backend: candidate.selected.endpoint,

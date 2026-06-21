@@ -643,10 +643,19 @@ pub(crate) fn record_access_log_upstream_status_if_needed(
 }
 
 pub(crate) fn access_log_route_annotations(ctx: &RequestContext) -> &BTreeMap<String, String> {
-    ctx.selected_backend
+    if let Some(selected) = ctx.selected_backend.as_ref() {
+        return &selected.route_annotations;
+    }
+
+    if let Some(selected) = ctx
+        .fast_selected_backend
         .as_ref()
-        .map(|selected| &selected.route_annotations)
-        .unwrap_or(&ctx.route_annotations)
+        .map(|state| &state.selected)
+    {
+        return &selected.route_annotations;
+    }
+
+    &ctx.route_annotations
 }
 
 fn access_log_request_header_requirements(

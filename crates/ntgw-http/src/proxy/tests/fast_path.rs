@@ -1,3 +1,5 @@
+use std::{collections::BTreeMap, sync::Arc};
+
 use crate::proxy::UpstreamTuningOptions;
 use ntgw_ir::{
     BackendCluster, BackendEndpoint, BackendRef, CompiledSelectedHttpBackend, HttpMatch, HttpRoute,
@@ -7,9 +9,10 @@ use pingora::http::RequestHeader;
 
 use super::super::selection::SelectedBackendConfigCache;
 use super::super::{
-    RequestContext, SelectedBackendConfig, UpstreamPeerAddress, build_upstream_peer_for_fast_path,
-    cache_fast_selected_backend_state, fast_path_request_features_are_safe,
-    fast_path_request_from_header, prepare_initial_request_state,
+    RequestContext, SelectedBackendConfig, UpstreamPeerAddress, access_log_route_annotations,
+    build_upstream_peer_for_fast_path, cache_fast_selected_backend_state,
+    fast_path_request_features_are_safe, fast_path_request_from_header,
+    prepare_initial_request_state,
 };
 
 #[test]
@@ -41,21 +44,10 @@ fn fast_path_request_from_header_detects_grpc_content_type() {
 
 #[test]
 fn fast_path_is_allowed_only_when_request_features_are_disabled() {
-    assert!(fast_path_request_features_are_safe(
-        false, false, false, false
-    ));
-    assert!(!fast_path_request_features_are_safe(
-        true, false, false, false
-    ));
-    assert!(!fast_path_request_features_are_safe(
-        false, true, false, false
-    ));
-    assert!(!fast_path_request_features_are_safe(
-        false, false, true, false
-    ));
-    assert!(!fast_path_request_features_are_safe(
-        false, false, false, true
-    ));
+    assert!(fast_path_request_features_are_safe(false, false, false));
+    assert!(!fast_path_request_features_are_safe(true, false, false));
+    assert!(!fast_path_request_features_are_safe(false, true, false));
+    assert!(!fast_path_request_features_are_safe(false, false, true));
 }
 
 #[test]
@@ -88,6 +80,38 @@ fn initial_request_state_carries_fast_path_selection_from_current_snapshot() {
 }
 
 #[test]
+fn initial_request_state_keeps_fast_path_selection_when_access_log_is_enabled() {
+    let mut snapshot = sample_fast_path_snapshot();
+    snapshot.rebuild_runtime_indexes();
+    let cache = SelectedBackendConfigCache;
+    let mut request = RequestHeader::build("GET", b"/orders?id=123", None).expect("request header");
+    request.insert_header("host", "example.com").expect("host");
+    let mut ctx = RequestContext::default();
+
+    let state = prepare_initial_request_state(
+        &snapshot,
+        &cache,
+        &mut ctx,
+        &request,
+        80,
+        Some("192.0.2.10".to_string()),
+        None,
+        false,
+        true,
+        0,
+        0,
+    )
+    .expect("initial request state");
+
+    assert!(state.fast_path_selected.is_some());
+    assert_eq!(ctx.client_ip, "192.0.2.10");
+    assert_eq!(ctx.host, "example.com");
+    assert_eq!(ctx.path, "/orders");
+    assert!(ctx.request_id.is_empty());
+    assert_eq!(ctx.snapshot_version, "snapshot-1");
+}
+
+#[test]
 fn initial_request_state_skips_snapshot_version_when_unobserved() {
     let mut snapshot = sample_fast_path_snapshot();
     snapshot.rebuild_runtime_indexes();
@@ -112,6 +136,7 @@ fn cache_fast_selected_backend_state_fills_context_without_full_selected_backend
         route_name: "orders".to_string(),
         route_namespace: "default".to_string(),
         rule_index: Some(0),
+        route_annotations: Default::default(),
         listener_name: "default/gw/http".to_string(),
         listener_protocol: "HTTP".to_string(),
         backend: BackendEndpoint {
@@ -141,12 +166,52 @@ fn cache_fast_selected_backend_state_fills_context_without_full_selected_backend
 }
 
 #[test]
+fn cache_fast_selected_backend_state_keeps_route_annotations_for_access_log() {
+    let selected = CompiledSelectedHttpBackend {
+        route_kind: RouteKind::Http,
+        route_name: "orders".to_string(),
+        route_namespace: "default".to_string(),
+        rule_index: Some(0),
+        route_annotations: Arc::new(BTreeMap::from([(
+            "gateway.nantian.dev/access-log-mode".to_string(),
+            "text".to_string(),
+        )])),
+        listener_name: "default/gw/http".to_string(),
+        listener_protocol: "HTTP".to_string(),
+        backend: BackendEndpoint {
+            address: "10.0.0.10".to_string(),
+            port: 8080,
+            healthy: true,
+        },
+        backend_name: "default/orders:8080".to_string(),
+        matched_http_path: ntgw_ir::MatchedHttpPath::default(),
+        runtime_ids: SelectedBackendRuntimeIds::default(),
+    };
+    let mut ctx = RequestContext {
+        route_annotations: BTreeMap::from([("stale".to_string(), "1".to_string())]),
+        ..RequestContext::default()
+    };
+
+    cache_fast_selected_backend_state(&mut ctx, selected, true);
+
+    let annotations = access_log_route_annotations(&ctx);
+    assert_eq!(
+        annotations
+            .get("gateway.nantian.dev/access-log-mode")
+            .map(String::as_str),
+        Some("text")
+    );
+    assert!(!annotations.contains_key("stale"));
+}
+
+#[test]
 fn cache_fast_selected_backend_state_can_skip_context_display_strings() {
     let selected = CompiledSelectedHttpBackend {
         route_kind: RouteKind::Http,
         route_name: "orders".to_string(),
         route_namespace: "default".to_string(),
         rule_index: Some(0),
+        route_annotations: Default::default(),
         listener_name: "default/gw/http".to_string(),
         listener_protocol: "HTTP".to_string(),
         backend: BackendEndpoint {
@@ -179,6 +244,7 @@ fn fast_path_state_builds_upstream_peer_from_cached_config() {
         route_name: "orders".to_string(),
         route_namespace: "default".to_string(),
         rule_index: Some(0),
+        route_annotations: Default::default(),
         listener_name: "default/gw/http".to_string(),
         listener_protocol: "HTTP".to_string(),
         backend: BackendEndpoint {

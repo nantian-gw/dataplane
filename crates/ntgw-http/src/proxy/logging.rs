@@ -250,9 +250,11 @@ mod tests {
         time::{Duration, SystemTime, UNIX_EPOCH},
     };
 
+    use crate::proxy::context::cache_fast_selected_backend_state;
     use ntgw_ir::{
-        BackendCluster, BackendEndpoint, BackendRef, HttpRoute, HttpRule, Listener, RequestMeta,
-        RouteKind, SelectedBackend, Snapshot,
+        BackendCluster, BackendEndpoint, BackendRef, CompiledSelectedHttpBackend, HttpRoute,
+        HttpRule, Listener, RequestMeta, RouteKind, SelectedBackend, SelectedBackendRuntimeIds,
+        Snapshot,
     };
     use ntgw_observability::shutdown_access_log_writer;
 
@@ -295,6 +297,44 @@ mod tests {
                 .get("gateway.nantian.dev/access-log-mode")
                 .map(String::as_str),
             Some("json")
+        );
+        assert!(!annotations.contains_key("stale"));
+    }
+
+    #[test]
+    fn route_annotations_for_log_prefers_fast_selected_backend_annotations() {
+        let selected = CompiledSelectedHttpBackend {
+            route_kind: RouteKind::Http,
+            route_name: "route".to_string(),
+            route_namespace: "default".to_string(),
+            rule_index: None,
+            route_annotations: Arc::new(BTreeMap::from([(
+                "gateway.nantian.dev/access-log-sample-rate".to_string(),
+                "0".to_string(),
+            )])),
+            listener_name: "default/gw/http".to_string(),
+            listener_protocol: "HTTP".to_string(),
+            backend: BackendEndpoint {
+                address: "127.0.0.1".to_string(),
+                port: 8080,
+                healthy: true,
+            },
+            backend_name: "default/echo:8080".to_string(),
+            matched_http_path: ntgw_ir::MatchedHttpPath::default(),
+            runtime_ids: SelectedBackendRuntimeIds::default(),
+        };
+        let mut ctx = RequestContext {
+            route_annotations: BTreeMap::from([("stale".to_string(), "1".to_string())]),
+            ..RequestContext::default()
+        };
+        cache_fast_selected_backend_state(&mut ctx, selected, true);
+
+        let annotations = access_log_route_annotations(&ctx);
+        assert_eq!(
+            annotations
+                .get("gateway.nantian.dev/access-log-sample-rate")
+                .map(String::as_str),
+            Some("0")
         );
         assert!(!annotations.contains_key("stale"));
     }

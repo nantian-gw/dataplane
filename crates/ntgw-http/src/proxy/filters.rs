@@ -113,6 +113,7 @@ pub(crate) async fn do_request_filter(
                 selected,
                 proxy.selected_display_fields_needed(ctx),
             );
+            cache_fast_path_access_log_fields(proxy, session, ctx);
             return Err(missing_frontend_client_certificate_error(ctx));
         }
         if !proxy
@@ -135,6 +136,7 @@ pub(crate) async fn do_request_filter(
             selected.clone(),
             proxy.selected_display_fields_needed(ctx),
         );
+        cache_fast_path_access_log_fields(proxy, session, ctx);
         ctx.selected_backend_config = Some(config);
         record_request_span(ctx);
         let fast_host = ctx.host.clone();
@@ -782,6 +784,30 @@ pub(super) fn ai_request_body_limit_exceeded(
 
 pub(super) fn cache_lookup_method_allowed(method: &str) -> bool {
     method.eq_ignore_ascii_case("GET") || method.eq_ignore_ascii_case("HEAD")
+}
+
+fn cache_fast_path_access_log_fields(
+    proxy: &GatewayProxy,
+    session: &Session,
+    ctx: &mut RequestContext,
+) {
+    if !proxy.access_log.enabled {
+        return;
+    }
+
+    let route_access_log_annotations = super::request::access_log_route_annotations(ctx).clone();
+    super::request::cache_access_log_connection_fields_if_needed(
+        session,
+        ctx,
+        &proxy.access_log,
+        &route_access_log_annotations,
+    );
+    super::request::cache_access_log_request_headers_from_header_if_needed(
+        ctx,
+        session.req_header(),
+        &proxy.access_log,
+        &route_access_log_annotations,
+    );
 }
 
 async fn try_cache_hit(
