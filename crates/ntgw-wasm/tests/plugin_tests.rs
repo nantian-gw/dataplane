@@ -1,8 +1,10 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 use anyhow::Result;
 use ntgw_wasm::engine::create_engine;
-use ntgw_wasm::plugin::{HookResult, PluginManager, WasmHook, WasmSandboxConfig};
+use ntgw_wasm::plugin::{
+    HookResult, PluginManager, WasmHook, WasmSandboxConfig, global_plugin_manager,
+};
 
 /// Minimal WAT for a plugin that exports `on_request`, `alloc`, and `memory`.
 ///
@@ -173,4 +175,12 @@ fn test_hook_result_equality() {
     assert_eq!(HookResult::Continue, HookResult::Continue);
     assert_eq!(HookResult::Reject(403), HookResult::Reject(403));
     assert_ne!(HookResult::Continue, HookResult::Reject(403));
+}
+
+#[test]
+fn test_global_plugin_manager_returns_reusable_result() -> Result<()> {
+    let first = global_plugin_manager()?;
+    let second = global_plugin_manager()?;
+    assert!(Arc::ptr_eq(&first, &second));
+    Ok(())
 }

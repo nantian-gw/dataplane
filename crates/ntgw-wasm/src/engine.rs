@@ -14,20 +14,17 @@ fn global_engine_config() -> Config {
     config
 }
 
-static GLOBAL_ENGINE: OnceLock<Arc<Engine>> = OnceLock::new();
+static GLOBAL_ENGINE: OnceLock<Result<Arc<Engine>, String>> = OnceLock::new();
 
 pub fn create_engine() -> Result<Engine> {
     Engine::new(&global_engine_config()).map_err(|e| anyhow::anyhow!("{e}"))
 }
 
-pub fn global_engine() -> Arc<Engine> {
-    GLOBAL_ENGINE
-        .get_or_init(|| {
-            let engine = Engine::new(&global_engine_config())
-                .expect("failed to create global wasmtime engine");
-            Arc::new(engine)
-        })
-        .clone()
+pub fn global_engine() -> Result<Arc<Engine>> {
+    match GLOBAL_ENGINE.get_or_init(|| create_engine().map(Arc::new).map_err(|e| e.to_string())) {
+        Ok(engine) => Ok(Arc::clone(engine)),
+        Err(error) => Err(anyhow::anyhow!(error.clone())),
+    }
 }
 
 #[derive(Default)]
@@ -80,9 +77,9 @@ impl WasmEngine {
         })
     }
 
-    pub fn global() -> Self {
-        Self {
-            engine: global_engine(),
-        }
+    pub fn global() -> Result<Self> {
+        Ok(Self {
+            engine: global_engine()?,
+        })
     }
 }

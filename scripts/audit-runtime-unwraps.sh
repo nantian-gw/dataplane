@@ -65,11 +65,84 @@ targets = [
         doc=Path("docs/runtime-unwrap-ntgw-stream-zero-tolerance.md"),
         marker="2026-06-15",
     ),
+    GovernedTarget(
+        name="ntgw-allocator",
+        root=Path("crates/ntgw-allocator/src"),
+        doc=Path("docs/runtime-unwrap-rest-crates-zero-tolerance.md"),
+        marker="2026-06-22",
+    ),
+    GovernedTarget(
+        name="ntgw-app",
+        root=Path("crates/ntgw-app/src"),
+        doc=Path("docs/runtime-unwrap-rest-crates-zero-tolerance.md"),
+        marker="2026-06-22",
+    ),
+    GovernedTarget(
+        name="ntgw-bench",
+        root=Path("crates/ntgw-bench/src"),
+        doc=Path("docs/runtime-unwrap-rest-crates-zero-tolerance.md"),
+        marker="2026-06-22",
+    ),
+    GovernedTarget(
+        name="ntgw-config",
+        root=Path("crates/ntgw-config/src"),
+        doc=Path("docs/runtime-unwrap-rest-crates-zero-tolerance.md"),
+        marker="2026-06-22",
+    ),
+    GovernedTarget(
+        name="ntgw-http",
+        root=Path("crates/ntgw-http/src"),
+        doc=Path("docs/runtime-unwrap-rest-crates-zero-tolerance.md"),
+        marker="2026-06-22",
+    ),
+    GovernedTarget(
+        name="ntgw-ir",
+        root=Path("crates/ntgw-ir/src"),
+        doc=Path("docs/runtime-unwrap-rest-crates-zero-tolerance.md"),
+        marker="2026-06-22",
+    ),
+    GovernedTarget(
+        name="ntgw-observability",
+        root=Path("crates/ntgw-observability/src"),
+        doc=Path("docs/runtime-unwrap-rest-crates-zero-tolerance.md"),
+        marker="2026-06-22",
+    ),
+    GovernedTarget(
+        name="ntgw-proto",
+        root=Path("crates/ntgw-proto/src"),
+        doc=Path("docs/runtime-unwrap-rest-crates-zero-tolerance.md"),
+        marker="2026-06-22",
+    ),
+    GovernedTarget(
+        name="ntgw-shared-tls",
+        root=Path("crates/ntgw-shared-tls/src"),
+        doc=Path("docs/runtime-unwrap-rest-crates-zero-tolerance.md"),
+        marker="2026-06-22",
+    ),
+    GovernedTarget(
+        name="ntgw-wasm",
+        root=Path("crates/ntgw-wasm/src"),
+        doc=Path("docs/runtime-unwrap-rest-crates-zero-tolerance.md"),
+        marker="2026-06-22",
+    ),
+    GovernedTarget(
+        name="ntgw-wasm-sdk",
+        root=Path("crates/ntgw-wasm-sdk/src"),
+        doc=Path("docs/runtime-unwrap-rest-crates-zero-tolerance.md"),
+        marker="2026-06-22",
+    ),
+    GovernedTarget(
+        name="ntgw-xds",
+        root=Path("crates/ntgw-xds/src"),
+        doc=Path("docs/runtime-unwrap-rest-crates-zero-tolerance.md"),
+        marker="2026-06-22",
+    ),
 ]
 
 pattern = re.compile(r"(?<![A-Za-z0-9_])(?:unwrap|expect)\s*\(")
-cfg_test_attr = re.compile(r"^#\[\s*cfg\s*\(\s*test\s*\)\s*\]$")
+cfg_test_attr = re.compile(r"^#\[\s*cfg\s*\((.*)\)\s*\]$")
 path_attr = re.compile(r'^#\[\s*path\s*=\s*"([^"]+)"\s*\]$')
+include_attr = re.compile(r'include!\s*\(\s*"([^"]+)"\s*\)')
 module_decl = re.compile(
     r"(?:(?:pub(?:\([^)]*\))?)\s+)?mod\s+(?P<name>[A-Za-z_][A-Za-z0-9_]*)\b"
 )
@@ -79,6 +152,53 @@ def module_roots(path: Path):
     if path.name in {"lib.rs", "main.rs", "mod.rs"}:
         return path.parent
     return path.parent / path.stem
+
+
+def split_top_level_args(text: str):
+    args = []
+    depth = 0
+    in_string = False
+    escape = False
+    start = 0
+
+    for index, ch in enumerate(text):
+        if in_string:
+            if escape:
+                escape = False
+            elif ch == "\\":
+                escape = True
+            elif ch == '"':
+                in_string = False
+            continue
+
+        if ch == '"':
+            in_string = True
+            continue
+        if ch == "(":
+            depth += 1
+            continue
+        if ch == ")":
+            depth -= 1
+            continue
+        if ch == "," and depth == 0:
+            args.append(text[start:index].strip())
+            start = index + 1
+
+    args.append(text[start:].strip())
+    return [arg for arg in args if arg]
+
+
+def cfg_expr_is_test_only(expr: str) -> bool:
+    expr = re.sub(r"\s+", "", expr)
+    if expr == "test":
+        return True
+    if expr.startswith("all(") and expr.endswith(")"):
+        return any(cfg_expr_is_test_only(arg) for arg in split_top_level_args(expr[4:-1]))
+    if expr.startswith("any(") and expr.endswith(")"):
+        return all(cfg_expr_is_test_only(arg) for arg in split_top_level_args(expr[4:-1]))
+    if expr.startswith("not(") and expr.endswith(")"):
+        return False
+    return False
 
 
 def cfg_test_module_targets(path: Path, module_name: str, explicit_path: str | None = None):
@@ -239,7 +359,8 @@ def skip_item_state(line: str, brace_depth: int):
 
 
 def cfg_test_attribute_matches(parts):
-    return cfg_test_attr.match(" ".join(parts)) is not None
+    match = cfg_test_attr.match(" ".join(parts))
+    return match is not None and cfg_expr_is_test_only(match.group(1))
 
 
 def path_attribute_value(parts):
@@ -346,6 +467,32 @@ def collect_cfg_test_module_targets(path: Path, lines, sanitized_lines):
     return excluded_paths, excluded_dirs
 
 
+def collect_recursive_test_includes(file_cache, excluded_paths):
+    included_paths = set()
+    queue = list(excluded_paths)
+
+    while queue:
+        path = queue.pop()
+        cached = file_cache.get(path)
+        if cached is None:
+            continue
+        lines, _sanitized_lines = cached
+        for line in lines:
+            match = include_attr.search(line)
+            if match is None:
+                continue
+            included = (path.parent / match.group(1)).resolve()
+            try:
+                included = included.relative_to(Path.cwd())
+            except ValueError:
+                continue
+            if included in file_cache and included not in excluded_paths and included not in included_paths:
+                included_paths.add(included)
+                queue.append(included)
+
+    return included_paths
+
+
 def production_lines(path: Path, lines, sanitized_lines):
     masked_lines = []
     skip_test_item = False
@@ -446,6 +593,8 @@ def scan_target(root: Path):
         )
         excluded_paths.update(file_excluded_paths)
         excluded_dirs.update(file_excluded_dirs)
+
+    excluded_paths.update(collect_recursive_test_includes(file_cache, excluded_paths))
 
     for path in files:
         if path in excluded_paths:

@@ -14,6 +14,8 @@ pub enum WasmError {
     PluginRejected(String, i32),
     #[error("invalid hook: {0}")]
     InvalidHook(String),
+    #[error("failed to initialize wasm runtime: {0}")]
+    RuntimeInit(String),
     #[error("memory operation failed: {0}")]
     Memory(#[from] anyhow::Error),
     #[error("sandbox module not found: {0}")]

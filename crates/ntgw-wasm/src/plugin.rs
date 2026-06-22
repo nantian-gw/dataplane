@@ -382,19 +382,19 @@ pub type WasmPluginSpec = (
     Option<String>,
 );
 
-static GLOBAL_PLUGIN_MANAGER: OnceLock<Arc<PluginManager>> = OnceLock::new();
+static GLOBAL_PLUGIN_MANAGER: OnceLock<Result<Arc<PluginManager>, String>> = OnceLock::new();
 
 /// Returns the global PluginManager, creating it from the global Engine if needed.
-pub fn global_plugin_manager() -> Arc<PluginManager> {
-    GLOBAL_PLUGIN_MANAGER
-        .get_or_init(|| {
-            let engine = crate::engine::global_engine();
-            Arc::new(
-                PluginManager::new((*engine).clone())
-                    .expect("failed to create global PluginManager"),
-            )
-        })
-        .clone()
+pub fn global_plugin_manager() -> Result<Arc<PluginManager>, WasmError> {
+    match GLOBAL_PLUGIN_MANAGER.get_or_init(|| {
+        let engine = crate::engine::global_engine().map_err(|e| e.to_string())?;
+        PluginManager::new((*engine).clone())
+            .map(Arc::new)
+            .map_err(|e| e.to_string())
+    }) {
+        Ok(manager) => Ok(Arc::clone(manager)),
+        Err(error) => Err(WasmError::RuntimeInit(error.clone())),
+    }
 }
 
 #[cfg(test)]

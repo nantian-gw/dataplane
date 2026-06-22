@@ -20,6 +20,14 @@ Governed scope is `crates/ntgw-stream/src/` production code only.
 Inline `#[cfg(test)]` items/modules and files reached only through
 `#[cfg(test)] mod ...;` remain excluded from enforcement.
 """
+REST_DOC_FIXTURE = """# Rest Crates Runtime Unwrap Governance
+
+Date: 2026-06-22
+
+This note records the zero-tolerance guardrail expansion for all dataplane
+production crate roots that were not already governed by the ntgw-ai and
+ntgw-stream batches.
+"""
 
 
 @dataclass
@@ -63,6 +71,7 @@ def assert_case(case: Case) -> None:
         default_docs = {
             "docs/runtime-unwrap-ntgw-ai-zero-tolerance.md": AI_DOC_PATH.read_text(),
             "docs/runtime-unwrap-ntgw-stream-zero-tolerance.md": STREAM_DOC_FIXTURE,
+            "docs/runtime-unwrap-rest-crates-zero-tolerance.md": REST_DOC_FIXTURE,
         }
         for relpath, content in {**default_docs, **case.docs}.items():
             write_fixture(repo, relpath, content)
@@ -124,11 +133,17 @@ def main() -> int:
             report_contains=[
                 "== ntgw-ai (crates/ntgw-ai/src) ==",
                 "== ntgw-stream (crates/ntgw-stream/src) ==",
+                "== ntgw-http (crates/ntgw-http/src) ==",
+                "== ntgw-wasm (crates/ntgw-wasm/src) ==",
+                "== ntgw-xds (crates/ntgw-xds/src) ==",
                 "clean",
             ],
             enforce_contains=[
                 "== ntgw-ai (crates/ntgw-ai/src) ==",
                 "== ntgw-stream (crates/ntgw-stream/src) ==",
+                "== ntgw-http (crates/ntgw-http/src) ==",
+                "== ntgw-wasm (crates/ntgw-wasm/src) ==",
+                "== ntgw-xds (crates/ntgw-xds/src) ==",
                 "clean",
             ],
         ),
@@ -255,6 +270,24 @@ def main() -> int:
             report_not_contains=["tests/mod.rs:1"],
         ),
         Case(
+            name="cfg_all_test_inline_module_excluded",
+            files={
+                "crates/ntgw-ai/src/lib.rs": (
+                    '#[cfg(all(test, target_os = "linux"))]\n'
+                    "mod tests {\n"
+                    '    fn helper() { let _ = Some(1).expect("test only"); }\n'
+                    "}\n"
+                    'fn production_probe() { let _ = Some(2).expect("prod"); }\n'
+                )
+            },
+            report_code=0,
+            enforce_code=1,
+            report_contains=[
+                'crates/ntgw-ai/src/lib.rs:5:fn production_probe() { let _ = Some(2).expect("prod"); }'
+            ],
+            report_not_contains=["test only"],
+        ),
+        Case(
             name="multiline_cfg_external_module_excluded",
             files={
                 "crates/ntgw-ai/src/lib.rs": '#[cfg(\n    test\n)] mod tests;\nlet _ = Some(3).expect("prod");\n',
@@ -280,6 +313,29 @@ def main() -> int:
             enforce_code=1,
             report_contains=['crates/ntgw-ai/src/lib.rs:4:let _ = Some(3).expect("prod");'],
             report_not_contains=["custom/alt_tests.rs:1"],
+        ),
+        Case(
+            name="cfg_test_include_tree_excluded",
+            files={
+                "crates/ntgw-ai/src/lib.rs": (
+                    "#[cfg(test)]\n"
+                    "mod tests;\n"
+                    'fn production_probe() { let _ = Some(3).expect("prod"); }\n'
+                ),
+                "crates/ntgw-ai/src/tests.rs": 'include!("tests_http1.rs");\n',
+                "crates/ntgw-ai/src/tests_http1.rs": (
+                    'include!("tests_http1/case.rs");\n'
+                ),
+                "crates/ntgw-ai/src/tests_http1/case.rs": (
+                    "fn helper() { let _ = Some(1).unwrap(); }\n"
+                ),
+            },
+            report_code=0,
+            enforce_code=1,
+            report_contains=[
+                'crates/ntgw-ai/src/lib.rs:3:fn production_probe() { let _ = Some(3).expect("prod"); }'
+            ],
+            report_not_contains=["tests_http1.rs", "tests_http1/case.rs"],
         ),
         Case(
             name="production_src_tests_module_scanned",

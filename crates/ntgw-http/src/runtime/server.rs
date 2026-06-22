@@ -720,15 +720,25 @@ fn build_wasm_filter(
 
     drop(snapshot_guard);
 
+    let pm = match global_plugin_manager() {
+        Ok(pm) => pm,
+        Err(error) => {
+            tracing::warn!(
+                target: "wasm",
+                error = %error,
+                "failed to initialize wasm plugin manager"
+            );
+            return None;
+        }
+    };
+
     if desired.is_empty() {
-        let pm = global_plugin_manager();
         for name in pm.plugin_names() {
             pm.unload_plugin(&name);
         }
         return None;
     }
 
-    let pm = global_plugin_manager();
     let (loaded, updated, skipped, unloaded) = pm.diff_and_apply(&desired);
     tracing::info!(
         target: "wasm",
