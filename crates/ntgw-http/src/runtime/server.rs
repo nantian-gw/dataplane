@@ -3,6 +3,7 @@ use std::sync::Arc;
 
 use pingora::{
     apps::ServerApp, protocols::Stream, proxy::HttpProxy, server::configuration::ServerConf,
+    tls::ssl::SslSessionCacheMode,
 };
 
 use crate::cache::CacheManager;
@@ -485,6 +486,7 @@ fn add_tls_http_service(
             identities: identities.clone(),
         }))?;
         settings.enable_h2();
+        settings.set_session_cache_mode(SslSessionCacheMode::SERVER);
         if let Some(client_ca_path) = client_ca_path.as_deref() {
             if let Err(err) = settings.set_ca_file(client_ca_path) {
                 warn!(

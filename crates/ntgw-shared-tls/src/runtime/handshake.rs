@@ -8,8 +8,8 @@ use pingora::{
         ext,
         pkey::PKey,
         ssl::{
-            AlpnError, SslAcceptor, SslAcceptorBuilder, SslMethod, SslRef, SslVerifyMode,
-            select_next_proto,
+            AlpnError, SslAcceptor, SslAcceptorBuilder, SslMethod, SslRef, SslSessionCacheMode,
+            SslVerifyMode, select_next_proto,
         },
         x509::X509,
     },
@@ -35,6 +35,7 @@ fn build_tls_acceptor(terminate: &TerminateSurface) -> Result<SslAcceptor> {
     let mut builder = SslAcceptor::mozilla_intermediate_v5(SslMethod::tls())
         .context("build shared tls acceptor")?;
     configure_alpn(&mut builder);
+    builder.set_session_cache_mode(SslSessionCacheMode::SERVER);
     configure_frontend_client_validation(&mut builder, terminate)?;
     Ok(builder.build())
 }
