@@ -205,10 +205,10 @@ adminAddr: 127.0.0.1:19080
     .expect("config should parse");
 
     cfg.apply_env_overrides(|key| match key {
-        "AEG_NODE_ID" => Some("dp-pod-1".to_string()),
-        "AEG_CLUSTER" => Some("kind".to_string()),
-        "AEG_CONTROL_PLANE_ADDR" => Some("http://controlplane:18080".to_string()),
-        "AEG_ADMIN_ADDR" => Some("0.0.0.0:19080".to_string()),
+        "NANTIAN_GW_NODE_ID" => Some("dp-pod-1".to_string()),
+        "NANTIAN_GW_CLUSTER" => Some("kind".to_string()),
+        "NANTIAN_GW_CONTROL_PLANE_ADDR" => Some("http://controlplane:18080".to_string()),
+        "NANTIAN_GW_ADMIN_ADDR" => Some("0.0.0.0:19080".to_string()),
         _ => None,
     });
 

@@ -37,18 +37,18 @@ impl DataPlaneConfig {
     where
         F: Fn(&str) -> Option<String>,
     {
-        if let Some(value) = lookup("AEG_NODE_ID").and_then(|value| trimmed_non_empty(&value)) {
+        if let Some(value) = lookup("NANTIAN_GW_NODE_ID").and_then(|value| trimmed_non_empty(&value)) {
             self.node_id = value;
         }
-        if let Some(value) = lookup("AEG_CLUSTER").and_then(|value| trimmed_non_empty(&value)) {
+        if let Some(value) = lookup("NANTIAN_GW_CLUSTER").and_then(|value| trimmed_non_empty(&value)) {
             self.cluster = value;
         }
         if let Some(value) =
-            lookup("AEG_CONTROL_PLANE_ADDR").and_then(|value| trimmed_non_empty(&value))
+            lookup("NANTIAN_GW_CONTROL_PLANE_ADDR").and_then(|value| trimmed_non_empty(&value))
         {
             self.control_plane_addr = value;
         }
-        if let Some(value) = lookup("AEG_ADMIN_ADDR").and_then(|value| trimmed_non_empty(&value)) {
+        if let Some(value) = lookup("NANTIAN_GW_ADMIN_ADDR").and_then(|value| trimmed_non_empty(&value)) {
             self.admin_addr = value;
         }
     }
