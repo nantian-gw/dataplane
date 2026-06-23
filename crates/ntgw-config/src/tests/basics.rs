@@ -13,7 +13,7 @@ adminAddr: 127.0.0.1:19080
     )
     .expect("config should parse");
 
-    assert_eq!(cfg.runtime.http_listen_addr, "0.0.0.0:10080");
+    assert_eq!(cfg.runtime.http_listen_addr, "0.0.0.0:80");
     assert!(cfg.access_log.enabled);
     assert_eq!(cfg.access_log.path, "/var/log/nantian-gw/access.log");
     assert_eq!(cfg.access_log.mode, "json");

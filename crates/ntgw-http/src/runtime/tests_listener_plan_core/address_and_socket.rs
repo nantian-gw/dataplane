@@ -3,7 +3,7 @@ fn falls_back_to_default_listener_when_snapshot_has_no_l7_listeners() {
     let plan = build_listener_plan(
         &Snapshot::default(),
         &RuntimeOptions {
-            default_listen_addr: "0.0.0.0:10080".to_string(),
+            default_listen_addr: "0.0.0.0:80".to_string(),
             enable_ipv6: true,
             ..RuntimeOptions::default()
         },
@@ -12,8 +12,8 @@ fn falls_back_to_default_listener_when_snapshot_has_no_l7_listeners() {
     .expect("plan");
 
     assert_eq!(plan.listeners.len(), 2);
-    assert_eq!(plan.listeners[0].bind, "0.0.0.0:10080");
-    assert_eq!(plan.listeners[1].bind, "[::]:10080");
+    assert_eq!(plan.listeners[0].bind, "0.0.0.0:80");
+    assert_eq!(plan.listeners[1].bind, "[::]:80");
     assert!(matches!(
         plan.listeners[0].protocol,
         ListenerProtocol::Plain
@@ -40,7 +40,7 @@ fn uses_runtime_bind_address_for_plain_http_listeners() {
     let plan = build_listener_plan(
         &snapshot,
         &RuntimeOptions {
-            default_listen_addr: "0.0.0.0:10080".to_string(),
+            default_listen_addr: "0.0.0.0:80".to_string(),
             enable_ipv6: true,
             ..RuntimeOptions::default()
         },
@@ -165,7 +165,7 @@ fn preserves_distinct_plain_http_listener_ports() {
     let plan = build_listener_plan(
         &snapshot,
         &RuntimeOptions {
-            default_listen_addr: "0.0.0.0:10080".to_string(),
+            default_listen_addr: "0.0.0.0:80".to_string(),
             enable_ipv6: true,
             ..RuntimeOptions::default()
         },

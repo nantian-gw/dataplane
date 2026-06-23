@@ -61,7 +61,7 @@ pub(crate) fn default_route_annotation_prefix() -> String {
 }
 
 pub(crate) fn default_http_listen_addr() -> String {
-    "0.0.0.0:10080".to_string()
+    "0.0.0.0:80".to_string()
 }
 
 pub(crate) fn default_tls_min() -> String {

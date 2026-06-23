@@ -58,18 +58,18 @@ fn listener_updates_restart_only_changed_listener() {
 fn listener_updates_do_not_restart_when_only_listener_name_changes() {
     let active = BTreeMap::from([
         (
-            "0.0.0.0:10080".to_string(),
+            "0.0.0.0:80".to_string(),
             PlannedListener {
-                name: "mesh/default/echo/10080".to_string(),
-                bind: "0.0.0.0:10080".to_string(),
+                name: "mesh/default/echo/80".to_string(),
+                bind: "0.0.0.0:80".to_string(),
                 protocol: ListenerProtocol::Plain,
             },
         ),
         (
-            "[::]:10080".to_string(),
+            "[::]:80".to_string(),
             PlannedListener {
-                name: "mesh/default/echo/10080".to_string(),
-                bind: "[::]:10080".to_string(),
+                name: "mesh/default/echo/80".to_string(),
+                bind: "[::]:80".to_string(),
                 protocol: ListenerProtocol::Plain,
             },
         ),
@@ -77,13 +77,13 @@ fn listener_updates_do_not_restart_when_only_listener_name_changes() {
     let desired = ListenerPlan {
         listeners: vec![
             PlannedListener {
-                name: "mesh/default/echo-v2/10080".to_string(),
-                bind: "0.0.0.0:10080".to_string(),
+                name: "mesh/default/echo-v2/80".to_string(),
+                bind: "0.0.0.0:80".to_string(),
                 protocol: ListenerProtocol::Plain,
             },
             PlannedListener {
-                name: "mesh/default/echo-v2/10080".to_string(),
-                bind: "[::]:10080".to_string(),
+                name: "mesh/default/echo-v2/80".to_string(),
+                bind: "[::]:80".to_string(),
                 protocol: ListenerProtocol::Plain,
             },
         ],
