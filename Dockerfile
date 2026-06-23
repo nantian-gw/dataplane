@@ -43,11 +43,13 @@ RUN apt-get update \
         curl \
         dnsutils \
         iproute2 \
+        libcap2-bin \
         netcat-openbsd \
         procps \
         tcpdump \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /src/dataplane/target/release/ntgw-app /usr/local/bin/ntgw-app
+RUN setcap cap_net_bind_service=+ep /usr/local/bin/ntgw-app
 
 ENTRYPOINT ["/usr/local/bin/ntgw-app"]
