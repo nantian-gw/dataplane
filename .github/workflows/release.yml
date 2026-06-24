@@ -5,11 +5,14 @@ on:
     tags: ['v*']
 
 jobs:
-  release:
-    name: Release
-    runs-on: ubuntu-latest
+  build-binary:
+    name: Build ${{ matrix.arch }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [amd64, arm64]
     permissions:
-      contents: write
       packages: write
 
     steps:
@@ -43,10 +46,10 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
-            type=ref,event=tag
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
+            type=ref,event=tag,suffix=-${{ matrix.arch }}
+            type=semver,pattern={{version}},suffix=-${{ matrix.arch }}
+            type=semver,pattern={{major}}.{{minor}},suffix=-${{ matrix.arch }}
+            type=semver,pattern={{major}},suffix=-${{ matrix.arch }}
 
       - name: Login to GHCR
         uses: docker/login-action@v4
@@ -68,10 +71,81 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ntgw-app-${{ matrix.arch }}
+          path: |
+            target/release/ntgw-app
+            target/release/ntgw-app.sha256
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs: build-binary
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Download amd64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ntgw-app-amd64
+          path: artifacts/amd64
+
+      - name: Download arm64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ntgw-app-arm64
+          path: artifacts/arm64
+
+      - name: Login to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute semver components
+        id: semver
+        run: |
+          # github.ref_name is like "v1.2.3"
+          VERSION="${GITHUB_REF_NAME#v}"
+          MAJOR="${VERSION%%.*}"
+          MINOR_PATCH="${VERSION#*.}"
+          MINOR="${MINOR_PATCH%%.*}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "major=${MAJOR}" >> "$GITHUB_OUTPUT"
+          echo "minor=${MAJOR}.${MINOR}" >> "$GITHUB_OUTPUT"
+
+      - name: Create multi-arch manifest (exact tag)
+        run: |
+          docker buildx imagetools create \
+            --tag "ghcr.io/${{ github.repository }}:${{ github.ref_name }}" \
+            "ghcr.io/${{ github.repository }}:${{ github.ref_name }}-amd64" \
+            "ghcr.io/${{ github.repository }}:${{ github.ref_name }}-arm64"
+
+      - name: Create multi-arch manifest (major.minor)
+        run: |
+          docker buildx imagetools create \
+            --tag "ghcr.io/${{ github.repository }}:${{ steps.semver.outputs.minor }}" \
+            "ghcr.io/${{ github.repository }}:${{ steps.semver.outputs.version }}-amd64" \
+            "ghcr.io/${{ github.repository }}:${{ steps.semver.outputs.version }}-arm64"
+
+      - name: Create multi-arch manifest (major)
+        run: |
+          docker buildx imagetools create \
+            --tag "ghcr.io/${{ github.repository }}:${{ steps.semver.outputs.major }}" \
+            "ghcr.io/${{ github.repository }}:${{ steps.semver.outputs.version }}-amd64" \
+            "ghcr.io/${{ github.repository }}:${{ steps.semver.outputs.version }}-arm64"
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
           files: |
-            target/release/ntgw-app
-            target/release/ntgw-app.sha256
+            artifacts/amd64/ntgw-app
+            artifacts/amd64/ntgw-app.sha256
+            artifacts/arm64/ntgw-app
+            artifacts/arm64/ntgw-app.sha256
           generate_release_notes: true
