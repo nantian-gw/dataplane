@@ -38,7 +38,7 @@ pub(crate) fn documented_route_contracts() -> Vec<AdminRouteContract> {
         route_contract(
             "GET",
             METRICS_PATH,
-            "bearer-when-configured",
+            "none",
             "text/plain; version=0.0.4; charset=utf-8",
         ),
         route_contract(

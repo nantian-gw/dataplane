@@ -2,7 +2,7 @@
 async fn metrics_view_returns_prometheus_payload() {
     let app = super::build_router(test_state(Some("top-secret")));
 
-    let unauthorized = app
+    let without_auth = app
         .clone()
         .oneshot(
             Request::builder()
@@ -12,7 +12,7 @@ async fn metrics_view_returns_prometheus_payload() {
         )
         .await
         .expect("request should succeed");
-    assert_eq!(unauthorized.status(), StatusCode::UNAUTHORIZED);
+    assert_eq!(without_auth.status(), StatusCode::OK);
 
     let authorized = app
         .oneshot(

@@ -21,6 +21,7 @@ pub(crate) fn build_router(state: AppState) -> Router {
     let public = Router::new()
         .route(LIVEZ_PATH, get(livez))
         .route(READYZ_PATH, get(readyz))
+        .route(METRICS_PATH, get(metrics_view))
         .layer(middleware::from_fn_with_state(
             admin_requests.clone(),
             observe_admin_request,
@@ -28,7 +29,6 @@ pub(crate) fn build_router(state: AppState) -> Router {
         .with_state(state.clone());
 
     let protected = Router::new()
-        .route(METRICS_PATH, get(metrics_view))
         .route(SUMMARY_PATH, get(summary_view))
         .route(NODE_PATH, get(node_view))
         .route(SNAPSHOT_PATH, get(snapshot_view))

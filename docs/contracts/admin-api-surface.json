@@ -6,7 +6,7 @@
       "endpoints": [
         {"method": "GET", "path": "/livez", "auth": "none", "contentType": "text/plain"},
         {"method": "GET", "path": "/readyz", "auth": "none", "contentType": "text/plain"},
-        {"method": "GET", "path": "/metrics", "auth": "bearer-when-configured", "contentType": "text/plain; version=0.0.4; charset=utf-8"},
+        {"method": "GET", "path": "/metrics", "auth": "none", "contentType": "text/plain; version=0.0.4; charset=utf-8"},
         {"method": "GET", "path": "/v1/summary", "auth": "bearer-when-configured", "contentType": "application/json"},
         {"method": "GET", "path": "/v1/node", "auth": "bearer-when-configured", "contentType": "application/json"},
         {"method": "GET", "path": "/v1/snapshot", "auth": "bearer-when-configured", "contentType": "application/json"},
