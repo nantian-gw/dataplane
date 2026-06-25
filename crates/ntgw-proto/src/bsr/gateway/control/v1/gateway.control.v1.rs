@@ -585,6 +585,19 @@ pub struct BackendCluster {
     /// WebAssembly plugin configuration attached to this backend.
     #[prost(message, optional, tag="13")]
     pub wasm_plugin: ::core::option::Option<WasmPluginConfig>,
+    /// Per-backend circuit breaker configuration.
+    #[prost(message, optional, tag="14")]
+    pub circuit_breaker: ::core::option::Option<CircuitBreakerConfig>,
+}
+/// CircuitBreakerConfig defines per-backend circuit breaker thresholds.
+/// When not set, the data plane uses its default circuit breaker settings.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct CircuitBreakerConfig {
+    /// Maximum number of concurrent inflight requests allowed to this backend.
+    /// Requests beyond this limit are rejected immediately with a 503.
+    /// Set to 0 to disable circuit breaking for this backend.
+    #[prost(uint32, tag="1")]
+    pub max_inflight_requests: u32,
 }
 /// BackendEndpoint represents a single backend instance discovered by the control plane.
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
