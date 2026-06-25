@@ -1,6 +1,6 @@
 use std::{
     collections::BTreeMap,
-    fmt::{self, Write},
+    fmt::{self},
     net::IpAddr,
     sync::Arc,
     time::{Duration, Instant},
