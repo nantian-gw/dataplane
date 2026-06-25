@@ -430,14 +430,14 @@ pub(crate) fn cache_selected_backend_state(
             let mut s = String::with_capacity(ip_str.len() + 6);
             s.push_str(&ip_str);
             s.push(':');
-            write!(s, "{}", config.peer_port).expect("write to String is infallible");
+            s.push_str(&config.peer_port.to_string());
             s
         }
         UpstreamPeerAddress::Host(h) => {
             let mut s = String::with_capacity(h.len() + 6);
             s.push_str(h);
             s.push(':');
-            write!(s, "{}", config.peer_port).expect("write to String is infallible");
+            s.push_str(&config.peer_port.to_string());
             s
         }
     };
