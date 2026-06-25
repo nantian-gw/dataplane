@@ -1,6 +1,6 @@
 use std::{
     collections::BTreeMap,
-    fmt,
+    fmt::{self, Write},
     net::IpAddr,
     sync::Arc,
     time::{Duration, Instant},
@@ -424,14 +424,23 @@ pub(crate) fn cache_selected_backend_state(
 ) {
     let config = config.into();
     let selected = Arc::new(selected);
-    let upstream_addr = format!(
-        "{}:{}",
-        match &config.peer_address {
-            UpstreamPeerAddress::Ip(ip) => ip.to_string(),
-            UpstreamPeerAddress::Host(h) => h.clone(),
-        },
-        config.peer_port
-    );
+    let upstream_addr = match &config.peer_address {
+        UpstreamPeerAddress::Ip(ip) => {
+            let ip_str = ip.to_string();
+            let mut s = String::with_capacity(ip_str.len() + 6);
+            s.push_str(&ip_str);
+            s.push(':');
+            write!(s, "{}", config.peer_port).unwrap();
+            s
+        }
+        UpstreamPeerAddress::Host(h) => {
+            let mut s = String::with_capacity(h.len() + 6);
+            s.push_str(h);
+            s.push(':');
+            write!(s, "{}", config.peer_port).unwrap();
+            s
+        }
+    };
     cache_selected_backend_fields(ctx, selected.as_ref(), access_log_enabled);
     ctx.runtime_ids = config.runtime_ids;
     ctx.selected_backend = Some(selected);

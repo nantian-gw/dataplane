@@ -22,7 +22,14 @@ pub(crate) async fn do_request_filter(
     let request_has_body = !session.as_downstream_mut().is_body_empty();
     // Access log: capture HTTP version, query string, connection ID
     if proxy.access_log.enabled {
-        ctx.http_version = format!("{:?}", session.req_header().version);
+        ctx.http_version = String::from(match session.req_header().version {
+            http::Version::HTTP_09 => "HTTP/0.9",
+            http::Version::HTTP_10 => "HTTP/1.0",
+            http::Version::HTTP_11 => "HTTP/1.1",
+            http::Version::HTTP_2 => "HTTP/2.0",
+            http::Version::HTTP_3 => "HTTP/3.0",
+            _ => "HTTP/?",
+        });
         ctx.query_string = session.req_header().uri.query().unwrap_or("").to_string();
         ctx.connection_id = ctx.request_id.clone();
     }
@@ -689,7 +696,7 @@ pub(crate) async fn do_request_filter(
             .iter()
             .map(|(k, v)| (k.to_string(), v.to_str().unwrap_or("").to_string()))
             .collect();
-        if let Err(e) = wasm.pre_process(&request_headers, &[]) {
+        if let Err(e) = wasm.pre_process(request_headers, vec![]) {
             match e {
                 WasmError::PluginRejected(_name, code) => {
                     let status = code.clamp(400, 599) as u16;
