@@ -559,8 +559,8 @@ impl AIGatewayFilter {
                 tracing::warn!(error = %e, "failed to ingest trace to Langfuse");
             }
 
-            if let Some(ref usage) = usage {
-                if let Err(e) = lf
+            if let Some(ref usage) = usage
+                && let Err(e) = lf
                     .ingest_generation(
                         &trace_id,
                         &model,
@@ -572,9 +572,8 @@ impl AIGatewayFilter {
                         &Default::default(),
                     )
                     .await
-                {
-                    tracing::warn!(error = %e, "failed to ingest generation to Langfuse");
-                }
+            {
+                tracing::warn!(error = %e, "failed to ingest generation to Langfuse");
             }
         }
 
