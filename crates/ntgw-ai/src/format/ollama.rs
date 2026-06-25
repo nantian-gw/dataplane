@@ -207,7 +207,10 @@ impl FormatAdapter for OllamaAdapter {
             format: "ollama".into(),
             message: e.to_string(),
         })?;
-        Ok(format!("{json}\n"))
+        let mut buf = String::with_capacity(json.len() + 1);
+        buf.push_str(&json);
+        buf.push('\n');
+        Ok(buf)
     }
 
     fn error_response(&self, _status: u16, message: &str) -> Result<Vec<u8>, AIError> {

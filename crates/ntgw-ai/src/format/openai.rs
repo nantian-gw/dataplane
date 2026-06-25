@@ -344,7 +344,11 @@ impl FormatAdapter for OpenAIAdapter {
             format: "openai".into(),
             message: e.to_string(),
         })?;
-        Ok(format!("data: {json}\n\n"))
+        let mut buf = String::with_capacity(8 + json.len() + 2);
+        buf.push_str("data: ");
+        buf.push_str(&json);
+        buf.push_str("\n\n");
+        Ok(buf)
     }
 
     fn error_response(&self, status: u16, message: &str) -> Result<Vec<u8>, AIError> {

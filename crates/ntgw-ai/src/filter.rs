@@ -224,14 +224,14 @@ impl AIGatewayFilter {
         };
         for pattern in &guard.patterns {
             if let Some(matched) = pattern.find(text) {
-                let reason = "injection_pattern_match".to_string();
-                let matched_str = matched.as_str().to_string();
-                tracing::warn!(reason = %reason, matched = %matched_str, %model, "prompt guard blocked request");
-                self.metrics.record_prompt_guard_block(&reason, model);
+                let reason_str = "injection_pattern_match";
+                let matched_str = matched.as_str();
+                tracing::warn!(reason = %reason_str, matched = %matched_str, %model, "prompt guard blocked request");
+                self.metrics.record_prompt_guard_block(reason_str, model);
                 if guard.mode() == "block" {
                     return Err(AIError::PromptGuardBlocked {
-                        reason,
-                        matched: matched_str,
+                        reason: reason_str.to_string(),
+                        matched: matched_str.to_string(),
                     });
                 }
             }
@@ -259,17 +259,17 @@ impl AIGatewayFilter {
         };
         for (category, regex) in &safety.patterns {
             if let Some(captured) = regex.find(text) {
-                let matched = captured.as_str().to_string();
+                let matched_str = captured.as_str();
                 if safety.block_mode {
-                    tracing::warn!(category = %category, matched = %matched, %model, "content safety filter blocked request");
+                    tracing::warn!(category = %category, matched = %matched_str, %model, "content safety filter blocked request");
                     self.metrics
                         .record_content_safety_violation(category, model, "block");
                     return Err(AIError::ContentSafetyBlocked {
                         category: category.clone(),
-                        matched,
+                        matched: matched_str.to_string(),
                     });
                 }
-                tracing::warn!(category = %category, matched = %matched, %model, "content safety filter flagged request");
+                tracing::warn!(category = %category, matched = %matched_str, %model, "content safety filter flagged request");
                 self.metrics
                     .record_content_safety_violation(category, model, "flag");
             }
@@ -339,7 +339,7 @@ impl AIGatewayFilter {
                 headers.insert("x-api-key".to_string(), key.to_string());
             }
             headers.insert("x-request-model".to_string(), request.model.clone());
-            wf.pre_process(&headers, &masked_body)
+            wf.pre_process(headers, masked_body.clone())
                 .map_err(|e| AIError::Internal(anyhow::anyhow!("wasm plugin rejected: {e}")))?;
         }
 
@@ -466,7 +466,7 @@ impl AIGatewayFilter {
 
         // Wasm plugin on_response hook
         if let Some(ref wf) = self.wasm_filter {
-            wf.post_process(&HashMap::new(), response_body)
+            wf.post_process(HashMap::new(), response_body.to_vec())
                 .map_err(|e| {
                     AIError::Internal(anyhow::anyhow!("wasm plugin response rejected: {e}"))
                 })?;
@@ -552,12 +552,15 @@ impl AIGatewayFilter {
             let output_json: serde_json::Value =
                 serde_json::from_slice(response_body).unwrap_or(serde_json::Value::Null);
 
-            let _ = lf
+            if let Err(e) = lf
                 .ingest_trace(&trace_id, None, None, &Default::default())
-                .await;
+                .await
+            {
+                tracing::warn!(error = %e, "failed to ingest trace to Langfuse");
+            }
 
             if let Some(ref usage) = usage {
-                let _ = lf
+                if let Err(e) = lf
                     .ingest_generation(
                         &trace_id,
                         &model,
@@ -568,7 +571,10 @@ impl AIGatewayFilter {
                         &output_json,
                         &Default::default(),
                     )
-                    .await;
+                    .await
+                {
+                    tracing::warn!(error = %e, "failed to ingest generation to Langfuse");
+                }
             }
         }
 

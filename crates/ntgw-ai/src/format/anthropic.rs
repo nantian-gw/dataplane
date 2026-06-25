@@ -313,11 +313,22 @@ impl FormatAdapter for AnthropicAdapter {
 
         if finish.is_some() {
             let stop_json = serialize_message_stop_event()?;
-            Ok(format!(
-                "event: content_block_delta\ndata: {json}\n\nevent: message_stop\ndata: {stop_json}\n\n"
-            ))
+            let header = "event: content_block_delta\ndata: ";
+            let mid = "\n\nevent: message_stop\ndata: ";
+            let mut buf = String::with_capacity(header.len() + json.len() + mid.len() + stop_json.len() + 2);
+            buf.push_str(header);
+            buf.push_str(&json);
+            buf.push_str(mid);
+            buf.push_str(&stop_json);
+            buf.push_str("\n\n");
+            Ok(buf)
         } else {
-            Ok(format!("event: content_block_delta\ndata: {json}\n\n"))
+            let header = "event: content_block_delta\ndata: ";
+            let mut buf = String::with_capacity(header.len() + json.len() + 2);
+            buf.push_str(header);
+            buf.push_str(&json);
+            buf.push_str("\n\n");
+            Ok(buf)
         }
     }
 

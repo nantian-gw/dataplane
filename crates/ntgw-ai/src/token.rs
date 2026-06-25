@@ -94,7 +94,7 @@ impl TokenCounter {
             .map_err(|e| AIError::Internal(anyhow::anyhow!("SSE body is not valid UTF-8: {e}")))?;
 
         let mut counter = TokenCounter::new();
-        let mut content_parts: Vec<String> = Vec::new();
+        let mut last_content = String::with_capacity(512);
 
         // Events are separated by blank lines (\n\n)
         for event in text.split("\n\n") {
@@ -119,14 +119,13 @@ impl TokenCounter {
                     // Concatenate delta content from all choices
                     for choice in &chunk.choices {
                         if let Some(ref content) = choice.delta.content {
-                            content_parts.push(content.clone());
+                            last_content.push_str(content);
                         }
                     }
                 }
             }
         }
 
-        let last_content = content_parts.concat();
         Ok((counter.accumulated_usage(), last_content))
     }
 }

@@ -129,6 +129,8 @@ impl LangfuseClient {
 
         let client = reqwest::Client::builder()
             .default_headers(headers)
+            .timeout(std::time::Duration::from_secs(10))
+            .connect_timeout(std::time::Duration::from_secs(5))
             .build()
             .map_err(|e| {
                 AIError::Observability(format!("failed to build Langfuse HTTP client: {e}"))

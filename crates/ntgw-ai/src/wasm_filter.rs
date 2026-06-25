@@ -27,8 +27,8 @@ impl WasmPluginFilter {
     /// returns a rejection code the entire pre-process phase fails.
     pub fn pre_process(
         &self,
-        request_headers: &HashMap<String, String>,
-        body: &[u8],
+        request_headers: HashMap<String, String>,
+        body: Vec<u8>,
     ) -> Result<(), WasmError> {
         for name in &self.plugin_names {
             tracing::debug!(
@@ -40,7 +40,7 @@ impl WasmPluginFilter {
                 name,
                 &WasmHook::OnRequest,
                 request_headers.clone(),
-                body.to_vec(),
+                body.clone(),
             )? {
                 HookResult::Continue => {}
                 HookResult::Reject(code) => {
@@ -61,8 +61,8 @@ impl WasmPluginFilter {
     /// Post-response: execute all plugins' on_response hook.
     pub fn post_process(
         &self,
-        request_headers: &HashMap<String, String>,
-        response_body: &[u8],
+        request_headers: HashMap<String, String>,
+        response_body: Vec<u8>,
     ) -> Result<(), WasmError> {
         for name in &self.plugin_names {
             tracing::debug!(
@@ -74,7 +74,7 @@ impl WasmPluginFilter {
                 name,
                 &WasmHook::OnResponse,
                 request_headers.clone(),
-                response_body.to_vec(),
+                response_body.clone(),
             )?;
         }
 
