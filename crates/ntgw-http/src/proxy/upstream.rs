@@ -228,13 +228,12 @@ pub(crate) fn do_fail_to_connect(
 
 fn sync_per_backend_cb_limit(proxy: &GatewayProxy, backend_name: &str) {
     let snap = proxy.snapshot.load();
-    if let Some(backend) = snap.backends.iter().find(|b| b.name == backend_name) {
-        if let Some(ref cb) = backend.circuit_breaker {
-            if cb.max_inflight_requests > 0 {
-                proxy
-                    .circuit_breaker
-                    .set_backend_limit(backend_name, cb.max_inflight_requests as usize);
-            }
-        }
+    if let Some(backend) = snap.backends.iter().find(|b| b.name == backend_name)
+        && let Some(ref cb) = backend.circuit_breaker
+        && cb.max_inflight_requests > 0
+    {
+        proxy
+            .circuit_breaker
+            .set_backend_limit(backend_name, cb.max_inflight_requests as usize);
     }
 }
