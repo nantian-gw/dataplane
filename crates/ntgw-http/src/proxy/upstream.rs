@@ -42,12 +42,13 @@ pub(crate) async fn do_upstream_peer(
             }
         };
         if ctx.circuit_breaker_permit.is_none() {
+            let snap = ctx.cached_snapshot(proxy);
             let permit = {
                 let fast = ctx.fast_selected_backend.as_ref().ok_or_else(|| {
                     Error::new(ErrorType::new("InternalError"))
                         .more_context("fast path selected backend missing from request context")
                 })?;
-                sync_per_backend_cb_limit(proxy, &fast.selected.backend_name);
+                sync_per_backend_cb_limit(&snap, proxy, &fast.selected.backend_name);
                 proxy
                     .circuit_breaker
                     .try_acquire_backend(fast.selected.backend_name.as_str())
@@ -74,7 +75,7 @@ pub(crate) async fn do_upstream_peer(
         }
         let session_cache = SessionResolutionCache::new(&proxy.session_manager, &request.headers);
         let selected = {
-            let current = proxy.snapshot.load();
+            let current = ctx.cached_snapshot(proxy);
             cache_snapshot_version_if_observed(
                 ctx,
                 current.id.as_str(),
@@ -128,7 +129,7 @@ pub(crate) async fn do_upstream_peer(
 
     let peer = {
         if ctx.selected_backend_config.is_none() {
-            let current = proxy.snapshot.load();
+            let current = ctx.cached_snapshot(proxy);
             ctx.selected_backend_config = Some(selected_backend_config_cached(
                 &proxy.selected_backend_config_cache,
                 &current,
@@ -154,7 +155,8 @@ pub(crate) async fn do_upstream_peer(
         }
     };
     if ctx.circuit_breaker_permit.is_none() {
-        sync_per_backend_cb_limit(proxy, &endpoint.backend_name);
+        let snap = ctx.cached_snapshot(proxy);
+        sync_per_backend_cb_limit(&snap, proxy, &endpoint.backend_name);
         ctx.circuit_breaker_permit = Some(
             proxy
                 .circuit_breaker
@@ -226,8 +228,7 @@ pub(crate) fn do_fail_to_connect(
     e
 }
 
-fn sync_per_backend_cb_limit(proxy: &GatewayProxy, backend_name: &str) {
-    let snap = proxy.snapshot.load();
+fn sync_per_backend_cb_limit(snap: &Snapshot, proxy: &GatewayProxy, backend_name: &str) {
     if let Some(backend) = snap.backends.iter().find(|b| b.name == backend_name)
         && let Some(ref cb) = backend.circuit_breaker
         && cb.max_inflight_requests > 0

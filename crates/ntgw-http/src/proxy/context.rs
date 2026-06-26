@@ -12,12 +12,13 @@ use pingora_cache::HttpCache;
 use tracing::Span;
 
 use super::cache::CachedBackendTlsValidation;
+use super::GatewayProxy;
 use crate::mirror::MirrorRequestSession;
 use crate::session::ResolvedSession;
 use ntgw_ai::filter::AIContext;
 use ntgw_ir::{
     BackendEndpoint, EndpointRuntimeHandle, RouteKind, SelectedBackend, SelectedBackendRuntimeIds,
-    SharedSnapshot,
+    SharedSnapshot, Snapshot,
 };
 use ntgw_observability::{
     AccessLogOptions, HttpAdmissionPermit, HttpCircuitBreakerPermit, SharedTrafficStats,
@@ -121,6 +122,7 @@ pub struct RequestContext {
     pub(crate) upstream_connect_started_at: Option<Instant>,
     pub(crate) request_span: Option<Span>,
     pub snapshot_version: String,
+    pub(crate) cached_snapshot: Option<Arc<Snapshot>>,
     pub client_ip: String,
     pub host: String,
     pub method: String,
@@ -209,6 +211,14 @@ impl std::fmt::Debug for CacheState {
         } else {
             f.write_str("None")
         }
+    }
+}
+
+impl RequestContext {
+    pub(crate) fn cached_snapshot(&mut self, proxy: &GatewayProxy) -> Arc<Snapshot> {
+        self.cached_snapshot
+            .get_or_insert_with(|| Arc::clone(&proxy.snapshot.load()))
+            .clone()
     }
 }
 
@@ -326,6 +336,7 @@ fn clear_request_context(ctx: &mut RequestContext) {
     ctx.cached_response_body_bytes = 0;
     ctx.admission_permit = None;
     ctx.circuit_breaker_permit = None;
+    ctx.cached_snapshot = None;
     ctx.rate_limit_applied = false;
     ctx.retry_budget_seeded = false;
     ctx.backend_observation_recorded = false;
