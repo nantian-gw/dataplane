@@ -120,7 +120,10 @@ impl Default for RuntimeTuningConfig {
             downstream_read_timeout_ms: default_downstream_read_timeout_ms(),
             http_max_connection_age_ms: default_http_max_connection_age_ms(),
             http_keepalive_request_limit: default_http_keepalive_request_limit(),
-            http_capacity: HttpCapacityConfig::default(),
+            http_capacity: HttpCapacityConfig {
+                upstream_keepalive_pool_size: 1024,
+                ..Default::default()
+            },
             request_mirror_max_concurrency: default_request_mirror_max_concurrency(),
             udp_response_idle_timeout_ms: default_udp_response_idle_timeout_ms(),
             tcp_proxy_buffer_bytes: default_tcp_proxy_buffer_bytes(),

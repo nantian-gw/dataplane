@@ -229,7 +229,7 @@ pub(crate) fn default_upstream_idle_timeout_ms() -> u64 {
 }
 
 pub(crate) fn default_stream_upstream_pool_size() -> usize {
-    128
+    256
 }
 
 pub(crate) fn default_stream_upstream_pool_idle_timeout_ms() -> u64 {

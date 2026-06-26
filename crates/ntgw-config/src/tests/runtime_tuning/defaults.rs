@@ -123,7 +123,7 @@ adminAddr: 127.0.0.1:19080
     let capacity = default_cfg.runtime_tuning.http_capacity();
     assert_eq!(capacity.worker_threads, 0);
     assert_eq!(capacity.accept_concurrency, 0);
-    assert_eq!(capacity.upstream_keepalive_pool_size, 0);
+    assert_eq!(capacity.upstream_keepalive_pool_size, 1024);
     assert_eq!(capacity.reuse_port, None);
     assert!(!default_cfg.runtime_tuning.http_cache.enabled);
     assert_eq!(default_cfg.runtime_tuning.http_cache.max_size_mb, 256);
