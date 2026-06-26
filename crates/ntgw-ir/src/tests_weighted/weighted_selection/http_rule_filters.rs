@@ -37,7 +37,8 @@ fn selects_http_backend_refs_by_weighted_round_robin_with_rule_filters() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 name: "orders:8081".to_string(),
                 namespace: "default".to_string(),
@@ -50,7 +51,8 @@ fn selects_http_backend_refs_by_weighted_round_robin_with_rule_filters() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         ..Snapshot::default()
     };

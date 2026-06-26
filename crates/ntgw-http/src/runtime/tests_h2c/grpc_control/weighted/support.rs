@@ -66,7 +66,8 @@ fn weighted_grpc_h2c_snapshot(
                     healthy: true,
                 }],
                 wasm_plugin: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
@@ -79,7 +80,8 @@ fn weighted_grpc_h2c_snapshot(
                     healthy: true,
                 }],
                 wasm_plugin: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         ..Snapshot::default()
     }));
@@ -179,7 +181,8 @@ fn weighted_mesh_grpc_h2c_snapshot_with_addresses(
                     healthy: true,
                 }],
                 wasm_plugin: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
@@ -192,7 +195,8 @@ fn weighted_mesh_grpc_h2c_snapshot_with_addresses(
                     healthy: true,
                 }],
                 wasm_plugin: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         ..Snapshot::default()
     }));

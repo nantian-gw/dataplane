@@ -51,7 +51,8 @@ fn grpc_h2c_snapshot(listener_port: u16, backend_port: u32) -> ntgw_ir::SharedSn
                 healthy: true,
             }],
             wasm_plugin: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     }));
     let mut s = (**shared.load()).clone();

@@ -13,7 +13,8 @@ fn runtime_indexes_accelerate_backend_secret_and_workload_lookups() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         secrets: vec![SecretMaterial {
             namespace: "default".to_string(),
             name: "client-cert".to_string(),
@@ -70,7 +71,8 @@ fn unbuilt_backend_index_does_not_override_slow_path_backend_lookup() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 name: "payments:8080".to_string(),
                 namespace: "default".to_string(),
@@ -83,7 +85,8 @@ fn unbuilt_backend_index_does_not_override_slow_path_backend_lookup() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         backend_index: std::collections::HashMap::from([(
             std::sync::Arc::<str>::from("default/orders:8080"),
@@ -133,7 +136,8 @@ fn runtime_indexes_precompute_backend_lookup_for_backend_refs() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 name: "payments:8080".to_string(),
                 namespace: "default".to_string(),
@@ -146,7 +150,8 @@ fn runtime_indexes_precompute_backend_lookup_for_backend_refs() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         ..Snapshot::default()
     };
@@ -184,7 +189,8 @@ fn backend_lookup_requires_an_exact_port_string_match() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         runtime_indexes_ready: false,
         ..Snapshot::default()
     };
@@ -217,7 +223,8 @@ fn backend_ref_lookup_requires_an_exact_port_string_match() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         runtime_indexes_ready: false,
         ..Snapshot::default()
     };
@@ -304,7 +311,8 @@ fn runtime_indexes_precompute_backend_service_namespace_lookup() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 name: "payments:9090".to_string(),
                 namespace: "tenant-a".to_string(),
@@ -313,7 +321,8 @@ fn runtime_indexes_precompute_backend_service_namespace_lookup() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 name: "shared:8080".to_string(),
                 namespace: "default".to_string(),
@@ -322,7 +331,8 @@ fn runtime_indexes_precompute_backend_service_namespace_lookup() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 name: "shared:8080".to_string(),
                 namespace: "tenant-b".to_string(),
@@ -331,7 +341,8 @@ fn runtime_indexes_precompute_backend_service_namespace_lookup() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 name: "padded:08080".to_string(),
                 namespace: "default".to_string(),
@@ -340,7 +351,8 @@ fn runtime_indexes_precompute_backend_service_namespace_lookup() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         ..Snapshot::default()
     };
@@ -403,7 +415,8 @@ fn unbuilt_backend_service_index_does_not_override_slow_path_namespace_lookup() 
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         backend_service_index: stale_index,
         runtime_indexes_ready: false,
         ..Snapshot::default()

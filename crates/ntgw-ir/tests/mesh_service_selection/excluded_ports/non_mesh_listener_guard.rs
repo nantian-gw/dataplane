@@ -67,7 +67,8 @@ fn excluded_mesh_port_fallback_ignores_non_mesh_listeners_when_checking_attached
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 name: "echo-v1:8080".to_string(),
                 namespace: "gateway-conformance-mesh".to_string(),
@@ -80,7 +81,8 @@ fn excluded_mesh_port_fallback_ignores_non_mesh_listeners_when_checking_attached
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         ..Snapshot::default()
     };

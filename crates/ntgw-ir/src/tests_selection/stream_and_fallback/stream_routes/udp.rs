@@ -38,7 +38,8 @@ fn selects_udp_backend_by_listener() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
 

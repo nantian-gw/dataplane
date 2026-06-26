@@ -169,6 +169,8 @@ fn tcp_snapshot(
                 healthy: true,
             }],
             wasm_plugin: None,
+
+            circuit_breaker: None,
         }],
         ..ntgw_ir::Snapshot::default()
     };

@@ -34,7 +34,8 @@ fn stream_fast_path_precompiles_backend_refs_for_attached_routes() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
 
@@ -109,7 +110,8 @@ fn stream_fast_path_skips_unavailable_compiled_backend_and_keeps_searching() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 name: "available:8080".to_string(),
                 namespace: "default".to_string(),
@@ -122,7 +124,8 @@ fn stream_fast_path_skips_unavailable_compiled_backend_and_keeps_searching() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         ..Snapshot::default()
     };
@@ -159,7 +162,8 @@ fn stream_fast_path_falls_back_to_default_service_backend_when_no_route_matches(
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
 

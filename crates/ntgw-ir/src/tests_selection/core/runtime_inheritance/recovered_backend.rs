@@ -34,7 +34,8 @@ fn inherited_runtime_state_reintroduces_recovered_backend_into_rotation() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 name: "orders:8081".to_string(),
                 namespace: "default".to_string(),
@@ -47,7 +48,8 @@ fn inherited_runtime_state_reintroduces_recovered_backend_into_rotation() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         ..Snapshot::default()
     };
@@ -76,7 +78,8 @@ fn inherited_runtime_state_reintroduces_recovered_backend_into_rotation() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 name: "orders:8081".to_string(),
                 namespace: "default".to_string(),
@@ -89,7 +92,8 @@ fn inherited_runtime_state_reintroduces_recovered_backend_into_rotation() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         ..Snapshot::default()
     };

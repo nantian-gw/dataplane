@@ -34,7 +34,8 @@ fn inherited_runtime_state_applies_updated_backend_weights() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 name: "orders:8081".to_string(),
                 namespace: "default".to_string(),
@@ -47,7 +48,8 @@ fn inherited_runtime_state_applies_updated_backend_weights() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         ..Snapshot::default()
     };

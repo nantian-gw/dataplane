@@ -39,7 +39,8 @@ fn selects_grpc_backend_by_service_method_and_header() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
 

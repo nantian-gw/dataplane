@@ -65,6 +65,8 @@ fn mesh_grpc_service_frontend_weighted_backends_keep_expected_distribution() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
+
+                circuit_breaker: None,
             },
             BackendCluster {
                 name: "echo-v2:7070".to_string(),
@@ -78,6 +80,8 @@ fn mesh_grpc_service_frontend_weighted_backends_keep_expected_distribution() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
+
+                circuit_breaker: None,
             },
         ],
         ..Snapshot::default()

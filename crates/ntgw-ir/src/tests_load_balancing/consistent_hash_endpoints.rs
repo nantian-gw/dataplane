@@ -37,7 +37,8 @@ fn consistent_hash_by_header_keeps_same_endpoint_for_same_key() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         backend_policies: BTreeMap::from([(
             "default/users:8080".to_string(),
             BackendPolicy {

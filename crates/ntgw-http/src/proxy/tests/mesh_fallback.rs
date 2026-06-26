@@ -58,6 +58,8 @@ fn http_route_miss_uses_mesh_default_backend_for_ineligible_cross_namespace_rout
                 healthy: true,
             }],
             wasm_plugin: None,
+
+            circuit_breaker: None,
         }],
         workloads: vec![
             Workload {
@@ -156,6 +158,8 @@ fn http_route_miss_preserves_no_route_for_attached_mesh_rule_miss() {
                 healthy: true,
             }],
             wasm_plugin: None,
+
+            circuit_breaker: None,
         }],
         ..Snapshot::default()
     };

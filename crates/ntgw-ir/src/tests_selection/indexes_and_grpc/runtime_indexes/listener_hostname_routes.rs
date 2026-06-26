@@ -242,7 +242,8 @@ fn unbuilt_route_attachment_index_does_not_override_slow_path_route_attachment_l
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         route_attachment_listener_index: stale_index,
         runtime_indexes_ready: false,
         ..Snapshot::default()
@@ -388,7 +389,8 @@ fn runtime_indexes_precompute_service_frontend_attachment_lookup() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
 
@@ -431,7 +433,8 @@ fn unbuilt_service_frontend_attachment_index_does_not_override_slow_path_lookup(
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         service_frontend_attachment_index: std::collections::HashMap::from([(
             "default".to_string(),
             std::collections::HashSet::from(["orders".to_string()]),
@@ -524,7 +527,8 @@ fn runtime_indexes_precompute_service_frontend_port_lookup() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
 
@@ -583,7 +587,8 @@ fn unbuilt_service_frontend_port_index_does_not_override_slow_path_lookup() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         service_frontend_listener_port_index: std::collections::HashMap::from([(8080, vec![
             1, 0,
         ])]),

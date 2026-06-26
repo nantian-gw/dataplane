@@ -815,6 +815,8 @@ mod tests {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
+
+                circuit_breaker: None,
             }],
             ..Snapshot::default()
         };
@@ -851,6 +853,8 @@ mod tests {
                     wasm_plugin: None,
                     ai_service: None,
                     token_policy: None,
+
+                    circuit_breaker: None,
                 },
                 BackendCluster {
                     name: "orders:8081".to_string(),
@@ -864,6 +868,8 @@ mod tests {
                     wasm_plugin: None,
                     ai_service: None,
                     token_policy: None,
+
+                    circuit_breaker: None,
                 },
                 BackendCluster {
                     name: "payments:8082".to_string(),
@@ -877,6 +883,8 @@ mod tests {
                     wasm_plugin: None,
                     ai_service: None,
                     token_policy: None,
+
+                    circuit_breaker: None,
                 },
             ],
             ..Snapshot::default()
@@ -1002,6 +1010,8 @@ mod tests {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
+
+                circuit_breaker: None,
             }],
             ..Snapshot::default()
         };

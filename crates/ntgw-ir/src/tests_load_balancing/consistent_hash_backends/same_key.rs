@@ -34,7 +34,8 @@ fn consistent_hash_by_header_keeps_same_backend_for_same_key() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 name: "orders:8081".to_string(),
                 namespace: "default".to_string(),
@@ -47,7 +48,8 @@ fn consistent_hash_by_header_keeps_same_backend_for_same_key() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         backend_policies: BTreeMap::from([
             (

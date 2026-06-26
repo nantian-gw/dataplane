@@ -63,7 +63,8 @@ fn multi_backend_http_snapshot(
                     healthy: true,
                 }],
                 wasm_plugin: None,
-            })
+            
+                circuit_breaker: None,})
             .collect(),
         ..Snapshot::default()
     }));

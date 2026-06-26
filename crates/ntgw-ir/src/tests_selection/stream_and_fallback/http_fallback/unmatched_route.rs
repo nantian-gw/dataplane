@@ -37,7 +37,8 @@ fn returns_none_when_routes_exist_but_request_does_not_match() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
 

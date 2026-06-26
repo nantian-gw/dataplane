@@ -37,7 +37,8 @@ fn passive_endpoint_ejection_temporarily_removes_endpoint_from_rotation() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
     let request = RequestMeta::new(
@@ -98,7 +99,8 @@ fn passive_endpoint_ejection_keeps_single_endpoint_as_last_resort() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
     let request = RequestMeta::new(

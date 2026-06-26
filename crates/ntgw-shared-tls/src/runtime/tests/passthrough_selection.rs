@@ -356,5 +356,6 @@ fn stream_backend(name: &str) -> ntgw_ir::BackendCluster {
             healthy: true,
         }],
         wasm_plugin: None,
+        circuit_breaker: None,
     }
 }

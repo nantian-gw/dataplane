@@ -113,7 +113,8 @@ fn selected_stream_backend_runtime_ids_normalize_proto_route_kind() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
     snapshot.rebuild_runtime_indexes();
@@ -286,7 +287,8 @@ fn runtime_id_test_snapshot(reordered: bool) -> Snapshot {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        },
+        
+                circuit_breaker: None,},
         BackendCluster {
             name: "payments:8080".to_string(),
             namespace: "default".to_string(),
@@ -299,7 +301,8 @@ fn runtime_id_test_snapshot(reordered: bool) -> Snapshot {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        },
+        
+                circuit_breaker: None,},
     ];
 
     if reordered {

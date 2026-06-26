@@ -558,6 +558,8 @@ mod tests {
                     healthy: true,
                 }],
                 wasm_plugin: None,
+
+                circuit_breaker: None,
             }],
             ..Snapshot::default()
         };
@@ -659,6 +661,8 @@ mod tests {
                     healthy: true,
                 }],
                 wasm_plugin: None,
+
+                circuit_breaker: None,
             }],
             ..Snapshot::default()
         };
@@ -817,6 +821,8 @@ mod tests {
                     healthy: true,
                 }],
                 wasm_plugin: None,
+
+                circuit_breaker: None,
             }],
             ..Snapshot::default()
         };

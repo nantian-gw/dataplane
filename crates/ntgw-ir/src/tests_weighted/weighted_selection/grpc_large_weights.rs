@@ -44,7 +44,8 @@ fn spreads_large_weighted_grpc_backends_across_short_request_batches() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 name: "echo-v2:7070".to_string(),
                 namespace: "default".to_string(),
@@ -57,7 +58,8 @@ fn spreads_large_weighted_grpc_backends_across_short_request_batches() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         ..Snapshot::default()
     };

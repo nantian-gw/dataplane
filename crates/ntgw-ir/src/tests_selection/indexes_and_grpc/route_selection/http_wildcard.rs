@@ -30,7 +30,8 @@ fn selects_http_backend_with_wildcard_hostname() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
 

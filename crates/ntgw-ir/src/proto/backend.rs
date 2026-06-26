@@ -1,6 +1,7 @@
 use super::routes::session_persistence_from_proto;
 use super::values::{duration_from_proto, list_value, optional_string, struct_value};
 use super::*;
+use crate::CircuitBreakerConfig;
 
 pub(super) fn backend_from_proto(item: proto::BackendCluster) -> BackendCluster {
     let wasm_plugin = item.wasm_plugin.map(|wp| WasmPluginConfig {
@@ -43,6 +44,10 @@ pub(super) fn backend_from_proto(item: proto::BackendCluster) -> BackendCluster 
         on_limit: tp.on_limit,
     });
 
+    let circuit_breaker = item.circuit_breaker.map(|cb| CircuitBreakerConfig {
+        max_inflight_requests: cb.max_inflight_requests,
+    });
+
     BackendCluster {
         name: item.name,
         namespace: item.namespace,
@@ -59,6 +64,7 @@ pub(super) fn backend_from_proto(item: proto::BackendCluster) -> BackendCluster 
         wasm_plugin,
         ai_service,
         token_policy,
+        circuit_breaker,
     }
 }
 

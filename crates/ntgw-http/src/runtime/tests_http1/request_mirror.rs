@@ -70,7 +70,8 @@ fn mirrored_http_snapshot(
                     healthy: true,
                 }],
                 wasm_plugin: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
@@ -83,7 +84,8 @@ fn mirrored_http_snapshot(
                     healthy: true,
                 }],
                 wasm_plugin: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         ..Snapshot::default()
     }));

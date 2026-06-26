@@ -36,6 +36,8 @@ fn treats_serviceimport_backend_refs_as_routable() {
             wasm_plugin: None,
             ai_service: None,
             token_policy: None,
+
+            circuit_breaker: None,
         }],
         ..Snapshot::default()
     };

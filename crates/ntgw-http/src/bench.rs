@@ -252,6 +252,8 @@ fn simple_fast_path_snapshot() -> Snapshot {
                 port: 8080,
                 healthy: true,
             }],
+
+            circuit_breaker: None,
         }],
         ..Snapshot::default()
     }

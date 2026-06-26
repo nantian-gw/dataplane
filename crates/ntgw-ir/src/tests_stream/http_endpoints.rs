@@ -37,7 +37,8 @@ fn rotates_healthy_endpoints_within_cluster() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
     let request = RequestMeta::new(

@@ -37,7 +37,8 @@ fn endpoint_success_clears_passive_failure_streak() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
     let request = RequestMeta::new(

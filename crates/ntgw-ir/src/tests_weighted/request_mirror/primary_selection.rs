@@ -49,7 +49,8 @@ fn request_mirror_does_not_change_primary_backend_selection() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 name: "shadow:8081".to_string(),
                 namespace: "observability".to_string(),
@@ -62,7 +63,8 @@ fn request_mirror_does_not_change_primary_backend_selection() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         ..Snapshot::default()
     };

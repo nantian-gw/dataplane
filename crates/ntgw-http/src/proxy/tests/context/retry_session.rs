@@ -15,6 +15,8 @@ fn falls_back_to_first_backend() {
                 healthy: true,
             }],
             wasm_plugin: None,
+
+            circuit_breaker: None,
         }],
         ..Snapshot::default()
     };

@@ -52,7 +52,8 @@ fn falls_back_to_service_backend_for_excluded_mesh_port_when_same_service_has_ro
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 name: "echo:8080".to_string(),
                 namespace: "default".to_string(),
@@ -65,7 +66,8 @@ fn falls_back_to_service_backend_for_excluded_mesh_port_when_same_service_has_ro
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         ..Snapshot::default()
     };

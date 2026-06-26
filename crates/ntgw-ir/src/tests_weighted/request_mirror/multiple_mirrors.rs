@@ -14,7 +14,8 @@ fn selects_all_request_mirrors_and_strips_mirror_filters() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 name: "shadow-b:8082".to_string(),
                 namespace: "observability".to_string(),
@@ -27,7 +28,8 @@ fn selects_all_request_mirrors_and_strips_mirror_filters() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         ..Snapshot::default()
     };
@@ -99,7 +101,8 @@ fn request_mirror_visitor_stops_after_first_selected_mirror() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 name: "shadow-b:8082".to_string(),
                 namespace: "observability".to_string(),
@@ -112,7 +115,8 @@ fn request_mirror_visitor_stops_after_first_selected_mirror() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         ..Snapshot::default()
     };

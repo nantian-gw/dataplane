@@ -76,7 +76,8 @@ fn selects_tcp_backend_by_listener_port_isolation() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 name: "tcp-b:7001".to_string(),
                 namespace: "default".to_string(),
@@ -89,7 +90,8 @@ fn selects_tcp_backend_by_listener_port_isolation() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         ..Snapshot::default()
     };

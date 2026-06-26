@@ -455,7 +455,8 @@ fn shared_tls_frontend_validation_snapshot(
                 healthy: true,
             }],
             wasm_plugin: None,
-        }],
+        
+                circuit_breaker: None,}],
         secrets: vec![SecretMaterial {
             namespace: "default".to_string(),
             name: "example-cert".to_string(),
@@ -629,7 +630,8 @@ fn shared_tls_misdirected_snapshot(
                     healthy: true,
                 }],
                 wasm_plugin: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
@@ -642,7 +644,8 @@ fn shared_tls_misdirected_snapshot(
                     healthy: true,
                 }],
                 wasm_plugin: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         secrets: vec![SecretMaterial {
             namespace: "default".to_string(),

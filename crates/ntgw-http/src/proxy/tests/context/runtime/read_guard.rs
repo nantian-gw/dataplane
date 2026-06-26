@@ -50,7 +50,8 @@ fn observe_selected_backend_failure_completes_while_snapshot_read_guard_is_held(
                     },
                 ],
                 wasm_plugin: None,
-            }],
+            
+                circuit_breaker: None,}],
             ..Snapshot::default()
         }));
     }

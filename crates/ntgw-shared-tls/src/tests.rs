@@ -254,6 +254,8 @@ fn shared_tls_snapshot(
                     healthy: true,
                 }],
                 wasm_plugin: None,
+
+                circuit_breaker: None,
             },
             BackendCluster {
                 ai_service: None,
@@ -267,6 +269,8 @@ fn shared_tls_snapshot(
                     healthy: true,
                 }],
                 wasm_plugin: None,
+
+                circuit_breaker: None,
             },
         ],
         secrets: vec![example_secret_material("example-cert")],

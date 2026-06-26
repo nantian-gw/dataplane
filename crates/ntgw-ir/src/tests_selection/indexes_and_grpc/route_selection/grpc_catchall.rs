@@ -28,7 +28,8 @@ fn selects_grpc_backend_for_catch_all_rule_without_parseable_grpc_path() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
 
@@ -83,7 +84,8 @@ fn selects_grpc_backend_for_header_only_match_without_parseable_grpc_path() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
 

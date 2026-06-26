@@ -38,7 +38,8 @@ fn applies_backend_policy_session_persistence_for_grpc_routes() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 name: "greeter-b:9091".to_string(),
                 namespace: "default".to_string(),
@@ -51,7 +52,8 @@ fn applies_backend_policy_session_persistence_for_grpc_routes() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         backend_policies: BTreeMap::from([(
             "default/greeter-b:9091".to_string(),

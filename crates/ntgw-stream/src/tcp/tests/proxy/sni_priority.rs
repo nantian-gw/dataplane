@@ -81,7 +81,8 @@ async fn tls_passthrough_prefers_exact_sni_match_over_wildcard() -> Result<()> {
                     healthy: true,
                 }],
                 wasm_plugin: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
@@ -94,7 +95,8 @@ async fn tls_passthrough_prefers_exact_sni_match_over_wildcard() -> Result<()> {
                     healthy: true,
                 }],
                 wasm_plugin: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         ..Snapshot::default()
     }));

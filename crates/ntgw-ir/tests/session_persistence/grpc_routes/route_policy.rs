@@ -38,7 +38,8 @@ fn prefers_grpc_persistent_session_backend_over_weighted_selection() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 name: "greeter-b:9091".to_string(),
                 namespace: "default".to_string(),
@@ -51,7 +52,8 @@ fn prefers_grpc_persistent_session_backend_over_weighted_selection() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         ..Snapshot::default()
     };

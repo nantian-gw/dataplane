@@ -189,7 +189,8 @@ fn select_http_route_preserves_rule_then_backend_filter_order() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
 

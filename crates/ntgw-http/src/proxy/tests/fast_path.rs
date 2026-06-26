@@ -360,6 +360,8 @@ fn sample_fast_path_snapshot() -> Snapshot {
                 healthy: true,
             }],
             wasm_plugin: None,
+
+            circuit_breaker: None,
         }],
         ..Snapshot::default()
     }

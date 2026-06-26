@@ -46,7 +46,8 @@ fn selects_grpc_backend_on_http_listener() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
 
@@ -99,7 +100,8 @@ fn selects_grpc_backend_by_regex_service_and_method() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
 

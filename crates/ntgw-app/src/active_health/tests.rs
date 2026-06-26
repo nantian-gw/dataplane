@@ -33,6 +33,8 @@ fn collect_probe_targets_skips_udp_and_statically_unhealthy_endpoints() {
                     },
                 ],
                 wasm_plugin: None,
+
+                circuit_breaker: None,
             },
             BackendCluster {
                 ai_service: None,
@@ -46,6 +48,8 @@ fn collect_probe_targets_skips_udp_and_statically_unhealthy_endpoints() {
                     healthy: true,
                 }],
                 wasm_plugin: None,
+
+                circuit_breaker: None,
             },
         ],
         ..Snapshot::default()
@@ -121,6 +125,8 @@ fn apply_probe_results_updates_snapshot_runtime_health() {
                 },
             ],
             wasm_plugin: None,
+
+            circuit_breaker: None,
         }],
         ..Snapshot::default()
     };

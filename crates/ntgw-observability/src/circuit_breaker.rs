@@ -1,5 +1,5 @@
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, HashMap},
     sync::{Arc, RwLock},
 };
 
@@ -48,6 +48,7 @@ pub struct HttpCircuitBreakerStats {
 #[derive(Debug, Clone)]
 pub struct HttpCircuitBreakerController {
     backend_limit: usize,
+    per_backend_limits: Arc<RwLock<HashMap<String, usize>>>,
     backends: SemaphoreMap,
     stats: Arc<HttpCircuitBreakerStats>,
 }
@@ -71,6 +72,7 @@ impl HttpCircuitBreakerController {
     pub fn new(options: HttpCircuitBreakerOptions) -> Self {
         Self {
             backend_limit: options.backend_max_inflight_requests,
+            per_backend_limits: Arc::new(RwLock::new(HashMap::new())),
             backends: Arc::new(RwLock::new(BTreeMap::new())),
             stats: Arc::new(HttpCircuitBreakerStats {
                 state: RwLock::new(HttpCircuitBreakerSnapshot {
@@ -90,7 +92,8 @@ impl HttpCircuitBreakerController {
         backend: &str,
     ) -> Result<HttpCircuitBreakerPermit, HttpCircuitBreakerRejection> {
         let backend = backend.trim();
-        if self.backend_limit == 0 || backend.is_empty() {
+        let limit = self.backend_limit_for(backend);
+        if limit == 0 || backend.is_empty() {
             return Ok(HttpCircuitBreakerPermit {
                 permit: None,
                 backend: backend.to_string(),
@@ -99,7 +102,7 @@ impl HttpCircuitBreakerController {
             });
         }
 
-        let semaphore = keyed_semaphore(&self.backends, backend, self.backend_limit);
+        let semaphore = keyed_semaphore(&self.backends, backend, limit);
         match semaphore.clone().try_acquire_owned() {
             Ok(permit) => {
                 self.stats.observe_backend_acquire(backend);
@@ -110,7 +113,7 @@ impl HttpCircuitBreakerController {
                     cleanup: Some(KeyedCleanup {
                         entries: self.backends.clone(),
                         key: backend.to_string(),
-                        limit: self.backend_limit,
+                        limit,
                     }),
                 })
             }
@@ -119,6 +122,29 @@ impl HttpCircuitBreakerController {
                 Err(HttpCircuitBreakerRejection::Backend)
             }
         }
+    }
+
+    fn backend_limit_for(&self, backend: &str) -> usize {
+        self.per_backend_limits
+            .read()
+            .unwrap_or_else(|err| err.into_inner())
+            .get(backend)
+            .copied()
+            .unwrap_or(self.backend_limit)
+    }
+
+    pub fn set_backend_limit(&self, backend: &str, limit: usize) {
+        self.per_backend_limits
+            .write()
+            .unwrap_or_else(|err| err.into_inner())
+            .insert(backend.to_string(), limit);
+    }
+
+    pub fn set_per_backend_limits(&self, limits: HashMap<String, usize>) {
+        *self
+            .per_backend_limits
+            .write()
+            .unwrap_or_else(|err| err.into_inner()) = limits;
     }
 
     pub fn snapshot(&self) -> HttpCircuitBreakerSnapshot {

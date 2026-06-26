@@ -42,7 +42,8 @@ fn rejects_tls_sni_outside_listener_hostname_even_when_route_hostname_matches() 
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
 

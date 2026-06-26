@@ -124,7 +124,8 @@ fn external_auth_http_snapshot(
                     healthy: true,
                 }],
                 wasm_plugin: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
@@ -137,7 +138,8 @@ fn external_auth_http_snapshot(
                     healthy: true,
                 }],
                 wasm_plugin: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         ..Snapshot::default()
     }));
@@ -225,7 +227,8 @@ fn external_auth_grpc_snapshot(
                     healthy: true,
                 }],
                 wasm_plugin: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
@@ -238,7 +241,8 @@ fn external_auth_grpc_snapshot(
                     healthy: true,
                 }],
                 wasm_plugin: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         ..Snapshot::default()
     }));
@@ -1219,7 +1223,8 @@ fn external_auth_backend_tls_validation_in_snapshot() {
                 healthy: true,
             }],
             wasm_plugin: None,
-        }],
+        
+                circuit_breaker: None,}],
         backend_policies: {
             let mut m = std::collections::BTreeMap::new();
             m.insert(
@@ -1274,7 +1279,8 @@ fn external_auth_with_backend_tls_and_session_persistence_combo_snapshot() {
                     healthy: true,
                 }],
                 wasm_plugin: None,
-            },
+            
+                circuit_breaker: None,},
             ntgw_ir::BackendCluster {
                 ai_service: None,
                 token_policy: None,
@@ -1287,7 +1293,8 @@ fn external_auth_with_backend_tls_and_session_persistence_combo_snapshot() {
                     healthy: true,
                 }],
                 wasm_plugin: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         backend_policies: {
             let mut m = std::collections::BTreeMap::new();

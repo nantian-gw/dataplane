@@ -37,7 +37,8 @@ fn inherited_runtime_state_preserves_passive_endpoint_ejection() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
     let request = RequestMeta::new(

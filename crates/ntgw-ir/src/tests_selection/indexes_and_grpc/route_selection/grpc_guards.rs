@@ -28,7 +28,8 @@ fn does_not_select_grpc_backend_for_non_grpc_request_with_parseable_path() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
 

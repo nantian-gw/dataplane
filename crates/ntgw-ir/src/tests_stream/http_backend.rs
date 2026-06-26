@@ -33,7 +33,8 @@ fn select_http_backend_preserves_route_timeouts() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
 
@@ -88,7 +89,8 @@ fn skips_zero_weight_backend_refs() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 name: "active:8081".to_string(),
                 namespace: "default".to_string(),
@@ -101,7 +103,8 @@ fn skips_zero_weight_backend_refs() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         ..Snapshot::default()
     };

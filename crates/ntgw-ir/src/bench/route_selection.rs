@@ -90,6 +90,8 @@ pub fn build_route_selection_fixture(config: SnapshotBenchConfig) -> RouteSelect
                             port,
                             1,
                         ),
+
+                        circuit_breaker: None,
                     });
 
                     BackendRef {
@@ -161,6 +163,8 @@ pub fn build_route_selection_fixture(config: SnapshotBenchConfig) -> RouteSelect
                             port,
                             101,
                         ),
+
+                        circuit_breaker: None,
                     });
 
                     BackendRef {
@@ -231,6 +235,8 @@ pub fn build_route_selection_fixture(config: SnapshotBenchConfig) -> RouteSelect
                             port,
                             201,
                         ),
+
+                        circuit_breaker: None,
                     });
 
                     BackendRef {

@@ -52,7 +52,8 @@ fn cross_namespace_mesh_route_only_matches_consumer_workload() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         workloads: vec![
             Workload {
                 namespace: "gateway-conformance-mesh-consumer".to_string(),

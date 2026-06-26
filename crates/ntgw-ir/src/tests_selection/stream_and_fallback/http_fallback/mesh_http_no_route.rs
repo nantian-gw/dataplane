@@ -14,7 +14,8 @@ fn does_not_fall_back_for_mesh_http_service_request_without_routes() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 name: "echo:8080".to_string(),
                 namespace: "default".to_string(),
@@ -27,7 +28,8 @@ fn does_not_fall_back_for_mesh_http_service_request_without_routes() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         workloads: vec![Workload {
             namespace: "default".to_string(),

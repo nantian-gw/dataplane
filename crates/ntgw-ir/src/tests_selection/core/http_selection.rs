@@ -47,7 +47,8 @@ fn selects_http_backend_by_host_path_method_header_and_query() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
 

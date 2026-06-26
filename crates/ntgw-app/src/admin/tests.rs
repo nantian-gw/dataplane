@@ -113,6 +113,8 @@ fn fixture_snapshot() -> Snapshot {
                     healthy: true,
                 }],
                 wasm_plugin: None,
+
+                circuit_breaker: None,
             },
             BackendCluster {
                 ai_service: None,
@@ -126,6 +128,8 @@ fn fixture_snapshot() -> Snapshot {
                     healthy: true,
                 }],
                 wasm_plugin: None,
+
+                circuit_breaker: None,
             },
             BackendCluster {
                 ai_service: None,
@@ -139,6 +143,8 @@ fn fixture_snapshot() -> Snapshot {
                     healthy: true,
                 }],
                 wasm_plugin: None,
+
+                circuit_breaker: None,
             },
         ],
         secrets: vec![Default::default()],

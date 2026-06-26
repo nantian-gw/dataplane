@@ -54,7 +54,8 @@ fn test_snapshot(listener: Listener, upstream_addr: std::net::SocketAddr) -> Sha
                 healthy: true,
             }],
             wasm_plugin: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     }));
     shared

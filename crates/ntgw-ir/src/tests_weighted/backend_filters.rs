@@ -42,7 +42,8 @@ fn select_http_backend_merges_backend_ref_filters() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
 

@@ -91,6 +91,8 @@ fn sample_runtime_snapshot() -> Snapshot {
                 },
             ],
             wasm_plugin: None,
+
+            circuit_breaker: None,
         }],
         ..Snapshot::default()
     };

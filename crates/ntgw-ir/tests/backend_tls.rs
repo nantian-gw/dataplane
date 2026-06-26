@@ -73,6 +73,8 @@ fn select_http_backend_preserves_listener_backend_tls() {
             wasm_plugin: None,
             ai_service: None,
             token_policy: None,
+
+            circuit_breaker: None,
         }],
         ..Snapshot::default()
     };

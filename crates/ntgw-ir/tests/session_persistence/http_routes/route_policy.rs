@@ -34,7 +34,8 @@ fn prefers_http_persistent_session_backend_over_weighted_selection() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 name: "orders:8081".to_string(),
                 namespace: "default".to_string(),
@@ -47,7 +48,8 @@ fn prefers_http_persistent_session_backend_over_weighted_selection() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         ..Snapshot::default()
     };
@@ -105,7 +107,8 @@ fn falls_back_to_weighted_selection_when_session_target_is_unavailable() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 name: "orders:8081".to_string(),
                 namespace: "default".to_string(),
@@ -118,7 +121,8 @@ fn falls_back_to_weighted_selection_when_session_target_is_unavailable() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         ..Snapshot::default()
     };

@@ -37,7 +37,8 @@ fn http_fast_path_marks_simple_http_route_eligible() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
 
@@ -151,7 +152,8 @@ fn http_fast_path_rejects_routes_that_need_headers_or_filters() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
 
@@ -240,7 +242,8 @@ fn http_fast_path_selects_same_simple_backend_as_generic_http_selection() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
     snapshot.rebuild_runtime_indexes();
@@ -307,7 +310,8 @@ fn http_fast_path_does_not_select_grpc_requests() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
     snapshot.rebuild_runtime_indexes();
@@ -392,7 +396,8 @@ fn http_fast_path_falls_back_when_best_match_needs_listener_backend_tls() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 name: "fallback:8081".to_string(),
                 namespace: "default".to_string(),
@@ -405,7 +410,8 @@ fn http_fast_path_falls_back_when_best_match_needs_listener_backend_tls() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         ..Snapshot::default()
     };

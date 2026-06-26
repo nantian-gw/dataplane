@@ -46,7 +46,8 @@ proptest! {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            }],
+            
+                circuit_breaker: None,}],
             ..Snapshot::default()
         };
         let mut headers = std::collections::BTreeMap::from([(

@@ -37,7 +37,8 @@ fn active_probe_success_recovers_passively_ejected_endpoint() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
     let request = RequestMeta::new(

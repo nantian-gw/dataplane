@@ -92,7 +92,8 @@ fn live_like_cross_namespace_mesh_route_matches_consumer_on_service_frontend() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 name: "echo-v1:8080".to_string(),
                 namespace: "nantian-mesh-validation".to_string(),
@@ -105,7 +106,8 @@ fn live_like_cross_namespace_mesh_route_matches_consumer_on_service_frontend() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 name: "echo-v2:80".to_string(),
                 namespace: "nantian-mesh-validation".to_string(),
@@ -118,7 +120,8 @@ fn live_like_cross_namespace_mesh_route_matches_consumer_on_service_frontend() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         workloads: vec![
             Workload {

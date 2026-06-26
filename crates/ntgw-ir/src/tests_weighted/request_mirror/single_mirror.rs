@@ -13,7 +13,8 @@ fn selects_request_mirror_backend_and_strips_mirror_filter() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
 

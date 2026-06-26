@@ -36,7 +36,8 @@ fn runtime_store_test_snapshot() -> Snapshot {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     }
 }
@@ -183,7 +184,8 @@ fn inherited_runtime_state_prunes_removed_endpoint_keys() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
     next.inherit_runtime_state_from(&current);

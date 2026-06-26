@@ -51,6 +51,7 @@ fn backend_cluster(namespace: &str, name: &str, address: &str) -> BackendCluster
         wasm_plugin: None,
         ai_service: None,
         token_policy: None,
+        circuit_breaker: None,
     }
 }
 

@@ -91,6 +91,8 @@ pub fn build_snapshot_switch_fixture(config: SnapshotBenchConfig) -> SnapshotSwi
                                 healthy: true,
                             })
                             .collect(),
+
+                        circuit_breaker: None,
                     };
                     let mut next_cluster = current_cluster.clone();
                     for (endpoint_index, endpoint) in next_cluster.endpoints.iter_mut().enumerate()

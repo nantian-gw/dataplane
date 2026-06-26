@@ -30,7 +30,8 @@ fn applies_backend_policy_session_persistence_without_existing_token() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         backend_policies: BTreeMap::from([(
             "default/orders:8081".to_string(),
             BackendPolicy {

@@ -849,6 +849,13 @@ pub struct BackendCluster {
     pub wasm_plugin: Option<WasmPluginConfig>,
     pub ai_service: Option<AIServiceConfig>,
     pub token_policy: Option<TokenPolicyConfig>,
+    #[serde(default)]
+    pub circuit_breaker: Option<CircuitBreakerConfig>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CircuitBreakerConfig {
+    pub max_inflight_requests: u32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -32,7 +32,8 @@ fn inherited_runtime_state_keeps_weighted_selection_progress() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
             BackendCluster {
                 name: "echo-v2:7070".to_string(),
                 namespace: "default".to_string(),
@@ -45,7 +46,8 @@ fn inherited_runtime_state_keeps_weighted_selection_progress() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            },
+            
+                circuit_breaker: None,},
         ],
         ..Snapshot::default()
     };

@@ -111,7 +111,8 @@ fn selected_backend_config_precomputes_peer_runtime_metadata() {
                 healthy: true,
             }],
             wasm_plugin: None,
-        }],
+        
+                circuit_breaker: None,}],
         backend_policies: BTreeMap::from([(
             "default/orders:8443".to_string(),
             BackendPolicy {
@@ -215,7 +216,8 @@ fn selected_backend_config_precomputes_resource_runtime_ids() {
                 healthy: true,
             }],
             wasm_plugin: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
     snapshot.rebuild_runtime_indexes();
@@ -292,7 +294,8 @@ fn selected_backend_config_cache_reuses_config_for_snapshot_runtime_ids() {
                 healthy: true,
             }],
             wasm_plugin: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
     snapshot.rebuild_runtime_indexes();
@@ -354,7 +357,8 @@ fn selected_backend_config_cached_for_fast_path_uses_compiled_runtime_ids() {
                 healthy: true,
             }],
             wasm_plugin: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
     snapshot.rebuild_runtime_indexes();
@@ -416,7 +420,8 @@ fn selected_backend_config_cache_invalidates_when_snapshot_id_changes() {
                 healthy: true,
             }],
             wasm_plugin: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
     snapshot.rebuild_runtime_indexes();
@@ -499,7 +504,8 @@ fn selected_backend_config_precomputes_tls_validation_and_client_cert_handles() 
                 healthy: true,
             }],
             wasm_plugin: None,
-        }],
+        
+                circuit_breaker: None,}],
         backend_policies: BTreeMap::from([(
             "default/orders:8443".to_string(),
             BackendPolicy {

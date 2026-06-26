@@ -37,7 +37,8 @@ fn expired_endpoint_ejection_reintroduces_endpoint_into_rotation() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        }],
+        
+                circuit_breaker: None,}],
         ..Snapshot::default()
     };
     let request = RequestMeta::new(

@@ -271,5 +271,6 @@ fn https_misdirected_backend(port: u32) -> BackendCluster {
             healthy: true,
         }],
         wasm_plugin: None,
+        circuit_breaker: None,
     }
 }

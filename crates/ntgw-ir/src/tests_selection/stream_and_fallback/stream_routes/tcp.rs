@@ -47,6 +47,7 @@ fn tcproute_backend(name: &str, port: u32, endpoints: Vec<BackendEndpoint>) -> B
         wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
+        circuit_breaker: None,
     }
 }
 

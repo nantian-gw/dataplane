@@ -16,6 +16,8 @@ fn does_not_fallback_to_service_backend_for_mesh_listener_without_route() {
             wasm_plugin: None,
             ai_service: None,
             token_policy: None,
+
+            circuit_breaker: None,
         }],
         ..Snapshot::default()
     };
@@ -53,6 +55,8 @@ fn does_not_fallback_to_service_backend_for_mesh_grpc_listener_without_route() {
             wasm_plugin: None,
             ai_service: None,
             token_policy: None,
+
+            circuit_breaker: None,
         }],
         ..Snapshot::default()
     };
@@ -126,6 +130,8 @@ fn attached_mesh_route_without_match_does_not_fallback_to_service_backend() {
             wasm_plugin: None,
             ai_service: None,
             token_policy: None,
+
+            circuit_breaker: None,
         }],
         ..Snapshot::default()
     };
