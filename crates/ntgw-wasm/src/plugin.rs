@@ -67,9 +67,9 @@ pub enum HookResult {
 /// A loaded and compiled plugin module.
 struct LoadedPlugin {
     module: Module,
-    config: serde_json::Value,
+    config: Arc<serde_json::Value>,
     hooks: Vec<WasmHook>,
-    sandbox: WasmSandboxConfig,
+    sandbox: Arc<WasmSandboxConfig>,
     sha256: Option<String>,
 }
 
@@ -134,9 +134,9 @@ impl PluginManager {
 
         let loaded = LoadedPlugin {
             module,
-            config,
+            config: Arc::new(config),
             hooks,
-            sandbox,
+            sandbox: Arc::new(sandbox),
             sha256: None,
         };
 
@@ -199,9 +199,9 @@ impl PluginManager {
 
         let loaded = LoadedPlugin {
             module,
-            config,
+            config: Arc::new(config),
             hooks,
-            sandbox,
+            sandbox: Arc::new(sandbox),
             sha256: sha256.map(String::from),
         };
 
@@ -316,10 +316,12 @@ impl PluginManager {
         }
 
         let module = plugin.module.clone();
-        let config = plugin.config.clone();
-        let sandbox = plugin.sandbox.clone();
+        let config = Arc::clone(&plugin.config);
+        let sandbox = Arc::clone(&plugin.sandbox);
         drop(plugins);
 
+        let max_ticks = sandbox.max_execution_ms;
+        let memory_limit = sandbox.max_memory_bytes;
         let mut store = Store::new(
             &self.engine,
             PluginContext {
@@ -327,7 +329,7 @@ impl PluginManager {
                 request_headers,
                 response_headers: HashMap::new(),
                 body,
-                memory_limit: sandbox.max_memory_bytes,
+                memory_limit,
             },
         );
 
@@ -335,7 +337,6 @@ impl PluginManager {
         store.limiter(|ctx| ctx);
 
         // Set epoch deadline for timeout enforcement
-        let max_ticks = sandbox.max_execution_ms;
         let current = self.epoch_deadline.load(Ordering::Acquire);
         store.set_epoch_deadline(current + max_ticks);
 

@@ -29,7 +29,7 @@ pub fn global_engine() -> Result<Arc<Engine>> {
 
 #[derive(Default)]
 pub struct PluginContext {
-    pub config: serde_json::Value,
+    pub config: Arc<serde_json::Value>,
     pub request_headers: HashMap<String, String>,
     pub response_headers: HashMap<String, String>,
     pub body: Vec<u8>,
