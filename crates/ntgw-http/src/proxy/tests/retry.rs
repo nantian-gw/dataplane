@@ -1,4 +1,5 @@
 use ntgw_ir::RetryPolicy;
+use ntgw_observability::{HttpCircuitBreakerController, HttpCircuitBreakerOptions};
 
 use super::super::retry::{
     proxy_error_code, proxy_error_flag, proxy_error_flag_for, proxy_error_status, retry_limit,
@@ -95,4 +96,30 @@ fn post_response_upstream_close_suppresses_proxy_error_log() {
     assert!(!should_suppress_proxy_error_log(&upstream_closed, false));
     assert!(should_suppress_proxy_error_log(&upstream_closed, true));
     assert!(!should_suppress_proxy_error_log(&upstream_timeout, true));
+}
+
+#[test]
+fn sync_per_backend_cb_limit_contract_set_limit_and_acquire_works() {
+    let opts = HttpCircuitBreakerOptions {
+        backend_max_inflight_requests: 100,
+    };
+    let controller = HttpCircuitBreakerController::new(opts);
+
+    controller.set_backend_limit("test-backend", 3);
+    let p1 = controller.try_acquire_backend("test-backend").unwrap();
+    let p2 = controller.try_acquire_backend("test-backend").unwrap();
+    let p3 = controller.try_acquire_backend("test-backend").unwrap();
+
+    assert!(
+        controller.try_acquire_backend("test-backend").is_err(),
+        "4th acquire must be rejected after limit of 3 is set"
+    );
+
+    drop(p1);
+    drop(p2);
+    drop(p3);
+
+    let snap = controller.snapshot();
+    assert_eq!(snap.backend_max_inflight_requests, 100);
+    assert_eq!(snap.rejected_backend_total, 1);
 }
