@@ -179,3 +179,50 @@ fn snapshot_with_circuit_breaker_syncs_per_backend_limit() {
     let snap = controller.snapshot();
     assert_eq!(snap.backend_max_inflight_requests, 100);
 }
+
+#[test]
+fn proto_snapshot_with_cb_config_enforces_per_backend_limit() {
+    use ntgw_ir::{BackendCluster, CircuitBreakerConfig, Snapshot};
+    use ntgw_observability::{HttpCircuitBreakerController, HttpCircuitBreakerOptions};
+
+    // Simulate the full pipeline: proto BackendCluster (from xDS snapshot)
+    // → IR BackendCluster → HttpCircuitBreakerController → enforcement
+    let snapshot = Snapshot {
+        backends: vec![BackendCluster {
+            name: "orders-svc".to_string(),
+            namespace: "production".to_string(),
+            circuit_breaker: Some(CircuitBreakerConfig {
+                max_inflight_requests: 5,
+            }),
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
+
+    let controller = HttpCircuitBreakerController::new(HttpCircuitBreakerOptions {
+        backend_max_inflight_requests: 100,
+    });
+
+    // Simulate sync_per_backend_cb_limit: read CB config from IR → set on controller
+    for backend in &snapshot.backends {
+        if let Some(ref cb) = backend.circuit_breaker {
+            if cb.max_inflight_requests > 0 {
+                controller.set_backend_limit(&backend.name, cb.max_inflight_requests as usize);
+            }
+        }
+    }
+
+    // Verify per-backend limit (5) is enforced
+    let permits: Vec<_> = (0..5)
+        .map(|_| controller.try_acquire_backend("orders-svc").unwrap())
+        .collect();
+    assert!(matches!(
+        controller.try_acquire_backend("orders-svc"),
+        Err(ntgw_observability::HttpCircuitBreakerRejection::Backend)
+    ));
+    drop(permits);
+
+    // Verify snapshot reflects the config
+    let snap = controller.snapshot();
+    assert_eq!(snap.backend_max_inflight_requests, 100);
+}
