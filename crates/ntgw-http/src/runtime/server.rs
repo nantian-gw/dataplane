@@ -644,6 +644,11 @@ fn build_ai_filter(
     if let Some(wf) = wasm_filter {
         builder = builder.wasm_filter(wf);
     }
+    // Additional subsystems (langfuse, cost_tracker, pii_masker, prompt_guard,
+    // content_safety, model_router, fallback, ab_engine, tenant_manager, ai_sandbox,
+    // prompt_injector) are configured per-backend via AIService CRDs and applied
+    // at request time through the filter's pre_process/post_process methods.
+    // They do not require global wiring at build time.
     Some(Arc::new(builder.build()))
 }
 
