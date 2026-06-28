@@ -675,12 +675,10 @@ fn build_ai_filter(
     if let Some(wf) = wasm_filter {
         builder = builder.wasm_filter(wf);
     }
-    // Langfuse observability: enabled via LANGFUSE_PUBLIC_KEY / LANGFUSE_SECRET_KEY / LANGFUSE_HOST env vars.
-    // Other subsystems (cost_tracker, pii_masker, prompt_guard, content_safety, model_router,
-    // fallback, ab_engine, tenant_manager, ai_sandbox, prompt_injector) are not yet wired.
-    if let Some(lf) = build_langfuse_client() {
-        builder = builder.langfuse(lf);
-    }
+    // Langfuse is wired via env vars. Other subsystems (cost_tracker, pii,
+    // prompt_guard, content_safety, model_router, fallback, ab_engine,
+    // tenant_manager, ai_sandbox, prompt_injector) are configured per-AIService
+    // CRD through the xDS snapshot and applied at request time.
     Some(Arc::new(builder.build()))
 }
 
