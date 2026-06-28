@@ -339,7 +339,7 @@ impl AIGatewayFilter {
                 headers.insert("x-api-key".to_string(), key.to_string());
             }
             headers.insert("x-request-model".to_string(), request.model.clone());
-            wf.pre_process(headers, masked_body.clone())
+            wf.pre_process(headers, masked_body.clone()).await
                 .map_err(|e| AIError::Internal(anyhow::anyhow!("wasm plugin rejected: {e}")))?;
         }
 
@@ -466,7 +466,7 @@ impl AIGatewayFilter {
 
         // Wasm plugin on_response hook
         if let Some(ref wf) = self.wasm_filter {
-            wf.post_process(HashMap::new(), response_body.to_vec())
+            wf.post_process(HashMap::new(), response_body.to_vec()).await
                 .map_err(|e| {
                     AIError::Internal(anyhow::anyhow!("wasm plugin response rejected: {e}"))
                 })?;

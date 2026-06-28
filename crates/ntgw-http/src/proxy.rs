@@ -671,7 +671,7 @@ impl ProxyHttp for GatewayProxy {
                 .as_ref()
                 .map(|h| h.iter().map(|(k, v)| (k.clone(), v.join(","))).collect())
                 .unwrap_or_default();
-            if let Err(e) = wasm.post_process(request_headers, vec![]) {
+            if let Err(e) = wasm.post_process(request_headers, vec![]).await {
                 tracing::warn!(
                     target: "wasm_filter",
                     error = %e,

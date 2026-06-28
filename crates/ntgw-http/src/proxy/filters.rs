@@ -696,7 +696,7 @@ pub(crate) async fn do_request_filter(
             .iter()
             .map(|(k, v)| (k.to_string(), v.to_str().unwrap_or("").to_string()))
             .collect();
-        if let Err(e) = wasm.pre_process(request_headers, vec![]) {
+        if let Err(e) = wasm.pre_process(request_headers, vec![]).await {
             match e {
                 WasmError::PluginRejected(_name, code) => {
                     let status = code.clamp(400, 599) as u16;
