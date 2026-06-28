@@ -82,6 +82,8 @@ pub struct PluginManager {
     linker: wasmtime::Linker<PluginContext>,
     plugins: RwLock<HashMap<String, LoadedPlugin>>,
     epoch_deadline: Arc<AtomicU64>,
+    epoch_running: Arc<AtomicBool>,
+    epoch_handle: Option<std::thread::JoinHandle<()>>,
 }
 
 impl PluginManager {
@@ -95,16 +97,17 @@ impl PluginManager {
             reason: format!("{e}"),
         })?;
         let epoch_deadline = Arc::new(AtomicU64::new(0));
+        let running = Arc::new(AtomicBool::new(true));
 
         // Spawn epoch incrementer
         let engine_ptr = engine.clone();
         let epoch_deadline_clone = Arc::clone(&epoch_deadline);
-        std::thread::spawn(move || {
-            loop {
-                std::thread::sleep(Duration::from_millis(1));
-                let current = epoch_deadline_clone.load(Ordering::Relaxed);
+        let running_clone = Arc::clone(&running);
+        let handle = std::thread::spawn(move || {
+            while running_clone.load(Ordering::Relaxed) {
+                std::thread::sleep(Duration::from_millis(5));
                 engine_ptr.increment_epoch();
-                epoch_deadline_clone.store(current + 1, Ordering::Release);
+                epoch_deadline_clone.fetch_add(1, Ordering::Release);
             }
         });
 
@@ -113,7 +116,14 @@ impl PluginManager {
             linker,
             plugins: RwLock::new(HashMap::new()),
             epoch_deadline,
+            epoch_running: running,
+            epoch_handle: Some(handle),
         })
+    }
+
+    /// Stop the epoch incrementer thread. Safe to call multiple times.
+    pub fn shutdown(&self) {
+        self.epoch_running.store(false, Ordering::Release);
     }
 
     /// Load a plugin from raw Wasm bytes.
@@ -320,7 +330,7 @@ impl PluginManager {
         let sandbox = Arc::clone(&plugin.sandbox);
         drop(plugins);
 
-        let max_ticks = sandbox.max_execution_ms;
+        let max_ticks = sandbox.max_execution_ms / 5; // tick interval is 5ms
         let memory_limit = sandbox.max_memory_bytes;
         let mut store = Store::new(
             &self.engine,

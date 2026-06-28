@@ -9,8 +9,10 @@ fn global_engine_config() -> Config {
     config.epoch_interruption(true);
     config.wasm_multi_memory(true);
     config.wasm_component_model(true);
-    config.wasm_backtrace_details(wasmtime::WasmBacktraceDetails::Enable);
+    config.wasm_backtrace_details(wasmtime::WasmBacktraceDetails::Disable);
     config.cranelift_opt_level(OptLevel::Speed);
+    config.parallel_compilation(true);
+    let _ = config.cache_config_load_default();
     config
 }
 
