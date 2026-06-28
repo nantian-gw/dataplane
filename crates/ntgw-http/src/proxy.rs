@@ -609,27 +609,8 @@ impl ProxyHttp for GatewayProxy {
             )?;
         }
 
-        // AI Gateway post-processing
-        if let Some(ref ai_filter) = self.ai_filter
-            && let Some(ai_ctx) = ctx.ai_context.take()
-        {
-            match ai_filter.post_process(ai_ctx, &[], ctx.status).await {
-                Ok(_transformed) => {
-                    tracing::debug!(
-                        target: "ai_gateway",
-                        status = ctx.status,
-                        "AI gateway post_process completed"
-                    );
-                }
-                Err(e) => {
-                    tracing::warn!(
-                        target: "ai_gateway",
-                        error = %e,
-                        "AI gateway post_process failed"
-                    );
-                }
-            }
-        }
+        // AI Gateway post-processing — deferred to response_body_filter
+        // where the actual response body is available.
 
         if let Some(selected) = ctx.selected_backend.as_ref()
             && let Some(policy) = selected.session_persistence.as_ref()
@@ -732,6 +713,27 @@ impl ProxyHttp for GatewayProxy {
                 ctx.cached_response_body.push(chunk.clone());
             }
         }
+
+        if _end_of_stream
+            && let Some(ref ai_filter) = self.ai_filter
+            && let Some(ai_ctx) = ctx.ai_context.take()
+        {
+            let response_body: Vec<u8> =
+                ctx.cached_response_body.iter().flat_map(|b| b.iter()).copied().collect();
+            let status = ctx.status;
+            let filter = Arc::clone(ai_filter);
+            let rt = tokio::runtime::Handle::current();
+            rt.spawn(async move {
+                if let Err(e) = filter.post_process(ai_ctx, &response_body, status).await {
+                    tracing::warn!(
+                        target: "ai_gateway",
+                        error = %e,
+                        "AI gateway post_process failed"
+                    );
+                }
+            });
+        }
+
         Ok(None)
     }
 
