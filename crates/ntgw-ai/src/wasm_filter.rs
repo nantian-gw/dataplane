@@ -59,7 +59,15 @@ impl WasmPluginFilter {
                 )
             })??;
             match result {
-                HookResult::Continue { .. } => {}
+                HookResult::Continue { response_headers } => {
+                    if !response_headers.is_empty() {
+                        tracing::warn!(
+                            target: "wasm_filter",
+                            plugin = %name,
+                            "guest set response headers but they are not propagated to the caller"
+                        );
+                    }
+                }
                 HookResult::Reject(code) => {
                     tracing::warn!(
                         target: "wasm_filter",
@@ -109,7 +117,15 @@ impl WasmPluginFilter {
                 )
             })??;
             match result {
-                HookResult::Continue { .. } => {}
+                HookResult::Continue { response_headers } => {
+                    if !response_headers.is_empty() {
+                        tracing::warn!(
+                            target: "wasm_filter",
+                            plugin = %name,
+                            "guest set response headers but they are not propagated to the caller"
+                        );
+                    }
+                }
                 HookResult::Reject(code) => {
                     tracing::warn!(
                         target: "wasm_filter",
