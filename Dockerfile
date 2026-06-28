@@ -40,14 +40,10 @@ FROM ${RUNTIME_IMAGE}
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates \
-        curl \
-        dnsutils \
-        iproute2 \
-        netcat-openbsd \
-        procps \
-        tcpdump \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /src/dataplane/target/release/ntgw-app /usr/local/bin/ntgw-app
+
+USER 65532
 
 ENTRYPOINT ["/usr/local/bin/ntgw-app"]

@@ -1,6 +1,5 @@
-target/
-**/target/
-.git/
-.github/
-tmp/
+.git
+.gitignore
 *.md
+target/
+tmp/
