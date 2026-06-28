@@ -500,3 +500,12 @@ mod tests {
         assert_eq!(cfg.max_execution_ms, 10);
     }
 }
+
+impl Drop for PluginManager {
+    fn drop(&mut self) {
+        self.shutdown();
+        if let Some(handle) = self.epoch_handle.take() {
+            let _ = handle.join();
+        }
+    }
+}

@@ -12,6 +12,7 @@ fn global_engine_config() -> Config {
     config.wasm_backtrace_details(wasmtime::WasmBacktraceDetails::Disable);
     config.cranelift_opt_level(OptLevel::Speed);
     config.parallel_compilation(true);
+    let _ = config.cache_config_load_default();
     config
 }
 
