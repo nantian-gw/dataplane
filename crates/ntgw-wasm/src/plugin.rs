@@ -1,12 +1,12 @@
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::sync::OnceLock;
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::time::Duration;
 
 use parking_lot::RwLock;
 use serde::Deserialize;
-use tracing::{debug, info};
+use tracing::{debug, info, warn};
 use wasmtime::{Module, Store, Val};
 
 use crate::engine::{self, PluginContext};
@@ -59,7 +59,8 @@ impl Default for WasmSandboxConfig {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum HookResult {
     /// Allow the request/response to proceed.
-    Continue,
+    /// Carries response headers set by the guest via set_header.
+    Continue { response_headers: HashMap<String, String> },
     /// Reject the request/response with the given HTTP status code.
     Reject(i32),
 }
@@ -200,12 +201,69 @@ impl PluginManager {
             }
         }
 
-        let module = wasmtime::Module::from_binary(&self.engine, wasm_bytes).map_err(|e| {
-            WasmError::LoadFailed {
-                name: name.to_string(),
-                reason: format!("compilation error: {e}"),
+        // Try to load from serialized cache first.
+        let module = if let Some(sha) = sha256 {
+            let cache_dir = std::env::temp_dir().join("ntgw-wasm-cache");
+            let cache_path = cache_dir.join(format!("{sha}.wasmbin"));
+            if let Ok(cached_bytes) = std::fs::read(&cache_path) {
+                // SAFETY: Module::deserialize is unsafe because deserialized modules
+                // are only valid for the same CPU architecture and wasmtime version.
+                // The cache path is namespaced by SHA256, so only our own output is read.
+                #[allow(unsafe_code)]
+                unsafe {
+                    match Module::deserialize(&self.engine, &cached_bytes) {
+                        Ok(m) => {
+                            debug!(sha256 = sha, "loaded module from cache");
+                            Some(m)
+                        }
+                        Err(e) => {
+                            warn!(sha256 = sha, error = %e, "cache deserialization failed, recompiling");
+                            None
+                        }
+                    }
+                }
+            } else {
+                None
             }
-        })?;
+        } else {
+            None
+        };
+
+        let module = match module {
+            Some(m) => m,
+            None => {
+                let m = wasmtime::Module::from_binary(&self.engine, wasm_bytes).map_err(|e| {
+                    WasmError::LoadFailed {
+                        name: name.to_string(),
+                        reason: format!("compilation error: {e}"),
+                    }
+                })?;
+
+                // Persist serialized module to cache.
+                if let Some(sha) = sha256 {
+                    let cache_dir = std::env::temp_dir().join("ntgw-wasm-cache");
+                    if let Err(e) = std::fs::create_dir_all(&cache_dir) {
+                        warn!(error = %e, "failed to create wasm cache directory");
+                    } else {
+                        match m.serialize() {
+                            Ok(serialized) => {
+                                let cache_path = cache_dir.join(format!("{sha}.wasmbin"));
+                                if let Err(e) = std::fs::write(&cache_path, &serialized) {
+                                    warn!(sha256 = sha, error = %e, "failed to write serialized module to cache");
+                                } else {
+                                    debug!(sha256 = sha, "wrote serialized module to cache");
+                                }
+                            }
+                            Err(e) => {
+                                warn!(sha256 = sha, error = %e, "failed to serialize module");
+                            }
+                        }
+                    }
+                }
+
+                m
+            }
+        };
 
         let loaded = LoadedPlugin {
             module,
@@ -322,7 +380,7 @@ impl PluginManager {
 
         if !plugin.hooks.contains(hook) {
             debug!(plugin = name, hook = ?hook, "plugin does not register hook, skipping");
-            return Ok(HookResult::Continue);
+            return Ok(HookResult::Continue { response_headers: HashMap::new() });
         }
 
         let module = plugin.module.clone();
@@ -364,9 +422,11 @@ impl PluginManager {
         let mut results = [Val::I32(0)];
         match func.call(&mut store, &[], &mut results) {
             Ok(_) => {
+                let ctx = store.data_mut();
+                let response_headers = std::mem::take(&mut ctx.response_headers);
                 let code = results.first().and_then(|v| v.i32()).unwrap_or(0);
                 if code == 0 {
-                    Ok(HookResult::Continue)
+                    Ok(HookResult::Continue { response_headers })
                 } else {
                     Ok(HookResult::Reject(code))
                 }

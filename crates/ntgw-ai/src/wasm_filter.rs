@@ -59,7 +59,7 @@ impl WasmPluginFilter {
                 )
             })??;
             match result {
-                HookResult::Continue => {}
+                HookResult::Continue { .. } => {}
                 HookResult::Reject(code) => {
                     tracing::warn!(
                         target: "wasm_filter",
@@ -93,7 +93,7 @@ impl WasmPluginFilter {
             let plugin_manager = Arc::clone(&self.plugin_manager);
             let headers = Arc::clone(&headers);
             let body = Arc::clone(&body);
-            task::spawn_blocking(move || {
+            let result = task::spawn_blocking(move || {
                 plugin_manager.invoke_hook(
                     &name_for_spawn,
                     &WasmHook::OnResponse,
@@ -108,6 +108,18 @@ impl WasmPluginFilter {
                     format!("join error: {e}"),
                 )
             })??;
+            match result {
+                HookResult::Continue { .. } => {}
+                HookResult::Reject(code) => {
+                    tracing::warn!(
+                        target: "wasm_filter",
+                        plugin = %name,
+                        code,
+                        "onResponse rejected"
+                    );
+                    return Err(WasmError::PluginRejected(name.clone(), code));
+                }
+            }
         }
 
         Ok(())

@@ -85,5 +85,36 @@ pub fn register_host_functions(linker: &mut Linker<PluginContext>) -> Result<()>
         )
         .map_err(|e| anyhow::anyhow!("failed to register pingora::set_header: {e}"))?;
 
+    linker
+        .func_wrap(
+            "pingora",
+            "get_body",
+            |mut caller: wasmtime::Caller<'_, PluginContext>,
+             buf_ptr: i32,
+             buf_len: i32|
+             -> i32 {
+                let body_copy = caller.data().body.clone();
+                let len = body_copy.len().min(buf_len as usize);
+                if len == 0 {
+                    return 0;
+                }
+                let mem = match caller.get_export("memory").and_then(|e| e.into_memory()) {
+                    Some(m) => m,
+                    None => {
+                        warn!("get_body: guest must export 'memory'");
+                        return 0;
+                    }
+                };
+                match mem.write(&mut caller, buf_ptr as usize, &body_copy[..len]) {
+                    Ok(_) => len as i32,
+                    Err(e) => {
+                        warn!(error = %e, "get_body: failed to write to guest memory");
+                        0
+                    }
+                }
+            },
+        )
+        .map_err(|e| anyhow::anyhow!("failed to register pingora::get_body: {e}"))?;
+
     Ok(())
 }

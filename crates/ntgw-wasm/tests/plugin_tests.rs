@@ -55,7 +55,7 @@ fn test_load_and_invoke_plugin() -> Result<()> {
         Vec::new(),
     )?;
 
-    assert_eq!(result, HookResult::Continue);
+    assert!(matches!(result, HookResult::Continue { .. }));
     Ok(())
 }
 
@@ -156,7 +156,7 @@ fn test_invoke_missing_hook() -> Result<()> {
         Vec::new(),
     );
     assert!(result.is_ok());
-    assert_eq!(result.unwrap(), HookResult::Continue);
+    assert!(matches!(result.unwrap(), HookResult::Continue { .. }));
     Ok(())
 }
 
@@ -172,9 +172,11 @@ fn test_sandbox_config_custom() {
 
 #[test]
 fn test_hook_result_equality() {
-    assert_eq!(HookResult::Continue, HookResult::Continue);
+    let continue1 = HookResult::Continue { response_headers: HashMap::new() };
+    let continue2 = HookResult::Continue { response_headers: HashMap::new() };
+    assert_eq!(continue1, continue2);
     assert_eq!(HookResult::Reject(403), HookResult::Reject(403));
-    assert_ne!(HookResult::Continue, HookResult::Reject(403));
+    assert_ne!(continue1, HookResult::Reject(403));
 }
 
 #[test]
