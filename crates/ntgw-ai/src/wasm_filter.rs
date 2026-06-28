@@ -3,6 +3,7 @@ use std::sync::Arc;
 
 use ntgw_wasm::plugin::WasmHook;
 use ntgw_wasm::{HookResult, PluginManager, WasmError};
+use tokio::sync::Semaphore;
 use tokio::task;
 use tracing;
 
@@ -12,6 +13,7 @@ use tracing;
 pub struct WasmPluginFilter {
     pub plugin_manager: Arc<PluginManager>,
     pub plugin_names: Vec<String>,
+    concurrency_limit: Arc<Semaphore>,
 }
 
 impl WasmPluginFilter {
@@ -19,6 +21,7 @@ impl WasmPluginFilter {
         Self {
             plugin_manager,
             plugin_names,
+            concurrency_limit: Arc::new(Semaphore::new(1024)),
         }
     }
 
@@ -31,6 +34,9 @@ impl WasmPluginFilter {
         request_headers: HashMap<String, String>,
         body: Vec<u8>,
     ) -> Result<(), WasmError> {
+        let _permit = self.concurrency_limit.acquire().await.map_err(|_| {
+            WasmError::PluginExecution("wasm_filter".to_string(), "concurrency limit closed".to_string())
+        })?;
         let headers = Arc::new(request_headers);
         let body = Arc::new(body);
         for name in &self.plugin_names {
@@ -89,6 +95,9 @@ impl WasmPluginFilter {
         request_headers: HashMap<String, String>,
         response_body: Vec<u8>,
     ) -> Result<(), WasmError> {
+        let _permit = self.concurrency_limit.acquire().await.map_err(|_| {
+            WasmError::PluginExecution("wasm_filter".to_string(), "concurrency limit closed".to_string())
+        })?;
         let headers = Arc::new(request_headers);
         let body = Arc::new(response_body);
         for name in &self.plugin_names {
