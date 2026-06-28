@@ -123,3 +123,63 @@ fn sync_per_backend_cb_limit_contract_set_limit_and_acquire_works() {
     assert_eq!(snap.backend_max_inflight_requests, 100);
     assert_eq!(snap.rejected_backend_total, 1);
 }
+
+#[test]
+fn snapshot_with_circuit_breaker_syncs_per_backend_limit() {
+    use ntgw_ir::{BackendCluster, CircuitBreakerConfig, Snapshot};
+
+    // Create snapshot with a backend that has CB config
+    let mut snapshot = Snapshot::default();
+    snapshot.backends.push(BackendCluster {
+        name: "limited-svc".to_string(),
+        namespace: "default".to_string(),
+        circuit_breaker: Some(CircuitBreakerConfig {
+            max_inflight_requests: 3,
+        }),
+        ..Default::default()
+    });
+    snapshot.backends.push(BackendCluster {
+        name: "unlimited-svc".to_string(),
+        namespace: "default".to_string(),
+        circuit_breaker: None,
+        ..Default::default()
+    });
+
+    let controller = HttpCircuitBreakerController::new(HttpCircuitBreakerOptions {
+        backend_max_inflight_requests: 100,
+    });
+
+    // Simulate what sync_per_backend_cb_limit does
+    for backend in &snapshot.backends {
+        if let Some(ref cb) = backend.circuit_breaker {
+            if cb.max_inflight_requests > 0 {
+                controller.set_backend_limit(&backend.name, cb.max_inflight_requests as usize);
+            }
+        }
+    }
+
+    // Limited backend: 3 permits should succeed, 4th should fail
+    let p1 = controller.try_acquire_backend("limited-svc").unwrap();
+    let p2 = controller.try_acquire_backend("limited-svc").unwrap();
+    let p3 = controller.try_acquire_backend("limited-svc").unwrap();
+    assert!(matches!(
+        controller.try_acquire_backend("limited-svc"),
+        Err(ntgw_observability::HttpCircuitBreakerRejection::Backend)
+    ));
+    drop(p1);
+    drop(p2);
+    drop(p3);
+
+    // Unlimited backend: uses global limit of 100
+    for _ in 0..100 {
+        controller.try_acquire_backend("unlimited-svc").unwrap();
+    }
+    assert!(matches!(
+        controller.try_acquire_backend("unlimited-svc"),
+        Err(ntgw_observability::HttpCircuitBreakerRejection::Backend)
+    ));
+
+    // Snapshot reflects correct max
+    let snap = controller.snapshot();
+    assert_eq!(snap.backend_max_inflight_requests, 100);
+}

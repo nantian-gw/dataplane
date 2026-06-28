@@ -78,3 +78,10 @@ jobs:
         env:
           BUF_TOKEN: ${{ secrets.BUF_TOKEN }}
         run: scripts/verify-bsr-generated.sh
+
+  cargo-deny:
+    name: cargo-deny
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: EmbarkStudios/cargo-deny-action@v2
