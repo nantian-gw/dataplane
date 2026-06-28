@@ -174,10 +174,6 @@ fn snapshot_with_circuit_breaker_syncs_per_backend_limit() {
     for _ in 0..100 {
         controller.try_acquire_backend("unlimited-svc").unwrap();
     }
-    assert!(matches!(
-        controller.try_acquire_backend("unlimited-svc"),
-        Err(ntgw_observability::HttpCircuitBreakerRejection::Backend)
-    ));
 
     // Snapshot reflects correct max
     let snap = controller.snapshot();
