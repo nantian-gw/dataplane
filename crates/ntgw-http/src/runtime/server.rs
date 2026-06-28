@@ -590,6 +590,37 @@ fn build_gateway_proxy(
     )
 }
 
+fn build_langfuse_client() -> Option<Arc<ntgw_ai::observability::langfuse::LangfuseClient>> {
+    use ntgw_ai::observability::langfuse::LangfuseClient;
+
+    let public_key = std::env::var("LANGFUSE_PUBLIC_KEY").unwrap_or_default();
+    let secret_key = std::env::var("LANGFUSE_SECRET_KEY").unwrap_or_default();
+    let host = std::env::var("LANGFUSE_HOST").unwrap_or_default();
+
+    if public_key.is_empty() || secret_key.is_empty() || host.is_empty() {
+        return None;
+    }
+
+    match LangfuseClient::new(&public_key, &secret_key, &host) {
+        Ok(client) => {
+            tracing::info!(
+                target: "ai_gateway",
+                host = %host,
+                "langfuse observability enabled"
+            );
+            Some(Arc::new(client))
+        }
+        Err(e) => {
+            tracing::warn!(
+                target: "ai_gateway",
+                error = %e,
+                "failed to create langfuse client, langfuse disabled"
+            );
+            None
+        }
+    }
+}
+
 fn build_ai_filter(
     snapshot: &SharedSnapshot,
     wasm_filter: Option<Arc<ntgw_ai::wasm_filter::WasmPluginFilter>>,
@@ -644,11 +675,12 @@ fn build_ai_filter(
     if let Some(wf) = wasm_filter {
         builder = builder.wasm_filter(wf);
     }
-    // Additional subsystems (langfuse, cost_tracker, pii_masker, prompt_guard,
-    // content_safety, model_router, fallback, ab_engine, tenant_manager, ai_sandbox,
-    // prompt_injector) are configured per-backend via AIService CRDs and applied
-    // at request time through the filter's pre_process/post_process methods.
-    // They do not require global wiring at build time.
+    // Langfuse observability: enabled via LANGFUSE_PUBLIC_KEY / LANGFUSE_SECRET_KEY / LANGFUSE_HOST env vars.
+    // Other subsystems (cost_tracker, pii_masker, prompt_guard, content_safety, model_router,
+    // fallback, ab_engine, tenant_manager, ai_sandbox, prompt_injector) are not yet wired.
+    if let Some(lf) = build_langfuse_client() {
+        builder = builder.langfuse(lf);
+    }
     Some(Arc::new(builder.build()))
 }
 

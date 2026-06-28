@@ -67,7 +67,7 @@ pub enum HookResult {
 
 /// A loaded and compiled plugin module.
 struct LoadedPlugin {
-    module: Module,
+    instance_pre: wasmtime::InstancePre<PluginContext>,
     config: Arc<serde_json::Value>,
     hooks: Vec<WasmHook>,
     sandbox: Arc<WasmSandboxConfig>,
@@ -143,8 +143,15 @@ impl PluginManager {
             }
         })?;
 
+        let instance_pre = self.linker.instantiate_pre(&module).map_err(|e| {
+            WasmError::LoadFailed {
+                name: name.to_string(),
+                reason: format!("instantiate_pre error: {e}"),
+            }
+        })?;
+
         let loaded = LoadedPlugin {
-            module,
+            instance_pre,
             config: Arc::new(config),
             hooks,
             sandbox: Arc::new(sandbox),
@@ -265,8 +272,15 @@ impl PluginManager {
             }
         };
 
+        let instance_pre = self.linker.instantiate_pre(&module).map_err(|e| {
+            WasmError::LoadFailed {
+                name: name.to_string(),
+                reason: format!("instantiate_pre error: {e}"),
+            }
+        })?;
+
         let loaded = LoadedPlugin {
-            module,
+            instance_pre,
             config: Arc::new(config),
             hooks,
             sandbox: Arc::new(sandbox),
@@ -383,7 +397,7 @@ impl PluginManager {
             return Ok(HookResult::Continue { response_headers: HashMap::new() });
         }
 
-        let module = plugin.module.clone();
+        let instance_pre = plugin.instance_pre.clone();
         let config = Arc::clone(&plugin.config);
         let sandbox = Arc::clone(&plugin.sandbox);
         drop(plugins);
@@ -408,8 +422,8 @@ impl PluginManager {
         let current = self.epoch_deadline.load(Ordering::Acquire);
         store.set_epoch_deadline(current + max_ticks);
 
-        // Instantiate the plugin
-        let instance = self.linker.instantiate(&mut store, &module).map_err(|e| {
+        // Instantiate the plugin (uses pre-compiled InstancePre for fast reuse)
+        let instance = instance_pre.instantiate(&mut store).map_err(|e| {
             WasmError::PluginExecution(name.to_string(), format!("instantiation error: {e}"))
         })?;
 

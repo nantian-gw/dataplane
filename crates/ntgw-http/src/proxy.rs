@@ -693,7 +693,10 @@ impl ProxyHttp for GatewayProxy {
     where
         Self::CTX: Send + Sync,
     {
-        if ctx.http_cache.is_some()
+        let ai_filter_active = self.ai_filter.is_some();
+        let should_buffer = ctx.http_cache.is_some() || ai_filter_active;
+
+        if should_buffer
             && let Some(chunk) = body
         {
             if cache_response_body_limit_exceeded(
@@ -712,6 +715,9 @@ impl ProxyHttp for GatewayProxy {
                     ctx.cached_response_body_bytes.saturating_add(chunk.len());
                 ctx.cached_response_body.push(chunk.clone());
             }
+            if ai_filter_active {
+                *body = None;
+            }
         }
 
         if _end_of_stream
@@ -723,15 +729,23 @@ impl ProxyHttp for GatewayProxy {
             let status = ctx.status;
             let filter = Arc::clone(ai_filter);
             let rt = tokio::runtime::Handle::current();
-            rt.spawn(async move {
-                if let Err(e) = filter.post_process(ai_ctx, &response_body, status).await {
+            match rt.block_on(filter.post_process(ai_ctx, &response_body, status)) {
+                Ok(transformed) => {
+                    let transformed_bytes = Bytes::from(transformed);
+                    ctx.cached_response_body.clear();
+                    ctx.cached_response_body_bytes = transformed_bytes.len();
+                    ctx.cached_response_body.push(transformed_bytes.clone());
+                    *body = Some(transformed_bytes);
+                }
+                Err(e) => {
                     tracing::warn!(
                         target: "ai_gateway",
                         error = %e,
                         "AI gateway post_process failed"
                     );
+                    *body = Some(Bytes::from(response_body));
                 }
-            });
+            }
         }
 
         Ok(None)
