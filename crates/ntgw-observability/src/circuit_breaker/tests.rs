@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{
-    HttpCircuitBreakerController, HttpCircuitBreakerOptions, HttpCircuitBreakerRejection,
-};
+use crate::{HttpCircuitBreakerController, HttpCircuitBreakerOptions, HttpCircuitBreakerRejection};
 
 #[test]
 fn backend_circuit_breaker_tracks_current_usage_and_rejections() {

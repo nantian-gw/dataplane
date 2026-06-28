@@ -35,7 +35,10 @@ impl WasmPluginFilter {
         body: Vec<u8>,
     ) -> Result<(), WasmError> {
         let _permit = self.concurrency_limit.acquire().await.map_err(|_| {
-            WasmError::PluginExecution("wasm_filter".to_string(), "concurrency limit closed".to_string())
+            WasmError::PluginExecution(
+                "wasm_filter".to_string(),
+                "concurrency limit closed".to_string(),
+            )
         })?;
         let headers = Arc::new(request_headers);
         let body = Arc::new(body);
@@ -58,12 +61,7 @@ impl WasmPluginFilter {
                 )
             })
             .await
-            .map_err(|e| {
-                WasmError::PluginExecution(
-                    name.clone(),
-                    format!("join error: {e}"),
-                )
-            })??;
+            .map_err(|e| WasmError::PluginExecution(name.clone(), format!("join error: {e}")))??;
             match result {
                 HookResult::Continue { response_headers } => {
                     if !response_headers.is_empty() {
@@ -96,7 +94,10 @@ impl WasmPluginFilter {
         response_body: Vec<u8>,
     ) -> Result<(), WasmError> {
         let _permit = self.concurrency_limit.acquire().await.map_err(|_| {
-            WasmError::PluginExecution("wasm_filter".to_string(), "concurrency limit closed".to_string())
+            WasmError::PluginExecution(
+                "wasm_filter".to_string(),
+                "concurrency limit closed".to_string(),
+            )
         })?;
         let headers = Arc::new(request_headers);
         let body = Arc::new(response_body);
@@ -119,12 +120,7 @@ impl WasmPluginFilter {
                 )
             })
             .await
-            .map_err(|e| {
-                WasmError::PluginExecution(
-                    name.clone(),
-                    format!("join error: {e}"),
-                )
-            })??;
+            .map_err(|e| WasmError::PluginExecution(name.clone(), format!("join error: {e}")))??;
             match result {
                 HookResult::Continue { response_headers } => {
                     if !response_headers.is_empty() {

@@ -679,6 +679,9 @@ fn build_ai_filter(
     // prompt_guard, content_safety, model_router, fallback, ab_engine,
     // tenant_manager, ai_sandbox, prompt_injector) are configured per-AIService
     // CRD through the xDS snapshot and applied at request time.
+    if let Some(lf) = build_langfuse_client() {
+        builder = builder.langfuse(lf);
+    }
     Some(Arc::new(builder.build()))
 }
 

@@ -11,8 +11,8 @@ use pingora::utils::tls::CertKey;
 use pingora_cache::HttpCache;
 use tracing::Span;
 
-use super::cache::CachedBackendTlsValidation;
 use super::GatewayProxy;
+use super::cache::CachedBackendTlsValidation;
 use crate::mirror::MirrorRequestSession;
 use crate::session::ResolvedSession;
 use ntgw_ai::filter::AIContext;

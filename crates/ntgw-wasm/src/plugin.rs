@@ -60,7 +60,9 @@ impl Default for WasmSandboxConfig {
 pub enum HookResult {
     /// Allow the request/response to proceed.
     /// Carries response headers set by the guest via set_header.
-    Continue { response_headers: HashMap<String, String> },
+    Continue {
+        response_headers: HashMap<String, String>,
+    },
     /// Reject the request/response with the given HTTP status code.
     Reject(i32),
 }
@@ -143,12 +145,13 @@ impl PluginManager {
             }
         })?;
 
-        let instance_pre = self.linker.instantiate_pre(&module).map_err(|e| {
-            WasmError::LoadFailed {
-                name: name.to_string(),
-                reason: format!("instantiate_pre error: {e}"),
-            }
-        })?;
+        let instance_pre =
+            self.linker
+                .instantiate_pre(&module)
+                .map_err(|e| WasmError::LoadFailed {
+                    name: name.to_string(),
+                    reason: format!("instantiate_pre error: {e}"),
+                })?;
 
         let loaded = LoadedPlugin {
             instance_pre,
@@ -272,12 +275,13 @@ impl PluginManager {
             }
         };
 
-        let instance_pre = self.linker.instantiate_pre(&module).map_err(|e| {
-            WasmError::LoadFailed {
-                name: name.to_string(),
-                reason: format!("instantiate_pre error: {e}"),
-            }
-        })?;
+        let instance_pre =
+            self.linker
+                .instantiate_pre(&module)
+                .map_err(|e| WasmError::LoadFailed {
+                    name: name.to_string(),
+                    reason: format!("instantiate_pre error: {e}"),
+                })?;
 
         let loaded = LoadedPlugin {
             instance_pre,
@@ -394,7 +398,9 @@ impl PluginManager {
 
         if !plugin.hooks.contains(hook) {
             debug!(plugin = name, hook = ?hook, "plugin does not register hook, skipping");
-            return Ok(HookResult::Continue { response_headers: HashMap::new() });
+            return Ok(HookResult::Continue {
+                response_headers: HashMap::new(),
+            });
         }
 
         let instance_pre = plugin.instance_pre.clone();

@@ -696,9 +696,7 @@ impl ProxyHttp for GatewayProxy {
         let ai_filter_active = self.ai_filter.is_some();
         let should_buffer = ctx.http_cache.is_some() || ai_filter_active;
 
-        if should_buffer
-            && let Some(chunk) = body
-        {
+        if should_buffer && let Some(chunk) = body {
             if cache_response_body_limit_exceeded(
                 ctx.cached_response_body_bytes,
                 chunk.len(),
@@ -720,10 +718,7 @@ impl ProxyHttp for GatewayProxy {
             }
         }
 
-        if _end_of_stream
-            && self.ai_filter.is_some()
-            && ctx.ai_context.is_some()
-        {
+        if _end_of_stream && self.ai_filter.is_some() && ctx.ai_context.is_some() {
             // Deferred to logging() which is async — avoids block_on in sync context
         }
 
@@ -764,9 +759,16 @@ impl ProxyHttp for GatewayProxy {
         if let Some(ref ai_filter) = self.ai_filter
             && let Some(ai_ctx) = ctx.ai_context.take()
         {
-            let response_body: Vec<u8> =
-                ctx.cached_response_body.iter().flat_map(|b| b.iter()).copied().collect();
-            if let Err(e) = ai_filter.post_process(ai_ctx, &response_body, ctx.status).await {
+            let response_body: Vec<u8> = ctx
+                .cached_response_body
+                .iter()
+                .flat_map(|b| b.iter())
+                .copied()
+                .collect();
+            if let Err(e) = ai_filter
+                .post_process(ai_ctx, &response_body, ctx.status)
+                .await
+            {
                 tracing::warn!(target: "ai_gateway", error = %e, "AI gateway post_process failed");
             }
         }

@@ -172,8 +172,12 @@ fn test_sandbox_config_custom() {
 
 #[test]
 fn test_hook_result_equality() {
-    let continue1 = HookResult::Continue { response_headers: HashMap::new() };
-    let continue2 = HookResult::Continue { response_headers: HashMap::new() };
+    let continue1 = HookResult::Continue {
+        response_headers: HashMap::new(),
+    };
+    let continue2 = HookResult::Continue {
+        response_headers: HashMap::new(),
+    };
     assert_eq!(continue1, continue2);
     assert_eq!(HookResult::Reject(403), HookResult::Reject(403));
     assert_ne!(continue1, HookResult::Reject(403));

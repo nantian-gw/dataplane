@@ -89,10 +89,7 @@ pub fn register_host_functions(linker: &mut Linker<PluginContext>) -> Result<()>
         .func_wrap(
             "pingora",
             "get_body",
-            |mut caller: wasmtime::Caller<'_, PluginContext>,
-             buf_ptr: i32,
-             buf_len: i32|
-             -> i32 {
+            |mut caller: wasmtime::Caller<'_, PluginContext>, buf_ptr: i32, buf_len: i32| -> i32 {
                 let body_copy = caller.data().body.clone();
                 let len = body_copy.len().min(buf_len as usize);
                 if len == 0 {
@@ -116,34 +113,35 @@ pub fn register_host_functions(linker: &mut Linker<PluginContext>) -> Result<()>
         )
         .map_err(|e| anyhow::anyhow!("failed to register pingora::get_body: {e}"))?;
 
-    linker.func_wrap(
-        "pingora",
-        "get_all_headers",
-        |mut caller: wasmtime::Caller<'_, PluginContext>, buf_ptr: i32, buf_len: i32| -> i32 {
-            let mem = match caller.get_export("memory").and_then(|e| e.into_memory()) {
-                Some(m) => m,
-                None => {
-                    warn!("get_all_headers: guest must export 'memory'");
-                    return -1;
+    linker
+        .func_wrap(
+            "pingora",
+            "get_all_headers",
+            |mut caller: wasmtime::Caller<'_, PluginContext>, buf_ptr: i32, buf_len: i32| -> i32 {
+                let mem = match caller.get_export("memory").and_then(|e| e.into_memory()) {
+                    Some(m) => m,
+                    None => {
+                        warn!("get_all_headers: guest must export 'memory'");
+                        return -1;
+                    }
+                };
+                let mut buf: Vec<u8> = Vec::new();
+                let ctx = caller.data();
+                for (k, v) in &ctx.request_headers {
+                    buf.extend_from_slice(k.as_bytes());
+                    buf.push(0);
+                    buf.extend_from_slice(v.as_bytes());
+                    buf.push(0);
                 }
-            };
-            let mut buf: Vec<u8> = Vec::new();
-            let ctx = caller.data();
-            for (k, v) in &ctx.request_headers {
-                buf.extend_from_slice(k.as_bytes());
-                buf.push(0);
-                buf.extend_from_slice(v.as_bytes());
-                buf.push(0);
-            }
-            let len = buf.len().min(buf_len as usize);
-            if len == 0 {
-                return 0;
-            }
-            let _ = mem.write(&mut caller, buf_ptr as usize, &buf[..len]);
-            len as i32
-        },
-    )
-    .map_err(|e| anyhow::anyhow!("failed to register pingora::get_all_headers: {e}"))?;
+                let len = buf.len().min(buf_len as usize);
+                if len == 0 {
+                    return 0;
+                }
+                let _ = mem.write(&mut caller, buf_ptr as usize, &buf[..len]);
+                len as i32
+            },
+        )
+        .map_err(|e| anyhow::anyhow!("failed to register pingora::get_all_headers: {e}"))?;
 
     Ok(())
 }
