@@ -721,31 +721,10 @@ impl ProxyHttp for GatewayProxy {
         }
 
         if _end_of_stream
-            && let Some(ref ai_filter) = self.ai_filter
-            && let Some(ai_ctx) = ctx.ai_context.take()
+            && self.ai_filter.is_some()
+            && ctx.ai_context.is_some()
         {
-            let response_body: Vec<u8> =
-                ctx.cached_response_body.iter().flat_map(|b| b.iter()).copied().collect();
-            let status = ctx.status;
-            let filter = Arc::clone(ai_filter);
-            let rt = tokio::runtime::Handle::current();
-            match rt.block_on(filter.post_process(ai_ctx, &response_body, status)) {
-                Ok(transformed) => {
-                    let transformed_bytes = Bytes::from(transformed);
-                    ctx.cached_response_body.clear();
-                    ctx.cached_response_body_bytes = transformed_bytes.len();
-                    ctx.cached_response_body.push(transformed_bytes.clone());
-                    *body = Some(transformed_bytes);
-                }
-                Err(e) => {
-                    tracing::warn!(
-                        target: "ai_gateway",
-                        error = %e,
-                        "AI gateway post_process failed"
-                    );
-                    *body = Some(Bytes::from(response_body));
-                }
-            }
+            // Deferred to logging() which is async — avoids block_on in sync context
         }
 
         Ok(None)
@@ -779,6 +758,17 @@ impl ProxyHttp for GatewayProxy {
                 }
             }
             http_cache.finish_miss_handler().await.ok();
+        }
+
+        // AI Gateway post-processing — performed here in async context
+        if let Some(ref ai_filter) = self.ai_filter
+            && let Some(ai_ctx) = ctx.ai_context.take()
+        {
+            let response_body: Vec<u8> =
+                ctx.cached_response_body.iter().flat_map(|b| b.iter()).copied().collect();
+            if let Err(e) = ai_filter.post_process(ai_ctx, &response_body, ctx.status).await {
+                tracing::warn!(target: "ai_gateway", error = %e, "AI gateway post_process failed");
+            }
         }
 
         record_request_span(ctx);
