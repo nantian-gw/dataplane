@@ -2006,6 +2006,7 @@ version = "0.1.0"
 dependencies = [
  "arc-swap",
  "form_urlencoded",
+ "ntgw-config",
  "ntgw-proto",
  "parking_lot",
  "proptest",
