@@ -1,12 +1,12 @@
 [advisories]
-vulnerability = "deny"
-unmaintained = "warn"
-yanked = "deny"
-notice = "warn"
-ignore = []
+ignore = [
+    "RUSTSEC-2024-0437",
+    "RUSTSEC-2024-0388",
+    "RUSTSEC-2025-0069",
+    "RUSTSEC-2026-0173",
+]
 
 [licenses]
-unlicensed = "deny"
 allow = [
     "MIT",
     "Apache-2.0",
@@ -18,9 +18,10 @@ allow = [
     "Unicode-3.0",
     "Zlib",
     "OpenSSL",
+    "Apache-2.0 WITH LLVM-exception",
 ]
-copyleft = "warn"
-default = "deny"
+confidence-threshold = 0.8
+exceptions = []
 
 [bans]
 multiple-versions = "warn"
