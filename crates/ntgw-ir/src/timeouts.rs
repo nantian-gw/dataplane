@@ -6,4 +6,6 @@ use serde::{Deserialize, Serialize};
 pub struct RouteTimeouts {
     pub request: Option<Duration>,
     pub backend_request: Option<Duration>,
+    pub connect: Option<Duration>,
+    pub next_upstream: Option<Duration>,
 }

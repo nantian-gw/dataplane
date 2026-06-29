@@ -1,5 +1,7 @@
 use std::collections::BTreeMap;
 
+use ntgw_config::RoutePolicyConfig;
+
 use crate::{
     BackendEndpoint, BackendTlsConfig, Filter, MatchedHttpPath, RetryPolicy, RouteTimeouts,
     SessionPersistence,
@@ -68,4 +70,5 @@ pub struct SelectedHttpRoute {
     pub retry: Option<RetryPolicy>,
     pub session_persistence: Option<SessionPersistence>,
     pub backend_tls: Option<BackendTlsConfig>,
+    pub route_policy: Option<RoutePolicyConfig>,
 }
