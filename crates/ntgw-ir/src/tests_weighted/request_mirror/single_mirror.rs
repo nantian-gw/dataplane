@@ -50,6 +50,8 @@ fn selects_request_mirror_backend_and_strips_mirror_filter() {
             timeouts: Some(crate::RouteTimeouts {
                 request: Some(std::time::Duration::from_secs(12)),
                 backend_request: Some(std::time::Duration::from_secs(3)),
+                connect: None,
+                next_upstream: None,
             }),
             backend_tls: None,
         })
@@ -75,3 +77,4 @@ fn selects_request_mirror_backend_and_strips_mirror_filter() {
         Some(std::time::Duration::from_secs(3))
     );
 }
+

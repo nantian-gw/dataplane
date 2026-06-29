@@ -17,6 +17,8 @@ async fn streaming_http_explicit_backend_request_timeout_records_ut_without_retr
         current.http_routes[0].rules[0].timeouts = Some(ntgw_ir::RouteTimeouts {
             request: None,
             backend_request: Some(Duration::from_millis(75)),
+            connect: None,
+            next_upstream: None,
         });
         current.rebuild_runtime_indexes();
         snapshot.store(Arc::new(current));

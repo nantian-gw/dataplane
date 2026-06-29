@@ -19,6 +19,8 @@ fn build_upstream_peer_with_cached_config_uses_policy_and_protocol_without_snaps
         timeouts: Some(RouteTimeouts {
             request: Some(std::time::Duration::from_secs(7)),
             backend_request: None,
+            connect: None,
+            next_upstream: None,
         }),
         retry: None,
         session_persistence: None,
@@ -151,6 +153,8 @@ fn selected_backend_config_precomputes_peer_runtime_metadata() {
         timeouts: Some(RouteTimeouts {
             request: None,
             backend_request: Some(std::time::Duration::from_secs(7)),
+            connect: None,
+            next_upstream: None,
         }),
         retry: None,
         session_persistence: None,
@@ -603,6 +607,8 @@ fn selected_backend_config_isolated_for_same_backend_across_route_overrides() {
         Some(RouteTimeouts {
             request: None,
             backend_request: Some(std::time::Duration::from_secs(2)),
+            connect: None,
+            next_upstream: None,
         }),
         Some(BackendTlsConfig {
             client_certificate_ref: "default/client-cert".to_string(),
