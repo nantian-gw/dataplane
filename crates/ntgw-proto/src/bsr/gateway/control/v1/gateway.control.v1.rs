@@ -255,6 +255,9 @@ pub struct HttpRoute {
     /// Kubernetes annotations from the route resource.
     #[prost(map="string, string", tag="7")]
     pub annotations: ::std::collections::HashMap<::prost::alloc::string::String, ::prost::alloc::string::String>,
+    /// Route-level policy configuration (timeouts, body limits, proxy, connection).
+    #[prost(message, optional, tag="8")]
+    pub route_policy: ::core::option::Option<RoutePolicy>,
 }
 /// HttpRule defines a single HTTP routing rule: match conditions, filters
 /// to apply, and backends to forward to.
@@ -400,6 +403,9 @@ pub struct GrpcRoute {
     /// Kubernetes annotations from the route resource.
     #[prost(map="string, string", tag="7")]
     pub annotations: ::std::collections::HashMap<::prost::alloc::string::String, ::prost::alloc::string::String>,
+    /// Route-level policy configuration (timeouts, body limits, proxy, connection).
+    #[prost(message, optional, tag="8")]
+    pub route_policy: ::core::option::Option<RoutePolicy>,
 }
 /// GrpcRule defines a single gRPC routing rule: service/method matching,
 /// filters, and backend forwarding.
@@ -768,6 +774,87 @@ pub struct WasmSandboxConfig {
     /// Whether the plugin can access the host file system.
     #[prost(bool, tag="4")]
     pub allow_file_system: bool,
+}
+/// RoutePolicy configures global route-level policies (timeouts, body limits,
+/// proxy behavior, and connection settings) for HTTP and gRPC routes.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct RoutePolicy {
+    /// Timeout settings for this route.
+    #[prost(message, optional, tag="1")]
+    pub timeout: ::core::option::Option<RoutePolicyTimeout>,
+    /// Request/response body size limits for this route.
+    #[prost(message, optional, tag="2")]
+    pub body_limit: ::core::option::Option<RoutePolicyBodyLimit>,
+    /// Proxy buffering and networking behavior for this route.
+    #[prost(message, optional, tag="3")]
+    pub proxy: ::core::option::Option<RoutePolicyProxy>,
+    /// Connection-level keepalive and pool settings for this route.
+    #[prost(message, optional, tag="4")]
+    pub connection: ::core::option::Option<RoutePolicyConnection>,
+}
+/// RoutePolicyTimeout specifies timeout values for a route's policy.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct RoutePolicyTimeout {
+    /// Total request timeout for the client-facing side.
+    #[prost(message, optional, tag="1")]
+    pub request: ::core::option::Option<::prost_types::Duration>,
+    /// Timeout for requests to backend services.
+    #[prost(message, optional, tag="2")]
+    pub backend_request: ::core::option::Option<::prost_types::Duration>,
+    /// Connection timeout for establishing backend connections.
+    #[prost(message, optional, tag="3")]
+    pub connect: ::core::option::Option<::prost_types::Duration>,
+    /// Timeout for retrying to the next upstream when the current one fails.
+    #[prost(message, optional, tag="4")]
+    pub next_upstream: ::core::option::Option<::prost_types::Duration>,
+}
+/// RoutePolicyBodyLimit specifies request body size limits for a route's policy.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct RoutePolicyBodyLimit {
+    /// Maximum allowed request body size in bytes.
+    #[prost(uint64, tag="1")]
+    pub max_request_body_bytes: u64,
+    /// Buffer size for streaming request bodies, in bytes.
+    #[prost(uint64, tag="2")]
+    pub request_body_buffer_bytes: u64,
+    /// Maximum allowed size for request headers, in bytes.
+    #[prost(uint64, tag="3")]
+    pub max_request_header_bytes: u64,
+}
+/// RoutePolicyProxy configures proxy-level buffering and networking behavior.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct RoutePolicyProxy {
+    /// Whether the proxy should buffer client requests before forwarding.
+    #[prost(message, optional, tag="1")]
+    pub request_buffering: ::core::option::Option<bool>,
+    /// Whether the proxy should buffer backend responses before returning to client.
+    #[prost(message, optional, tag="2")]
+    pub response_buffering: ::core::option::Option<bool>,
+    /// Buffer size in bytes for request/response buffering.
+    #[prost(uint64, tag="3")]
+    pub buffer_size: u64,
+    /// Number of buffers to use (controls total buffer pool size).
+    #[prost(uint32, tag="4")]
+    pub buffer_count: u32,
+}
+/// RoutePolicyConnection configures connection-level keepalive and pool settings.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct RoutePolicyConnection {
+    /// Maximum number of requests before closing the keepalive connection.
+    #[prost(uint32, tag="1")]
+    pub keepalive_requests: u32,
+    /// Interval between keepalive probes.
+    #[prost(message, optional, tag="2")]
+    pub keepalive_time: ::core::option::Option<::prost_types::Duration>,
+    /// Timeout waiting for a keepalive probe response.
+    #[prost(message, optional, tag="3")]
+    pub keepalive_timeout: ::core::option::Option<::prost_types::Duration>,
+    /// Maximum number of idle upstream keepalive connections to retain.
+    #[prost(uint32, tag="4")]
+    pub upstream_keepalive_pool_size: u32,
+    /// Maximum idle time for an upstream keepalive connection before closing.
+    #[prost(message, optional, tag="5")]
+    pub upstream_keepalive_idle: ::core::option::Option<::prost_types::Duration>,
 }
 /// DiscoveryResultStatus encodes the data plane's response to a received
 /// ConfigSnapshot: ACK means accepted and applied, NACK means rejected.

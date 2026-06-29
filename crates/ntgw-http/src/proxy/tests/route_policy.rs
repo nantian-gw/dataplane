@@ -1,9 +1,5 @@
-use ntgw_config::{
-    RoutePolicyBodyLimitConfig, RoutePolicyConfig,
-};
-use ntgw_ir::{
-    MatchedHttpPath, SelectedHttpRoute,
-};
+use ntgw_config::{RoutePolicyBodyLimitConfig, RoutePolicyConfig};
+use ntgw_ir::{MatchedHttpPath, SelectedHttpRoute};
 use std::collections::BTreeMap;
 
 #[test]
