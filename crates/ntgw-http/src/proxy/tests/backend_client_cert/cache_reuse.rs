@@ -1,6 +1,6 @@
 #[test]
 fn build_upstream_peer_reuses_client_certificate_cache_for_equivalent_snapshot_content() {
-    let selected = SelectedBackend {
+    let selected = SelectedBackend { route_policy: None,
         route_kind: RouteKind::Http,
         route_name: "route".to_string(),
         route_namespace: "default".to_string(),
@@ -62,7 +62,7 @@ fn build_upstream_peer_reuses_client_certificate_cache_for_equivalent_snapshot_c
 
 #[test]
 fn build_upstream_peer_reuses_client_certificate_cache_across_interleaved_snapshots() {
-    let selected = SelectedBackend {
+    let selected = SelectedBackend { route_policy: None,
         route_kind: RouteKind::Http,
         route_name: "route".to_string(),
         route_namespace: "default".to_string(),

@@ -375,7 +375,7 @@ pub(super) fn stream_hostname_match_score(
 
 impl SelectedHttpRoute {
     pub(super) fn into_backend(self) -> Option<SelectedBackend> {
-        Some(SelectedBackend {
+        Some(SelectedBackend { route_policy: None,
             route_kind: RouteKind::Http,
             route_name: self.route_name,
             route_namespace: self.route_namespace,

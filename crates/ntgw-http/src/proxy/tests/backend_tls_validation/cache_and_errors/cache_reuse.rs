@@ -1,6 +1,6 @@
 #[test]
 fn build_upstream_peer_reuses_backend_tls_validation_cache_for_equivalent_policy_content() {
-    let selected = SelectedBackend {
+    let selected = SelectedBackend { route_policy: None,
         route_kind: RouteKind::Grpc,
         route_name: "route".to_string(),
         route_namespace: "default".to_string(),
@@ -95,7 +95,7 @@ fn build_upstream_peer_reuses_backend_tls_validation_cache_for_equivalent_policy
 
 #[test]
 fn build_upstream_peer_reuses_backend_tls_validation_cache_across_interleaved_snapshots() {
-    let selected = SelectedBackend {
+    let selected = SelectedBackend { route_policy: None,
         route_kind: RouteKind::Grpc,
         route_name: "route".to_string(),
         route_namespace: "default".to_string(),

@@ -1,6 +1,6 @@
 #[test]
 fn build_upstream_peer_reloads_backend_tls_validation_after_snapshot_rotation() {
-    let selected = SelectedBackend {
+    let selected = SelectedBackend { route_policy: None,
         route_kind: RouteKind::Grpc,
         route_name: "route".to_string(),
         route_namespace: "default".to_string(),

@@ -245,7 +245,7 @@ pub(super) fn select_grpc_backend(
             .clone()
             .or_else(|| candidate.selected_backend.session_persistence.clone());
 
-        SelectedBackend {
+        SelectedBackend { route_policy: None,
             route_kind: RouteKind::Grpc,
             route_name: candidate.route.name.clone(),
             route_namespace: candidate.route.namespace.clone(),

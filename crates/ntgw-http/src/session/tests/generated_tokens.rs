@@ -25,7 +25,7 @@ proptest! {
                 })
             },
         };
-        let selected = SelectedBackend {
+        let selected = SelectedBackend { route_policy: None,
             backend_name: backend_name.clone(),
             backend: BackendEndpoint {
                 address: format!("10.0.0.{address_tail}"),

@@ -9,7 +9,7 @@ fn build_upstream_peer_uses_client_certificate_for_tls_backends() {
         }],
         ..Snapshot::default()
     };
-    let selected = SelectedBackend {
+    let selected = SelectedBackend { route_policy: None,
         route_kind: RouteKind::Http,
         route_name: "route".to_string(),
         route_namespace: "default".to_string(),

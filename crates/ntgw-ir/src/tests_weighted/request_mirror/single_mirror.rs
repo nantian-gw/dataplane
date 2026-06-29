@@ -19,7 +19,7 @@ fn selects_request_mirror_backend_and_strips_mirror_filter() {
     };
 
     let selected = snapshot
-        .select_request_mirror(&crate::RequestMirrorContext {
+        .select_request_mirror(&crate::RequestMirrorContext { route_policy: None,
             route_kind: RouteKind::Http,
             route_name: "route".to_string(),
             route_namespace: "default".to_string(),

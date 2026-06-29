@@ -34,7 +34,7 @@ fn selects_all_request_mirrors_and_strips_mirror_filters() {
         ..Snapshot::default()
     };
 
-    let mirrors = snapshot.select_request_mirrors(&crate::RequestMirrorContext {
+    let mirrors = snapshot.select_request_mirrors(&crate::RequestMirrorContext { route_policy: None,
         route_kind: RouteKind::Http,
         route_name: "route".to_string(),
         route_namespace: "default".to_string(),
@@ -121,7 +121,7 @@ fn request_mirror_visitor_stops_after_first_selected_mirror() {
         ..Snapshot::default()
     };
 
-    let context = crate::RequestMirrorContext {
+    let context = crate::RequestMirrorContext { route_policy: None,
         route_kind: RouteKind::Http,
         route_name: "route".to_string(),
         route_namespace: "default".to_string(),

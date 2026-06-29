@@ -233,7 +233,7 @@ pub(crate) fn select_request_mirrors_for_selected_backend(
         return Vec::new();
     }
 
-    snapshot.select_request_mirrors(&RequestMirrorContext {
+    snapshot.select_request_mirrors(&RequestMirrorContext { route_policy: None,
         route_kind: selected.route_kind,
         route_name: selected.route_name.clone(),
         route_namespace: selected.route_namespace.clone(),
@@ -256,7 +256,7 @@ pub(crate) fn select_request_mirrors_for_http_route(
         return Vec::new();
     }
 
-    snapshot.select_request_mirrors(&RequestMirrorContext {
+    snapshot.select_request_mirrors(&RequestMirrorContext { route_policy: None,
         route_kind: RouteKind::Http,
         route_name: route.route_name.clone(),
         route_namespace: route.route_namespace.clone(),
@@ -471,6 +471,7 @@ impl ProxyHttp for GatewayProxy {
     where
         Self::CTX: Send + Sync,
     {
+        self.apply_downstream_read_timeout(session, ctx);
         filters::do_request_filter(self, session, ctx).await
     }
 
@@ -843,6 +844,21 @@ impl ProxyHttp for GatewayProxy {
 }
 
 impl GatewayProxy {
+    pub(super) fn apply_downstream_read_timeout(
+        &self,
+        session: &mut Session,
+        ctx: &RequestContext,
+    ) {
+        let timeout = ctx
+            .route_policy
+            .as_ref()
+            .and_then(|rp| rp.timeout.as_ref())
+            .and_then(|t| t.request)
+            .map(std::time::Duration::from_millis)
+            .or(self.downstream_read_timeout);
+        session.as_downstream_mut().set_read_timeout(timeout);
+    }
+
     pub(super) fn effective_max_request_body_bytes(&self, ctx: &RequestContext) -> usize {
         if let Some(limit) = ctx
             .route_policy

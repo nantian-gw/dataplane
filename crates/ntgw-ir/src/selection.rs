@@ -39,6 +39,7 @@ pub struct SelectedBackend {
     pub retry: Option<RetryPolicy>,
     pub session_persistence: Option<SessionPersistence>,
     pub backend_tls: Option<BackendTlsConfig>,
+    pub route_policy: Option<RoutePolicyConfig>,
 }
 
 #[derive(Debug, Clone)]
@@ -51,6 +52,7 @@ pub struct RequestMirrorContext {
     pub matched_http_path: Option<MatchedHttpPath>,
     pub timeouts: Option<RouteTimeouts>,
     pub backend_tls: Option<BackendTlsConfig>,
+    pub route_policy: Option<RoutePolicyConfig>,
 }
 
 #[derive(Debug, Clone)]

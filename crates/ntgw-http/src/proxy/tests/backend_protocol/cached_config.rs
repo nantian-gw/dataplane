@@ -1,6 +1,6 @@
 #[test]
 fn build_upstream_peer_with_cached_config_uses_policy_and_protocol_without_snapshot() {
-    let selected = SelectedBackend {
+    let selected = SelectedBackend { route_policy: None,
         route_kind: RouteKind::Http,
         route_name: "route".to_string(),
         route_namespace: "default".to_string(),
@@ -55,7 +55,7 @@ fn build_upstream_peer_with_cached_config_uses_policy_and_protocol_without_snaps
 
 #[test]
 fn selected_backend_config_debug_exposes_precomputed_policy_fields_only() {
-    let selected = SelectedBackend {
+    let selected = SelectedBackend { route_policy: None,
         route_kind: RouteKind::Http,
         route_name: "route".to_string(),
         route_namespace: "default".to_string(),
@@ -134,7 +134,7 @@ fn selected_backend_config_precomputes_peer_runtime_metadata() {
         )]),
         ..Snapshot::default()
     };
-    let selected = SelectedBackend {
+    let selected = SelectedBackend { route_policy: None,
         route_kind: RouteKind::Http,
         route_name: "route".to_string(),
         route_namespace: "default".to_string(),
@@ -451,7 +451,7 @@ fn selected_backend_config_cache_invalidates_when_snapshot_id_changes() {
 #[test]
 fn selected_backend_config_precomputes_traffic_topology() {
     let snapshot = Snapshot::default();
-    let selected = SelectedBackend {
+    let selected = SelectedBackend { route_policy: None,
         route_kind: RouteKind::Http,
         route_name: "orders".to_string(),
         route_namespace: "default".to_string(),
@@ -535,7 +535,7 @@ fn selected_backend_config_precomputes_tls_validation_and_client_cert_handles() 
         }],
         ..Snapshot::default()
     };
-    let selected = SelectedBackend {
+    let selected = SelectedBackend { route_policy: None,
         route_kind: RouteKind::Http,
         route_name: "route".to_string(),
         route_namespace: "default".to_string(),
@@ -707,8 +707,8 @@ fn selected_backend_for_cached_config_route(
     endpoint: BackendEndpoint,
     timeouts: Option<RouteTimeouts>,
     backend_tls: Option<BackendTlsConfig>,
-) -> SelectedBackend {
-    SelectedBackend {
+) -> SelectedBackend { route_policy: None,
+    SelectedBackend { route_policy: None,
         route_kind,
         route_name: route_name.to_string(),
         route_namespace: "default".to_string(),

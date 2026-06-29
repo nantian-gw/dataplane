@@ -293,7 +293,7 @@ fn cache_selected_backend_preserves_retry_policy() {
 
     cache_selected_backend(
         &mut ctx,
-        SelectedBackend {
+        SelectedBackend { route_policy: None,
             route_kind: RouteKind::Http,
             route_name: "route".to_string(),
             route_namespace: "default".to_string(),
@@ -343,7 +343,7 @@ fn cache_selected_backend_preserves_retry_policy() {
 #[test]
 fn cache_selected_backend_ref_preserves_retry_policy() {
     let mut ctx = RequestContext::default();
-    let selected = SelectedBackend {
+    let selected = SelectedBackend { route_policy: None,
         route_kind: RouteKind::Http,
         route_name: "route".to_string(),
         route_namespace: "default".to_string(),
