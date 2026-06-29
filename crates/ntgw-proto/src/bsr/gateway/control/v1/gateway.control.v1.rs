@@ -255,7 +255,8 @@ pub struct HttpRoute {
     /// Kubernetes annotations from the route resource.
     #[prost(map="string, string", tag="7")]
     pub annotations: ::std::collections::HashMap<::prost::alloc::string::String, ::prost::alloc::string::String>,
-    /// Route-level policy configuration (timeouts, body limits, proxy, connection).
+    /// Per-route policy overrides for timeout, body size, proxy buffering,
+    /// and connection keepalive settings.
     #[prost(message, optional, tag="8")]
     pub route_policy: ::core::option::Option<RoutePolicy>,
 }
@@ -403,7 +404,8 @@ pub struct GrpcRoute {
     /// Kubernetes annotations from the route resource.
     #[prost(map="string, string", tag="7")]
     pub annotations: ::std::collections::HashMap<::prost::alloc::string::String, ::prost::alloc::string::String>,
-    /// Route-level policy configuration (timeouts, body limits, proxy, connection).
+    /// Per-route policy overrides for timeout, body size, proxy buffering,
+    /// and connection keepalive settings.
     #[prost(message, optional, tag="8")]
     pub route_policy: ::core::option::Option<RoutePolicy>,
 }
