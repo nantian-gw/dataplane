@@ -164,6 +164,7 @@ pub struct RequestContext {
     pub(crate) retry_budget_seeded: bool,
     pub(crate) backend_observation_recorded: bool,
     pub(crate) request_body_bytes_seen: usize,
+    pub(crate) route_policy: Option<ntgw_config::RoutePolicyConfig>,
     pub(crate) access_log_request_headers: BTreeMap<String, String>,
     pub(crate) access_log_sent_response_headers: BTreeMap<String, String>,
     pub(crate) access_log_upstream_response_headers: BTreeMap<String, String>,
@@ -341,6 +342,7 @@ fn clear_request_context(ctx: &mut RequestContext) {
     ctx.retry_budget_seeded = false;
     ctx.backend_observation_recorded = false;
     ctx.request_body_bytes_seen = 0;
+    ctx.route_policy = None;
     clear_string(&mut ctx.http_version);
     clear_string(&mut ctx.query_string);
     clear_string(&mut ctx.upstream_addr);
