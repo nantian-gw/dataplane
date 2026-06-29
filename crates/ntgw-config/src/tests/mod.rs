@@ -6,6 +6,7 @@ use super::{
 
 mod basics;
 mod logging;
+mod route_policy;
 mod runtime_protection;
 mod runtime_tuning;
 mod session_persistence;

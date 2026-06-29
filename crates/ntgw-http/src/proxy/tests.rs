@@ -9,6 +9,7 @@ mod context;
 mod fast_path;
 mod mesh_fallback;
 mod retry;
+mod route_policy;
 mod selection;
 
 pub(super) const TEST_CLIENT_CERT_PEM: &str = include_str!("../../../../testdata/tls/client.crt");
