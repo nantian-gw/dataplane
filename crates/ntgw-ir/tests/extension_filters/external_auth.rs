@@ -6,7 +6,7 @@ fn decodes_external_auth_http_filter_from_proto() {
         id: "snap".to_string(),
         generated_at: None,
         listeners: vec![],
-        http_routes: vec![proto::HttpRoute {
+        http_routes: vec![proto::HttpRoute { route_policy: None, 
             name: "orders".to_string(),
             namespace: "default".to_string(),
             hostnames: vec!["example.com".to_string()],
@@ -112,7 +112,7 @@ fn decodes_external_auth_grpc_filter_from_proto() {
         id: "snap".to_string(),
         generated_at: None,
         listeners: vec![],
-        http_routes: vec![proto::HttpRoute {
+        http_routes: vec![proto::HttpRoute { route_policy: None, 
             name: "orders".to_string(),
             namespace: "default".to_string(),
             hostnames: vec!["example.com".to_string()],
@@ -194,7 +194,7 @@ fn decodes_external_auth_backend_with_tls_validation_from_proto() {
         id: "snap".to_string(),
         generated_at: None,
         listeners: vec![],
-        http_routes: vec![proto::HttpRoute {
+        http_routes: vec![proto::HttpRoute { route_policy: None, 
             name: "orders".to_string(),
             namespace: "default".to_string(),
             hostnames: vec!["example.com".to_string()],
