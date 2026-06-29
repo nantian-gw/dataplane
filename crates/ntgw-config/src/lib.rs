@@ -329,6 +329,71 @@ pub struct ExperimentalConfig {
     pub ai_gateway_max_request_body_bytes: usize,
 }
 
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RoutePolicyConfig {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub timeout: Option<RoutePolicyTimeoutConfig>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub body_limit: Option<RoutePolicyBodyLimitConfig>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub proxy: Option<RoutePolicyProxyConfig>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub connection: Option<RoutePolicyConnectionConfig>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RoutePolicyTimeoutConfig {
+    #[serde(default)]
+    pub request: Option<u64>,
+    #[serde(default)]
+    pub backend_request: Option<u64>,
+    #[serde(default)]
+    pub connect: Option<u64>,
+    #[serde(default)]
+    pub next_upstream: Option<u64>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RoutePolicyBodyLimitConfig {
+    #[serde(default)]
+    pub max_request_body_bytes: Option<usize>,
+    #[serde(default)]
+    pub request_body_buffer_bytes: Option<usize>,
+    #[serde(default)]
+    pub max_request_header_bytes: Option<usize>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RoutePolicyProxyConfig {
+    #[serde(default)]
+    pub request_buffering: Option<bool>,
+    #[serde(default)]
+    pub response_buffering: Option<bool>,
+    #[serde(default)]
+    pub buffer_size: Option<usize>,
+    #[serde(default)]
+    pub buffer_count: Option<u32>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RoutePolicyConnectionConfig {
+    #[serde(default)]
+    pub keepalive_requests: Option<u32>,
+    #[serde(default)]
+    pub keepalive_time: Option<u64>,
+    #[serde(default)]
+    pub keepalive_timeout: Option<u64>,
+    #[serde(default)]
+    pub upstream_keepalive_pool_size: Option<u32>,
+    #[serde(default)]
+    pub upstream_keepalive_idle: Option<u64>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TcpKeepaliveConfig {
