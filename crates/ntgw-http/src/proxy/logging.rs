@@ -264,7 +264,8 @@ mod tests {
     fn route_annotations_for_log_prefers_selected_backend_annotations() {
         let ctx = RequestContext {
             route_annotations: BTreeMap::from([("stale".to_string(), "1".to_string())]),
-            selected_backend: Some(Arc::new(SelectedBackend { route_policy: None,
+            selected_backend: Some(Arc::new(SelectedBackend {
+                route_policy: None,
                 route_kind: RouteKind::Http,
                 route_name: "route".to_string(),
                 route_namespace: "default".to_string(),

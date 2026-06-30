@@ -12,8 +12,8 @@ use ntgw_ir::{
 use super::{
     backend::{
         backend_tls_sni_name, effective_request_timeout_with_route_policy,
-        is_http2_backend_protocol,
-        is_tls_backend_protocol, resolve_backend_client_cert_key, resolve_backend_tls_validation,
+        is_http2_backend_protocol, is_tls_backend_protocol, resolve_backend_client_cert_key,
+        resolve_backend_tls_validation,
     },
     context::{SelectedBackendConfig, UpstreamPeerAddress, route_kind_name},
 };

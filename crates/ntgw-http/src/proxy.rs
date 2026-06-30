@@ -233,7 +233,8 @@ pub(crate) fn select_request_mirrors_for_selected_backend(
         return Vec::new();
     }
 
-    snapshot.select_request_mirrors(&RequestMirrorContext { route_policy: None,
+    snapshot.select_request_mirrors(&RequestMirrorContext {
+        route_policy: None,
         route_kind: selected.route_kind,
         route_name: selected.route_name.clone(),
         route_namespace: selected.route_namespace.clone(),
@@ -256,7 +257,8 @@ pub(crate) fn select_request_mirrors_for_http_route(
         return Vec::new();
     }
 
-    snapshot.select_request_mirrors(&RequestMirrorContext { route_policy: None,
+    snapshot.select_request_mirrors(&RequestMirrorContext {
+        route_policy: None,
         route_kind: RouteKind::Http,
         route_name: route.route_name.clone(),
         route_namespace: route.route_namespace.clone(),

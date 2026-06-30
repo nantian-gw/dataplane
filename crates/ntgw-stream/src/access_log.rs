@@ -65,7 +65,8 @@ mod tests {
     }
 
     fn sample_selected_backend(route_annotations: BTreeMap<String, String>) -> SelectedBackend {
-        SelectedBackend { route_policy: None,
+        SelectedBackend {
+            route_policy: None,
             route_kind: RouteKind::Tcp,
             route_name: "tcp-route".to_string(),
             route_namespace: "default".to_string(),

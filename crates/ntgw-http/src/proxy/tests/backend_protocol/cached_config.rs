@@ -707,7 +707,7 @@ fn selected_backend_for_cached_config_route(
     endpoint: BackendEndpoint,
     timeouts: Option<RouteTimeouts>,
     backend_tls: Option<BackendTlsConfig>,
-) -> SelectedBackend { route_policy: None,
+) -> SelectedBackend {
     SelectedBackend { route_policy: None,
         route_kind,
         route_name: route_name.to_string(),

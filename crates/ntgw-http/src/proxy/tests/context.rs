@@ -47,7 +47,8 @@ mod runtime;
 mod state;
 
 fn sample_selected_backend(address: &str, backend_name: &str) -> SelectedBackend {
-    SelectedBackend { route_policy: None,
+    SelectedBackend {
+        route_policy: None,
         route_kind: RouteKind::Http,
         route_name: "orders".to_string(),
         route_namespace: "default".to_string(),

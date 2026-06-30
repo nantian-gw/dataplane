@@ -509,7 +509,8 @@ impl SessionBenchFixture {
                     lifetime_type: "Permanent".to_string(),
                 }),
             },
-            selected: SelectedBackend { route_policy: None,
+            selected: SelectedBackend {
+                route_policy: None,
                 route_kind: RouteKind::Http,
                 route_name: "bench-route".to_string(),
                 route_namespace: "default".to_string(),

@@ -488,7 +488,8 @@ impl Snapshot {
 
                 if let Some(selected) = self.resolve_backend_refs(&rule.backend_refs) {
                     best = Some((
-                        SelectedBackend { route_policy: None,
+                        SelectedBackend {
+                            route_policy: None,
                             route_kind: expected_kind,
                             route_name: route.name.clone(),
                             route_namespace: route.namespace.clone(),
@@ -770,7 +771,8 @@ impl Snapshot {
 
             let filters = mirrored_filters
                 .get_or_insert_with(|| filters_without_request_mirror(&context.filters));
-            let mirror = SelectedBackend { route_policy: None,
+            let mirror = SelectedBackend {
+                route_policy: None,
                 route_kind: context.route_kind,
                 route_name: context.route_name.clone(),
                 route_namespace: context.route_namespace.clone(),
@@ -803,7 +805,8 @@ impl Snapshot {
                 .iter()
                 .find(|item| self.endpoint_is_available_at(backend_name.as_str(), item, now))
             {
-                return Some(SelectedBackend { route_policy: None,
+                return Some(SelectedBackend {
+                    route_policy: None,
                     route_kind: RouteKind::Http,
                     route_name: String::new(),
                     route_namespace: String::new(),
@@ -878,7 +881,8 @@ impl Snapshot {
             let backend =
                 self.default_service_backend(&frontend.namespace, &frontend.name, frontend.port)?;
 
-            return Some(SelectedBackend { route_policy: None,
+            return Some(SelectedBackend {
+                route_policy: None,
                 route_kind,
                 route_name: String::new(),
                 route_namespace: frontend.namespace.clone(),
@@ -924,7 +928,8 @@ impl Snapshot {
         let backend =
             self.default_service_backend(&frontend.namespace, &frontend.name, frontend.port)?;
 
-        Some(SelectedBackend { route_policy: None,
+        Some(SelectedBackend {
+            route_policy: None,
             route_kind,
             route_name: String::new(),
             route_namespace: frontend.namespace.clone(),
@@ -949,7 +954,8 @@ impl Snapshot {
         let backend =
             self.default_service_backend(&frontend.namespace, &frontend.name, frontend.port)?;
 
-        Some(SelectedBackend { route_policy: None,
+        Some(SelectedBackend {
+            route_policy: None,
             route_kind,
             route_name: String::new(),
             route_namespace: frontend.namespace.clone(),
