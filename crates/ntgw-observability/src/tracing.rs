@@ -98,22 +98,104 @@ struct ResolvedOpenTelemetryOptions {
     deployment_environment: String,
 }
 
-pub fn init_tracing(options: &TracingOptions) -> Result<()> {
+pub fn init_tracing(options: &TracingOptions, sentry: Option<&SentryOptions>) -> Result<()> {
     let filter =
         EnvFilter::try_new(options.level.as_str()).unwrap_or_else(|_| EnvFilter::new("info"));
     let resolved_open_telemetry = resolve_open_telemetry_options(&options.open_telemetry)?;
     let (log_writer, log_guard) = build_log_writer(options);
+    let sentry_enabled = sentry.is_some_and(|s| s.enabled);
 
     global::set_text_map_propagator(TraceContextPropagator::new());
 
     if options.format.eq_ignore_ascii_case("json") {
         if let Some(ref resolved) = resolved_open_telemetry {
+            if sentry_enabled {
+                tracing_subscriber::registry()
+                    .with(filter)
+                    .with(build_open_telemetry_layer(resolved)?)
+                    .with(
+                        fmt::layer()
+                            .json()
+                            .with_target(options.include_target)
+                            .with_file(options.add_source)
+                            .with_line_number(options.add_source)
+                            .with_thread_ids(options.include_thread_ids)
+                            .with_thread_names(options.include_thread_names)
+                            .with_writer(log_writer),
+                    )
+                    .with(
+                        sentry_tracing::layer().event_filter(|md| {
+                            if *md.level() >= tracing::Level::ERROR {
+                                EventFilter::Exception
+                            } else {
+                                EventFilter::Ignore
+                            }
+                        }),
+                    )
+                    .init();
+            } else {
+                tracing_subscriber::registry()
+                    .with(filter)
+                    .with(build_open_telemetry_layer(resolved)?)
+                    .with(
+                        fmt::layer()
+                            .json()
+                            .with_target(options.include_target)
+                            .with_file(options.add_source)
+                            .with_line_number(options.add_source)
+                            .with_thread_ids(options.include_thread_ids)
+                            .with_thread_names(options.include_thread_names)
+                            .with_writer(log_writer),
+                    )
+                    .init();
+            }
+        } else {
+            if sentry_enabled {
+                tracing_subscriber::registry()
+                    .with(filter)
+                    .with(
+                        fmt::layer()
+                            .json()
+                            .with_target(options.include_target)
+                            .with_file(options.add_source)
+                            .with_line_number(options.add_source)
+                            .with_thread_ids(options.include_thread_ids)
+                            .with_thread_names(options.include_thread_names)
+                            .with_writer(log_writer),
+                    )
+                    .with(
+                        sentry_tracing::layer().event_filter(|md| {
+                            if *md.level() >= tracing::Level::ERROR {
+                                EventFilter::Exception
+                            } else {
+                                EventFilter::Ignore
+                            }
+                        }),
+                    )
+                    .init();
+            } else {
+                tracing_subscriber::registry()
+                    .with(filter)
+                    .with(
+                        fmt::layer()
+                            .json()
+                            .with_target(options.include_target)
+                            .with_file(options.add_source)
+                            .with_line_number(options.add_source)
+                            .with_thread_ids(options.include_thread_ids)
+                            .with_thread_names(options.include_thread_names)
+                            .with_writer(log_writer),
+                    )
+                    .init();
+            }
+        }
+    } else if let Some(ref resolved) = resolved_open_telemetry {
+        if sentry_enabled {
             tracing_subscriber::registry()
                 .with(filter)
                 .with(build_open_telemetry_layer(resolved)?)
                 .with(
                     fmt::layer()
-                        .json()
                         .with_target(options.include_target)
                         .with_file(options.add_source)
                         .with_line_number(options.add_source)
@@ -121,13 +203,22 @@ pub fn init_tracing(options: &TracingOptions) -> Result<()> {
                         .with_thread_names(options.include_thread_names)
                         .with_writer(log_writer),
                 )
+                .with(
+                    sentry_tracing::layer().event_filter(|md| {
+                        if *md.level() >= tracing::Level::ERROR {
+                            EventFilter::Exception
+                        } else {
+                            EventFilter::Ignore
+                        }
+                    }),
+                )
                 .init();
         } else {
             tracing_subscriber::registry()
                 .with(filter)
+                .with(build_open_telemetry_layer(resolved)?)
                 .with(
                     fmt::layer()
-                        .json()
                         .with_target(options.include_target)
                         .with_file(options.add_source)
                         .with_line_number(options.add_source)
@@ -137,33 +228,43 @@ pub fn init_tracing(options: &TracingOptions) -> Result<()> {
                 )
                 .init();
         }
-    } else if let Some(ref resolved) = resolved_open_telemetry {
-        tracing_subscriber::registry()
-            .with(filter)
-            .with(build_open_telemetry_layer(resolved)?)
-            .with(
-                fmt::layer()
-                    .with_target(options.include_target)
-                    .with_file(options.add_source)
-                    .with_line_number(options.add_source)
-                    .with_thread_ids(options.include_thread_ids)
-                    .with_thread_names(options.include_thread_names)
-                    .with_writer(log_writer),
-            )
-            .init();
     } else {
-        tracing_subscriber::registry()
-            .with(filter)
-            .with(
-                fmt::layer()
-                    .with_target(options.include_target)
-                    .with_file(options.add_source)
-                    .with_line_number(options.add_source)
-                    .with_thread_ids(options.include_thread_ids)
-                    .with_thread_names(options.include_thread_names)
-                    .with_writer(log_writer),
-            )
-            .init();
+        if sentry_enabled {
+            tracing_subscriber::registry()
+                .with(filter)
+                .with(
+                    fmt::layer()
+                        .with_target(options.include_target)
+                        .with_file(options.add_source)
+                        .with_line_number(options.add_source)
+                        .with_thread_ids(options.include_thread_ids)
+                        .with_thread_names(options.include_thread_names)
+                        .with_writer(log_writer),
+                )
+                .with(
+                    sentry_tracing::layer().event_filter(|md| {
+                        if *md.level() >= tracing::Level::ERROR {
+                            EventFilter::Exception
+                        } else {
+                            EventFilter::Ignore
+                        }
+                    }),
+                )
+                .init();
+        } else {
+            tracing_subscriber::registry()
+                .with(filter)
+                .with(
+                    fmt::layer()
+                        .with_target(options.include_target)
+                        .with_file(options.add_source)
+                        .with_line_number(options.add_source)
+                        .with_thread_ids(options.include_thread_ids)
+                        .with_thread_names(options.include_thread_names)
+                        .with_writer(log_writer),
+                )
+                .init();
+        }
     }
 
     keep_log_worker_guard(log_guard);

@@ -64,6 +64,8 @@ pub struct LogConfig {
     pub drop_when_full: bool,
     #[serde(default)]
     pub open_telemetry: OpenTelemetryConfig,
+    #[serde(default)]
+    pub sentry: SentryConfig,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -85,6 +87,27 @@ pub struct OpenTelemetryConfig {
     pub service_name: String,
     #[serde(default)]
     pub service_namespace: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SentryConfig {
+    #[serde(default)]
+    pub enabled: bool,
+    #[serde(default)]
+    pub dsn: String,
+    #[serde(default)]
+    pub environment: String,
+    #[serde(default = "default_sentry_sample_rate")]
+    pub sample_rate: f32,
+    #[serde(default = "default_sentry_traces_sample_rate")]
+    pub traces_sample_rate: f32,
+    #[serde(default = "default_true")]
+    pub attach_stacktrace: bool,
+    #[serde(default)]
+    pub send_default_pii: bool,
+    #[serde(default)]
+    pub debug: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

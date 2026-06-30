@@ -20,7 +20,7 @@ use tokio::time::sleep;
 use tracing::{error, info};
 
 use admin::{AppState, build_router};
-use config_mapping::to_tracing_options;
+use config_mapping::{to_sentry_options, to_tracing_options};
 use config_reload::{
     CONFIG_RELOAD_POLL_INTERVAL, ReloadTargets, build_config_snapshot, spawn_config_reload_loop,
 };
@@ -29,7 +29,7 @@ use ntgw_ir::{Snapshot, SnapshotSignal};
 use ntgw_observability::{
     AdminRequestStats, HttpCircuitBreakerController, HttpRateLimitController, OverloadStats,
     RetryBudgetController, RuntimeStats, SharedApplyStageRecorder, SharedRuntimeStats,
-    SharedTrafficStats, UdpSessionStats, init_tracing,
+    SharedTrafficStats, UdpSessionStats, init_sentry, init_tracing,
 };
 use ntgw_xds::ClientStats;
 use supervisor::{
@@ -48,7 +48,9 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
     let config_source = ReloadingDataPlaneConfig::new(&cli.config, CONFIG_RELOAD_POLL_INTERVAL)?;
     let cfg = config_source.load()?;
-    init_tracing(&to_tracing_options(&cfg))?;
+    let sentry_options = to_sentry_options(&cfg);
+    init_tracing(&to_tracing_options(&cfg), Some(&sentry_options))?;
+    let _sentry_guard = init_sentry(&sentry_options, env!("CARGO_PKG_VERSION"))?;
     let admin_auth_configured = cfg.admin_auth.resolve_bearer_token()?.is_some();
     validate_admin_auth_exposure(&cfg.admin_addr, admin_auth_configured)?;
     let initial_config = build_config_snapshot(&cfg)?;

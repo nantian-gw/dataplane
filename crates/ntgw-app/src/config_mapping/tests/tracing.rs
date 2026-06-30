@@ -22,6 +22,7 @@ fn tracing_options_include_open_telemetry_identity() {
             service_name: "edge-gateway".to_string(),
             service_namespace: "gateways".to_string(),
         },
+        sentry: SentryConfig::default(),
     };
 
     let options = to_tracing_options(&cfg);
