@@ -8,8 +8,11 @@ use opentelemetry_sdk::{
     propagation::TraceContextPropagator,
     trace::{Sampler, SdkTracerProvider},
 };
+use sentry_tracing::EventFilter;
 use tracing_appender::non_blocking::WorkerGuard;
+use tracing_subscriber::Layer;
 use tracing_subscriber::prelude::*;
+use crate::SentryOptions;
 use tracing_subscriber::{EnvFilter, fmt, fmt::writer::BoxMakeWriter};
 
 static TRACING_WORKER_GUARD: std::sync::OnceLock<WorkerGuard> = std::sync::OnceLock::new();
@@ -166,6 +169,21 @@ pub fn init_tracing(options: &TracingOptions) -> Result<()> {
     keep_log_worker_guard(log_guard);
 
     Ok(())
+}
+
+pub fn sentry_tracing_layer(
+    options: &SentryOptions,
+) -> Option<impl Layer<tracing_subscriber::Registry> + Send + Sync> {
+    if !options.enabled {
+        return None;
+    }
+    Some(sentry_tracing::layer().event_filter(|md| {
+        if *md.level() >= tracing::Level::ERROR {
+            EventFilter::Exception
+        } else {
+            EventFilter::Ignore
+        }
+    }))
 }
 
 fn build_log_writer(options: &TracingOptions) -> (BoxMakeWriter, Option<WorkerGuard>) {

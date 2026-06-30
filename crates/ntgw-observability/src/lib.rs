@@ -11,6 +11,7 @@ mod rate_limit;
 mod reload;
 mod retry_budget;
 mod runtime;
+mod sentry;
 mod tracing;
 mod traffic;
 mod udp_session;
@@ -50,7 +51,8 @@ pub use runtime::{
     RuntimeListenerEvent, RuntimeListenerFailure, RuntimeListenerProgress, RuntimeStats,
     RuntimeStatsSnapshot, SharedRuntimeStats,
 };
-pub use tracing::{OpenTelemetryOptions, TracingOptions, init_tracing};
+pub use sentry::{SentryGuard, SentryOptions, init_sentry};
+pub use tracing::{OpenTelemetryOptions, TracingOptions, init_tracing, sentry_tracing_layer};
 pub use traffic::{
     SharedTrafficStats, TRAFFIC_LATENCY_MS_BUCKET_BOUNDS, TRAFFIC_LATENCY_MS_BUCKET_COUNT,
     TrafficEdgeStat, TrafficHistogramBucket, TrafficLabeledHistogram, TrafficNodeStat,
