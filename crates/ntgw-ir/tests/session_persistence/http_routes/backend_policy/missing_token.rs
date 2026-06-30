@@ -2,8 +2,8 @@
 fn applies_backend_policy_session_persistence_without_existing_token() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "route".to_string(),
-            namespace: "default".to_string(),
+            name: "route".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -19,9 +19,9 @@ fn applies_backend_policy_session_persistence_without_existing_token() {
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
-            name: "orders:8081".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTP".to_string(),
+            name: "orders:8081".into(),
+            namespace: "default".into(),
+            protocol: "HTTP".into(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.11".to_string(),
                 port: 8081,

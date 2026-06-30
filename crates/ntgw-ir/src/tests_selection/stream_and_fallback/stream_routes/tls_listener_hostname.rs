@@ -2,11 +2,11 @@
 fn rejects_tls_sni_outside_listener_hostname_even_when_route_hostname_matches() {
     let snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/tls".to_string(),
+            name: "default/gw/tls".to_string().into(),
             address: "0.0.0.0".to_string(),
             addresses: vec!["0.0.0.0".to_string()],
             port: 443,
-            protocol: "LISTENER_PROTOCOL_TLS_PASSTHROUGH".to_string(),
+            protocol: "LISTENER_PROTOCOL_TLS_PASSTHROUGH".to_string().into(),
             hostnames: vec!["*.example.com".to_string()],
             attached_routes: vec!["default/wildcard-route".to_string()],
             tls: None,
@@ -14,8 +14,8 @@ fn rejects_tls_sni_outside_listener_hostname_even_when_route_hostname_matches() 
             metadata: BTreeMap::new(),
         }],
         stream_routes: vec![StreamRoute {
-            name: "wildcard-route".to_string(),
-            namespace: "default".to_string(),
+            name: "wildcard-route".to_string().into(),
+            namespace: "default".to_string().into(),
             kind: "ROUTE_KIND_TLS".to_string(),
             parent_refs: vec![],
             rules: vec![StreamRule {
@@ -31,9 +31,9 @@ fn rejects_tls_sni_outside_listener_hostname_even_when_route_hostname_matches() 
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
-            name: "tls-upstream:8443".to_string(),
-            namespace: "default".to_string(),
-            protocol: "TCP".to_string(),
+            name: "tls-upstream:8443".to_string().into(),
+            namespace: "default".to_string().into(),
+            protocol: "TCP".to_string().into(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.40".to_string(),
                 port: 8443,

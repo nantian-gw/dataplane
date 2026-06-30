@@ -28,10 +28,10 @@ fn falls_back_to_default_listener_when_snapshot_has_no_l7_listeners() {
 fn uses_runtime_bind_address_for_plain_http_listeners() {
     let snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/http".to_string(),
+            name: "default/gw/http".to_string().into(),
             address: "0.0.0.0".to_string(),
             port: 80,
-            protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+            protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
             ..Listener::default()
         }],
         ..Snapshot::default()
@@ -80,11 +80,11 @@ fn plain_http_server_options_apply_keepalive_request_limit() {
 fn binds_all_listener_addresses_from_field() {
     let snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/http".to_string(),
+            name: "default/gw/http".to_string().into(),
             address: "192.0.2.10".to_string(),
             addresses: vec!["192.0.2.10".to_string(), "2001:db8::10".to_string()],
             port: 80,
-            protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+            protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
             ..Listener::default()
         }],
         ..Snapshot::default()
@@ -115,10 +115,10 @@ fn falls_back_to_listener_addresses_metadata() {
 
     let snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/http".to_string(),
+            name: "default/gw/http".to_string().into(),
             address: "192.0.2.10".to_string(),
             port: 80,
-            protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+            protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
             metadata,
             ..Listener::default()
         }],
@@ -145,17 +145,17 @@ fn preserves_distinct_plain_http_listener_ports() {
     let snapshot = Snapshot {
         listeners: vec![
             Listener {
-                name: "default/gw/http".to_string(),
+                name: "default/gw/http".to_string().into(),
                 address: "0.0.0.0".to_string(),
                 port: 80,
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
                 ..Listener::default()
             },
             Listener {
-                name: "default/gw/http-8080".to_string(),
+                name: "default/gw/http-8080".to_string().into(),
                 address: "0.0.0.0".to_string(),
                 port: 8080,
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
                 ..Listener::default()
             },
         ],
@@ -184,10 +184,10 @@ fn preserves_distinct_plain_http_listener_ports() {
 fn listener_port_hint_uses_common_dual_stack_bind_port() {
     let snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/http".to_string(),
+            name: "default/gw/http".to_string().into(),
             address: "0.0.0.0".to_string(),
             port: 80,
-            protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+            protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
             ..Listener::default()
         }],
         ..Snapshot::default()
@@ -212,17 +212,17 @@ fn listener_port_hint_is_absent_for_mixed_listener_ports() {
     let snapshot = Snapshot {
         listeners: vec![
             Listener {
-                name: "default/gw/http".to_string(),
+                name: "default/gw/http".to_string().into(),
                 address: "0.0.0.0".to_string(),
                 port: 80,
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
                 ..Listener::default()
             },
             Listener {
-                name: "default/gw/http-alt".to_string(),
+                name: "default/gw/http-alt".to_string().into(),
                 address: "0.0.0.0".to_string(),
                 port: 8080,
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
                 ..Listener::default()
             },
         ],

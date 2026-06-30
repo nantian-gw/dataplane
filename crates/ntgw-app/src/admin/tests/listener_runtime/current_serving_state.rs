@@ -4,13 +4,13 @@ fn listener_runtime_status_tracks_retained_current_version() {
         id: "v2".to_string(),
         listeners: vec![
             Listener {
-                name: "web".to_string(),
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+                name: "web".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
                 ..Listener::default()
             },
             Listener {
-                name: "api".to_string(),
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+                name: "api".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
                 ..Listener::default()
             },
         ],
@@ -80,8 +80,8 @@ fn listener_runtime_status_marks_serving_last_good_snapshot_after_rejection() {
     let snapshot = Snapshot {
         id: "v2".to_string(),
         listeners: vec![Listener {
-            name: "web".to_string(),
-            protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+            name: "web".to_string().into(),
+            protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
             ..Listener::default()
         }],
         ..Snapshot::default()
@@ -123,8 +123,8 @@ fn listener_runtime_status_marks_stale_when_last_good_lags_snapshot() {
     let snapshot = Snapshot {
         id: "v2".to_string(),
         listeners: vec![Listener {
-            name: "web".to_string(),
-            protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+            name: "web".to_string().into(),
+            protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
             ..Listener::default()
         }],
         ..Snapshot::default()

@@ -76,9 +76,9 @@ fn sample_runtime_snapshot() -> Snapshot {
         backends: vec![BackendCluster {
             ai_service: None,
             token_policy: None,
-            name: "orders:8443".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTPS".to_string(),
+            name: "orders:8443".to_string().into(),
+            namespace: "default".to_string().into(),
+            protocol: "HTTPS".to_string().into(),
             endpoints: vec![
                 BackendEndpoint {
                     address: "10.0.0.10".to_string(),

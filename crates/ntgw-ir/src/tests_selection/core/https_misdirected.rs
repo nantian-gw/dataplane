@@ -82,9 +82,9 @@ fn https_misdirected_request_ignores_plain_http_and_missing_sni() {
     let mut snapshot = Snapshot {
         listeners: vec![
             Listener {
-                name: "default/gw/http".to_string(),
+                name: "default/gw/http".to_string().into(),
                 port: 80,
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
                 hostnames: vec!["example.org".to_string()],
                 ..Listener::default()
             },
@@ -123,9 +123,9 @@ fn https_misdirected_request_scores_only_https_listeners() {
                 vec!["*.example.org"],
             ),
             Listener {
-                name: "default/gw/plain-http-same-port".to_string(),
+                name: "default/gw/plain-http-same-port".to_string().into(),
                 port: 443,
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
                 hostnames: vec!["api.example.org".to_string()],
                 ..Listener::default()
             },
@@ -146,9 +146,9 @@ fn https_misdirected_request_scores_only_https_listeners() {
 
 fn https_listener(name: &str, port: u32, hostnames: Vec<&str>) -> Listener {
     Listener {
-        name: name.to_string(),
+        name: name.to_string().into(),
         port,
-        protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
+        protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
         hostnames: hostnames.into_iter().map(str::to_string).collect(),
         ..Listener::default()
     }

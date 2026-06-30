@@ -9,7 +9,7 @@ fn apply_response_filters_only_uses_response_header_modifiers() {
                 filter_type: "RequestHeaderModifier".to_string(),
                 header_modifier: Some(HeaderModifier {
                     set: vec![HeaderOperation {
-                        name: "x-ignore".to_string(),
+                        name: "x-ignore".to_string().into(),
                         value: "no".to_string(),
                     }],
                     ..HeaderModifier::default()
@@ -20,7 +20,7 @@ fn apply_response_filters_only_uses_response_header_modifiers() {
                 filter_type: "ResponseHeaderModifier".to_string(),
                 header_modifier: Some(HeaderModifier {
                     set: vec![HeaderOperation {
-                        name: "x-response".to_string(),
+                        name: "x-response".to_string().into(),
                         value: "ok".to_string(),
                     }],
                     ..HeaderModifier::default()

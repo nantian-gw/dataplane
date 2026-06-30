@@ -3,7 +3,7 @@ fn listener_updates_restart_when_same_secret_ref_certificate_material_rotates() 
     let active = BTreeMap::from([(
         "0.0.0.0:443".to_string(),
         PlannedListener {
-            name: "default/gw/https".to_string(),
+            name: "default/gw/https".to_string().into(),
             bind: "0.0.0.0:443".to_string(),
             protocol: ListenerProtocol::Tls(single_tls_material(
                 "default/example-cert",
@@ -14,7 +14,7 @@ fn listener_updates_restart_when_same_secret_ref_certificate_material_rotates() 
         },
     )]);
     let desired_listener = PlannedListener {
-        name: "default/gw/https".to_string(),
+        name: "default/gw/https".to_string().into(),
         bind: "0.0.0.0:443".to_string(),
         protocol: ListenerProtocol::Tls(single_tls_material(
             "default/example-cert",
@@ -46,10 +46,10 @@ fn listener_updates_restart_when_secondary_certificate_ref_material_rotates() {
 
     let initial = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/https".to_string(),
+            name: "default/gw/https".to_string().into(),
             address: "0.0.0.0".to_string(),
             port: 443,
-            protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
+            protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
             tls: Some(TlsConfig {
                 enabled: true,
                 passthrough: false,
@@ -67,8 +67,8 @@ fn listener_updates_restart_when_secondary_certificate_ref_material_rotates() {
         secrets: vec![
             example_secret_material(),
             SecretMaterial {
-                namespace: "default".to_string(),
-                name: "backup-cert".to_string(),
+                namespace: "default".to_string().into(),
+                name: "backup-cert".to_string().into(),
                 cert_pem: SECONDARY_CERT_PEM.to_string(),
                 key_pem: SECONDARY_KEY_PEM.to_string(),
             },
@@ -80,8 +80,8 @@ fn listener_updates_restart_when_secondary_certificate_ref_material_rotates() {
         secrets: vec![
             example_secret_material(),
             SecretMaterial {
-                namespace: "default".to_string(),
-                name: "backup-cert".to_string(),
+                namespace: "default".to_string().into(),
+                name: "backup-cert".to_string().into(),
                 cert_pem: VALID_SERVER_CERT_PEM.to_string(),
                 key_pem: VALID_SERVER_KEY_PEM.to_string(),
             },
@@ -114,7 +114,7 @@ fn listener_updates_restart_when_frontend_validation_bundle_rotates() {
     let active = BTreeMap::from([(
         "0.0.0.0:443".to_string(),
         PlannedListener {
-            name: "default/gw/https".to_string(),
+            name: "default/gw/https".to_string().into(),
             bind: "0.0.0.0:443".to_string(),
             protocol: ListenerProtocol::Tls(single_tls_material(
                 "default/example-cert",
@@ -125,7 +125,7 @@ fn listener_updates_restart_when_frontend_validation_bundle_rotates() {
         },
     )]);
     let desired_listener = PlannedListener {
-        name: "default/gw/https".to_string(),
+        name: "default/gw/https".to_string().into(),
         bind: "0.0.0.0:443".to_string(),
         protocol: ListenerProtocol::Tls(single_tls_material(
             "default/example-cert",

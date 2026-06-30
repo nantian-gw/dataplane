@@ -5,7 +5,7 @@ async fn traffic_view_returns_observed_flow_stats() {
     let state = test_state(Some("top-secret"));
     state.traffic.observe(TrafficObservation {
         listener_name: "web".to_string(),
-        protocol: "HTTP".to_string(),
+        protocol: "HTTP".to_string().into(),
         route_namespace: "default".to_string(),
         route_name: "web".to_string(),
         route_kind: "Http".to_string(),
@@ -136,7 +136,7 @@ async fn traffic_view_nodes_expose_runtime_refs() {
     );
     state.traffic.observe(TrafficObservation {
         listener_name: "web".to_string(),
-        protocol: "HTTP".to_string(),
+        protocol: "HTTP".to_string().into(),
         route_namespace: "default".to_string(),
         route_name: "web".to_string(),
         route_kind: "Http".to_string(),

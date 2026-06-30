@@ -804,9 +804,9 @@ mod tests {
     fn collect_http_backend_candidates_preserves_backend_names() {
         let snapshot = Snapshot {
             backends: vec![BackendCluster {
-                name: "orders:8080".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "orders:8080".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.10".to_string(),
                     port: 8080,
@@ -821,8 +821,8 @@ mod tests {
             ..Snapshot::default()
         };
         let refs = vec![BackendRef {
-            namespace: "default".to_string(),
-            name: "orders".to_string(),
+            namespace: "default".to_string().into(),
+            name: "orders".to_string().into(),
             port: 8080,
             weight: 1,
             ..BackendRef::default()
@@ -842,9 +842,9 @@ mod tests {
         let snapshot = Snapshot {
             backends: vec![
                 BackendCluster {
-                    name: "users:8080".to_string(),
-                    namespace: "default".to_string(),
-                    protocol: "HTTP".to_string(),
+                    name: "users:8080".to_string().into(),
+                    namespace: "default".to_string().into(),
+                    protocol: "HTTP".to_string().into(),
                     endpoints: vec![BackendEndpoint {
                         address: "10.0.0.10".to_string(),
                         port: 8080,
@@ -857,9 +857,9 @@ mod tests {
                     circuit_breaker: None,
                 },
                 BackendCluster {
-                    name: "orders:8081".to_string(),
-                    namespace: "default".to_string(),
-                    protocol: "HTTP".to_string(),
+                    name: "orders:8081".to_string().into(),
+                    namespace: "default".to_string().into(),
+                    protocol: "HTTP".to_string().into(),
                     endpoints: vec![BackendEndpoint {
                         address: "10.0.0.11".to_string(),
                         port: 8081,
@@ -872,9 +872,9 @@ mod tests {
                     circuit_breaker: None,
                 },
                 BackendCluster {
-                    name: "payments:8082".to_string(),
-                    namespace: "default".to_string(),
-                    protocol: "HTTP".to_string(),
+                    name: "payments:8082".to_string().into(),
+                    namespace: "default".to_string().into(),
+                    protocol: "HTTP".to_string().into(),
                     endpoints: vec![BackendEndpoint {
                         address: "10.0.0.12".to_string(),
                         port: 8082,
@@ -891,22 +891,22 @@ mod tests {
         };
         let refs = vec![
             BackendRef {
-                namespace: "default".to_string(),
-                name: "users".to_string(),
+                namespace: "default".to_string().into(),
+                name: "users".to_string().into(),
                 port: 8080,
                 weight: 2,
                 ..BackendRef::default()
             },
             BackendRef {
-                namespace: "default".to_string(),
-                name: "ignored-zero".to_string(),
+                namespace: "default".to_string().into(),
+                name: "ignored-zero".to_string().into(),
                 port: 8088,
                 weight: 0,
                 ..BackendRef::default()
             },
             BackendRef {
-                namespace: "default".to_string(),
-                name: "invalid".to_string(),
+                namespace: "default".to_string().into(),
+                name: "invalid".to_string().into(),
                 port: 8089,
                 weight: 1,
                 metadata: BTreeMap::from([(
@@ -916,15 +916,15 @@ mod tests {
                 ..BackendRef::default()
             },
             BackendRef {
-                namespace: "default".to_string(),
-                name: "orders".to_string(),
+                namespace: "default".to_string().into(),
+                name: "orders".to_string().into(),
                 port: 8081,
                 weight: 4,
                 ..BackendRef::default()
             },
             BackendRef {
-                namespace: "default".to_string(),
-                name: "payments".to_string(),
+                namespace: "default".to_string().into(),
+                name: "payments".to_string().into(),
                 port: 8082,
                 weight: 3,
                 ..BackendRef::default()
@@ -999,9 +999,9 @@ mod tests {
     fn visit_http_backend_candidates_borrows_indexed_backend_names() {
         let mut snapshot = Snapshot {
             backends: vec![BackendCluster {
-                name: "users:8080".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "users:8080".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.10".to_string(),
                     port: 8080,
@@ -1017,8 +1017,8 @@ mod tests {
         };
         snapshot.rebuild_runtime_indexes();
         let refs = vec![BackendRef {
-            namespace: "default".to_string(),
-            name: "users".to_string(),
+            namespace: "default".to_string().into(),
+            name: "users".to_string().into(),
             port: 8080,
             weight: 1,
             ..BackendRef::default()

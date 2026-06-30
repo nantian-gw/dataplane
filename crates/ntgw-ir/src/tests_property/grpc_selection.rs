@@ -9,8 +9,8 @@ proptest! {
         let service = service_segments.join(".");
         let snapshot = Snapshot {
             grpc_routes: vec![GrpcRoute {
-                name: "generated-grpc".to_string(),
-                namespace: "default".to_string(),
+                name: "generated-grpc".to_string().into(),
+                namespace: "default".to_string().into(),
                 hostnames: vec!["grpc.example.com".to_string()],
                 parent_refs: vec![],
                 rules: vec![GrpcRule {
@@ -35,9 +35,9 @@ proptest! {
                 annotations: std::collections::BTreeMap::new(),
             }],
             backends: vec![BackendCluster {
-                name: "generated:8080".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "generated:8080".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.10".to_string(),
                     port: 8080,

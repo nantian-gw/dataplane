@@ -2,8 +2,8 @@
 fn active_probe_failure_threshold_temporarily_removes_endpoint_from_rotation() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "route".to_string(),
-            namespace: "default".to_string(),
+            name: "route".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -19,9 +19,9 @@ fn active_probe_failure_threshold_temporarily_removes_endpoint_from_rotation() {
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
-            name: "echo:8080".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTP".to_string(),
+            name: "echo:8080".to_string().into(),
+            namespace: "default".to_string().into(),
+            protocol: "HTTP".to_string().into(),
             endpoints: vec![
                 BackendEndpoint {
                     address: "10.0.0.10".to_string(),
@@ -85,8 +85,8 @@ fn active_probe_failure_threshold_temporarily_removes_endpoint_from_rotation() {
 fn active_probe_flapping_below_threshold_keeps_endpoint_in_rotation() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "route".to_string(),
-            namespace: "default".to_string(),
+            name: "route".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -102,9 +102,9 @@ fn active_probe_flapping_below_threshold_keeps_endpoint_in_rotation() {
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
-            name: "echo:8080".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTP".to_string(),
+            name: "echo:8080".to_string().into(),
+            namespace: "default".to_string().into(),
+            protocol: "HTTP".to_string().into(),
             endpoints: vec![
                 BackendEndpoint {
                     address: "10.0.0.10".to_string(),
@@ -166,8 +166,8 @@ fn active_probe_flapping_below_threshold_keeps_endpoint_in_rotation() {
 fn all_active_unhealthy_endpoints_return_after_probe_recovery() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "route".to_string(),
-            namespace: "default".to_string(),
+            name: "route".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -183,9 +183,9 @@ fn all_active_unhealthy_endpoints_return_after_probe_recovery() {
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
-            name: "echo:8080".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTP".to_string(),
+            name: "echo:8080".to_string().into(),
+            namespace: "default".to_string().into(),
+            protocol: "HTTP".to_string().into(),
             endpoints: vec![
                 BackendEndpoint {
                     address: "10.0.0.10".to_string(),

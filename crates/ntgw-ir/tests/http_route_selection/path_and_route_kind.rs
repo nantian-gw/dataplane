@@ -10,8 +10,8 @@ fn selects_exact_path_before_prefix_match() {
         )],
         http_routes: vec![
             HttpRoute {
-                name: "prefix-route".to_string(),
-                namespace: "default".to_string(),
+                name: "prefix-route".to_string().into(),
+                namespace: "default".to_string().into(),
                 hostnames: vec!["api.example.com".to_string()],
                 parent_refs: vec![],
                 rules: vec![path_rule("/orders", "default", "orders-prefix", 8080)],
@@ -19,8 +19,8 @@ fn selects_exact_path_before_prefix_match() {
                 annotations: BTreeMap::new(),
             },
             HttpRoute {
-                name: "exact-route".to_string(),
-                namespace: "default".to_string(),
+                name: "exact-route".to_string().into(),
+                namespace: "default".to_string().into(),
                 hostnames: vec!["api.example.com".to_string()],
                 parent_refs: vec![],
                 rules: vec![HttpRule {
@@ -69,8 +69,8 @@ fn http_and_grpc_routes_on_same_listener_are_selected_by_request_type() {
             &["default/http-route", "default/grpc-route"],
         )],
         http_routes: vec![HttpRoute {
-            name: "http-route".to_string(),
-            namespace: "default".to_string(),
+            name: "http-route".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -90,8 +90,8 @@ fn http_and_grpc_routes_on_same_listener_are_selected_by_request_type() {
             annotations: BTreeMap::new(),
         }],
         grpc_routes: vec![GrpcRoute {
-            name: "grpc-route".to_string(),
-            namespace: "default".to_string(),
+            name: "grpc-route".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![GrpcRule {

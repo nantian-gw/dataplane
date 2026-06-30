@@ -4,13 +4,13 @@ fn listener_runtime_status_tracks_owning_runtime_plane() {
         id: "v1".to_string(),
         listeners: vec![
             Listener {
-                name: "web".to_string(),
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+                name: "web".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
                 ..Listener::default()
             },
             Listener {
-                name: "tcp".to_string(),
-                protocol: "LISTENER_PROTOCOL_TCP".to_string(),
+                name: "tcp".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_TCP".to_string().into(),
                 ..Listener::default()
             },
         ],
@@ -111,13 +111,13 @@ fn listener_runtime_status_tracks_shared_tls_plane() {
         id: "v1".to_string(),
         listeners: vec![
             Listener {
-                name: "https".to_string(),
-                protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
+                name: "https".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
                 ..Listener::default()
             },
             Listener {
-                name: "passthrough".to_string(),
-                protocol: "LISTENER_PROTOCOL_TLS_PASSTHROUGH".to_string(),
+                name: "passthrough".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_TLS_PASSTHROUGH".to_string().into(),
                 ..Listener::default()
             },
         ],

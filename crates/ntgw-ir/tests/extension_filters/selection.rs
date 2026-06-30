@@ -4,8 +4,8 @@ use super::*;
 fn selects_http_route_with_direct_response_without_backend() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "orders".to_string(),
-            namespace: "default".to_string(),
+            name: "orders".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {

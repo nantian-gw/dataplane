@@ -116,11 +116,11 @@ fn reloadable_config(tcp_proxy_buffer_bytes: usize) -> ReloadableRuntimeConfig {
 
 fn tcp_listener(port: u16) -> Listener {
     Listener {
-        name: "default/gw/tcp".to_string(),
+        name: "default/gw/tcp".to_string().into(),
         address: "127.0.0.1".to_string(),
         addresses: vec!["127.0.0.1".to_string()],
         port: u32::from(port),
-        protocol: "LISTENER_PROTOCOL_TCP".to_string(),
+        protocol: "LISTENER_PROTOCOL_TCP".to_string().into(),
         attached_routes: vec!["default/tcp-route".to_string()],
         ..Listener::default()
     }
@@ -136,8 +136,8 @@ fn tcp_snapshot(
         id: version.to_string(),
         listeners: vec![listener.clone()],
         stream_routes: vec![ntgw_ir::StreamRoute {
-            name: "tcp-route".to_string(),
-            namespace: "default".to_string(),
+            name: "tcp-route".to_string().into(),
+            namespace: "default".to_string().into(),
             kind: "ROUTE_KIND_TCP".to_string(),
             parent_refs: Vec::new(),
             rules: vec![ntgw_ir::StreamRule {
@@ -148,8 +148,8 @@ fn tcp_snapshot(
                     mode: ntgw_ir::TlsRouteMode::default(),
                 }],
                 backend_refs: vec![ntgw_ir::BackendRef {
-                    namespace: "default".to_string(),
-                    name: backend_name.to_string(),
+                    namespace: "default".to_string().into(),
+                    name: backend_name.to_string().into(),
                     port: upstream_addr.port() as u32,
                     ..ntgw_ir::BackendRef::default()
                 }],
@@ -160,9 +160,9 @@ fn tcp_snapshot(
         backends: vec![ntgw_ir::BackendCluster {
             ai_service: None,
             token_policy: None,
-            name: format!("{backend_name}:{}", upstream_addr.port()),
-            namespace: "default".to_string(),
-            protocol: "TCP".to_string(),
+            name: format!("{backend_name}:{}", upstream_addr.port()).into(),
+            namespace: "default".to_string().into(),
+            protocol: "TCP".to_string().into(),
             endpoints: vec![ntgw_ir::BackendEndpoint {
                 address: upstream_addr.ip().to_string(),
                 port: upstream_addr.port() as u32,

@@ -2,9 +2,9 @@
 fn selects_request_mirror_backend_and_strips_mirror_filter() {
     let snapshot = Snapshot {
         backends: vec![BackendCluster {
-            name: "shadow:8081".to_string(),
-            namespace: "observability".to_string(),
-            protocol: "HTTP".to_string(),
+            name: "shadow:8081".to_string().into(),
+            namespace: "observability".to_string().into(),
+            protocol: "HTTP".to_string().into(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.60".to_string(),
                 port: 8081,
@@ -29,8 +29,8 @@ fn selects_request_mirror_backend_and_strips_mirror_filter() {
                     filter_type: "RequestMirror".to_string(),
                     request_mirror: Some(crate::RequestMirrorFilter {
                         backend_ref: BackendRef {
-                            namespace: "observability".to_string(),
-                            name: "shadow".to_string(),
+                            namespace: "observability".to_string().into(),
+                            name: "shadow".to_string().into(),
                             port: 8081,
                             ..BackendRef::default()
                         },

@@ -2,21 +2,21 @@ fn grpc_h2c_snapshot(listener_port: u16, backend_port: u32) -> ntgw_ir::SharedSn
     let shared = Snapshot::shared();
     shared.store(Arc::new(Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/http".to_string(),
+            name: "default/gw/http".to_string().into(),
             address: "127.0.0.1".to_string(),
             addresses: vec!["127.0.0.1".to_string()],
             port: listener_port as u32,
-            protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+            protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
             attached_routes: vec!["default/grpc-route".to_string()],
             ..Listener::default()
         }],
         grpc_routes: vec![GrpcRoute {
-            name: "grpc-route".to_string(),
-            namespace: "default".to_string(),
+            name: "grpc-route".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: Vec::new(),
             parent_refs: vec![ParentRef {
-                namespace: "default".to_string(),
-                name: "gw".to_string(),
+                namespace: "default".to_string().into(),
+                name: "gw".to_string().into(),
                 section_name: String::new(),
                 port: listener_port as u32,
                 ..ParentRef::default()
@@ -29,8 +29,8 @@ fn grpc_h2c_snapshot(listener_port: u16, backend_port: u32) -> ntgw_ir::SharedSn
                     ..GrpcMatch::default()
                 }],
                 backend_refs: vec![BackendRef {
-                    namespace: "default".to_string(),
-                    name: "grpc-backend".to_string(),
+                    namespace: "default".to_string().into(),
+                    name: "grpc-backend".to_string().into(),
                     port: backend_port,
                     ..BackendRef::default()
                 }],
@@ -42,9 +42,9 @@ fn grpc_h2c_snapshot(listener_port: u16, backend_port: u32) -> ntgw_ir::SharedSn
         backends: vec![BackendCluster {
             ai_service: None,
             token_policy: None,
-            name: format!("grpc-backend:{backend_port}"),
-            namespace: "default".to_string(),
-            protocol: "GRPC".to_string(),
+            name: format!("grpc-backend:{backend_port}").into(),
+            namespace: "default".to_string().into(),
+            protocol: "GRPC".to_string().into(),
             endpoints: vec![BackendEndpoint {
                 address: "127.0.0.1".to_string(),
                 port: backend_port,

@@ -32,7 +32,7 @@ fn ensure_supported_filters_allows_known_types() {
         Filter {
             filter_type: "ExternalAuth".to_string(),
             external_auth: Some(ntgw_ir::ExternalAuthFilter {
-                protocol: "HTTP".to_string(),
+                protocol: "HTTP".to_string().into(),
                 ..ntgw_ir::ExternalAuthFilter::default()
             }),
             ..Filter::default()
@@ -40,7 +40,7 @@ fn ensure_supported_filters_allows_known_types() {
         Filter {
             filter_type: "ExternalAuth".to_string(),
             external_auth: Some(ntgw_ir::ExternalAuthFilter {
-                protocol: "GRPC".to_string(),
+                protocol: "GRPC".to_string().into(),
                 ..ntgw_ir::ExternalAuthFilter::default()
             }),
             ..Filter::default()
@@ -55,7 +55,7 @@ fn ensure_supported_filters_allows_external_auth_forward_body() {
     let result = ensure_supported_filters(&[Filter {
         filter_type: "ExternalAuth".to_string(),
         external_auth: Some(ntgw_ir::ExternalAuthFilter {
-            protocol: "HTTP".to_string(),
+            protocol: "HTTP".to_string().into(),
             forward_body_max_size: Some(1),
             ..ntgw_ir::ExternalAuthFilter::default()
         }),

@@ -3,9 +3,9 @@ fn does_not_fall_back_for_mesh_http_service_request_without_routes() {
     let snapshot = Snapshot {
         backends: vec![
             BackendCluster {
-                name: "echo-v1:8080".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "echo-v1:8080".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.21".to_string(),
                     port: 8080,
@@ -17,9 +17,9 @@ fn does_not_fall_back_for_mesh_http_service_request_without_routes() {
             
                 circuit_breaker: None,},
             BackendCluster {
-                name: "echo:8080".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "echo:8080".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.22".to_string(),
                     port: 8080,
@@ -32,8 +32,8 @@ fn does_not_fall_back_for_mesh_http_service_request_without_routes() {
                 circuit_breaker: None,},
         ],
         workloads: vec![Workload {
-            namespace: "default".to_string(),
-            name: "client".to_string(),
+            namespace: "default".to_string().into(),
+            name: "client".to_string().into(),
             ip: "10.1.2.4".to_string(),
         }],
         ..Snapshot::default()

@@ -2,8 +2,8 @@
 fn prefers_http_persistent_session_backend_over_weighted_selection() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "route".to_string(),
-            namespace: "default".to_string(),
+            name: "route".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -23,9 +23,9 @@ fn prefers_http_persistent_session_backend_over_weighted_selection() {
         }],
         backends: vec![
             BackendCluster {
-                name: "users:8080".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "users:8080".into(),
+                namespace: "default".into(),
+                protocol: "HTTP".into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.10".to_string(),
                     port: 8080,
@@ -37,9 +37,9 @@ fn prefers_http_persistent_session_backend_over_weighted_selection() {
             
                 circuit_breaker: None,},
             BackendCluster {
-                name: "orders:8081".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "orders:8081".into(),
+                namespace: "default".into(),
+                protocol: "HTTP".into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.11".to_string(),
                     port: 8081,
@@ -75,8 +75,8 @@ fn prefers_http_persistent_session_backend_over_weighted_selection() {
 fn falls_back_to_weighted_selection_when_session_target_is_unavailable() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "route".to_string(),
-            namespace: "default".to_string(),
+            name: "route".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -96,9 +96,9 @@ fn falls_back_to_weighted_selection_when_session_target_is_unavailable() {
         }],
         backends: vec![
             BackendCluster {
-                name: "users:8080".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "users:8080".into(),
+                namespace: "default".into(),
+                protocol: "HTTP".into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.10".to_string(),
                     port: 8080,
@@ -110,9 +110,9 @@ fn falls_back_to_weighted_selection_when_session_target_is_unavailable() {
             
                 circuit_breaker: None,},
             BackendCluster {
-                name: "orders:8081".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "orders:8081".into(),
+                namespace: "default".into(),
+                protocol: "HTTP".into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.11".to_string(),
                     port: 8081,

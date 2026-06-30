@@ -3,10 +3,10 @@ fn build_listener_plan_allows_frontend_validation_with_unvalidated_listener_on_s
     let snapshot = Snapshot {
         listeners: vec![
             Listener {
-                name: "default/gw/https-strict".to_string(),
+                name: "default/gw/https-strict".to_string().into(),
                 address: "0.0.0.0".to_string(),
                 port: 443,
-                protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
                 tls: Some(TlsConfig {
                     enabled: true,
                     passthrough: false,
@@ -22,10 +22,10 @@ fn build_listener_plan_allows_frontend_validation_with_unvalidated_listener_on_s
                 ..Listener::default()
             },
             Listener {
-                name: "default/gw/https-unvalidated".to_string(),
+                name: "default/gw/https-unvalidated".to_string().into(),
                 address: "0.0.0.0".to_string(),
                 port: 443,
-                protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
                 tls: Some(TlsConfig {
                     enabled: true,
                     passthrough: false,
@@ -71,10 +71,10 @@ fn build_listener_plan_rejects_incompatible_frontend_validation_on_same_bind() {
     let snapshot = Snapshot {
         listeners: vec![
             Listener {
-                name: "default/gw/https-strict".to_string(),
+                name: "default/gw/https-strict".to_string().into(),
                 address: "0.0.0.0".to_string(),
                 port: 443,
-                protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
                 tls: Some(TlsConfig {
                     enabled: true,
                     passthrough: false,
@@ -90,10 +90,10 @@ fn build_listener_plan_rejects_incompatible_frontend_validation_on_same_bind() {
                 ..Listener::default()
             },
             Listener {
-                name: "default/gw/https-fallback".to_string(),
+                name: "default/gw/https-fallback".to_string().into(),
                 address: "0.0.0.0".to_string(),
                 port: 443,
-                protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
                 tls: Some(TlsConfig {
                     enabled: true,
                     passthrough: false,

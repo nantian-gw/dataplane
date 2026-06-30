@@ -22,7 +22,7 @@ fn materialized_tls_assets_use_owner_only_permissions() {
         .join(super::listener_plan::unique_asset_dir_name());
     let plan = ListenerPlan {
         listeners: vec![PlannedListener {
-            name: "default/gw/https".to_string(),
+            name: "default/gw/https".to_string().into(),
             bind: "127.0.0.1:443".to_string(),
             protocol: ListenerProtocol::Tls(single_tls_material(
                 "default/example-cert",
@@ -77,7 +77,7 @@ fn skips_tls_listener_without_primary_identity_when_materializing_runtime_plan()
         .join(super::listener_plan::unique_asset_dir_name());
     let plan = ListenerPlan {
         listeners: vec![PlannedListener {
-            name: "default/gw/https".to_string(),
+            name: "default/gw/https".to_string().into(),
             bind: "127.0.0.1:443".to_string(),
             protocol: ListenerProtocol::Tls(super::TlsMaterial {
                 identities: Vec::new(),

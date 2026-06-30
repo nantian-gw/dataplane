@@ -3,11 +3,11 @@ use super::*;
 #[test]
 fn stream_listener_plan_ignores_non_topology_listener_changes() {
     let base = Listener {
-        name: "default/gw/tcp".to_string(),
+        name: "default/gw/tcp".to_string().into(),
         address: "127.0.0.1".to_string(),
         addresses: vec!["127.0.0.1".to_string()],
         port: 9000,
-        protocol: "LISTENER_PROTOCOL_TCP".to_string(),
+        protocol: "LISTENER_PROTOCOL_TCP".to_string().into(),
         attached_routes: vec!["default/route-a".to_string()],
         ..Listener::default()
     };
@@ -32,11 +32,11 @@ fn stream_listener_plan_ignores_non_topology_listener_changes() {
 #[test]
 fn stream_listener_plan_changes_when_bind_changes() {
     let tcp = Listener {
-        name: "default/gw/stream".to_string(),
+        name: "default/gw/stream".to_string().into(),
         address: "127.0.0.1".to_string(),
         addresses: vec!["127.0.0.1".to_string()],
         port: 9000,
-        protocol: "LISTENER_PROTOCOL_TCP".to_string(),
+        protocol: "LISTENER_PROTOCOL_TCP".to_string().into(),
         metadata: BTreeMap::new(),
         ..Listener::default()
     };
@@ -62,10 +62,10 @@ fn stream_listener_plan_changes_when_bind_changes() {
 fn build_listener_plan_ignores_tls_passthrough_listeners() {
     let snapshot = ntgw_ir::Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/tls".to_string(),
+            name: "default/gw/tls".to_string().into(),
             address: "127.0.0.1".to_string(),
             port: 443,
-            protocol: "LISTENER_PROTOCOL_TLS_PASSTHROUGH".to_string(),
+            protocol: "LISTENER_PROTOCOL_TLS_PASSTHROUGH".to_string().into(),
             ..Listener::default()
         }],
         ..ntgw_ir::Snapshot::default()

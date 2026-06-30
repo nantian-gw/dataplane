@@ -4,8 +4,8 @@ fn decodes_backend_load_balancing_from_proto() {
         backends: vec![proto::BackendCluster {
             ai_service: None,
             token_policy: None,
-            name: "orders:8080".to_string(),
-            namespace: "default".to_string(),
+            name: "orders:8080".to_string().into(),
+            namespace: "default".to_string().into(),
             load_balancing: Some(proto::LoadBalancingPolicy {
                 r#type: proto::LoadBalancingPolicyType::ConsistentHash as i32,
                 consistent_hash: Some(proto::ConsistentHashPolicy {

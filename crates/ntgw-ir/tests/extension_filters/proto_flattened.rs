@@ -7,9 +7,8 @@ fn decodes_flattened_extension_ref_direct_response_from_proto() {
         generated_at: None,
         listeners: vec![],
         http_routes: vec![proto::HttpRoute {
-            route_policy: None,
-            name: "orders".to_string(),
-            namespace: "default".to_string(),
+            name: "orders".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["example.com".to_string()],
             parent_refs: vec![],
             rules: vec![proto::HttpRule {

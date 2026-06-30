@@ -64,7 +64,7 @@ fn resolve_open_telemetry_options_rejects_unsupported_protocol() {
     let options = OpenTelemetryOptions {
         enabled: true,
         endpoint: "http://collector:4318".to_string(),
-        protocol: "http".to_string(),
+        protocol: "http".to_string().into(),
         ..OpenTelemetryOptions::default()
     };
 
@@ -78,7 +78,7 @@ fn resolve_open_telemetry_options_clamps_sample_ratio_and_preserves_identity() {
     let options = OpenTelemetryOptions {
         enabled: true,
         endpoint: "http://collector:4317".to_string(),
-        protocol: "grpc".to_string(),
+        protocol: "grpc".to_string().into(),
         timeout_ms: 4_500,
         insecure: true,
         sample_ratio: 4.0,

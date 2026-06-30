@@ -4,8 +4,8 @@ use super::*;
 fn decodes_http_session_persistence_from_proto() {
     let snapshot = Snapshot::from(proto::ConfigSnapshot {
         http_routes: vec![proto::HttpRoute {
-            name: "route".to_string(),
-            namespace: "default".to_string(),
+            name: "route".to_string().into(),
+            namespace: "default".to_string().into(),
             rules: vec![proto::HttpRule {
                 name: String::new(),
                 session_persistence: Some(proto::SessionPersistence {
@@ -53,8 +53,8 @@ fn decodes_http_session_persistence_from_proto() {
 fn decodes_backend_session_persistence_from_proto() {
     let snapshot = Snapshot::from(proto::ConfigSnapshot {
         backends: vec![proto::BackendCluster {
-            name: "orders:8080".to_string(),
-            namespace: "default".to_string(),
+            name: "orders:8080".to_string().into(),
+            namespace: "default".to_string().into(),
             session_persistence: Some(proto::SessionPersistence {
                 session_name: "sticky-backend".to_string(),
                 r#type: proto::SessionPersistenceType::Cookie as i32,

@@ -3,9 +3,9 @@ fn selects_all_request_mirrors_and_strips_mirror_filters() {
     let snapshot = Snapshot {
         backends: vec![
             BackendCluster {
-                name: "shadow-a:8081".to_string(),
-                namespace: "observability".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "shadow-a:8081".to_string().into(),
+                namespace: "observability".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.60".to_string(),
                     port: 8081,
@@ -17,9 +17,9 @@ fn selects_all_request_mirrors_and_strips_mirror_filters() {
             
                 circuit_breaker: None,},
             BackendCluster {
-                name: "shadow-b:8082".to_string(),
-                namespace: "observability".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "shadow-b:8082".to_string().into(),
+                namespace: "observability".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.61".to_string(),
                     port: 8082,
@@ -48,8 +48,8 @@ fn selects_all_request_mirrors_and_strips_mirror_filters() {
                 filter_type: "RequestMirror".to_string(),
                 request_mirror: Some(crate::RequestMirrorFilter {
                     backend_ref: BackendRef {
-                        namespace: "observability".to_string(),
-                        name: "shadow-a".to_string(),
+                        namespace: "observability".to_string().into(),
+                        name: "shadow-a".to_string().into(),
                         port: 8081,
                         ..BackendRef::default()
                     },
@@ -61,8 +61,8 @@ fn selects_all_request_mirrors_and_strips_mirror_filters() {
                 filter_type: "RequestMirror".to_string(),
                 request_mirror: Some(crate::RequestMirrorFilter {
                     backend_ref: BackendRef {
-                        namespace: "observability".to_string(),
-                        name: "shadow-b".to_string(),
+                        namespace: "observability".to_string().into(),
+                        name: "shadow-b".to_string().into(),
                         port: 8082,
                         ..BackendRef::default()
                     },
@@ -90,9 +90,9 @@ fn request_mirror_visitor_stops_after_first_selected_mirror() {
     let snapshot = Snapshot {
         backends: vec![
             BackendCluster {
-                name: "shadow-a:8081".to_string(),
-                namespace: "observability".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "shadow-a:8081".to_string().into(),
+                namespace: "observability".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.60".to_string(),
                     port: 8081,
@@ -104,9 +104,9 @@ fn request_mirror_visitor_stops_after_first_selected_mirror() {
             
                 circuit_breaker: None,},
             BackendCluster {
-                name: "shadow-b:8082".to_string(),
-                namespace: "observability".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "shadow-b:8082".to_string().into(),
+                namespace: "observability".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.61".to_string(),
                     port: 8082,
@@ -135,8 +135,8 @@ fn request_mirror_visitor_stops_after_first_selected_mirror() {
                 filter_type: "RequestMirror".to_string(),
                 request_mirror: Some(crate::RequestMirrorFilter {
                     backend_ref: BackendRef {
-                        namespace: "observability".to_string(),
-                        name: "shadow-a".to_string(),
+                        namespace: "observability".to_string().into(),
+                        name: "shadow-a".to_string().into(),
                         port: 8081,
                         ..BackendRef::default()
                     },
@@ -148,8 +148,8 @@ fn request_mirror_visitor_stops_after_first_selected_mirror() {
                 filter_type: "RequestMirror".to_string(),
                 request_mirror: Some(crate::RequestMirrorFilter {
                     backend_ref: BackendRef {
-                        namespace: "observability".to_string(),
-                        name: "shadow-b".to_string(),
+                        namespace: "observability".to_string().into(),
+                        name: "shadow-b".to_string().into(),
                         port: 8082,
                         ..BackendRef::default()
                     },

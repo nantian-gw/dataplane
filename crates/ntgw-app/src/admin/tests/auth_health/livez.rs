@@ -40,7 +40,7 @@ async fn livez_returns_service_unavailable_when_stream_runtime_exits() {
     let snapshot = Snapshot {
         id: "v-stream".to_string(),
         listeners: vec![Listener {
-            protocol: "LISTENER_PROTOCOL_TCP".to_string(),
+            protocol: "LISTENER_PROTOCOL_TCP".to_string().into(),
             ..Listener::default()
         }],
         ..Snapshot::default()

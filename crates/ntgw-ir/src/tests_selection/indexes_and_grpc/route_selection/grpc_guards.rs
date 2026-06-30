@@ -2,8 +2,8 @@
 fn does_not_select_grpc_backend_for_non_grpc_request_with_parseable_path() {
     let snapshot = Snapshot {
         grpc_routes: vec![GrpcRoute {
-            name: "grpc-catch-all".to_string(),
-            namespace: "default".to_string(),
+            name: "grpc-catch-all".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["grpc.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![GrpcRule {
@@ -17,9 +17,9 @@ fn does_not_select_grpc_backend_for_non_grpc_request_with_parseable_path() {
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
-            name: "greeter:9090".to_string(),
-            namespace: "default".to_string(),
-            protocol: "GRPC".to_string(),
+            name: "greeter:9090".to_string().into(),
+            namespace: "default".to_string().into(),
+            protocol: "GRPC".to_string().into(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.30".to_string(),
                 port: 9090,

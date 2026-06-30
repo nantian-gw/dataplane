@@ -87,11 +87,11 @@ fn cleanup_access_log(path: &Path) {
 
 fn test_listener(name: &str, port: u32, protocol: &str) -> Listener {
     Listener {
-        name: name.to_string(),
+        name: name.to_string().into(),
         address: "127.0.0.1".to_string(),
         addresses: vec!["127.0.0.1".to_string()],
         port,
-        protocol: protocol.to_string(),
+        protocol: protocol.to_string().into(),
         hostnames: Vec::new(),
         attached_routes: vec![format!("default/{}", route_name_for_listener(name))],
         tls: None,
@@ -118,16 +118,16 @@ fn test_snapshot(
     shared.store(Arc::new(Snapshot {
         listeners: vec![listener],
         stream_routes: vec![StreamRoute {
-            name: route_name.to_string(),
-            namespace: "default".to_string(),
+            name: route_name.to_string().into(),
+            namespace: "default".to_string().into(),
             kind: route_kind.to_string(),
             parent_refs: Vec::new(),
             rules: vec![StreamRule {
                 name: String::new(),
                 matches,
                 backend_refs: vec![BackendRef {
-                    namespace: "default".to_string(),
-                    name: "upstream".to_string(),
+                    namespace: "default".to_string().into(),
+                    name: "upstream".to_string().into(),
                     port: upstream_addr.port() as u32,
                     ..BackendRef::default()
                 }],
@@ -138,9 +138,9 @@ fn test_snapshot(
         backends: vec![BackendCluster {
             ai_service: None,
             token_policy: None,
-            name: format!("upstream:{}", upstream_addr.port()),
-            namespace: "default".to_string(),
-            protocol: "TCP".to_string(),
+            name: format!("upstream:{}", upstream_addr.port()).into(),
+            namespace: "default".to_string().into(),
+            protocol: "TCP".to_string().into(),
             endpoints: vec![BackendEndpoint {
                 address: upstream_addr.ip().to_string(),
                 port: upstream_addr.port() as u32,

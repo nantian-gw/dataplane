@@ -5,11 +5,11 @@ fn listener_frontend_client_certificate_lookup_uses_runtime_index_semantics() {
     let mut snapshot = Snapshot {
         listeners: vec![
             Listener {
-                name: "plain".to_string(),
+                name: "plain".to_string().into(),
                 ..Listener::default()
             },
             Listener {
-                name: "reject".to_string(),
+                name: "reject".to_string().into(),
                 tls: Some(TlsConfig {
                     frontend_validation: Some(FrontendValidation {
                         mode: "RejectClientCertificate".to_string(),
@@ -20,7 +20,7 @@ fn listener_frontend_client_certificate_lookup_uses_runtime_index_semantics() {
                 ..Listener::default()
             },
             Listener {
-                name: "strict".to_string(),
+                name: "strict".to_string().into(),
                 tls: Some(TlsConfig {
                     frontend_validation: Some(FrontendValidation {
                         ca_pems: vec!["CA".to_string()],
@@ -31,7 +31,7 @@ fn listener_frontend_client_certificate_lookup_uses_runtime_index_semantics() {
                 ..Listener::default()
             },
             Listener {
-                name: "fallback".to_string(),
+                name: "fallback".to_string().into(),
                 tls: Some(TlsConfig {
                     frontend_validation: Some(FrontendValidation {
                         ca_pems: vec!["CA".to_string()],

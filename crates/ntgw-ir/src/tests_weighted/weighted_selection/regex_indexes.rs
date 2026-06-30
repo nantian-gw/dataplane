@@ -2,8 +2,8 @@
 fn rebuild_runtime_indexes_precompiles_regex_matchers() {
     let mut snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "regex-http".to_string(),
-            namespace: "default".to_string(),
+            name: "regex-http".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -12,13 +12,13 @@ fn rebuild_runtime_indexes_precompiles_regex_matchers() {
                     path: "^/users/[0-9]+$".to_string(),
                     path_type: "RegularExpression".to_string(),
                     headers: vec![HeaderMatch {
-                        name: "X-Tenant".to_string(),
+                        name: "X-Tenant".to_string().into(),
                         value: "team-[a-z]+".to_string(),
                         match_type: "RegularExpression".to_string(),
                         ..HeaderMatch::default()
                     }],
                     query_params: vec![QueryMatch {
-                        name: "Debug".to_string(),
+                        name: "Debug".to_string().into(),
                         value: "true|false".to_string(),
                         match_type: "RegularExpression".to_string(),
                         ..QueryMatch::default()
@@ -35,8 +35,8 @@ fn rebuild_runtime_indexes_precompiles_regex_matchers() {
             annotations: BTreeMap::new(),
         }],
         grpc_routes: vec![GrpcRoute {
-            name: "regex-grpc".to_string(),
-            namespace: "default".to_string(),
+            name: "regex-grpc".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["grpc.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![GrpcRule {
@@ -46,7 +46,7 @@ fn rebuild_runtime_indexes_precompiles_regex_matchers() {
                     method: "Say(H|G).*".to_string(),
                     match_type: "RegularExpression".to_string(),
                     headers: vec![HeaderMatch {
-                        name: "X-Region".to_string(),
+                        name: "X-Region".to_string().into(),
                         value: "us-(east|west)-[0-9]+".to_string(),
                         match_type: "RegularExpression".to_string(),
                         ..HeaderMatch::default()

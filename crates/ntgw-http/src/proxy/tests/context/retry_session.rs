@@ -6,9 +6,9 @@ fn falls_back_to_first_backend() {
         backends: vec![BackendCluster {
             ai_service: None,
             token_policy: None,
-            name: "echo:8080".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTP".to_string(),
+            name: "echo:8080".to_string().into(),
+            namespace: "default".to_string().into(),
+            protocol: "HTTP".to_string().into(),
             endpoints: vec![BackendEndpoint {
                 address: "127.0.0.1".to_string(),
                 port: 8080,

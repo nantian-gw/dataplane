@@ -306,7 +306,7 @@ impl RuntimeIdIndex {
         }
 
         for backend in &snapshot.backends {
-            let backend_name = namespaced_key(backend.namespace.as_str(), backend.name.as_str());
+            let backend_name = namespaced_key(backend.namespace.as_ref(), backend.name.as_ref());
             let runtime_id = stable_runtime_id(&["backend", backend_name.as_str()]);
             index.backends.insert(backend_name.clone(), runtime_id);
             index.insert_resource_ref(

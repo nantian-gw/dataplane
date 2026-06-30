@@ -342,11 +342,11 @@ fn shared_tls_frontend_validation_snapshot(
     shared.store(Arc::new(Snapshot {
         listeners: vec![
             Listener {
-                name: "default/gw/good".to_string(),
+                name: "default/gw/good".to_string().into(),
                 address: "127.0.0.1".to_string(),
                 addresses: vec!["127.0.0.1".to_string()],
                 port: gateway_port as u32,
-                protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
                 hostnames: vec!["good.example".to_string()],
                 attached_routes: vec!["default/good".to_string()],
                 tls: Some(TlsConfig {
@@ -361,11 +361,11 @@ fn shared_tls_frontend_validation_snapshot(
                 ..Listener::default()
             },
             Listener {
-                name: "default/gw/bad".to_string(),
+                name: "default/gw/bad".to_string().into(),
                 address: "127.0.0.1".to_string(),
                 addresses: vec!["127.0.0.1".to_string()],
                 port: gateway_port as u32,
-                protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
                 hostnames: vec!["bad.example".to_string()],
                 attached_routes: vec!["default/bad".to_string()],
                 tls: Some(TlsConfig {
@@ -385,13 +385,13 @@ fn shared_tls_frontend_validation_snapshot(
         ],
         http_routes: vec![
             HttpRoute {
-                name: "good".to_string(),
-                namespace: "default".to_string(),
+                name: "good".to_string().into(),
+                namespace: "default".to_string().into(),
                 hostnames: vec!["good.example".to_string()],
                 parent_refs: vec![ParentRef {
-                    namespace: "default".to_string(),
-                    name: "gw".to_string(),
-                    section_name: "good".to_string(),
+                    namespace: "default".to_string().into(),
+                    name: "gw".to_string().into(),
+                    section_name: "good".to_string().into(),
                     port: gateway_port as u32,
                     ..ParentRef::default()
                 }],
@@ -403,8 +403,8 @@ fn shared_tls_frontend_validation_snapshot(
                         ..HttpMatch::default()
                     }],
                     backend_refs: vec![BackendRef {
-                        namespace: "default".to_string(),
-                        name: "http-backend".to_string(),
+                        namespace: "default".to_string().into(),
+                        name: "http-backend".to_string().into(),
                         port: http_backend_port as u32,
                         ..BackendRef::default()
                     }],
@@ -414,13 +414,13 @@ fn shared_tls_frontend_validation_snapshot(
                 annotations: BTreeMap::new(),
             },
             HttpRoute {
-                name: "bad".to_string(),
-                namespace: "default".to_string(),
+                name: "bad".to_string().into(),
+                namespace: "default".to_string().into(),
                 hostnames: vec!["bad.example".to_string()],
                 parent_refs: vec![ParentRef {
-                    namespace: "default".to_string(),
-                    name: "gw".to_string(),
-                    section_name: "bad".to_string(),
+                    namespace: "default".to_string().into(),
+                    name: "gw".to_string().into(),
+                    section_name: "bad".to_string().into(),
                     port: gateway_port as u32,
                     ..ParentRef::default()
                 }],
@@ -432,8 +432,8 @@ fn shared_tls_frontend_validation_snapshot(
                         ..HttpMatch::default()
                     }],
                     backend_refs: vec![BackendRef {
-                        namespace: "default".to_string(),
-                        name: "http-backend".to_string(),
+                        namespace: "default".to_string().into(),
+                        name: "http-backend".to_string().into(),
                         port: http_backend_port as u32,
                         ..BackendRef::default()
                     }],
@@ -446,9 +446,9 @@ fn shared_tls_frontend_validation_snapshot(
         backends: vec![BackendCluster {
             ai_service: None,
             token_policy: None,
-            name: format!("http-backend:{http_backend_port}"),
-            namespace: "default".to_string(),
-            protocol: "HTTP".to_string(),
+            name: format!("http-backend:{http_backend_port}").into(),
+            namespace: "default".to_string().into(),
+            protocol: "HTTP".to_string().into(),
             endpoints: vec![BackendEndpoint {
                 address: "127.0.0.1".to_string(),
                 port: http_backend_port as u32,
@@ -458,8 +458,8 @@ fn shared_tls_frontend_validation_snapshot(
         
                 circuit_breaker: None,}],
         secrets: vec![SecretMaterial {
-            namespace: "default".to_string(),
-            name: "example-cert".to_string(),
+            namespace: "default".to_string().into(),
+            name: "example-cert".to_string().into(),
             cert_pem: SERVER_CERT_PEM.to_string(),
             key_pem: SERVER_KEY_PEM.to_string(),
         }],
@@ -480,11 +480,11 @@ fn shared_tls_misdirected_snapshot(
     shared.store(Arc::new(Snapshot {
         listeners: vec![
             Listener {
-                name: "default/gw/https".to_string(),
+                name: "default/gw/https".to_string().into(),
                 address: "127.0.0.1".to_string(),
                 addresses: vec!["127.0.0.1".to_string()],
                 port: gateway_port as u32,
-                protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
                 attached_routes: vec!["default/example".to_string()],
                 tls: Some(TlsConfig {
                     enabled: true,
@@ -498,11 +498,11 @@ fn shared_tls_misdirected_snapshot(
                 ..Listener::default()
             },
             Listener {
-                name: "default/gw/https-with-hostname".to_string(),
+                name: "default/gw/https-with-hostname".to_string().into(),
                 address: "127.0.0.1".to_string(),
                 addresses: vec!["127.0.0.1".to_string()],
                 port: gateway_port as u32,
-                protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
                 hostnames: vec!["second-example.org".to_string()],
                 attached_routes: vec!["default/second".to_string()],
                 tls: Some(TlsConfig {
@@ -517,11 +517,11 @@ fn shared_tls_misdirected_snapshot(
                 ..Listener::default()
             },
             Listener {
-                name: "default/gw/tls".to_string(),
+                name: "default/gw/tls".to_string().into(),
                 address: "127.0.0.1".to_string(),
                 addresses: vec!["127.0.0.1".to_string()],
                 port: gateway_port as u32,
-                protocol: "LISTENER_PROTOCOL_TLS_PASSTHROUGH".to_string(),
+                protocol: "LISTENER_PROTOCOL_TLS_PASSTHROUGH".to_string().into(),
                 attached_routes: vec!["default/tls-route".to_string()],
                 tls: Some(TlsConfig {
                     enabled: true,
@@ -537,13 +537,13 @@ fn shared_tls_misdirected_snapshot(
         ],
         http_routes: vec![
             HttpRoute {
-                name: "example".to_string(),
-                namespace: "default".to_string(),
+                name: "example".to_string().into(),
+                namespace: "default".to_string().into(),
                 hostnames: vec!["example.org".to_string()],
                 parent_refs: vec![ParentRef {
-                    namespace: "default".to_string(),
-                    name: "gw".to_string(),
-                    section_name: "https".to_string(),
+                    namespace: "default".to_string().into(),
+                    name: "gw".to_string().into(),
+                    section_name: "https".to_string().into(),
                     port: gateway_port as u32,
                     ..ParentRef::default()
                 }],
@@ -555,8 +555,8 @@ fn shared_tls_misdirected_snapshot(
                         ..HttpMatch::default()
                     }],
                     backend_refs: vec![BackendRef {
-                        namespace: "default".to_string(),
-                        name: "http-backend".to_string(),
+                        namespace: "default".to_string().into(),
+                        name: "http-backend".to_string().into(),
                         port: http_backend_port as u32,
                         ..BackendRef::default()
                     }],
@@ -566,13 +566,13 @@ fn shared_tls_misdirected_snapshot(
                 annotations: BTreeMap::new(),
             },
             HttpRoute {
-                name: "second".to_string(),
-                namespace: "default".to_string(),
+                name: "second".to_string().into(),
+                namespace: "default".to_string().into(),
                 hostnames: Vec::new(),
                 parent_refs: vec![ParentRef {
-                    namespace: "default".to_string(),
-                    name: "gw".to_string(),
-                    section_name: "https-with-hostname".to_string(),
+                    namespace: "default".to_string().into(),
+                    name: "gw".to_string().into(),
+                    section_name: "https-with-hostname".to_string().into(),
                     port: gateway_port as u32,
                     ..ParentRef::default()
                 }],
@@ -584,8 +584,8 @@ fn shared_tls_misdirected_snapshot(
                         ..HttpMatch::default()
                     }],
                     backend_refs: vec![BackendRef {
-                        namespace: "default".to_string(),
-                        name: "http-backend".to_string(),
+                        namespace: "default".to_string().into(),
+                        name: "http-backend".to_string().into(),
                         port: http_backend_port as u32,
                         ..BackendRef::default()
                     }],
@@ -596,20 +596,20 @@ fn shared_tls_misdirected_snapshot(
             },
         ],
         stream_routes: vec![StreamRoute {
-            name: "tls-route".to_string(),
-            namespace: "default".to_string(),
+            name: "tls-route".to_string().into(),
+            namespace: "default".to_string().into(),
             kind: "ROUTE_KIND_TLS".to_string(),
             parent_refs: Vec::new(),
             rules: vec![StreamRule {
                 name: String::new(),
                 matches: vec![StreamMatch {
                     port: gateway_port as u32,
-                    sni_hostname: "passthrough.example.com".to_string(),
+                    sni_hostname: "passthrough.example.com".to_string().into(),
                     mode: TlsRouteMode::default(),
                 }],
                 backend_refs: vec![BackendRef {
-                    namespace: "default".to_string(),
-                    name: "stream-backend".to_string(),
+                    namespace: "default".to_string().into(),
+                    name: "stream-backend".to_string().into(),
                     port: stream_backend_port as u32,
                     ..BackendRef::default()
                 }],
@@ -621,9 +621,9 @@ fn shared_tls_misdirected_snapshot(
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: format!("http-backend:{http_backend_port}"),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: format!("http-backend:{http_backend_port}").into(),
+                namespace: "default".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "127.0.0.1".to_string(),
                     port: http_backend_port as u32,
@@ -635,9 +635,9 @@ fn shared_tls_misdirected_snapshot(
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: format!("stream-backend:{stream_backend_port}"),
-                namespace: "default".to_string(),
-                protocol: "TCP".to_string(),
+                name: format!("stream-backend:{stream_backend_port}").into(),
+                namespace: "default".to_string().into(),
+                protocol: "TCP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "127.0.0.1".to_string(),
                     port: stream_backend_port as u32,
@@ -648,8 +648,8 @@ fn shared_tls_misdirected_snapshot(
                 circuit_breaker: None,},
         ],
         secrets: vec![SecretMaterial {
-            namespace: "default".to_string(),
-            name: "example-cert".to_string(),
+            namespace: "default".to_string().into(),
+            name: "example-cert".to_string().into(),
             cert_pem: SERVER_CERT_PEM.to_string(),
             key_pem: SERVER_KEY_PEM.to_string(),
         }],

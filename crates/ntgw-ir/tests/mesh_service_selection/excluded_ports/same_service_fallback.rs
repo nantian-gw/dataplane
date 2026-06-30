@@ -13,12 +13,12 @@ fn falls_back_to_service_backend_for_excluded_mesh_port_when_same_service_has_ro
             mesh_listener("default", "echo", 8080, 28080, "HTTP", &[]),
         ],
         http_routes: vec![HttpRoute {
-            name: "echo-port-80".to_string(),
-            namespace: "default".to_string(),
+            name: "echo-port-80".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec![],
             parent_refs: vec![ParentRef {
                 kind: "Service".to_string(),
-                name: "echo".to_string(),
+                name: "echo".to_string().into(),
                 port: 80,
                 ..ParentRef::default()
             }],
@@ -27,8 +27,8 @@ fn falls_back_to_service_backend_for_excluded_mesh_port_when_same_service_has_ro
                 matches: vec![],
                 filters: vec![],
                 backend_refs: vec![BackendRef {
-                    namespace: "default".to_string(),
-                    name: "echo".to_string(),
+                    namespace: "default".to_string().into(),
+                    name: "echo".to_string().into(),
                     port: 80,
                     ..BackendRef::default()
                 }],
@@ -41,9 +41,9 @@ fn falls_back_to_service_backend_for_excluded_mesh_port_when_same_service_has_ro
         }],
         backends: vec![
             BackendCluster {
-                name: "echo:80".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "echo:80".into(),
+                namespace: "default".into(),
+                protocol: "HTTP".into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.10".to_string(),
                     port: 8080,
@@ -55,9 +55,9 @@ fn falls_back_to_service_backend_for_excluded_mesh_port_when_same_service_has_ro
             
                 circuit_breaker: None,},
             BackendCluster {
-                name: "echo:8080".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "echo:8080".into(),
+                namespace: "default".into(),
+                protocol: "HTTP".into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.10".to_string(),
                     port: 8080,

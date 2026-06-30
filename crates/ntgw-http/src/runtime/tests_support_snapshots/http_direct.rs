@@ -2,21 +2,21 @@ fn direct_response_snapshot(listener_port: u16, path: &str) -> ntgw_ir::SharedSn
     let shared = Snapshot::shared();
     shared.store(Arc::new(Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/http".to_string(),
+            name: "default/gw/http".to_string().into(),
             address: "127.0.0.1".to_string(),
             addresses: vec!["127.0.0.1".to_string()],
             port: listener_port as u32,
-            protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+            protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
             attached_routes: vec!["default/route".to_string()],
             ..Listener::default()
         }],
         http_routes: vec![HttpRoute {
-            name: "route".to_string(),
-            namespace: "default".to_string(),
+            name: "route".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: Vec::new(),
             parent_refs: vec![ParentRef {
-                namespace: "default".to_string(),
-                name: "gw".to_string(),
+                namespace: "default".to_string().into(),
+                name: "gw".to_string().into(),
                 section_name: String::new(),
                 port: listener_port as u32,
                 ..ParentRef::default()
@@ -39,7 +39,7 @@ fn direct_response_snapshot(listener_port: u16, path: &str) -> ntgw_ir::SharedSn
                                 body: "direct response".to_string(),
                                 content_type: "text/plain".to_string(),
                                 headers: vec![HeaderOperation {
-                                    name: "x-direct-source".to_string(),
+                                    name: "x-direct-source".to_string().into(),
                                     value: "extension".to_string(),
                                 }],
                             }),
@@ -51,7 +51,7 @@ fn direct_response_snapshot(listener_port: u16, path: &str) -> ntgw_ir::SharedSn
                         filter_type: "ResponseHeaderModifier".to_string(),
                         header_modifier: Some(HeaderModifier {
                             add: vec![HeaderOperation {
-                                name: "x-lifecycle-stage".to_string(),
+                                name: "x-lifecycle-stage".to_string().into(),
                                 value: "request-filter".to_string(),
                             }],
                             ..HeaderModifier::default()

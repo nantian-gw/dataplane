@@ -26,8 +26,8 @@ fn build_upstream_peer_reloads_client_certificate_after_snapshot_rotation() {
     let first_snapshot = Snapshot {
         id: "v1".to_string(),
         secrets: vec![ntgw_ir::SecretMaterial {
-            namespace: "default".to_string(),
-            name: "client-cert".to_string(),
+            namespace: "default".to_string().into(),
+            name: "client-cert".to_string().into(),
             cert_pem: TEST_CLIENT_CERT_PEM.to_string(),
             key_pem: TEST_CLIENT_KEY_PEM.to_string(),
         }],
@@ -36,8 +36,8 @@ fn build_upstream_peer_reloads_client_certificate_after_snapshot_rotation() {
     let second_snapshot = Snapshot {
         id: "v2".to_string(),
         secrets: vec![ntgw_ir::SecretMaterial {
-            namespace: "default".to_string(),
-            name: "client-cert".to_string(),
+            namespace: "default".to_string().into(),
+            name: "client-cert".to_string().into(),
             cert_pem: TEST_SERVER_SAN_CERT_PEM.to_string(),
             key_pem: TEST_SERVER_SAN_KEY_PEM.to_string(),
         }],

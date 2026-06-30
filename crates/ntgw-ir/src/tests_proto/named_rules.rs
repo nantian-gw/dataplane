@@ -2,29 +2,29 @@
 fn decodes_named_rules_from_proto() {
     let snapshot = Snapshot::from(proto::ConfigSnapshot {
         http_routes: vec![proto::HttpRoute {
-            name: "http".to_string(),
-            namespace: "default".to_string(),
+            name: "http".to_string().into(),
+            namespace: "default".to_string().into(),
             rules: vec![proto::HttpRule {
-                name: "http-primary".to_string(),
+                name: "http-primary".to_string().into(),
                 ..Default::default()
             }],
             ..Default::default()
         }],
         grpc_routes: vec![proto::GrpcRoute {
-            name: "grpc".to_string(),
-            namespace: "default".to_string(),
+            name: "grpc".to_string().into(),
+            namespace: "default".to_string().into(),
             rules: vec![proto::GrpcRule {
-                name: "grpc-primary".to_string(),
+                name: "grpc-primary".to_string().into(),
                 ..Default::default()
             }],
             ..Default::default()
         }],
         stream_routes: vec![proto::StreamRoute {
-            name: "tcp".to_string(),
-            namespace: "default".to_string(),
+            name: "tcp".to_string().into(),
+            namespace: "default".to_string().into(),
             kind: proto::RouteKind::Tcp as i32,
             rules: vec![proto::StreamRule {
-                name: "tcp-primary".to_string(),
+                name: "tcp-primary".to_string().into(),
                 ..Default::default()
             }],
             ..Default::default()

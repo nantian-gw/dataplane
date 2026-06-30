@@ -4,11 +4,11 @@ use super::*;
 fn selects_most_specific_header_match_on_attached_listener() {
     let snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/http".to_string(),
+            name: "default/gw/http".to_string().into(),
             address: "0.0.0.0".to_string(),
             addresses: vec!["0.0.0.0".to_string()],
             port: 80,
-            protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+            protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
             hostnames: vec![],
             attached_routes: vec!["default/header-matching".to_string()],
             tls: None,
@@ -16,8 +16,8 @@ fn selects_most_specific_header_match_on_attached_listener() {
             metadata: BTreeMap::new(),
         }],
         http_routes: vec![HttpRoute {
-            name: "header-matching".to_string(),
-            namespace: "default".to_string(),
+            name: "header-matching".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec![],
             parent_refs: vec![],
             rules: vec![
@@ -25,7 +25,7 @@ fn selects_most_specific_header_match_on_attached_listener() {
                     name: String::new(),
                     matches: vec![HttpMatch {
                         headers: vec![HeaderMatch {
-                            name: "version".to_string(),
+                            name: "version".to_string().into(),
                             value: "two".to_string(),
                             match_type: "Exact".to_string(),
                             ..HeaderMatch::default()
@@ -43,13 +43,13 @@ fn selects_most_specific_header_match_on_attached_listener() {
                     matches: vec![HttpMatch {
                         headers: vec![
                             HeaderMatch {
-                                name: "version".to_string(),
+                                name: "version".to_string().into(),
                                 value: "two".to_string(),
                                 match_type: "Exact".to_string(),
                                 ..HeaderMatch::default()
                             },
                             HeaderMatch {
-                                name: "color".to_string(),
+                                name: "color".to_string().into(),
                                 value: "orange".to_string(),
                                 match_type: "Exact".to_string(),
                                 ..HeaderMatch::default()
@@ -97,8 +97,8 @@ fn prefers_lexicographically_earlier_route_when_http_scores_tie() {
         )],
         http_routes: vec![
             HttpRoute {
-                name: "z-route".to_string(),
-                namespace: "default".to_string(),
+                name: "z-route".to_string().into(),
+                namespace: "default".to_string().into(),
                 hostnames: vec!["api.example.com".to_string()],
                 parent_refs: vec![],
                 rules: vec![path_rule("/", "default", "backend-z", 8080)],
@@ -106,8 +106,8 @@ fn prefers_lexicographically_earlier_route_when_http_scores_tie() {
                 annotations: BTreeMap::new(),
             },
             HttpRoute {
-                name: "a-route".to_string(),
-                namespace: "default".to_string(),
+                name: "a-route".to_string().into(),
+                namespace: "default".to_string().into(),
                 hostnames: vec!["api.example.com".to_string()],
                 parent_refs: vec![],
                 rules: vec![path_rule("/", "default", "backend-a", 8080)],

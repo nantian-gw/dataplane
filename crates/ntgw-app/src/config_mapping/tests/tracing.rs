@@ -15,7 +15,7 @@ fn tracing_options_include_open_telemetry_identity() {
         open_telemetry: ntgw_config::OpenTelemetryConfig {
             enabled: true,
             endpoint: "http://otel-collector.observability:4317".to_string(),
-            protocol: "grpc".to_string(),
+            protocol: "grpc".to_string().into(),
             timeout_ms: 4_500,
             insecure: true,
             sample_ratio: 0.25,

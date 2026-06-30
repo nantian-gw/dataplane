@@ -3,7 +3,7 @@ fn summary_view_reports_pending_runtime_when_snapshot_is_newer_than_runtime_stat
     let snapshot = Snapshot {
         id: "v-pending".to_string(),
         listeners: vec![Listener {
-            protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+            protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
             ..Listener::default()
         }],
         ..Snapshot::default()

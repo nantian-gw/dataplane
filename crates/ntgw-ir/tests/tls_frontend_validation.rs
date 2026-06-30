@@ -5,7 +5,7 @@ use ntgw_proto::gateway::control::v1 as proto;
 fn decodes_listener_frontend_validation_from_proto() {
     let snapshot = Snapshot::from(proto::ConfigSnapshot {
         listeners: vec![proto::Listener {
-            name: "default/gw/https".to_string(),
+            name: "default/gw/https".to_string().into(),
             tls: Some(proto::TlsConfig {
                 enabled: true,
                 frontend_validation: Some(proto::FrontendValidation {

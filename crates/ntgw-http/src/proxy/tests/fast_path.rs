@@ -321,15 +321,15 @@ fn sample_fast_path_snapshot() -> Snapshot {
     Snapshot {
         id: "snapshot-1".to_string(),
         listeners: vec![Listener {
-            name: "default/gw/http".to_string(),
+            name: "default/gw/http".to_string().into(),
             port: 80,
-            protocol: "HTTP".to_string(),
+            protocol: "HTTP".to_string().into(),
             attached_routes: vec!["default/orders".to_string()],
             ..Listener::default()
         }],
         http_routes: vec![HttpRoute {
-            name: "orders".to_string(),
-            namespace: "default".to_string(),
+            name: "orders".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["example.com".to_string()],
             rules: vec![HttpRule {
                 matches: vec![HttpMatch {
@@ -339,8 +339,8 @@ fn sample_fast_path_snapshot() -> Snapshot {
                     ..HttpMatch::default()
                 }],
                 backend_refs: vec![BackendRef {
-                    namespace: "default".to_string(),
-                    name: "orders".to_string(),
+                    namespace: "default".to_string().into(),
+                    name: "orders".to_string().into(),
                     port: 8080,
                     weight: 1,
                     ..BackendRef::default()
@@ -352,9 +352,9 @@ fn sample_fast_path_snapshot() -> Snapshot {
         backends: vec![BackendCluster {
             ai_service: None,
             token_policy: None,
-            namespace: "default".to_string(),
-            name: "orders:8080".to_string(),
-            protocol: "HTTP".to_string(),
+            namespace: "default".to_string().into(),
+            name: "orders:8080".to_string().into(),
+            protocol: "HTTP".to_string().into(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8080,

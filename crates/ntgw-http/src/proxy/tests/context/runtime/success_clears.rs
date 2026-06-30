@@ -10,8 +10,8 @@ fn observe_selected_backend_success_clears_failure_streak() {
     {
         snapshot.store(Arc::new(Snapshot {
             http_routes: vec![HttpRoute {
-                name: "route".to_string(),
-                namespace: "default".to_string(),
+                name: "route".to_string().into(),
+                namespace: "default".to_string().into(),
                 hostnames: vec!["api.example.com".to_string()],
                 parent_refs: vec![],
                 rules: vec![HttpRule {
@@ -19,8 +19,8 @@ fn observe_selected_backend_success_clears_failure_streak() {
                     matches: vec![],
                     filters: vec![],
                     backend_refs: vec![ntgw_ir::BackendRef {
-                        namespace: "default".to_string(),
-                        name: "echo".to_string(),
+                        namespace: "default".to_string().into(),
+                        name: "echo".to_string().into(),
                         port: 8080,
                         ..ntgw_ir::BackendRef::default()
                     }],
@@ -34,9 +34,9 @@ fn observe_selected_backend_success_clears_failure_streak() {
             backends: vec![BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: "echo:8080".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "echo:8080".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![
                     BackendEndpoint {
                         address: "10.0.0.10".to_string(),

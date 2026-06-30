@@ -6,18 +6,18 @@ fn summary_view_distinguishes_current_and_historical_unrecovered_failures() {
         id: "v2".to_string(),
         listeners: vec![
             Listener {
-                name: "pending-historical".to_string(),
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+                name: "pending-historical".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
                 ..Listener::default()
             },
             Listener {
-                name: "rejected-current".to_string(),
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+                name: "rejected-current".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
                 ..Listener::default()
             },
             Listener {
-                name: "stale-historical".to_string(),
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+                name: "stale-historical".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
                 ..Listener::default()
             },
         ],

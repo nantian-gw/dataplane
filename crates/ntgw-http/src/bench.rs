@@ -241,9 +241,9 @@ fn simple_fast_path_snapshot() -> Snapshot {
             ..HttpRoute::default()
         }],
         backends: vec![BackendCluster {
-            name: "bench:8080".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTP".to_string(),
+            name: "bench:8080".into(),
+            namespace: "default".into(),
+            protocol: "HTTP".into(),
             wasm_plugin: None,
             ai_service: None,
             token_policy: None,

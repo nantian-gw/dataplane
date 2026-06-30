@@ -54,38 +54,38 @@ fn fixture_snapshot() -> Snapshot {
         id: "v-test".to_string(),
         listeners: vec![
             Listener {
-                name: "web".to_string(),
+                name: "web".to_string().into(),
                 address: "192.0.2.10".to_string(),
                 addresses: vec!["192.0.2.10".to_string(), "gw.example.com".to_string()],
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
                 hostnames: vec!["app.example.com".to_string()],
                 attached_routes: vec!["default/web".to_string()],
                 ..Listener::default()
             },
             Listener {
-                name: "passthrough".to_string(),
-                protocol: "LISTENER_PROTOCOL_TLS_PASSTHROUGH".to_string(),
+                name: "passthrough".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_TLS_PASSTHROUGH".to_string().into(),
                 hostnames: vec!["secure.example.com".to_string()],
                 ..Listener::default()
             },
         ],
         http_routes: vec![ntgw_ir::HttpRoute {
-            name: "web".to_string(),
-            namespace: "default".to_string(),
+            name: "web".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["app.example.com".to_string()],
             rules: vec![HttpRule::default()],
             ..Default::default()
         }],
         grpc_routes: vec![GrpcRoute {
-            name: "grpc".to_string(),
-            namespace: "default".to_string(),
+            name: "grpc".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["grpc.example.com".to_string()],
             rules: vec![GrpcRule::default()],
             ..Default::default()
         }],
         stream_routes: vec![StreamRoute {
-            name: "passthrough".to_string(),
-            namespace: "default".to_string(),
+            name: "passthrough".to_string().into(),
+            namespace: "default".to_string().into(),
             kind: "ROUTE_KIND_TLS".to_string(),
             parent_refs: vec![],
             rules: vec![StreamRule {
@@ -104,9 +104,9 @@ fn fixture_snapshot() -> Snapshot {
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: "api:80".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "api:80".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.10".to_string(),
                     port: 80,
@@ -119,9 +119,9 @@ fn fixture_snapshot() -> Snapshot {
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: "http2-clear:8080".to_string(),
-                namespace: "default".to_string(),
-                protocol: "H2C".to_string(),
+                name: "http2-clear:8080".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "H2C".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.30".to_string(),
                     port: 8080,
@@ -134,9 +134,9 @@ fn fixture_snapshot() -> Snapshot {
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: "tcp-service:9000".to_string(),
-                namespace: "ops".to_string(),
-                protocol: "TCP".to_string(),
+                name: "tcp-service:9000".to_string().into(),
+                namespace: "ops".to_string().into(),
+                protocol: "TCP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.20".to_string(),
                     port: 9000,

@@ -2,8 +2,8 @@
 fn inherited_runtime_state_keeps_weighted_selection_progress() {
     let current = Snapshot {
         grpc_routes: vec![GrpcRoute {
-            name: "grpc-route".to_string(),
-            namespace: "default".to_string(),
+            name: "grpc-route".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["echo.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![GrpcRule {
@@ -21,9 +21,9 @@ fn inherited_runtime_state_keeps_weighted_selection_progress() {
         }],
         backends: vec![
             BackendCluster {
-                name: "echo-v1:7070".to_string(),
-                namespace: "default".to_string(),
-                protocol: "GRPC".to_string(),
+                name: "echo-v1:7070".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "GRPC".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.1".to_string(),
                     port: 7070,
@@ -35,9 +35,9 @@ fn inherited_runtime_state_keeps_weighted_selection_progress() {
             
                 circuit_breaker: None,},
             BackendCluster {
-                name: "echo-v2:7070".to_string(),
-                namespace: "default".to_string(),
-                protocol: "GRPC".to_string(),
+                name: "echo-v2:7070".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "GRPC".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.2".to_string(),
                     port: 7070,

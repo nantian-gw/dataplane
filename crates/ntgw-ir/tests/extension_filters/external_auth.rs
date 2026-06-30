@@ -7,9 +7,8 @@ fn decodes_external_auth_http_filter_from_proto() {
         generated_at: None,
         listeners: vec![],
         http_routes: vec![proto::HttpRoute {
-            route_policy: None,
-            name: "orders".to_string(),
-            namespace: "default".to_string(),
+            name: "orders".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["example.com".to_string()],
             parent_refs: vec![],
             rules: vec![proto::HttpRule {
@@ -114,9 +113,8 @@ fn decodes_external_auth_grpc_filter_from_proto() {
         generated_at: None,
         listeners: vec![],
         http_routes: vec![proto::HttpRoute {
-            route_policy: None,
-            name: "orders".to_string(),
-            namespace: "default".to_string(),
+            name: "orders".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["example.com".to_string()],
             parent_refs: vec![],
             rules: vec![proto::HttpRule {
@@ -197,9 +195,8 @@ fn decodes_external_auth_backend_with_tls_validation_from_proto() {
         generated_at: None,
         listeners: vec![],
         http_routes: vec![proto::HttpRoute {
-            route_policy: None,
-            name: "orders".to_string(),
-            namespace: "default".to_string(),
+            name: "orders".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["example.com".to_string()],
             parent_refs: vec![],
             rules: vec![proto::HttpRule {
@@ -264,11 +261,11 @@ fn decodes_external_auth_backend_with_tls_validation_from_proto() {
         grpc_routes: vec![],
         stream_routes: vec![],
         backends: vec![proto::BackendCluster {
-            name: "auth:8443".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTPS".to_string(),
+            name: "auth:8443".into(),
+            namespace: "default".into(),
+            protocol: "HTTPS".into(),
             tls_validation: Some(proto::BackendTlsValidation {
-                hostname: "auth.default.svc.cluster.local".to_string(),
+                hostname: "auth.default.svc.cluster.local".into(),
                 use_system_ca_certificates: true,
                 ca_pems: vec![],
                 min_version: String::new(),
