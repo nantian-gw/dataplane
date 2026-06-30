@@ -4,7 +4,7 @@ fn render_metrics_exposes_endpoint_health_runtime_state() {
     {
         let s = (**state.snapshot.load()).clone();
         let endpoint = s.backends[0].endpoints[0].clone();
-        let selected = SelectedBackend {
+        let selected = SelectedBackend { route_policy: None,
             route_kind: RouteKind::Http,
             route_name: String::new(),
             route_namespace: String::new(),
@@ -42,7 +42,7 @@ fn render_metrics_exposes_endpoint_recovery_latency_histogram() {
     {
         let s = (**state.snapshot.load()).clone();
         let endpoint = s.backends[0].endpoints[0].clone();
-        let selected = SelectedBackend {
+        let selected = SelectedBackend { route_policy: None,
             route_kind: RouteKind::Http,
             route_name: String::new(),
             route_namespace: String::new(),

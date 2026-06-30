@@ -14,6 +14,8 @@ fn select_http_backend_preserves_route_timeouts() {
                 timeouts: Some(crate::RouteTimeouts {
                     request: Some(std::time::Duration::from_secs(12)),
                     backend_request: Some(std::time::Duration::from_secs(3)),
+                    connect: None,
+                    next_upstream: None,
                 }),
                 retry: None,
                 session_persistence: None,
@@ -119,3 +121,4 @@ fn skips_zero_weight_backend_refs() {
 
     assert_eq!(selected, vec!["default/active:8081"; 4]);
 }
+

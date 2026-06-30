@@ -24,6 +24,7 @@ fn session_manager() -> SessionManager {
 
 fn selected_backend() -> SelectedBackend {
     SelectedBackend {
+        route_policy: None,
         route_kind: ntgw_ir::RouteKind::Http,
         route_name: "route".to_string(),
         route_namespace: "default".to_string(),

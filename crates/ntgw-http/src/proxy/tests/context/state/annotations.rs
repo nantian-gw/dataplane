@@ -7,7 +7,7 @@ fn cache_selected_backend_skips_route_annotations_when_access_log_disabled() {
 
     cache_selected_backend(
         &mut ctx,
-        SelectedBackend {
+        SelectedBackend { route_policy: None,
             route_kind: RouteKind::Http,
             route_name: "route".to_string(),
             route_namespace: "default".to_string(),
@@ -40,7 +40,7 @@ fn cache_selected_backend_keeps_access_log_annotations_on_selected_backend_only(
 
     cache_selected_backend(
         &mut ctx,
-        SelectedBackend {
+        SelectedBackend { route_policy: None,
             route_kind: RouteKind::Http,
             route_name: "route".to_string(),
             route_namespace: "default".to_string(),

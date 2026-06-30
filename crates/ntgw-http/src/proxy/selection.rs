@@ -11,8 +11,9 @@ use ntgw_ir::{
 
 use super::{
     backend::{
-        backend_tls_sni_name, effective_request_timeout, is_http2_backend_protocol,
-        is_tls_backend_protocol, resolve_backend_client_cert_key, resolve_backend_tls_validation,
+        backend_tls_sni_name, effective_request_timeout_with_route_policy,
+        is_http2_backend_protocol, is_tls_backend_protocol, resolve_backend_client_cert_key,
+        resolve_backend_tls_validation,
     },
     context::{SelectedBackendConfig, UpstreamPeerAddress, route_kind_name},
 };
@@ -62,6 +63,7 @@ pub(crate) fn selected_backend_from_http_route(
         retry,
         session_persistence,
         backend_tls,
+        route_policy: _route_policy,
     } = route;
 
     match (backend, backend_name, backend_error) {
@@ -87,6 +89,7 @@ pub(crate) fn selected_backend_from_http_route(
                 retry,
                 session_persistence,
                 backend_tls,
+                route_policy: _route_policy,
             }))
         }
         (_, _, Some(err)) => Err(err),
@@ -168,6 +171,7 @@ pub(crate) fn selected_backend_config_cached_for_fast_path(
         retry: None,
         session_persistence: None,
         backend_tls: None,
+        route_policy: None,
     };
     let config = Arc::new(selected_backend_config_with_overrides_and_runtime_ids(
         current,
@@ -296,8 +300,18 @@ fn selected_backend_config_from_parts(
     };
     let use_http2 = matches!(selected.route_kind, ntgw_ir::RouteKind::Grpc)
         || is_http2_backend_protocol(protocol);
-    let connect_timeout = policy.and_then(|item| item.connect_timeout);
-    let request_timeout = effective_request_timeout(policy, selected.timeouts.as_ref());
+    let connect_timeout = selected
+        .route_policy
+        .as_ref()
+        .and_then(|rp| rp.timeout.as_ref())
+        .and_then(|t| t.connect)
+        .map(std::time::Duration::from_millis)
+        .or_else(|| policy.and_then(|item| item.connect_timeout));
+    let request_timeout = effective_request_timeout_with_route_policy(
+        &selected.route_policy,
+        policy,
+        selected.timeouts.as_ref(),
+    );
     let backend_tls_validation = resolve_backend_tls_validation(tls_validation)?;
     let client_cert_key = resolve_backend_client_cert_key(current, selected.backend_tls.as_ref())?;
 

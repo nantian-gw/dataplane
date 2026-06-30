@@ -255,6 +255,10 @@ pub struct HttpRoute {
     /// Kubernetes annotations from the route resource.
     #[prost(map="string, string", tag="7")]
     pub annotations: ::std::collections::HashMap<::prost::alloc::string::String, ::prost::alloc::string::String>,
+    /// Per-route policy overrides for timeout, body size, proxy buffering,
+    /// and connection keepalive settings.
+    #[prost(message, optional, tag="8")]
+    pub route_policy: ::core::option::Option<RoutePolicy>,
 }
 /// HttpRule defines a single HTTP routing rule: match conditions, filters
 /// to apply, and backends to forward to.
@@ -400,6 +404,10 @@ pub struct GrpcRoute {
     /// Kubernetes annotations from the route resource.
     #[prost(map="string, string", tag="7")]
     pub annotations: ::std::collections::HashMap<::prost::alloc::string::String, ::prost::alloc::string::String>,
+    /// Per-route policy overrides for timeout, body size, proxy buffering,
+    /// and connection keepalive settings.
+    #[prost(message, optional, tag="8")]
+    pub route_policy: ::core::option::Option<RoutePolicy>,
 }
 /// GrpcRule defines a single gRPC routing rule: service/method matching,
 /// filters, and backend forwarding.
@@ -541,6 +549,91 @@ pub struct BackendRef {
     /// Per-backend filters applied only to traffic forwarded to this backend.
     #[prost(message, repeated, tag="8")]
     pub filters: ::prost::alloc::vec::Vec<Filter>,
+}
+/// RoutePolicy provides per-route overrides for timeout, body size,
+/// proxy buffering, and connection keepalive settings. When attached
+/// to an HttpRoute or GrpcRoute, fields set here override the
+/// dataplane global defaults for that route.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct RoutePolicy {
+    /// Per-route timeout overrides for request, backend, and connection timeouts.
+    #[prost(message, optional, tag="1")]
+    pub timeout: ::core::option::Option<RoutePolicyTimeout>,
+    /// Per-route body and header size limits.
+    #[prost(message, optional, tag="2")]
+    pub body_limit: ::core::option::Option<RoutePolicyBodyLimit>,
+    /// Per-route proxy buffering configuration.
+    #[prost(message, optional, tag="3")]
+    pub proxy: ::core::option::Option<RoutePolicyProxy>,
+    /// Per-route connection keepalive settings for client and upstream connections.
+    #[prost(message, optional, tag="4")]
+    pub connection: ::core::option::Option<RoutePolicyConnection>,
+}
+/// RoutePolicyTimeout specifies per-route timeout values that override
+/// the dataplane global timeout defaults.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct RoutePolicyTimeout {
+    /// Maximum duration for the entire request-response cycle (from first byte received to last byte sent).
+    #[prost(message, optional, tag="1")]
+    pub request: ::core::option::Option<::prost_types::Duration>,
+    /// Maximum duration for a single backend request attempt (a single upstream connection).
+    #[prost(message, optional, tag="2")]
+    pub backend_request: ::core::option::Option<::prost_types::Duration>,
+    /// Maximum duration to establish a TCP connection to the backend.
+    #[prost(message, optional, tag="3")]
+    pub connect: ::core::option::Option<::prost_types::Duration>,
+    /// Maximum duration spent finding a viable upstream backend during retries.
+    #[prost(message, optional, tag="4")]
+    pub next_upstream: ::core::option::Option<::prost_types::Duration>,
+}
+/// RoutePolicyBodyLimit restricts request body and header sizes on a per-route basis.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct RoutePolicyBodyLimit {
+    /// Maximum request body size in bytes. Requests exceeding this receive HTTP 413 (Payload Too Large).
+    #[prost(uint64, tag="1")]
+    pub max_request_body_bytes: u64,
+    /// Size of the buffer used to read the request body before writing to a temporary file.
+    #[prost(uint64, tag="2")]
+    pub request_body_buffer_bytes: u64,
+    /// Maximum combined size of all request headers in bytes.
+    #[prost(uint64, tag="3")]
+    pub max_request_header_bytes: u64,
+}
+/// RoutePolicyProxy controls HTTP proxy buffering behavior on a per-route basis.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct RoutePolicyProxy {
+    /// If true, buffer the entire client request body before proxying to the backend.
+    #[prost(message, optional, tag="1")]
+    pub request_buffering: ::core::option::Option<bool>,
+    /// If true, buffer the backend response before sending to the client. If false, stream the response.
+    #[prost(message, optional, tag="2")]
+    pub response_buffering: ::core::option::Option<bool>,
+    /// Size of each response buffer in bytes (used when response_buffering is enabled).
+    #[prost(uint64, tag="3")]
+    pub buffer_size: u64,
+    /// Number of response buffers to allocate (used when response_buffering is enabled).
+    #[prost(uint32, tag="4")]
+    pub buffer_count: u32,
+}
+/// RoutePolicyConnection controls keepalive behavior for client-facing and
+/// upstream connections on a per-route basis.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct RoutePolicyConnection {
+    /// Maximum number of requests allowed on a single keepalive client connection.
+    #[prost(uint32, tag="1")]
+    pub keepalive_requests: u32,
+    /// Maximum lifetime of a keepalive client connection.
+    #[prost(message, optional, tag="2")]
+    pub keepalive_time: ::core::option::Option<::prost_types::Duration>,
+    /// Maximum idle time before closing a keepalive client connection.
+    #[prost(message, optional, tag="3")]
+    pub keepalive_timeout: ::core::option::Option<::prost_types::Duration>,
+    /// Maximum number of idle upstream keepalive connections to maintain in the pool.
+    #[prost(uint32, tag="4")]
+    pub upstream_keepalive_pool_size: u32,
+    /// Maximum idle time before closing an upstream keepalive connection.
+    #[prost(message, optional, tag="5")]
+    pub upstream_keepalive_idle: ::core::option::Option<::prost_types::Duration>,
 }
 /// BackendCluster represents a discovered upstream service with its endpoints,
 /// timeouts, TLS settings, and optional AI/Token/Wasm plugin configuration.

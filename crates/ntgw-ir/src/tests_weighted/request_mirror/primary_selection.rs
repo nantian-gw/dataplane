@@ -86,7 +86,7 @@ fn request_mirror_does_not_change_primary_backend_selection() {
     assert_eq!(selected.filters[1].filter_type, "RequestMirror");
 
     let mirror = snapshot
-        .select_request_mirror(&crate::RequestMirrorContext {
+        .select_request_mirror(&crate::RequestMirrorContext { route_policy: None,
             route_kind: selected.route_kind,
             route_name: selected.route_name.clone(),
             route_namespace: selected.route_namespace.clone(),

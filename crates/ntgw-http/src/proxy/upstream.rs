@@ -8,6 +8,30 @@ use pingora::{
 
 use super::*;
 
+fn apply_route_policy_to_peer(peer: &mut HttpPeer, ctx: &RequestContext) {
+    if let Some(route_policy) = ctx.route_policy.as_ref() {
+        if let Some(timeout_cfg) = route_policy.timeout.as_ref() {
+            if let Some(connect_ms) = timeout_cfg.connect {
+                let dur = std::time::Duration::from_millis(connect_ms);
+                peer.options.connection_timeout = Some(dur);
+                peer.options.total_connection_timeout = Some(dur);
+            }
+            if let Some(backend_req_ms) = timeout_cfg.backend_request {
+                let dur = std::time::Duration::from_millis(backend_req_ms);
+                if !dur.is_zero() {
+                    peer.options.read_timeout = Some(dur);
+                    peer.options.write_timeout = Some(dur);
+                }
+            }
+        }
+        if let Some(conn_cfg) = route_policy.connection.as_ref()
+            && let Some(idle_secs) = conn_cfg.upstream_keepalive_idle
+        {
+            peer.options.idle_timeout = Some(std::time::Duration::from_secs(idle_secs));
+        }
+    }
+}
+
 pub(crate) async fn do_upstream_peer(
     proxy: &GatewayProxy,
     session: &mut Session,
@@ -35,7 +59,10 @@ pub(crate) async fn do_upstream_peer(
             )
         };
         let peer = match peer {
-            Ok(peer) => peer,
+            Ok(mut peer) => {
+                apply_route_policy_to_peer(&mut peer, ctx);
+                peer
+            }
             Err(err) => {
                 record_upstream_peer_build_failure(ctx);
                 return Err(err);
@@ -147,7 +174,7 @@ pub(crate) async fn do_upstream_peer(
             &proxy.upstream_tuning,
         )
     };
-    let peer = match peer {
+    let mut peer = match peer {
         Ok(peer) => peer,
         Err(err) => {
             record_upstream_peer_build_failure(ctx);
@@ -169,6 +196,7 @@ pub(crate) async fn do_upstream_peer(
                 })?,
         );
     }
+    apply_route_policy_to_peer(&mut peer, ctx);
     ctx.upstream_connect_started_at = Some(Instant::now());
 
     Ok(Box::new(peer))

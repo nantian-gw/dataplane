@@ -225,6 +225,23 @@ pub(crate) fn effective_request_timeout(
         .filter(|timeout| !timeout.is_zero())
 }
 
+pub(crate) fn effective_request_timeout_with_route_policy(
+    route_policy: &Option<ntgw_config::RoutePolicyConfig>,
+    policy: Option<&BackendPolicy>,
+    route_timeouts: Option<&RouteTimeouts>,
+) -> Option<std::time::Duration> {
+    if let Some(ms) = route_policy
+        .as_ref()
+        .and_then(|rp| rp.timeout.as_ref())
+        .and_then(|t| t.backend_request)
+        .filter(|ms| *ms > 0)
+    {
+        return Some(std::time::Duration::from_millis(ms));
+    }
+
+    effective_request_timeout(policy, route_timeouts)
+}
+
 fn apply_precomputed_backend_policy(peer: &mut HttpPeer, config: &SelectedBackendConfig) {
     peer.options.connection_timeout = config.connect_timeout;
     peer.options.total_connection_timeout = config.connect_timeout;

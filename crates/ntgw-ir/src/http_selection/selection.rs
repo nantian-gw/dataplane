@@ -148,6 +148,7 @@ pub(super) fn select_http_route(
             backend_tls: candidate
                 .listener_match
                 .and_then(|item| item.listener.backend_tls.clone()),
+            route_policy: None,
         }
     })
 }
@@ -245,6 +246,7 @@ pub(super) fn select_grpc_backend(
             .or_else(|| candidate.selected_backend.session_persistence.clone());
 
         SelectedBackend {
+            route_policy: None,
             route_kind: RouteKind::Grpc,
             route_name: candidate.route.name.clone(),
             route_namespace: candidate.route.namespace.clone(),

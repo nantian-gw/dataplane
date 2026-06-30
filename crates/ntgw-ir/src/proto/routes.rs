@@ -136,6 +136,8 @@ fn route_timeouts_from_proto(item: proto::HttpRouteTimeouts) -> RouteTimeouts {
     RouteTimeouts {
         request: item.request.as_ref().and_then(duration_from_proto),
         backend_request: item.backend_request.as_ref().and_then(duration_from_proto),
+        connect: None,
+        next_upstream: None,
     }
 }
 

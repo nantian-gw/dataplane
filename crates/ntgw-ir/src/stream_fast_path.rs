@@ -161,6 +161,7 @@ impl StreamFastPathPlan {
         best.and_then(|candidate| {
             let route = snapshot.stream_routes.get(candidate.route_index)?;
             Some(SelectedBackend {
+                route_policy: None,
                 route_kind: expected_kind,
                 route_name: route.name.clone(),
                 route_namespace: route.namespace.clone(),

@@ -265,6 +265,7 @@ mod tests {
         let ctx = RequestContext {
             route_annotations: BTreeMap::from([("stale".to_string(), "1".to_string())]),
             selected_backend: Some(Arc::new(SelectedBackend {
+                route_policy: None,
                 route_kind: RouteKind::Http,
                 route_name: "route".to_string(),
                 route_namespace: "default".to_string(),

@@ -3,6 +3,7 @@ use super::*;
 #[test]
 fn build_upstream_peer_uses_backend_tls_validation_hostname() {
     let selected = SelectedBackend {
+        route_policy: None,
         route_kind: RouteKind::Http,
         route_name: "route".to_string(),
         route_namespace: "default".to_string(),

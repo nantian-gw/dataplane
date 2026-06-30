@@ -48,6 +48,8 @@ fn route_timeouts_override_backend_policy_defaults() {
         Some(&RouteTimeouts {
             request: Some(std::time::Duration::from_secs(12)),
             backend_request: Some(std::time::Duration::from_secs(5)),
+            connect: None,
+            next_upstream: None,
         }),
     );
 

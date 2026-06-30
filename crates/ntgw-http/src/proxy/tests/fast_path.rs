@@ -272,6 +272,7 @@ fn fast_path_state_builds_upstream_peer_from_cached_config() {
 
 fn sample_fast_selected_backend_config(address: &str, port: u16) -> SelectedBackendConfig {
     let selected_backend = ntgw_ir::SelectedBackend {
+        route_policy: None,
         route_kind: RouteKind::Http,
         route_name: "orders".to_string(),
         route_namespace: "default".to_string(),

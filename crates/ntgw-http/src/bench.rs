@@ -510,6 +510,7 @@ impl SessionBenchFixture {
                 }),
             },
             selected: SelectedBackend {
+                route_policy: None,
                 route_kind: RouteKind::Http,
                 route_name: "bench-route".to_string(),
                 route_namespace: "default".to_string(),

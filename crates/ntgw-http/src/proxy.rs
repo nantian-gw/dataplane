@@ -234,6 +234,7 @@ pub(crate) fn select_request_mirrors_for_selected_backend(
     }
 
     snapshot.select_request_mirrors(&RequestMirrorContext {
+        route_policy: None,
         route_kind: selected.route_kind,
         route_name: selected.route_name.clone(),
         route_namespace: selected.route_namespace.clone(),
@@ -257,6 +258,7 @@ pub(crate) fn select_request_mirrors_for_http_route(
     }
 
     snapshot.select_request_mirrors(&RequestMirrorContext {
+        route_policy: None,
         route_kind: RouteKind::Http,
         route_name: route.route_name.clone(),
         route_namespace: route.route_namespace.clone(),
@@ -471,6 +473,7 @@ impl ProxyHttp for GatewayProxy {
     where
         Self::CTX: Send + Sync,
     {
+        self.apply_downstream_read_timeout(session, ctx);
         filters::do_request_filter(self, session, ctx).await
     }
 
@@ -488,14 +491,13 @@ impl ProxyHttp for GatewayProxy {
             let chunk_len = body.as_ref().map(Bytes::len).unwrap_or_default();
             ctx.bytes_received = ctx.bytes_received.saturating_add(chunk_len);
             ctx.request_body_bytes_seen = ctx.request_body_bytes_seen.saturating_add(chunk_len);
-            if self.max_request_body_bytes > 0
-                && ctx.request_body_bytes_seen > self.max_request_body_bytes
-            {
+            let effective_limit = self.effective_max_request_body_bytes(ctx);
+            if effective_limit > 0 && ctx.request_body_bytes_seen > effective_limit {
                 assign_ctx_string(&mut ctx.response_flags, "RB");
                 record_request_span(ctx);
                 return Err(Error::new(ErrorType::HTTPStatus(413)).more_context(format!(
                     "request body exceeded configured limit of {} bytes",
-                    self.max_request_body_bytes
+                    effective_limit
                 )));
             }
         }
@@ -844,6 +846,33 @@ impl ProxyHttp for GatewayProxy {
 }
 
 impl GatewayProxy {
+    pub(super) fn apply_downstream_read_timeout(
+        &self,
+        session: &mut Session,
+        ctx: &RequestContext,
+    ) {
+        let timeout = ctx
+            .route_policy
+            .as_ref()
+            .and_then(|rp| rp.timeout.as_ref())
+            .and_then(|t| t.request)
+            .map(std::time::Duration::from_millis)
+            .or(self.downstream_read_timeout);
+        session.as_downstream_mut().set_read_timeout(timeout);
+    }
+
+    pub(super) fn effective_max_request_body_bytes(&self, ctx: &RequestContext) -> usize {
+        if let Some(limit) = ctx
+            .route_policy
+            .as_ref()
+            .and_then(|rp| rp.body_limit.as_ref())
+            .and_then(|bl| bl.max_request_body_bytes)
+        {
+            return limit;
+        }
+        self.max_request_body_bytes
+    }
+
     pub(super) fn selected_display_fields_needed(&self, ctx: &RequestContext) -> bool {
         self.access_log.enabled || ctx.request_span.is_some()
     }
@@ -897,6 +926,7 @@ pub(crate) fn cache_selected_http_route_context(
         },
         access_log,
     );
+    ctx.route_policy = route.route_policy.clone();
 }
 
 pub(crate) fn mark_downstream_max_connection_age_if_needed(

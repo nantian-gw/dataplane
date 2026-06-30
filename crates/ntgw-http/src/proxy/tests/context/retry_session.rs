@@ -43,6 +43,7 @@ fn session_resolution_cache_reuses_resolved_cookie_session() {
         }),
     };
     let selected = SelectedBackend {
+        route_policy: None,
         route_kind: RouteKind::Http,
         route_name: "route".to_string(),
         route_namespace: "default".to_string(),

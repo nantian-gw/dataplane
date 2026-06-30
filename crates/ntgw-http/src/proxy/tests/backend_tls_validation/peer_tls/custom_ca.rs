@@ -3,6 +3,7 @@ use super::*;
 #[test]
 fn build_upstream_peer_accepts_custom_backend_tls_validation() {
     let selected = SelectedBackend {
+        route_policy: None,
         route_kind: RouteKind::Grpc,
         route_name: "route".to_string(),
         route_namespace: "default".to_string(),

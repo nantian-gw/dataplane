@@ -37,7 +37,7 @@ fn request_mirror_fraction_sampling_uses_fraction_window() {
     }];
 
     assert!(snapshot
-        .select_request_mirror(&crate::RequestMirrorContext {
+        .select_request_mirror(&crate::RequestMirrorContext { route_policy: None,
             route_kind: RouteKind::Http,
             route_name: "route".to_string(),
             route_namespace: "default".to_string(),
@@ -49,7 +49,7 @@ fn request_mirror_fraction_sampling_uses_fraction_window() {
         })
         .is_some());
     assert!(snapshot
-        .select_request_mirror(&crate::RequestMirrorContext {
+        .select_request_mirror(&crate::RequestMirrorContext { route_policy: None,
             route_kind: RouteKind::Http,
             route_name: "route".to_string(),
             route_namespace: "default".to_string(),
@@ -61,7 +61,7 @@ fn request_mirror_fraction_sampling_uses_fraction_window() {
         })
         .is_none());
     assert!(snapshot
-        .select_request_mirror(&crate::RequestMirrorContext {
+        .select_request_mirror(&crate::RequestMirrorContext { route_policy: None,
             route_kind: RouteKind::Http,
             route_name: "route".to_string(),
             route_namespace: "default".to_string(),
