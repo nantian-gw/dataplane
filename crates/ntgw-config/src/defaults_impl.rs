@@ -1,7 +1,7 @@
 use super::{
     AccessLogConfig, ExperimentalConfig, HttpCacheConfig, HttpCapacityConfig, LogConfig,
     OpenTelemetryConfig, RuntimeConfig, RuntimeProtectionConfig, RuntimeTuningConfig,
-    TcpKeepaliveConfig, XdsTransportConfig,
+    SentryConfig, TcpKeepaliveConfig, XdsTransportConfig,
     defaults::{
         default_access_enabled, default_access_format, default_access_mode, default_access_path,
         default_access_sample_rate, default_active_health_check_enabled,
@@ -19,12 +19,13 @@ use super::{
         default_open_telemetry_service_name, default_open_telemetry_timeout_ms,
         default_request_mirror_max_concurrency, default_retry_budget_burst,
         default_retry_budget_enabled, default_retry_budget_ratio_percent,
-        default_route_annotation_prefix, default_stream_reload_retry_interval_ms,
+        default_route_annotation_prefix, default_sentry_sample_rate,
+        default_sentry_traces_sample_rate, default_stream_reload_retry_interval_ms,
         default_stream_upstream_pool_idle_timeout_ms, default_stream_upstream_pool_size,
         default_tcp_keepalive_idle_ms, default_tcp_keepalive_interval_ms,
         default_tcp_keepalive_probe_count, default_tcp_max_connection_age_ms,
         default_tcp_proxy_buffer_bytes, default_tcp_session_idle_timeout_ms, default_tls_max,
-        default_tls_min, default_udp_response_idle_timeout_ms,
+        default_tls_min, default_true, default_udp_response_idle_timeout_ms,
         default_upstream_connection_timeout_ms, default_upstream_idle_timeout_ms,
         default_upstream_read_timeout_ms, default_upstream_tcp_fast_open, default_work_stealing,
         default_xds_apply_poll_interval_ms, default_xds_apply_timeout_ms,
@@ -49,6 +50,22 @@ impl Default for LogConfig {
             non_blocking_buffered_lines: default_log_non_blocking_buffered_lines(),
             drop_when_full: default_log_drop_when_full(),
             open_telemetry: OpenTelemetryConfig::default(),
+            sentry: SentryConfig::default(),
+        }
+    }
+}
+
+impl Default for SentryConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            dsn: String::new(),
+            environment: String::new(),
+            sample_rate: default_sentry_sample_rate(),
+            traces_sample_rate: default_sentry_traces_sample_rate(),
+            attach_stacktrace: default_true(),
+            send_default_pii: false,
+            debug: false,
         }
     }
 }

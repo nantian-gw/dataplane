@@ -2,7 +2,7 @@ use anyhow::{Result, anyhow};
 use ntgw_config::{AccessLogConfig, DataPlaneConfig, HttpCapacityConfig, RuntimeProtectionConfig};
 use ntgw_observability::{
     AccessLogMode, HttpAdmissionOptions, HttpCircuitBreakerOptions, HttpRateLimitOptions,
-    OpenTelemetryOptions, RetryBudgetOptions, TcpAdmissionOptions, TracingOptions,
+    OpenTelemetryOptions, RetryBudgetOptions, SentryOptions, TcpAdmissionOptions, TracingOptions,
     UdpAdmissionOptions,
 };
 use ntgw_xds::{ClientTlsOptions, ConnectOptions, TransportOptions};
@@ -32,6 +32,19 @@ pub(crate) fn to_tracing_options(cfg: &DataPlaneConfig) -> TracingOptions {
             service_instance_id: cfg.node_id.clone(),
             deployment_environment: cfg.cluster.clone(),
         },
+    }
+}
+
+pub(crate) fn to_sentry_options(cfg: &DataPlaneConfig) -> SentryOptions {
+    SentryOptions {
+        enabled: cfg.log.sentry.enabled,
+        dsn: cfg.log.sentry.dsn.clone(),
+        environment: cfg.log.sentry.environment.clone(),
+        sample_rate: cfg.log.sentry.sample_rate,
+        traces_sample_rate: cfg.log.sentry.traces_sample_rate,
+        attach_stacktrace: cfg.log.sentry.attach_stacktrace,
+        send_default_pii: cfg.log.sentry.send_default_pii,
+        debug: cfg.log.sentry.debug,
     }
 }
 

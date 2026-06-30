@@ -4,7 +4,7 @@ use super::{
 };
 use ntgw_config::{
     AccessLogConfig, AdminAuthConfig, DataPlaneConfig, ExperimentalConfig, HttpCapacityConfig,
-    LogConfig, RuntimeConfig, RuntimeProtectionConfig, RuntimeTuningConfig,
+    LogConfig, RuntimeConfig, RuntimeProtectionConfig, RuntimeTuningConfig, SentryConfig,
     SessionPersistenceConfig, XdsTlsConfig, XdsTransportConfig,
 };
 

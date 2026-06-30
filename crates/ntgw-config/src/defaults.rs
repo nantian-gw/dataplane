@@ -36,6 +36,18 @@ pub(crate) fn default_open_telemetry_service_name() -> String {
     "nantian-dataplane".to_string()
 }
 
+pub(crate) fn default_true() -> bool {
+    true
+}
+
+pub(crate) fn default_sentry_sample_rate() -> f32 {
+    1.0
+}
+
+pub(crate) fn default_sentry_traces_sample_rate() -> f32 {
+    0.01
+}
+
 pub(crate) fn default_access_enabled() -> bool {
     true
 }
