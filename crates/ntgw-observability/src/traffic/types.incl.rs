@@ -60,6 +60,33 @@ pub struct TrafficObservationRef<'a> {
     pub runtime_ids: TrafficRuntimeIds,
 }
 
+impl<'a> TrafficObservationRef<'a> {
+    pub fn to_owned(&self) -> TrafficObservation {
+        TrafficObservation {
+            listener_name: self.listener_name.to_string(),
+            protocol: self.protocol.to_string(),
+            route_namespace: self.route_namespace.to_string(),
+            route_name: self.route_name.to_string(),
+            route_kind: self.route_kind.to_string(),
+            backend_name: self.backend_name.to_string(),
+            status: self.status,
+            latency_ms: self.latency_ms,
+            bytes_received: self.bytes_received,
+            bytes_sent: self.bytes_sent,
+            retry_attempts: self.retry_attempts,
+            retried_success: self.retried_success,
+            upstream_pool_hits: self.upstream_pool_hits,
+            upstream_pool_misses: self.upstream_pool_misses,
+            upstream_peer_build_failures: self.upstream_peer_build_failures,
+            upstream_connect_latency_ms: self.upstream_connect_latency_ms,
+            upstream_connect_latency_ms_max: self.upstream_connect_latency_ms_max,
+            upstream_connect_latency_ms_buckets: *self.upstream_connect_latency_ms_buckets,
+            response_flags: self.response_flags.to_string(),
+            runtime_ids: self.runtime_ids,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct TrafficTopology {
     pub route_kind: Cow<'static, str>,
@@ -277,4 +304,5 @@ pub struct TrafficEdgeStat {
 #[derive(Debug, Clone)]
 pub struct SharedTrafficStats {
     inner: Arc<TrafficStatsInner>,
+    shared_buffer: Arc<parking_lot::Mutex<Vec<TrafficObservation>>>,
 }
