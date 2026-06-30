@@ -30,6 +30,10 @@ struct FileStamp {
 }
 
 impl ReloadingDataPlaneConfig {
+    pub fn path(&self) -> &Path {
+        &self.path
+    }
+
     pub fn new(path: impl AsRef<Path>, refresh_interval: Duration) -> Result<Self> {
         let path = path.as_ref().to_path_buf();
         let value = DataPlaneConfig::load(&path)?;
