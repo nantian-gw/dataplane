@@ -1,7 +1,7 @@
 use super::{
     AccessLogConfig, ExperimentalConfig, HttpCacheConfig, HttpCapacityConfig, LogConfig,
-    OpenTelemetryConfig, RuntimeConfig, RuntimeProtectionConfig, RuntimeTuningConfig,
-    SentryConfig, TcpKeepaliveConfig, XdsTransportConfig,
+    OpenTelemetryConfig, RuntimeConfig, RuntimeProtectionConfig, RuntimeTuningConfig, SentryConfig,
+    TcpKeepaliveConfig, XdsTransportConfig,
     defaults::{
         default_access_enabled, default_access_format, default_access_mode, default_access_path,
         default_access_sample_rate, default_active_health_check_enabled,

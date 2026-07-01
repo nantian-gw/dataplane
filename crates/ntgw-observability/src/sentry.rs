@@ -36,16 +36,19 @@ pub fn init_sentry(options: &SentryOptions, release: &str) -> Result<SentryGuard
         return Ok(SentryGuard { _guard: None });
     }
 
-    let guard = sentry::init((options.dsn.as_str(), sentry::ClientOptions {
-        release: Some(release.to_owned().into()),
-        environment: Some(options.environment.clone().into()),
-        sample_rate: options.sample_rate,
-        traces_sample_rate: options.traces_sample_rate,
-        attach_stacktrace: options.attach_stacktrace,
-        send_default_pii: options.send_default_pii,
-        debug: options.debug,
-        ..Default::default()
-    }));
+    let guard = sentry::init((
+        options.dsn.as_str(),
+        sentry::ClientOptions {
+            release: Some(release.to_owned().into()),
+            environment: Some(options.environment.clone().into()),
+            sample_rate: options.sample_rate,
+            traces_sample_rate: options.traces_sample_rate,
+            attach_stacktrace: options.attach_stacktrace,
+            send_default_pii: options.send_default_pii,
+            debug: options.debug,
+            ..Default::default()
+        },
+    ));
 
     Ok(SentryGuard {
         _guard: Some(guard),

@@ -83,8 +83,8 @@ mod arc_str_serde {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct ArcStr(#[serde(with = "arc_str_serde")] Arc<str>);
 
-use std::ops::Deref;
 use std::borrow::Borrow;
+use std::ops::Deref;
 
 impl Deref for ArcStr {
     type Target = str;
