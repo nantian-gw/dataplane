@@ -2,10 +2,10 @@
 fn skips_http3_listener_when_runtime_has_no_support() {
     let snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/h3".to_string(),
+            name: "default/gw/h3".to_string().into(),
             address: "0.0.0.0".to_string(),
             port: 443,
-            protocol: "LISTENER_PROTOCOL_HTTP3".to_string(),
+            protocol: "LISTENER_PROTOCOL_HTTP3".to_string().into(),
             ..Listener::default()
         }],
         ..Snapshot::default()
@@ -40,17 +40,17 @@ fn skips_unbindable_listener_addresses_without_dropping_other_listeners() {
     let snapshot = Snapshot {
         listeners: vec![
             Listener {
-                name: "default/gw/http".to_string(),
+                name: "default/gw/http".to_string().into(),
                 address: "0.0.0.0".to_string(),
                 port: 80,
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
                 ..Listener::default()
             },
             Listener {
-                name: "default/gw/http-8080".to_string(),
+                name: "default/gw/http-8080".to_string().into(),
                 address: "203.0.113.13".to_string(),
                 port: 8080,
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
                 ..Listener::default()
             },
         ],
@@ -82,10 +82,10 @@ fn skips_unbindable_listener_addresses_without_dropping_other_listeners() {
 fn drops_listener_plan_when_all_addresses_are_unbindable() {
     let snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/http-8080".to_string(),
+            name: "default/gw/http-8080".to_string().into(),
             address: "203.0.113.13".to_string(),
             port: 8080,
-            protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+            protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
             ..Listener::default()
         }],
         ..Snapshot::default()
@@ -110,10 +110,10 @@ fn drops_listener_plan_when_all_addresses_are_unbindable() {
 fn keeps_active_listener_binds_without_reprobing_them() {
     let snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/http".to_string(),
+            name: "default/gw/http".to_string().into(),
             address: "0.0.0.0".to_string(),
             port: 80,
-            protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+            protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
             ..Listener::default()
         }],
         ..Snapshot::default()
@@ -121,12 +121,12 @@ fn keeps_active_listener_binds_without_reprobing_them() {
     let active = ListenerPlan {
         listeners: vec![
             PlannedListener {
-                name: "default/gw/http".to_string(),
+                name: "default/gw/http".to_string().into(),
                 bind: "0.0.0.0:80".to_string(),
                 protocol: ListenerProtocol::Plain,
             },
             PlannedListener {
-                name: "default/gw/http".to_string(),
+                name: "default/gw/http".to_string().into(),
                 bind: "[::]:80".to_string(),
                 protocol: ListenerProtocol::Plain,
             },
@@ -158,12 +158,12 @@ fn force_reload_uses_active_listener_binds_for_plan_availability() {
     let active = ListenerPlan {
         listeners: vec![
             PlannedListener {
-                name: "default/gw/http".to_string(),
+                name: "default/gw/http".to_string().into(),
                 bind: "0.0.0.0:80".to_string(),
                 protocol: ListenerProtocol::Plain,
             },
             PlannedListener {
-                name: "default/gw/http".to_string(),
+                name: "default/gw/http".to_string().into(),
                 bind: "[::]:80".to_string(),
                 protocol: ListenerProtocol::Plain,
             },

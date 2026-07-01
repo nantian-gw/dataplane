@@ -30,8 +30,8 @@ fn path_rule(path: &str, namespace: &str, backend: &str, port: u32) -> HttpRule 
 
 fn backend_ref(namespace: &str, name: &str, port: u32) -> BackendRef {
     BackendRef {
-        namespace: namespace.to_string(),
-        name: name.to_string(),
+        namespace: namespace.to_string().into(),
+        name: name.to_string().into(),
         port,
         weight: 1,
         ..BackendRef::default()
@@ -40,9 +40,9 @@ fn backend_ref(namespace: &str, name: &str, port: u32) -> BackendRef {
 
 fn backend_cluster(namespace: &str, name: &str, address: &str) -> BackendCluster {
     BackendCluster {
-        name: format!("{name}:8080"),
-        namespace: namespace.to_string(),
-        protocol: "HTTP".to_string(),
+        name: format!("{name}:8080").into(),
+        namespace: namespace.to_string().into(),
+        protocol: "HTTP".to_string().into(),
         endpoints: vec![BackendEndpoint {
             address: address.to_string(),
             port: 8080,
@@ -57,11 +57,11 @@ fn backend_cluster(namespace: &str, name: &str, address: &str) -> BackendCluster
 
 fn listener_with_hostnames(name: &str, hostnames: &[&str], attached_routes: &[&str]) -> Listener {
     Listener {
-        name: name.to_string(),
+        name: name.to_string().into(),
         address: "0.0.0.0".to_string(),
         addresses: vec!["0.0.0.0".to_string()],
         port: 80,
-        protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+        protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
         hostnames: hostnames.iter().map(|item| (*item).to_string()).collect(),
         attached_routes: attached_routes
             .iter()

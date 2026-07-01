@@ -12,18 +12,18 @@ fn summary_view_counts_listener_recovery_states() {
         id: "v2".to_string(),
         listeners: vec![
             Listener {
-                name: "recovered".to_string(),
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+                name: "recovered".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
                 ..Listener::default()
             },
             Listener {
-                name: "failed".to_string(),
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+                name: "failed".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
                 ..Listener::default()
             },
             Listener {
-                name: "clean".to_string(),
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+                name: "clean".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
                 ..Listener::default()
             },
         ],

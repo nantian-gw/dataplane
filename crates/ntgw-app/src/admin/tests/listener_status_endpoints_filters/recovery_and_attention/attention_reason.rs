@@ -7,13 +7,13 @@ async fn listener_status_endpoint_filters_by_attention_reason() {
         id: "v2".to_string(),
         listeners: vec![
             Listener {
-                name: "failed".to_string(),
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+                name: "failed".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
                 ..Listener::default()
             },
             Listener {
-                name: "stale".to_string(),
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+                name: "stale".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
                 ..Listener::default()
             },
         ],

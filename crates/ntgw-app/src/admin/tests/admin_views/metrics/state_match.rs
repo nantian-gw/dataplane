@@ -35,7 +35,7 @@ async fn metrics_view_matches_management_endpoint_state() {
 
     state.traffic.observe(TrafficObservation {
         listener_name: "web".to_string(),
-        protocol: "HTTP".to_string(),
+        protocol: "HTTP".to_string().into(),
         route_namespace: "default".to_string(),
         route_name: "web".to_string(),
         route_kind: "Http".to_string(),

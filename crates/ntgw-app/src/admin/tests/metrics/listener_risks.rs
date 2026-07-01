@@ -6,18 +6,18 @@ fn render_metrics_exposes_listener_overlap_risks() {
         id: "v2".to_string(),
         listeners: vec![
             Listener {
-                name: "pending-failed".to_string(),
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+                name: "pending-failed".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
                 ..Listener::default()
             },
             Listener {
-                name: "rejected-failed".to_string(),
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+                name: "rejected-failed".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
                 ..Listener::default()
             },
             Listener {
-                name: "stale-failed".to_string(),
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+                name: "stale-failed".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
                 ..Listener::default()
             },
         ],

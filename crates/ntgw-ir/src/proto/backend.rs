@@ -49,9 +49,9 @@ pub(super) fn backend_from_proto(item: proto::BackendCluster) -> BackendCluster 
     });
 
     BackendCluster {
-        name: item.name,
-        namespace: item.namespace,
-        protocol: item.protocol,
+        name: item.name.into(),
+        namespace: item.namespace.into(),
+        protocol: item.protocol.into(),
         endpoints: item
             .endpoints
             .into_iter()

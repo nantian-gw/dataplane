@@ -2,10 +2,10 @@
 fn desired_listener_plan_ignores_https_listener_without_valid_identity() {
     let snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/https".to_string(),
+            name: "default/gw/https".to_string().into(),
             address: "0.0.0.0".to_string(),
             port: 443,
-            protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
+            protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
             tls: Some(TlsConfig {
                 enabled: true,
                 passthrough: false,

@@ -104,10 +104,10 @@ fn http_runtime_records_listener_plan_and_tls_asset_reload_stages() -> anyhow::R
     snapshot.store(Arc::new(Snapshot {
         id: "v1".to_string(),
         listeners: vec![Listener {
-            name: "default/gw/http".to_string(),
+            name: "default/gw/http".to_string().into(),
             address: "127.0.0.1".to_string(),
             port: free_tcp_port() as u32,
-            protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+            protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
             ..Listener::default()
         }],
         ..Snapshot::default()

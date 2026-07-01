@@ -2,8 +2,8 @@
 fn decodes_http_route_timeouts_from_proto() {
     let snapshot = Snapshot::from(proto::ConfigSnapshot {
         http_routes: vec![proto::HttpRoute {
-            name: "route".to_string(),
-            namespace: "default".to_string(),
+            name: "route".to_string().into(),
+            namespace: "default".to_string().into(),
             rules: vec![proto::HttpRule {
                 name: String::new(),
                 timeouts: Some(proto::HttpRouteTimeouts {
@@ -39,20 +39,20 @@ fn decodes_http_route_timeouts_from_proto() {
 fn from_proto_retains_http_grpc_and_stream_route_labels() {
     let snapshot = Snapshot::from(proto::ConfigSnapshot {
         http_routes: vec![proto::HttpRoute {
-            name: "http-route".to_string(),
-            namespace: "default".to_string(),
+            name: "http-route".to_string().into(),
+            namespace: "default".to_string().into(),
             labels: std::collections::HashMap::from([("team".to_string(), "edge".to_string())]),
             ..Default::default()
         }],
         grpc_routes: vec![proto::GrpcRoute {
-            name: "grpc-route".to_string(),
-            namespace: "default".to_string(),
+            name: "grpc-route".to_string().into(),
+            namespace: "default".to_string().into(),
             labels: std::collections::HashMap::from([("team".to_string(), "api".to_string())]),
             ..Default::default()
         }],
         stream_routes: vec![proto::StreamRoute {
-            name: "stream-route".to_string(),
-            namespace: "default".to_string(),
+            name: "stream-route".to_string().into(),
+            namespace: "default".to_string().into(),
             labels: std::collections::HashMap::from([("team".to_string(), "tcp".to_string())]),
             ..Default::default()
         }],
@@ -77,8 +77,8 @@ fn from_proto_retains_http_grpc_and_stream_route_labels() {
 fn selects_http_route_without_backend_for_redirect_rule() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "redirect".to_string(),
-            namespace: "default".to_string(),
+            name: "redirect".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -133,8 +133,8 @@ fn selects_http_route_without_backend_for_redirect_rule() {
 fn select_http_route_preserves_rule_then_backend_filter_order() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "route".to_string(),
-            namespace: "default".to_string(),
+            name: "route".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -148,7 +148,7 @@ fn select_http_route_preserves_rule_then_backend_filter_order() {
                     filter_type: "RequestHeaderModifier".to_string(),
                     header_modifier: Some(crate::HeaderModifier {
                         set: vec![crate::HeaderOperation {
-                            name: "x-rule".to_string(),
+                            name: "x-rule".to_string().into(),
                             value: "1".to_string(),
                         }],
                         ..crate::HeaderModifier::default()
@@ -156,14 +156,14 @@ fn select_http_route_preserves_rule_then_backend_filter_order() {
                     ..Filter::default()
                 }],
                 backend_refs: vec![BackendRef {
-                    namespace: "default".to_string(),
-                    name: "echo".to_string(),
+                    namespace: "default".to_string().into(),
+                    name: "echo".to_string().into(),
                     port: 8080,
                     filters: vec![Filter {
                         filter_type: "ResponseHeaderModifier".to_string(),
                         header_modifier: Some(crate::HeaderModifier {
                             set: vec![crate::HeaderOperation {
-                                name: "x-backend".to_string(),
+                                name: "x-backend".to_string().into(),
                                 value: "1".to_string(),
                             }],
                             ..crate::HeaderModifier::default()
@@ -178,9 +178,9 @@ fn select_http_route_preserves_rule_then_backend_filter_order() {
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
-            name: "echo:8080".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTP".to_string(),
+            name: "echo:8080".to_string().into(),
+            namespace: "default".to_string().into(),
+            protocol: "HTTP".to_string().into(),
             endpoints: vec![BackendEndpoint {
                 address: "127.0.0.1".to_string(),
                 port: 8080,

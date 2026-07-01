@@ -2,11 +2,11 @@
 fn selects_stream_backend_refs_by_weighted_round_robin() {
     let snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/tcp".to_string(),
+            name: "default/gw/tcp".to_string().into(),
             address: "0.0.0.0".to_string(),
             addresses: vec!["0.0.0.0".to_string()],
             port: 9000,
-            protocol: "LISTENER_PROTOCOL_TCP".to_string(),
+            protocol: "LISTENER_PROTOCOL_TCP".to_string().into(),
             hostnames: vec![],
             attached_routes: vec!["default/tcp-route".to_string()],
             tls: None,
@@ -14,8 +14,8 @@ fn selects_stream_backend_refs_by_weighted_round_robin() {
             metadata: BTreeMap::new(),
         }],
         stream_routes: vec![StreamRoute {
-            name: "tcp-route".to_string(),
-            namespace: "default".to_string(),
+            name: "tcp-route".to_string().into(),
+            namespace: "default".to_string().into(),
             kind: "ROUTE_KIND_TCP".to_string(),
             parent_refs: vec![],
             rules: vec![StreamRule {
@@ -35,9 +35,9 @@ fn selects_stream_backend_refs_by_weighted_round_robin() {
         }],
         backends: vec![
             BackendCluster {
-                name: "tcp-a:9001".to_string(),
-                namespace: "default".to_string(),
-                protocol: "TCP".to_string(),
+                name: "tcp-a:9001".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "TCP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.40".to_string(),
                     port: 9001,
@@ -49,9 +49,9 @@ fn selects_stream_backend_refs_by_weighted_round_robin() {
             
                 circuit_breaker: None,},
             BackendCluster {
-                name: "tcp-b:9002".to_string(),
-                namespace: "default".to_string(),
-                protocol: "TCP".to_string(),
+                name: "tcp-b:9002".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "TCP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.41".to_string(),
                     port: 9002,

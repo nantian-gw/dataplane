@@ -2,9 +2,9 @@
 fn runtime_indexes_accelerate_backend_secret_and_workload_lookups() {
     let mut snapshot = Snapshot {
         backends: vec![BackendCluster {
-            name: "api:8443".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTPS".to_string(),
+            name: "api:8443".to_string().into(),
+            namespace: "default".to_string().into(),
+            protocol: "HTTPS".to_string().into(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8443,
@@ -16,14 +16,14 @@ fn runtime_indexes_accelerate_backend_secret_and_workload_lookups() {
         
                 circuit_breaker: None,}],
         secrets: vec![SecretMaterial {
-            namespace: "default".to_string(),
-            name: "client-cert".to_string(),
+            namespace: "default".to_string().into(),
+            name: "client-cert".to_string().into(),
             cert_pem: "cert".to_string(),
             key_pem: "key".to_string(),
         }],
         workloads: vec![Workload {
-            name: "dp-1".to_string(),
-            namespace: "tenant-a".to_string(),
+            name: "dp-1".to_string().into(),
+            namespace: "tenant-a".to_string().into(),
             ip: "10.1.2.3".to_string(),
         }],
         ..Snapshot::default()
@@ -49,8 +49,8 @@ fn runtime_indexes_accelerate_backend_secret_and_workload_lookups() {
 fn unbuilt_backend_index_does_not_override_slow_path_backend_lookup() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "orders-route".to_string(),
-            namespace: "default".to_string(),
+            name: "orders-route".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["orders.example.com".to_string()],
             rules: vec![HttpRule {
                 backend_refs: vec![backend_ref("default", "orders", 8080)],
@@ -60,9 +60,9 @@ fn unbuilt_backend_index_does_not_override_slow_path_backend_lookup() {
         }],
         backends: vec![
             BackendCluster {
-                name: "orders:8080".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "orders:8080".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.10".to_string(),
                     port: 8080,
@@ -74,9 +74,9 @@ fn unbuilt_backend_index_does_not_override_slow_path_backend_lookup() {
             
                 circuit_breaker: None,},
             BackendCluster {
-                name: "payments:8080".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTPS".to_string(),
+                name: "payments:8080".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "HTTPS".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.20".to_string(),
                     port: 8080,
@@ -114,8 +114,8 @@ fn unbuilt_backend_index_does_not_override_slow_path_backend_lookup() {
 fn runtime_indexes_precompute_backend_lookup_for_backend_refs() {
     let mut snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "orders-route".to_string(),
-            namespace: "default".to_string(),
+            name: "orders-route".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["orders.example.com".to_string()],
             rules: vec![HttpRule {
                 backend_refs: vec![backend_ref("default", "orders", 8080)],
@@ -125,9 +125,9 @@ fn runtime_indexes_precompute_backend_lookup_for_backend_refs() {
         }],
         backends: vec![
             BackendCluster {
-                name: "orders:8080".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "orders:8080".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.10".to_string(),
                     port: 8080,
@@ -139,9 +139,9 @@ fn runtime_indexes_precompute_backend_lookup_for_backend_refs() {
             
                 circuit_breaker: None,},
             BackendCluster {
-                name: "payments:8080".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTPS".to_string(),
+                name: "payments:8080".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "HTTPS".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.20".to_string(),
                     port: 8080,
@@ -178,9 +178,9 @@ fn runtime_indexes_precompute_backend_lookup_for_backend_refs() {
 fn backend_lookup_requires_an_exact_port_string_match() {
     let snapshot = Snapshot {
         backends: vec![BackendCluster {
-            name: "orders:08080".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTP".to_string(),
+            name: "orders:08080".to_string().into(),
+            namespace: "default".to_string().into(),
+            protocol: "HTTP".to_string().into(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8080,
@@ -202,8 +202,8 @@ fn backend_lookup_requires_an_exact_port_string_match() {
 fn backend_ref_lookup_requires_an_exact_port_string_match() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "orders-route".to_string(),
-            namespace: "default".to_string(),
+            name: "orders-route".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["orders.example.com".to_string()],
             rules: vec![HttpRule {
                 backend_refs: vec![backend_ref("default", "orders", 8080)],
@@ -212,9 +212,9 @@ fn backend_ref_lookup_requires_an_exact_port_string_match() {
             ..HttpRoute::default()
         }],
         backends: vec![BackendCluster {
-            name: "orders:08080".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTP".to_string(),
+            name: "orders:08080".to_string().into(),
+            namespace: "default".to_string().into(),
+            protocol: "HTTP".to_string().into(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8080,
@@ -246,14 +246,14 @@ fn unbuilt_secret_index_does_not_override_slow_path_secret_lookup() {
     let snapshot = Snapshot {
         secrets: vec![
             SecretMaterial {
-                namespace: "default".to_string(),
-                name: "client-cert".to_string(),
+                namespace: "default".to_string().into(),
+                name: "client-cert".to_string().into(),
                 cert_pem: "expected-cert".to_string(),
                 key_pem: "expected-key".to_string(),
             },
             SecretMaterial {
-                namespace: "default".to_string(),
-                name: "other-cert".to_string(),
+                namespace: "default".to_string().into(),
+                name: "other-cert".to_string().into(),
                 cert_pem: "stale-cert".to_string(),
                 key_pem: "stale-key".to_string(),
             },
@@ -278,8 +278,8 @@ fn unbuilt_secret_index_does_not_override_slow_path_secret_lookup() {
 fn unbuilt_workload_index_does_not_override_slow_path_source_namespace_lookup() {
     let snapshot = Snapshot {
         workloads: vec![Workload {
-            namespace: "tenant-a".to_string(),
-            name: "client".to_string(),
+            namespace: "tenant-a".to_string().into(),
+            name: "client".to_string().into(),
             ip: "10.1.2.3".to_string(),
         }],
         workload_namespace_index: std::collections::HashMap::from([(
@@ -304,9 +304,9 @@ fn runtime_indexes_precompute_backend_service_namespace_lookup() {
     let mut snapshot = Snapshot {
         backends: vec![
             BackendCluster {
-                name: "orders:8080".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "orders:8080".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![],
                 wasm_plugin: None,
                 ai_service: None,
@@ -314,9 +314,9 @@ fn runtime_indexes_precompute_backend_service_namespace_lookup() {
             
                 circuit_breaker: None,},
             BackendCluster {
-                name: "payments:9090".to_string(),
-                namespace: "tenant-a".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "payments:9090".to_string().into(),
+                namespace: "tenant-a".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![],
                 wasm_plugin: None,
                 ai_service: None,
@@ -324,9 +324,9 @@ fn runtime_indexes_precompute_backend_service_namespace_lookup() {
             
                 circuit_breaker: None,},
             BackendCluster {
-                name: "shared:8080".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "shared:8080".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![],
                 wasm_plugin: None,
                 ai_service: None,
@@ -334,9 +334,9 @@ fn runtime_indexes_precompute_backend_service_namespace_lookup() {
             
                 circuit_breaker: None,},
             BackendCluster {
-                name: "shared:8080".to_string(),
-                namespace: "tenant-b".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "shared:8080".to_string().into(),
+                namespace: "tenant-b".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![],
                 wasm_plugin: None,
                 ai_service: None,
@@ -344,9 +344,9 @@ fn runtime_indexes_precompute_backend_service_namespace_lookup() {
             
                 circuit_breaker: None,},
             BackendCluster {
-                name: "padded:08080".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "padded:08080".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![],
                 wasm_plugin: None,
                 ai_service: None,
@@ -408,9 +408,9 @@ fn unbuilt_backend_service_index_does_not_override_slow_path_namespace_lookup() 
 
     let snapshot = Snapshot {
         backends: vec![BackendCluster {
-            name: "orders:8080".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTP".to_string(),
+            name: "orders:8080".to_string().into(),
+            namespace: "default".to_string().into(),
+            protocol: "HTTP".to_string().into(),
             endpoints: vec![],
             wasm_plugin: None,
                 ai_service: None,

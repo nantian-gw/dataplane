@@ -73,9 +73,9 @@ pub fn build_snapshot_switch_fixture(config: SnapshotBenchConfig) -> SnapshotSwi
                         routes_per_listener,
                     );
                     let current_cluster = BackendCluster {
-                        name: format!("{backend_name}:{port}"),
-                        namespace: "default".to_string(),
-                        protocol: "HTTP".to_string(),
+                        name: format!("{backend_name}:{port}").into(),
+                        namespace: "default".into(),
+                        protocol: "HTTP".into(),
                         wasm_plugin: None,
                         ai_service: None,
                         token_policy: None,

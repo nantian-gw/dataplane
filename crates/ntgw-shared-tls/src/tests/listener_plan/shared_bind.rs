@@ -3,10 +3,10 @@ fn build_listener_plan_keeps_https_terminate_and_tls_passthrough_on_same_bind() 
     let snapshot = Snapshot {
         listeners: vec![
             Listener {
-                name: "default/gw/https".to_string(),
+                name: "default/gw/https".to_string().into(),
                 address: "0.0.0.0".to_string(),
                 port: 443,
-                protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
                 tls: Some(TlsConfig {
                     enabled: true,
                     passthrough: false,
@@ -19,10 +19,10 @@ fn build_listener_plan_keeps_https_terminate_and_tls_passthrough_on_same_bind() 
                 ..Listener::default()
             },
             Listener {
-                name: "default/gw/https-wildcard".to_string(),
+                name: "default/gw/https-wildcard".to_string().into(),
                 address: "0.0.0.0".to_string(),
                 port: 443,
-                protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
                 tls: Some(TlsConfig {
                     enabled: true,
                     passthrough: false,
@@ -35,10 +35,10 @@ fn build_listener_plan_keeps_https_terminate_and_tls_passthrough_on_same_bind() 
                 ..Listener::default()
             },
             Listener {
-                name: "default/gw/tls".to_string(),
+                name: "default/gw/tls".to_string().into(),
                 address: "0.0.0.0".to_string(),
                 port: 443,
-                protocol: "TLS".to_string(),
+                protocol: "TLS".to_string().into(),
                 tls: Some(TlsConfig {
                     enabled: true,
                     passthrough: true,

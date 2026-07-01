@@ -9,7 +9,7 @@ fn apply_header_modifier_updates_response_headers() {
         &mut response,
         &HeaderModifier {
             set: vec![HeaderOperation {
-                name: "x-response".to_string(),
+                name: "x-response".to_string().into(),
                 value: "ok".to_string(),
             }],
             add: vec![],

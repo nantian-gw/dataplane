@@ -22,7 +22,7 @@ fn summary_traffic_retry_rate_uses_request_event_denominator() {
     let state = test_state(None);
     state.traffic.observe(TrafficObservation {
         listener_name: "web".to_string(),
-        protocol: "HTTP".to_string(),
+        protocol: "HTTP".to_string().into(),
         route_namespace: "default".to_string(),
         route_name: "web".to_string(),
         route_kind: "Http".to_string(),
@@ -37,7 +37,7 @@ fn summary_traffic_retry_rate_uses_request_event_denominator() {
     });
     state.traffic.observe(TrafficObservation {
         listener_name: "tcp".to_string(),
-        protocol: "TCP".to_string(),
+        protocol: "TCP".to_string().into(),
         route_namespace: "default".to_string(),
         route_name: "tcp".to_string(),
         route_kind: "Tcp".to_string(),
@@ -91,7 +91,7 @@ fn summary_traffic_upstream_pool_views_ignore_stream_events() {
 
     state.traffic.observe(TrafficObservation {
         listener_name: "tcp".to_string(),
-        protocol: "TCP".to_string(),
+        protocol: "TCP".to_string().into(),
         route_namespace: "default".to_string(),
         route_name: "tcp".to_string(),
         route_kind: "Tcp".to_string(),

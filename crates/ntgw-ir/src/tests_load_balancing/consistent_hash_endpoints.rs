@@ -2,8 +2,8 @@
 fn consistent_hash_by_header_keeps_same_endpoint_for_same_key() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "hash".to_string(),
-            namespace: "default".to_string(),
+            name: "hash".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -19,9 +19,9 @@ fn consistent_hash_by_header_keeps_same_endpoint_for_same_key() {
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
-            name: "users:8080".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTP".to_string(),
+            name: "users:8080".to_string().into(),
+            namespace: "default".to_string().into(),
+            protocol: "HTTP".to_string().into(),
             endpoints: vec![
                 BackendEndpoint {
                     address: "10.0.0.10".to_string(),

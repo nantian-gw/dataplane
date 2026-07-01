@@ -2,13 +2,13 @@
 fn runtime_indexes_precompute_request_header_materialization_requirements() {
     let mut snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "header-route".to_string(),
-            namespace: "default".to_string(),
+            name: "header-route".to_string().into(),
+            namespace: "default".to_string().into(),
             rules: vec![HttpRule {
                 name: String::new(),
                 matches: vec![HttpMatch {
                     headers: vec![HeaderMatch {
-                        name: "x-env".to_string(),
+                        name: "x-env".to_string().into(),
                         value: "prod".to_string(),
                         match_type: "Exact".to_string(),
                         ..HeaderMatch::default()
@@ -20,8 +20,8 @@ fn runtime_indexes_precompute_request_header_materialization_requirements() {
             ..HttpRoute::default()
         }],
         grpc_routes: vec![GrpcRoute {
-            name: "grpc".to_string(),
-            namespace: "default".to_string(),
+            name: "grpc".to_string().into(),
+            namespace: "default".to_string().into(),
             rules: vec![GrpcRule {
                 name: String::new(),
                 session_persistence: Some(SessionPersistence {
@@ -87,8 +87,8 @@ fn runtime_indexes_precompute_source_ip_materialization_for_source_hash() {
 fn runtime_indexes_precompute_source_ip_materialization_for_workloads() {
     let mut snapshot = Snapshot {
         workloads: vec![Workload {
-            namespace: "default".to_string(),
-            name: "client".to_string(),
+            namespace: "default".to_string().into(),
+            name: "client".to_string().into(),
             ip: "10.1.2.3".to_string(),
         }],
         ..Snapshot::default()

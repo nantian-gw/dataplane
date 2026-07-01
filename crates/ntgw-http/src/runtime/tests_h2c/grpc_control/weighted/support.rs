@@ -6,21 +6,21 @@ fn weighted_grpc_h2c_snapshot(
     let shared = Snapshot::shared();
     shared.store(Arc::new(Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/http".to_string(),
+            name: "default/gw/http".to_string().into(),
             address: "127.0.0.1".to_string(),
             addresses: vec!["127.0.0.1".to_string()],
             port: listener_port as u32,
-            protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+            protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
             attached_routes: vec!["default/grpc-route".to_string()],
             ..Listener::default()
         }],
         grpc_routes: vec![GrpcRoute {
-            name: "grpc-route".to_string(),
-            namespace: "default".to_string(),
+            name: "grpc-route".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: Vec::new(),
             parent_refs: vec![ParentRef {
-                namespace: "default".to_string(),
-                name: "gw".to_string(),
+                namespace: "default".to_string().into(),
+                name: "gw".to_string().into(),
                 section_name: String::new(),
                 port: listener_port as u32,
                 ..ParentRef::default()
@@ -34,15 +34,15 @@ fn weighted_grpc_h2c_snapshot(
                 }],
                 backend_refs: vec![
                     BackendRef {
-                        namespace: "default".to_string(),
-                        name: "grpc-backend-a".to_string(),
+                        namespace: "default".to_string().into(),
+                        name: "grpc-backend-a".to_string().into(),
                         port: backend_a_port,
                         weight: 1,
                         ..BackendRef::default()
                     },
                     BackendRef {
-                        namespace: "default".to_string(),
-                        name: "grpc-backend-b".to_string(),
+                        namespace: "default".to_string().into(),
+                        name: "grpc-backend-b".to_string().into(),
                         port: backend_b_port,
                         weight: 1,
                         ..BackendRef::default()
@@ -57,9 +57,9 @@ fn weighted_grpc_h2c_snapshot(
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: format!("grpc-backend-a:{backend_a_port}"),
-                namespace: "default".to_string(),
-                protocol: "GRPC".to_string(),
+                name: format!("grpc-backend-a:{backend_a_port}").into(),
+                namespace: "default".to_string().into(),
+                protocol: "GRPC".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "127.0.0.1".to_string(),
                     port: backend_a_port,
@@ -71,9 +71,9 @@ fn weighted_grpc_h2c_snapshot(
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: format!("grpc-backend-b:{backend_b_port}"),
-                namespace: "default".to_string(),
-                protocol: "GRPC".to_string(),
+                name: format!("grpc-backend-b:{backend_b_port}").into(),
+                namespace: "default".to_string().into(),
+                protocol: "GRPC".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "127.0.0.1".to_string(),
                     port: backend_b_port,
@@ -114,11 +114,11 @@ fn weighted_mesh_grpc_h2c_snapshot_with_addresses(
     let shared = Snapshot::shared();
     shared.store(Arc::new(Snapshot {
         listeners: vec![Listener {
-            name: format!("mesh/default/echo/{listener_port}"),
+            name: format!("mesh/default/echo/{listener_port}").into(),
             address: "127.0.0.1".to_string(),
             addresses: vec!["127.0.0.1".to_string()],
             port: listener_port as u32,
-            protocol: "GRPC".to_string(),
+            protocol: "GRPC".to_string().into(),
             attached_routes: vec!["default/mesh-grpc-route".to_string()],
             metadata: BTreeMap::from([
                 (
@@ -135,12 +135,12 @@ fn weighted_mesh_grpc_h2c_snapshot_with_addresses(
             ..Listener::default()
         }],
         grpc_routes: vec![GrpcRoute {
-            name: "mesh-grpc-route".to_string(),
-            namespace: "default".to_string(),
+            name: "mesh-grpc-route".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: Vec::new(),
             parent_refs: vec![ParentRef {
                 kind: "Service".to_string(),
-                name: "echo".to_string(),
+                name: "echo".to_string().into(),
                 port: 7070,
                 ..ParentRef::default()
             }],
@@ -149,15 +149,15 @@ fn weighted_mesh_grpc_h2c_snapshot_with_addresses(
                 matches: vec![],
                 backend_refs: vec![
                     BackendRef {
-                        namespace: "default".to_string(),
-                        name: "echo-v1".to_string(),
+                        namespace: "default".to_string().into(),
+                        name: "echo-v1".to_string().into(),
                         port: backend_a.1,
                         weight: 1,
                         ..BackendRef::default()
                     },
                     BackendRef {
-                        namespace: "default".to_string(),
-                        name: "echo-v2".to_string(),
+                        namespace: "default".to_string().into(),
+                        name: "echo-v2".to_string().into(),
                         port: backend_b.1,
                         weight: 1,
                         ..BackendRef::default()
@@ -172,9 +172,9 @@ fn weighted_mesh_grpc_h2c_snapshot_with_addresses(
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: format!("echo-v1:{}", backend_a.1),
-                namespace: "default".to_string(),
-                protocol: "GRPC".to_string(),
+                name: format!("echo-v1:{}", backend_a.1).into(),
+                namespace: "default".to_string().into(),
+                protocol: "GRPC".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: backend_a.0.to_string(),
                     port: backend_a.1,
@@ -186,9 +186,9 @@ fn weighted_mesh_grpc_h2c_snapshot_with_addresses(
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: format!("echo-v2:{}", backend_b.1),
-                namespace: "default".to_string(),
-                protocol: "GRPC".to_string(),
+                name: format!("echo-v2:{}", backend_b.1).into(),
+                namespace: "default".to_string().into(),
+                protocol: "GRPC".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: backend_b.0.to_string(),
                     port: backend_b.1,

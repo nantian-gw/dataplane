@@ -2,8 +2,8 @@
 fn missing_consistent_hash_key_falls_back_to_weighted_round_robin() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "hash".to_string(),
-            namespace: "default".to_string(),
+            name: "hash".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -23,9 +23,9 @@ fn missing_consistent_hash_key_falls_back_to_weighted_round_robin() {
         }],
         backends: vec![
             BackendCluster {
-                name: "users:8080".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "users:8080".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.10".to_string(),
                     port: 8080,
@@ -37,9 +37,9 @@ fn missing_consistent_hash_key_falls_back_to_weighted_round_robin() {
             
                 circuit_breaker: None,},
             BackendCluster {
-                name: "orders:8081".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "orders:8081".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.11".to_string(),
                     port: 8081,

@@ -1,3 +1,6 @@
+const FLUSH_THRESHOLD: usize = 64;
+const _FLUSH_INTERVAL_MS: u64 = 100;
+
 #[derive(Debug)]
 struct TrafficStatsInner {
     shard_mask: usize,
@@ -85,6 +88,7 @@ impl SharedTrafficStats {
     pub(crate) fn with_shard_count(shard_count: usize) -> Self {
         Self {
             inner: Arc::new(TrafficStatsInner::new(shard_count)),
+            shared_buffer: Arc::new(parking_lot::Mutex::new(Vec::with_capacity(FLUSH_THRESHOLD))),
         }
     }
 
@@ -97,6 +101,23 @@ impl SharedTrafficStats {
     }
 
     pub fn observe_ref_with_topology(
+        &self,
+        observation: TrafficObservationRef<'_>,
+        topology: Option<TrafficTopologyRef<'_>>,
+    ) {
+        if topology.is_some() {
+            return self.observe_ref_direct(observation, topology);
+        }
+        let mut buf = self.shared_buffer.lock();
+        buf.push(observation.to_owned());
+        let should_flush = buf.len() >= FLUSH_THRESHOLD;
+        drop(buf);
+        if should_flush {
+            self.flush_batch();
+        }
+    }
+
+    fn observe_ref_direct(
         &self,
         observation: TrafficObservationRef<'_>,
         topology: Option<TrafficTopologyRef<'_>>,
@@ -328,7 +349,22 @@ impl SharedTrafficStats {
             state.upstream_tls_handshake_failure_latency_ms_buckets[bucket_index].saturating_add(1);
     }
 
+    fn flush_batch(&self) {
+        let batch: Vec<TrafficObservation> = {
+            let mut buf = self.shared_buffer.lock();
+            std::mem::take(&mut *buf)
+        };
+        if batch.is_empty() {
+            return;
+        }
+        for obs in &batch {
+            let obs_ref = TrafficObservationRef::from(obs);
+            self.observe_ref_direct(obs_ref, None);
+        }
+    }
+
     pub fn snapshot(&self) -> TrafficSnapshot {
+        self.flush_batch();
         let mut state = TrafficState::default();
         for shard in &self.inner.shards {
             let shard = shard.read();
@@ -391,6 +427,7 @@ impl Default for SharedTrafficStats {
     fn default() -> Self {
         Self {
             inner: Arc::new(TrafficStatsInner::new(default_traffic_shard_count())),
+            shared_buffer: Arc::new(parking_lot::Mutex::new(Vec::with_capacity(FLUSH_THRESHOLD))),
         }
     }
 }

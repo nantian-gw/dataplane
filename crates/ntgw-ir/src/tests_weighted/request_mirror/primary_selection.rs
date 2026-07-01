@@ -2,8 +2,8 @@
 fn request_mirror_does_not_change_primary_backend_selection() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "mirror".to_string(),
-            namespace: "default".to_string(),
+            name: "mirror".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -18,8 +18,8 @@ fn request_mirror_does_not_change_primary_backend_selection() {
                         filter_type: "RequestMirror".to_string(),
                         request_mirror: Some(crate::RequestMirrorFilter {
                             backend_ref: BackendRef {
-                                namespace: "observability".to_string(),
-                                name: "shadow".to_string(),
+                                namespace: "observability".to_string().into(),
+                                name: "shadow".to_string().into(),
                                 port: 8081,
                                 ..BackendRef::default()
                             },
@@ -38,9 +38,9 @@ fn request_mirror_does_not_change_primary_backend_selection() {
         }],
         backends: vec![
             BackendCluster {
-                name: "users:8080".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "users:8080".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.70".to_string(),
                     port: 8080,
@@ -52,9 +52,9 @@ fn request_mirror_does_not_change_primary_backend_selection() {
             
                 circuit_breaker: None,},
             BackendCluster {
-                name: "shadow:8081".to_string(),
-                namespace: "observability".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "shadow:8081".to_string().into(),
+                namespace: "observability".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.71".to_string(),
                     port: 8081,

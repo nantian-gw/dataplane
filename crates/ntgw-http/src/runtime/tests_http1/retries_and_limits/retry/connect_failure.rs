@@ -359,21 +359,21 @@ fn unhealthy_backend_http_snapshot(
     let shared = Snapshot::shared();
     shared.store(Arc::new(Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/http".to_string(),
+            name: "default/gw/http".to_string().into(),
             address: "127.0.0.1".to_string(),
             addresses: vec!["127.0.0.1".to_string()],
             port: listener_port as u32,
-            protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+            protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
             attached_routes: vec!["default/route".to_string()],
             ..Listener::default()
         }],
         http_routes: vec![HttpRoute {
-            name: "route".to_string(),
-            namespace: "default".to_string(),
+            name: "route".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: Vec::new(),
             parent_refs: vec![ParentRef {
-                namespace: "default".to_string(),
-                name: "gw".to_string(),
+                namespace: "default".to_string().into(),
+                name: "gw".to_string().into(),
                 section_name: String::new(),
                 port: listener_port as u32,
                 ..ParentRef::default()
@@ -386,8 +386,8 @@ fn unhealthy_backend_http_snapshot(
                     ..HttpMatch::default()
                 }],
                 backend_refs: vec![BackendRef {
-                    namespace: "default".to_string(),
-                    name: "backend".to_string(),
+                    namespace: "default".to_string().into(),
+                    name: "backend".to_string().into(),
                     port: backend_port,
                     ..BackendRef::default()
                 }],
@@ -399,9 +399,9 @@ fn unhealthy_backend_http_snapshot(
         backends: vec![BackendCluster {
             ai_service: None,
             token_policy: None,
-            name: format!("backend:{backend_port}"),
-            namespace: "default".to_string(),
-            protocol: "HTTP".to_string(),
+            name: format!("backend:{backend_port}").into(),
+            namespace: "default".to_string().into(),
+            protocol: "HTTP".to_string().into(),
             endpoints: vec![BackendEndpoint {
                 address: "127.0.0.1".to_string(),
                 port: backend_port,

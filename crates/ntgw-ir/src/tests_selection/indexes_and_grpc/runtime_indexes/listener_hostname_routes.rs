@@ -3,17 +3,17 @@ fn runtime_indexes_precompute_listener_and_hostname_route_candidates() {
     let mut snapshot = Snapshot {
         listeners: vec![
             Listener {
-                name: "default/gw/http-80".to_string(),
+                name: "default/gw/http-80".to_string().into(),
                 port: 80,
-                protocol: "HTTP".to_string(),
+                protocol: "HTTP".to_string().into(),
                 hostnames: vec!["api.example.com".to_string()],
                 attached_routes: vec!["default/exact".to_string(), "default/wild".to_string()],
                 ..Listener::default()
             },
             Listener {
-                name: "default/gw/grpc-80".to_string(),
+                name: "default/gw/grpc-80".to_string().into(),
                 port: 80,
-                protocol: "GRPC".to_string(),
+                protocol: "GRPC".to_string().into(),
                 hostnames: vec!["grpc.example.com".to_string()],
                 attached_routes: vec!["default/grpc".to_string()],
                 ..Listener::default()
@@ -21,34 +21,34 @@ fn runtime_indexes_precompute_listener_and_hostname_route_candidates() {
         ],
         http_routes: vec![
             HttpRoute {
-                name: "exact".to_string(),
-                namespace: "default".to_string(),
+                name: "exact".to_string().into(),
+                namespace: "default".to_string().into(),
                 hostnames: vec!["api.example.com".to_string()],
                 ..HttpRoute::default()
             },
             HttpRoute {
-                name: "wild".to_string(),
-                namespace: "default".to_string(),
+                name: "wild".to_string().into(),
+                namespace: "default".to_string().into(),
                 hostnames: vec!["*.example.com".to_string()],
                 ..HttpRoute::default()
             },
             HttpRoute {
-                name: "catch-all".to_string(),
-                namespace: "default".to_string(),
+                name: "catch-all".to_string().into(),
+                namespace: "default".to_string().into(),
                 hostnames: vec![],
                 ..HttpRoute::default()
             },
         ],
         grpc_routes: vec![
             GrpcRoute {
-                name: "grpc".to_string(),
-                namespace: "default".to_string(),
+                name: "grpc".to_string().into(),
+                namespace: "default".to_string().into(),
                 hostnames: vec!["grpc.example.com".to_string()],
                 ..GrpcRoute::default()
             },
             GrpcRoute {
-                name: "grpc-wild".to_string(),
-                namespace: "default".to_string(),
+                name: "grpc-wild".to_string().into(),
+                namespace: "default".to_string().into(),
                 hostnames: vec!["*.example.com".to_string()],
                 ..GrpcRoute::default()
             },
@@ -158,26 +158,26 @@ fn hostname_route_index_visits_next_candidate_without_duplicate_sources() {
     let mut snapshot = Snapshot {
         http_routes: vec![
             HttpRoute {
-                name: "exact-and-wild".to_string(),
-                namespace: "default".to_string(),
+                name: "exact-and-wild".to_string().into(),
+                namespace: "default".to_string().into(),
                 hostnames: vec!["api.example.com".to_string(), "*.example.com".to_string()],
                 ..HttpRoute::default()
             },
             HttpRoute {
-                name: "catch-all".to_string(),
-                namespace: "default".to_string(),
+                name: "catch-all".to_string().into(),
+                namespace: "default".to_string().into(),
                 hostnames: vec![],
                 ..HttpRoute::default()
             },
             HttpRoute {
-                name: "wild".to_string(),
-                namespace: "default".to_string(),
+                name: "wild".to_string().into(),
+                namespace: "default".to_string().into(),
                 hostnames: vec!["*.example.com".to_string()],
                 ..HttpRoute::default()
             },
             HttpRoute {
-                name: "exact".to_string(),
-                namespace: "default".to_string(),
+                name: "exact".to_string().into(),
+                namespace: "default".to_string().into(),
                 hostnames: vec!["api.example.com".to_string()],
                 ..HttpRoute::default()
             },
@@ -209,21 +209,21 @@ fn hostname_route_index_visits_next_candidate_without_duplicate_sources() {
 #[test]
 fn unbuilt_route_attachment_index_does_not_override_slow_path_route_attachment_lookup() {
     let stale_index = crate::RouteAttachmentListenerIndex::from_listeners(&[Listener {
-        name: "default/gw/stale".to_string(),
+        name: "default/gw/stale".to_string().into(),
         attached_routes: vec!["default/other".to_string()],
         ..Listener::default()
     }]);
     let snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/http".to_string(),
+            name: "default/gw/http".to_string().into(),
             port: 80,
-            protocol: "HTTP".to_string(),
+            protocol: "HTTP".to_string().into(),
             attached_routes: vec!["default/orders".to_string()],
             ..Listener::default()
         }],
         http_routes: vec![HttpRoute {
-            name: "orders".to_string(),
-            namespace: "default".to_string(),
+            name: "orders".to_string().into(),
+            namespace: "default".to_string().into(),
             rules: vec![HttpRule {
                 backend_refs: vec![backend_ref("default", "orders", 8080)],
                 ..HttpRule::default()
@@ -231,9 +231,9 @@ fn unbuilt_route_attachment_index_does_not_override_slow_path_route_attachment_l
             ..HttpRoute::default()
         }],
         backends: vec![BackendCluster {
-            name: "orders:8080".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTP".to_string(),
+            name: "orders:8080".to_string().into(),
+            namespace: "default".to_string().into(),
+            protocol: "HTTP".to_string().into(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8080,
@@ -267,7 +267,7 @@ fn runtime_indexes_precompute_service_frontend_metadata_by_listener_name() {
     let mut snapshot = Snapshot {
         listeners: vec![
             Listener {
-                name: "default/gw/service-http".to_string(),
+                name: "default/gw/service-http".to_string().into(),
                 metadata: BTreeMap::from([
                     (
                         crate::mesh::FRONTEND_KIND_METADATA_KEY.to_string(),
@@ -289,7 +289,7 @@ fn runtime_indexes_precompute_service_frontend_metadata_by_listener_name() {
                 ..Listener::default()
             },
             Listener {
-                name: "default/gw/plain".to_string(),
+                name: "default/gw/plain".to_string().into(),
                 ..Listener::default()
             },
         ],
@@ -315,7 +315,7 @@ fn runtime_indexes_precompute_service_frontend_metadata_by_listener_name() {
 fn unbuilt_service_frontend_index_does_not_override_slow_path_lookup() {
     let snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/service-http".to_string(),
+            name: "default/gw/service-http".to_string().into(),
             metadata: BTreeMap::from([
                 (
                     crate::mesh::FRONTEND_KIND_METADATA_KEY.to_string(),
@@ -339,8 +339,8 @@ fn unbuilt_service_frontend_index_does_not_override_slow_path_lookup() {
         service_frontend_index: std::collections::HashMap::from([(
             "default/gw/service-http".to_string(),
             crate::mesh::ServiceFrontendRef {
-                namespace: "stale".to_string(),
-                name: "stale".to_string(),
+                namespace: "stale".to_string().into(),
+                name: "stale".to_string().into(),
                 port: 19080,
             },
         )]),
@@ -362,25 +362,25 @@ fn runtime_indexes_precompute_service_frontend_attachment_lookup() {
     let mut snapshot = Snapshot {
         listeners: vec![
             Listener {
-                name: "default/gw/service-http".to_string(),
+                name: "default/gw/service-http".to_string().into(),
                 port: 8080,
-                protocol: "HTTP".to_string(),
+                protocol: "HTTP".to_string().into(),
                 metadata: service_frontend_metadata("default", "orders", 8080),
                 ..Listener::default()
             },
             Listener {
-                name: "default/gw/service-http-attached".to_string(),
+                name: "default/gw/service-http-attached".to_string().into(),
                 port: 8080,
-                protocol: "HTTP".to_string(),
+                protocol: "HTTP".to_string().into(),
                 attached_routes: vec!["default/orders-route".to_string()],
                 metadata: service_frontend_metadata("default", "orders", 8080),
                 ..Listener::default()
             },
         ],
         backends: vec![BackendCluster {
-            name: "orders:8080".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTP".to_string(),
+            name: "orders:8080".to_string().into(),
+            namespace: "default".to_string().into(),
+            protocol: "HTTP".to_string().into(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8080,
@@ -415,16 +415,16 @@ fn runtime_indexes_precompute_service_frontend_attachment_lookup() {
 fn unbuilt_service_frontend_attachment_index_does_not_override_slow_path_lookup() {
     let snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/service-http".to_string(),
+            name: "default/gw/service-http".to_string().into(),
             port: 8080,
-            protocol: "HTTP".to_string(),
+            protocol: "HTTP".to_string().into(),
             metadata: service_frontend_metadata("default", "orders", 8080),
             ..Listener::default()
         }],
         backends: vec![BackendCluster {
-            name: "orders:8080".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTP".to_string(),
+            name: "orders:8080".to_string().into(),
+            namespace: "default".to_string().into(),
+            protocol: "HTTP".to_string().into(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8080,
@@ -461,13 +461,13 @@ fn runtime_indexes_precompute_service_frontend_attachment_lookup_by_namespace() 
     let mut snapshot = Snapshot {
         listeners: vec![
             Listener {
-                name: "default/gw/service-http".to_string(),
+                name: "default/gw/service-http".to_string().into(),
                 metadata: service_frontend_metadata("default", "orders", 8080),
                 attached_routes: vec!["default/orders-route".to_string()],
                 ..Listener::default()
             },
             Listener {
-                name: "default/gw/plain".to_string(),
+                name: "default/gw/plain".to_string().into(),
                 metadata: service_frontend_metadata("default", "payments", 8080),
                 ..Listener::default()
             },
@@ -500,25 +500,25 @@ fn runtime_indexes_precompute_service_frontend_port_lookup() {
     let mut snapshot = Snapshot {
         listeners: vec![
             Listener {
-                name: "default/gw/service-http-first".to_string(),
+                name: "default/gw/service-http-first".to_string().into(),
                 port: 8080,
-                protocol: "HTTP".to_string(),
+                protocol: "HTTP".to_string().into(),
                 metadata: service_frontend_metadata("default", "orders", 8080),
                 ..Listener::default()
             },
             Listener {
-                name: "default/gw/service-http-indexed".to_string(),
+                name: "default/gw/service-http-indexed".to_string().into(),
                 port: 8080,
-                protocol: "HTTP".to_string(),
+                protocol: "HTTP".to_string().into(),
                 attached_routes: vec!["default/orders-route".to_string()],
                 metadata: service_frontend_metadata("default", "orders", 8080),
                 ..Listener::default()
             },
         ],
         backends: vec![BackendCluster {
-            name: "orders:8080".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTP".to_string(),
+            name: "orders:8080".to_string().into(),
+            namespace: "default".to_string().into(),
+            protocol: "HTTP".to_string().into(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8080,
@@ -560,25 +560,25 @@ fn unbuilt_service_frontend_port_index_does_not_override_slow_path_lookup() {
     let snapshot = Snapshot {
         listeners: vec![
             Listener {
-                name: "default/gw/service-http-first".to_string(),
+                name: "default/gw/service-http-first".to_string().into(),
                 port: 8080,
-                protocol: "HTTP".to_string(),
+                protocol: "HTTP".to_string().into(),
                 metadata: service_frontend_metadata("default", "orders", 8080),
                 ..Listener::default()
             },
             Listener {
-                name: "default/gw/service-http-indexed".to_string(),
+                name: "default/gw/service-http-indexed".to_string().into(),
                 port: 8080,
-                protocol: "HTTP".to_string(),
+                protocol: "HTTP".to_string().into(),
                 attached_routes: vec!["default/orders-route".to_string()],
                 metadata: service_frontend_metadata("default", "orders", 8080),
                 ..Listener::default()
             },
         ],
         backends: vec![BackendCluster {
-            name: "orders:8080".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTP".to_string(),
+            name: "orders:8080".to_string().into(),
+            namespace: "default".to_string().into(),
+            protocol: "HTTP".to_string().into(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8080,

@@ -1,11 +1,14 @@
 use std::{
+    path::Path,
     sync::{Arc, RwLock},
     time::Duration,
 };
 
 use anyhow::Result;
+use notify::event::ModifyKind;
+use notify::{Config, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
 use tokio::{
-    sync::watch,
+    sync::{mpsc, watch},
     task::JoinHandle,
     time::{MissedTickBehavior, interval},
 };
@@ -28,6 +31,7 @@ use crate::{
 };
 
 pub(crate) const CONFIG_RELOAD_POLL_INTERVAL: Duration = Duration::from_millis(250);
+const WATCHDOG_INTERVAL: Duration = Duration::from_secs(30);
 
 pub(crate) type SharedAdminConfig = Arc<RwLock<AdminRuntimeConfig>>;
 pub(crate) type SharedCircuitBreakerController = Arc<RwLock<HttpCircuitBreakerController>>;
@@ -157,36 +161,121 @@ pub(crate) fn spawn_config_reload_loop(
     mut shutdown: watch::Receiver<bool>,
 ) -> JoinHandle<()> {
     tokio::spawn(async move {
-        let mut ticker = interval(CONFIG_RELOAD_POLL_INTERVAL);
-        ticker.set_missed_tick_behavior(MissedTickBehavior::Delay);
+        let config_path = source.path().to_path_buf();
+        let parent_dir = match config_path.parent() {
+            Some(dir) => dir,
+            None => {
+                warn!(
+                    "config file path has no parent directory, falling back to watchdog-only reload"
+                );
+                run_watchdog_loop(source, targets, shutdown).await;
+                return;
+            }
+        };
+
+        // Bridge: notify uses std::sync::mpsc, we need tokio::sync::mpsc for select!
+        let (std_tx, std_rx) = std::sync::mpsc::channel();
+        let (tokio_tx, mut event_rx) = mpsc::unbounded_channel();
+
+        std::thread::spawn(move || {
+            for event in std_rx {
+                if tokio_tx.send(event).is_err() {
+                    break;
+                }
+            }
+        });
+
+        let mut watcher = match RecommendedWatcher::new(
+            move |res: Result<notify::Event, notify::Error>| {
+                if let Ok(event) = res {
+                    let _ = std_tx.send(event);
+                }
+            },
+            Config::default(),
+        ) {
+            Ok(w) => w,
+            Err(err) => {
+                warn!(error = %err, "failed to create file-system watcher, falling back to watchdog-only reload");
+                run_watchdog_loop(source, targets, shutdown).await;
+                return;
+            }
+        };
+
+        if let Err(err) = watcher.watch(parent_dir, RecursiveMode::NonRecursive) {
+            warn!(error = %err, "failed to watch config directory");
+            run_watchdog_loop(source, targets, shutdown).await;
+            return;
+        }
+
+        let mut watchdog = interval(WATCHDOG_INTERVAL);
+        watchdog.set_missed_tick_behavior(MissedTickBehavior::Delay);
+
+        info!(path = %config_path.display(), "watching config file for changes");
 
         loop {
             tokio::select! {
-                _ = ticker.tick() => {}
+                Some(event) = event_rx.recv() => {
+                    if !is_config_modify_event(&event, &config_path) {
+                        continue;
+                    }
+                    // Brief debounce to let the write complete
+                    tokio::time::sleep(Duration::from_millis(100)).await;
+                }
+                _ = watchdog.tick() => {}
                 _ = shutdown.changed() => break,
             }
 
-            let updated = match source.load_if_changed() {
-                Ok(Some(cfg)) => cfg,
-                Ok(None) => continue,
-                Err(err) => {
-                    warn!(error = %err, "failed to reload dataplane config file");
-                    continue;
-                }
-            };
-
-            let snapshot = match build_config_snapshot(&updated) {
-                Ok(snapshot) => snapshot,
-                Err(err) => {
-                    warn!(error = %err, "ignored invalid dataplane config update");
-                    continue;
-                }
-            };
-
-            apply_config_snapshot(snapshot, &targets);
-            info!("reloaded dataplane config");
+            if let Err(err) = try_reload(&source, &targets) {
+                warn!(error = %err, "config reload failed");
+            }
         }
     })
+}
+
+fn is_config_modify_event(event: &notify::Event, config_path: &Path) -> bool {
+    if !matches!(event.kind, EventKind::Modify(ModifyKind::Data(_))) {
+        return false;
+    }
+    event.paths.iter().any(|p| p == config_path)
+}
+
+fn try_reload(source: &ReloadingDataPlaneConfig, targets: &ReloadTargets) -> Result<()> {
+    let updated = match source.load_if_changed() {
+        Ok(Some(cfg)) => cfg,
+        Ok(None) => return Ok(()),
+        Err(err) => {
+            return Err(anyhow::anyhow!(
+                "failed to reload dataplane config file: {err}"
+            ));
+        }
+    };
+
+    let snapshot = build_config_snapshot(&updated)
+        .map_err(|err| anyhow::anyhow!("ignored invalid dataplane config update: {err}"))?;
+
+    apply_config_snapshot(snapshot, targets);
+    info!("reloaded dataplane config");
+    Ok(())
+}
+
+async fn run_watchdog_loop(
+    source: ReloadingDataPlaneConfig,
+    targets: ReloadTargets,
+    mut shutdown: watch::Receiver<bool>,
+) {
+    let mut watchdog = interval(WATCHDOG_INTERVAL);
+    watchdog.set_missed_tick_behavior(MissedTickBehavior::Delay);
+
+    loop {
+        tokio::select! {
+            _ = watchdog.tick() => {}
+            _ = shutdown.changed() => break,
+        }
+
+        if let Err(err) = try_reload(&source, &targets) {
+            warn!(error = %err, "config reload failed");
+        }
+    }
 }
 
 #[cfg(test)]

@@ -2,8 +2,8 @@
 fn applies_backend_policy_session_persistence_for_grpc_routes() {
     let snapshot = Snapshot {
         grpc_routes: vec![GrpcRoute {
-            name: "grpc-route".to_string(),
-            namespace: "default".to_string(),
+            name: "grpc-route".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["grpc.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![GrpcRule {
@@ -27,9 +27,9 @@ fn applies_backend_policy_session_persistence_for_grpc_routes() {
         }],
         backends: vec![
             BackendCluster {
-                name: "greeter-a:9090".to_string(),
-                namespace: "default".to_string(),
-                protocol: "GRPC".to_string(),
+                name: "greeter-a:9090".into(),
+                namespace: "default".into(),
+                protocol: "GRPC".into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.20".to_string(),
                     port: 9090,
@@ -41,9 +41,9 @@ fn applies_backend_policy_session_persistence_for_grpc_routes() {
             
                 circuit_breaker: None,},
             BackendCluster {
-                name: "greeter-b:9091".to_string(),
-                namespace: "default".to_string(),
-                protocol: "GRPC".to_string(),
+                name: "greeter-b:9091".into(),
+                namespace: "default".into(),
+                protocol: "GRPC".into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.21".to_string(),
                     port: 9091,

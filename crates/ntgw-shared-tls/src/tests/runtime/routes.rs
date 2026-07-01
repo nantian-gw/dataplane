@@ -220,11 +220,11 @@ fn tlsroute_terminate_snapshot(
     shared.store(Arc::new(Snapshot {
         listeners: vec![
             Listener {
-                name: "default/gw/tls-terminate".to_string(),
+                name: "default/gw/tls-terminate".to_string().into(),
                 address: "127.0.0.1".to_string(),
                 addresses: vec!["127.0.0.1".to_string()],
                 port: gateway_port as u32,
-                protocol: "LISTENER_PROTOCOL_TLS".to_string(),
+                protocol: "LISTENER_PROTOCOL_TLS".to_string().into(),
                 hostnames: vec!["tls.example.com".to_string()],
                 attached_routes: vec!["default/terminated-route".to_string()],
                 tls: Some(TlsConfig {
@@ -239,11 +239,11 @@ fn tlsroute_terminate_snapshot(
                 ..Listener::default()
             },
             Listener {
-                name: "default/gw/tls-passthrough".to_string(),
+                name: "default/gw/tls-passthrough".to_string().into(),
                 address: "127.0.0.1".to_string(),
                 addresses: vec!["127.0.0.1".to_string()],
                 port: gateway_port as u32,
-                protocol: "LISTENER_PROTOCOL_TLS_PASSTHROUGH".to_string(),
+                protocol: "LISTENER_PROTOCOL_TLS_PASSTHROUGH".to_string().into(),
                 hostnames: vec!["passthrough.example.com".to_string()],
                 attached_routes: vec!["default/passthrough-route".to_string()],
                 tls: Some(TlsConfig {
@@ -260,20 +260,20 @@ fn tlsroute_terminate_snapshot(
         ],
         stream_routes: vec![
             StreamRoute {
-                name: "terminated-route".to_string(),
-                namespace: "default".to_string(),
+                name: "terminated-route".to_string().into(),
+                namespace: "default".to_string().into(),
                 kind: "ROUTE_KIND_TLS".to_string(),
                 parent_refs: Vec::new(),
                 rules: vec![StreamRule {
                     name: String::new(),
                     matches: vec![StreamMatch {
                         port: gateway_port as u32,
-                        sni_hostname: "tls.example.com".to_string(),
+                        sni_hostname: "tls.example.com".to_string().into(),
                         mode: TlsRouteMode::Terminate,
                     }],
                     backend_refs: vec![BackendRef {
-                        namespace: "default".to_string(),
-                        name: "terminated-backend".to_string(),
+                        namespace: "default".to_string().into(),
+                        name: "terminated-backend".to_string().into(),
                         port: terminated_backend_port as u32,
                         ..BackendRef::default()
                     }],
@@ -282,20 +282,20 @@ fn tlsroute_terminate_snapshot(
                 annotations: BTreeMap::new(),
             },
             StreamRoute {
-                name: "passthrough-route".to_string(),
-                namespace: "default".to_string(),
+                name: "passthrough-route".to_string().into(),
+                namespace: "default".to_string().into(),
                 kind: "ROUTE_KIND_TLS".to_string(),
                 parent_refs: Vec::new(),
                 rules: vec![StreamRule {
                     name: String::new(),
                     matches: vec![StreamMatch {
                         port: gateway_port as u32,
-                        sni_hostname: "passthrough.example.com".to_string(),
+                        sni_hostname: "passthrough.example.com".to_string().into(),
                         mode: TlsRouteMode::Passthrough,
                     }],
                     backend_refs: vec![BackendRef {
-                        namespace: "default".to_string(),
-                        name: "passthrough-backend".to_string(),
+                        namespace: "default".to_string().into(),
+                        name: "passthrough-backend".to_string().into(),
                         port: passthrough_backend_port as u32,
                         ..BackendRef::default()
                     }],
@@ -308,9 +308,9 @@ fn tlsroute_terminate_snapshot(
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: format!("terminated-backend:{terminated_backend_port}"),
-                namespace: "default".to_string(),
-                protocol: "TCP".to_string(),
+                name: format!("terminated-backend:{terminated_backend_port}").into(),
+                namespace: "default".to_string().into(),
+                protocol: "TCP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "127.0.0.1".to_string(),
                     port: terminated_backend_port as u32,
@@ -323,9 +323,9 @@ fn tlsroute_terminate_snapshot(
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: format!("passthrough-backend:{passthrough_backend_port}"),
-                namespace: "default".to_string(),
-                protocol: "TCP".to_string(),
+                name: format!("passthrough-backend:{passthrough_backend_port}").into(),
+                namespace: "default".to_string().into(),
+                protocol: "TCP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "127.0.0.1".to_string(),
                     port: passthrough_backend_port as u32,

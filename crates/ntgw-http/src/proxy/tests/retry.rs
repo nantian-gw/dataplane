@@ -131,16 +131,16 @@ fn snapshot_with_circuit_breaker_syncs_per_backend_limit() {
     // Create snapshot with a backend that has CB config
     let mut snapshot = Snapshot::default();
     snapshot.backends.push(BackendCluster {
-        name: "limited-svc".to_string(),
-        namespace: "default".to_string(),
+        name: "limited-svc".to_string().into(),
+        namespace: "default".to_string().into(),
         circuit_breaker: Some(CircuitBreakerConfig {
             max_inflight_requests: 3,
         }),
         ..Default::default()
     });
     snapshot.backends.push(BackendCluster {
-        name: "unlimited-svc".to_string(),
-        namespace: "default".to_string(),
+        name: "unlimited-svc".to_string().into(),
+        namespace: "default".to_string().into(),
         circuit_breaker: None,
         ..Default::default()
     });
@@ -189,8 +189,8 @@ fn proto_snapshot_with_cb_config_enforces_per_backend_limit() {
     // → IR BackendCluster → HttpCircuitBreakerController → enforcement
     let snapshot = Snapshot {
         backends: vec![BackendCluster {
-            name: "orders-svc".to_string(),
-            namespace: "production".to_string(),
+            name: "orders-svc".to_string().into(),
+            namespace: "production".to_string().into(),
             circuit_breaker: Some(CircuitBreakerConfig {
                 max_inflight_requests: 5,
             }),

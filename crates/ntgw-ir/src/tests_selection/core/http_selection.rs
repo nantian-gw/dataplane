@@ -2,8 +2,8 @@
 fn selects_http_backend_by_host_path_method_header_and_query() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "route".to_string(),
-            namespace: "default".to_string(),
+            name: "route".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -13,13 +13,13 @@ fn selects_http_backend_by_host_path_method_header_and_query() {
                     path_type: "PathPrefix".to_string(),
                     method: "GET".to_string(),
                     headers: vec![HeaderMatch {
-                        name: "x-env".to_string(),
+                        name: "x-env".to_string().into(),
                         value: "prod".to_string(),
                         match_type: "Exact".to_string(),
                         ..HeaderMatch::default()
                     }],
                     query_params: vec![QueryMatch {
-                        name: "debug".to_string(),
+                        name: "debug".to_string().into(),
                         value: "false".to_string(),
                         match_type: "Exact".to_string(),
                         ..QueryMatch::default()
@@ -36,9 +36,9 @@ fn selects_http_backend_by_host_path_method_header_and_query() {
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
-            name: "users:8080".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTP".to_string(),
+            name: "users:8080".to_string().into(),
+            namespace: "default".to_string().into(),
+            protocol: "HTTP".to_string().into(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8080,

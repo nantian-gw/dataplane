@@ -3,9 +3,9 @@ fn does_not_fall_back_for_short_mesh_service_host_without_workload_index() {
     let snapshot = Snapshot {
         backends: vec![
             BackendCluster {
-                name: "echo-v1:7070".to_string(),
-                namespace: "default".to_string(),
-                protocol: "GRPC".to_string(),
+                name: "echo-v1:7070".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "GRPC".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.31".to_string(),
                     port: 7070,
@@ -17,9 +17,9 @@ fn does_not_fall_back_for_short_mesh_service_host_without_workload_index() {
             
                 circuit_breaker: None,},
             BackendCluster {
-                name: "echo:7070".to_string(),
-                namespace: "default".to_string(),
-                protocol: "GRPC".to_string(),
+                name: "echo:7070".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "GRPC".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.32".to_string(),
                     port: 7070,

@@ -2,11 +2,11 @@
 fn spreads_large_weighted_grpc_backends_across_short_request_batches() {
     let snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "mesh/default/echo/26060".to_string(),
+            name: "mesh/default/echo/26060".to_string().into(),
             address: "0.0.0.0".to_string(),
             addresses: vec!["0.0.0.0".to_string()],
             port: 26060,
-            protocol: "LISTENER_PROTOCOL_GRPC".to_string(),
+            protocol: "LISTENER_PROTOCOL_GRPC".to_string().into(),
             hostnames: vec![],
             attached_routes: vec!["default/weighted".to_string()],
             tls: None,
@@ -14,8 +14,8 @@ fn spreads_large_weighted_grpc_backends_across_short_request_batches() {
             metadata: BTreeMap::new(),
         }],
         grpc_routes: vec![GrpcRoute {
-            name: "weighted".to_string(),
-            namespace: "default".to_string(),
+            name: "weighted".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec![],
             parent_refs: vec![],
             rules: vec![GrpcRule {
@@ -33,9 +33,9 @@ fn spreads_large_weighted_grpc_backends_across_short_request_batches() {
         }],
         backends: vec![
             BackendCluster {
-                name: "echo-v1:7070".to_string(),
-                namespace: "default".to_string(),
-                protocol: "GRPC".to_string(),
+                name: "echo-v1:7070".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "GRPC".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.10".to_string(),
                     port: 7070,
@@ -47,9 +47,9 @@ fn spreads_large_weighted_grpc_backends_across_short_request_batches() {
             
                 circuit_breaker: None,},
             BackendCluster {
-                name: "echo-v2:7070".to_string(),
-                namespace: "default".to_string(),
-                protocol: "GRPC".to_string(),
+                name: "echo-v2:7070".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "GRPC".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.11".to_string(),
                     port: 7070,

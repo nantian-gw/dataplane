@@ -16,14 +16,14 @@ fn passthrough_listener_selection_does_not_fall_back_to_less_specific_listener()
         ],
         stream_routes: vec![
             ntgw_ir::StreamRoute {
-                name: "narrow-route".to_string(),
-                namespace: "default".to_string(),
+                name: "narrow-route".to_string().into(),
+                namespace: "default".to_string().into(),
                 kind: "ROUTE_KIND_TLS".to_string(),
                 rules: vec![ntgw_ir::StreamRule {
                     name: String::new(),
                     matches: vec![ntgw_ir::StreamMatch {
                         port: 443,
-                        sni_hostname: "api.example.com".to_string(),
+                        sni_hostname: "api.example.com".to_string().into(),
                         mode: ntgw_ir::TlsRouteMode::default(),
                     }],
                     backend_refs: vec![stream_backend_ref("narrow-backend")],
@@ -31,14 +31,14 @@ fn passthrough_listener_selection_does_not_fall_back_to_less_specific_listener()
                 ..ntgw_ir::StreamRoute::default()
             },
             ntgw_ir::StreamRoute {
-                name: "wide-route".to_string(),
-                namespace: "default".to_string(),
+                name: "wide-route".to_string().into(),
+                namespace: "default".to_string().into(),
                 kind: "ROUTE_KIND_TLS".to_string(),
                 rules: vec![ntgw_ir::StreamRule {
                     name: String::new(),
                     matches: vec![ntgw_ir::StreamMatch {
                         port: 443,
-                        sni_hostname: "*.com".to_string(),
+                        sni_hostname: "*.com".to_string().into(),
                         mode: ntgw_ir::TlsRouteMode::default(),
                     }],
                     backend_refs: vec![stream_backend_ref("wide-backend")],
@@ -83,19 +83,19 @@ fn passthrough_listener_selection_uses_listener_match_before_backend_resolution(
             vec!["default/invalid-route"],
         )],
         stream_routes: vec![ntgw_ir::StreamRoute {
-            name: "invalid-route".to_string(),
-            namespace: "default".to_string(),
+            name: "invalid-route".to_string().into(),
+            namespace: "default".to_string().into(),
             kind: "ROUTE_KIND_TLS".to_string(),
             rules: vec![ntgw_ir::StreamRule {
                 name: String::new(),
                 matches: vec![ntgw_ir::StreamMatch {
                     port: 443,
-                    sni_hostname: "example.com".to_string(),
+                    sni_hostname: "example.com".to_string().into(),
                     mode: ntgw_ir::TlsRouteMode::default(),
                 }],
                 backend_refs: vec![ntgw_ir::BackendRef {
-                    namespace: "default".to_string(),
-                    name: "missing-backend".to_string(),
+                    namespace: "default".to_string().into(),
+                    name: "missing-backend".to_string().into(),
                     port: 443,
                     metadata: BTreeMap::from([(
                         "nantian.dev/backend-ref-valid".to_string(),
@@ -139,14 +139,14 @@ fn passthrough_listener_selection_prefers_same_score_listener_with_route() {
         ],
         stream_routes: vec![
             ntgw_ir::StreamRoute {
-                name: "other-route".to_string(),
-                namespace: "default".to_string(),
+                name: "other-route".to_string().into(),
+                namespace: "default".to_string().into(),
                 kind: "ROUTE_KIND_TLS".to_string(),
                 rules: vec![ntgw_ir::StreamRule {
                     name: String::new(),
                     matches: vec![ntgw_ir::StreamMatch {
                         port: 443,
-                        sni_hostname: "other.example.com".to_string(),
+                        sni_hostname: "other.example.com".to_string().into(),
                         mode: ntgw_ir::TlsRouteMode::default(),
                     }],
                     backend_refs: vec![stream_backend_ref("other-backend")],
@@ -154,14 +154,14 @@ fn passthrough_listener_selection_prefers_same_score_listener_with_route() {
                 ..ntgw_ir::StreamRoute::default()
             },
             ntgw_ir::StreamRoute {
-                name: "matching-route".to_string(),
-                namespace: "default".to_string(),
+                name: "matching-route".to_string().into(),
+                namespace: "default".to_string().into(),
                 kind: "ROUTE_KIND_TLS".to_string(),
                 rules: vec![ntgw_ir::StreamRule {
                     name: String::new(),
                     matches: vec![ntgw_ir::StreamMatch {
                         port: 443,
-                        sni_hostname: "example.com".to_string(),
+                        sni_hostname: "example.com".to_string().into(),
                         mode: ntgw_ir::TlsRouteMode::default(),
                     }],
                     backend_refs: vec![stream_backend_ref("matching-backend")],
@@ -208,14 +208,14 @@ fn passthrough_listener_selection_treats_wildcards_as_suffix_matches() {
         ],
         stream_routes: vec![
             ntgw_ir::StreamRoute {
-                name: "wildcard-route".to_string(),
-                namespace: "default".to_string(),
+                name: "wildcard-route".to_string().into(),
+                namespace: "default".to_string().into(),
                 kind: "ROUTE_KIND_TLS".to_string(),
                 rules: vec![ntgw_ir::StreamRule {
                     name: String::new(),
                     matches: vec![ntgw_ir::StreamMatch {
                         port: 443,
-                        sni_hostname: "*.com".to_string(),
+                        sni_hostname: "*.com".to_string().into(),
                         mode: ntgw_ir::TlsRouteMode::default(),
                     }],
                     backend_refs: vec![stream_backend_ref("wildcard-backend")],
@@ -223,14 +223,14 @@ fn passthrough_listener_selection_treats_wildcards_as_suffix_matches() {
                 ..ntgw_ir::StreamRoute::default()
             },
             ntgw_ir::StreamRoute {
-                name: "fallback-route".to_string(),
-                namespace: "default".to_string(),
+                name: "fallback-route".to_string().into(),
+                namespace: "default".to_string().into(),
                 kind: "ROUTE_KIND_TLS".to_string(),
                 rules: vec![ntgw_ir::StreamRule {
                     name: String::new(),
                     matches: vec![ntgw_ir::StreamMatch {
                         port: 443,
-                        sni_hostname: "*.com".to_string(),
+                        sni_hostname: "*.com".to_string().into(),
                         mode: ntgw_ir::TlsRouteMode::default(),
                     }],
                     backend_refs: vec![stream_backend_ref("fallback-backend")],
@@ -265,11 +265,11 @@ fn terminate_listener_selection_rejects_unmatched_sni() {
     let shared = Snapshot::shared();
     shared.store(Arc::new(Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/https".to_string(),
+            name: "default/gw/https".to_string().into(),
             address: "0.0.0.0".to_string(),
             addresses: vec!["0.0.0.0".to_string()],
             port: 443,
-            protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
+            protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
             hostnames: vec!["*.org".to_string()],
             attached_routes: vec!["default/https-route".to_string()],
             tls: Some(TlsConfig {
@@ -284,8 +284,8 @@ fn terminate_listener_selection_rejects_unmatched_sni() {
             ..Listener::default()
         }],
         http_routes: vec![ntgw_ir::HttpRoute {
-            name: "https-route".to_string(),
-            namespace: "default".to_string(),
+            name: "https-route".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["*.org".to_string()],
             ..ntgw_ir::HttpRoute::default()
         }],
@@ -314,11 +314,11 @@ fn tls_passthrough_listener(
     attached_routes: Vec<&str>,
 ) -> Listener {
     Listener {
-        name: name.to_string(),
+        name: name.to_string().into(),
         address: "0.0.0.0".to_string(),
         addresses: vec!["0.0.0.0".to_string()],
         port: 443,
-        protocol: "LISTENER_PROTOCOL_TLS_PASSTHROUGH".to_string(),
+        protocol: "LISTENER_PROTOCOL_TLS_PASSTHROUGH".to_string().into(),
         hostnames: hostnames.into_iter().map(str::to_string).collect(),
         attached_routes: attached_routes.into_iter().map(str::to_string).collect(),
         tls: Some(TlsConfig {
@@ -336,8 +336,8 @@ fn tls_passthrough_listener(
 
 fn stream_backend_ref(name: &str) -> ntgw_ir::BackendRef {
     ntgw_ir::BackendRef {
-        namespace: "default".to_string(),
-        name: name.to_string(),
+        namespace: "default".to_string().into(),
+        name: name.to_string().into(),
         port: 443,
         ..ntgw_ir::BackendRef::default()
     }
@@ -347,9 +347,9 @@ fn stream_backend(name: &str) -> ntgw_ir::BackendCluster {
     ntgw_ir::BackendCluster {
         ai_service: None,
         token_policy: None,
-        name: format!("{name}:443"),
-        namespace: "default".to_string(),
-        protocol: "TCP".to_string(),
+        name: format!("{name}:443").into(),
+        namespace: "default".to_string().into(),
+        protocol: "TCP".to_string().into(),
         endpoints: vec![ntgw_ir::BackendEndpoint {
             address: "10.0.0.10".to_string(),
             port: 443,

@@ -74,9 +74,9 @@ pub fn build_route_selection_fixture(config: SnapshotBenchConfig) -> RouteSelect
                         routes_per_listener,
                     );
                     snapshot.backends.push(BackendCluster {
-                        name: format!("{backend_name}:{port}"),
-                        namespace: "default".to_string(),
-                        protocol: "HTTP".to_string(),
+                        name: format!("{backend_name}:{port}").into(),
+                        namespace: "default".into(),
+                        protocol: "HTTP".into(),
                         wasm_plugin: None,
                         ai_service: None,
                         token_policy: None,
@@ -147,9 +147,9 @@ pub fn build_route_selection_fixture(config: SnapshotBenchConfig) -> RouteSelect
                         routes_per_listener,
                     );
                     snapshot.backends.push(BackendCluster {
-                        name: format!("{backend_name}:{port}"),
-                        namespace: "default".to_string(),
-                        protocol: "HTTP".to_string(),
+                        name: format!("{backend_name}:{port}").into(),
+                        namespace: "default".into(),
+                        protocol: "HTTP".into(),
                         wasm_plugin: None,
                         ai_service: None,
                         token_policy: None,
@@ -219,9 +219,9 @@ pub fn build_route_selection_fixture(config: SnapshotBenchConfig) -> RouteSelect
                         routes_per_listener,
                     );
                     snapshot.backends.push(BackendCluster {
-                        name: format!("{backend_name}:{port}"),
-                        namespace: "default".to_string(),
-                        protocol: "TCP".to_string(),
+                        name: format!("{backend_name}:{port}").into(),
+                        namespace: "default".into(),
+                        protocol: "TCP".into(),
                         wasm_plugin: None,
                         ai_service: None,
                         token_policy: None,

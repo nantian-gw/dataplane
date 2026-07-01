@@ -1,8 +1,8 @@
 fn runtime_store_test_snapshot() -> Snapshot {
     Snapshot {
         http_routes: vec![HttpRoute {
-            name: "route".to_string(),
-            namespace: "default".to_string(),
+            name: "route".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -18,9 +18,9 @@ fn runtime_store_test_snapshot() -> Snapshot {
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
-            name: "echo:8080".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTP".to_string(),
+            name: "echo:8080".to_string().into(),
+            namespace: "default".to_string().into(),
+            protocol: "HTTP".to_string().into(),
             endpoints: vec![
                 BackendEndpoint {
                     address: "10.0.0.10".to_string(),
@@ -173,9 +173,9 @@ fn inherited_runtime_state_prunes_removed_endpoint_keys() {
     let mut next = Snapshot {
         http_routes: current.http_routes.clone(),
         backends: vec![BackendCluster {
-            name: "echo:8080".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTP".to_string(),
+            name: "echo:8080".to_string().into(),
+            namespace: "default".to_string().into(),
+            protocol: "HTTP".to_string().into(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.11".to_string(),
                 port: 8080,

@@ -38,11 +38,11 @@ impl Snapshot {
             .collect();
         self.backend_service_index = BackendServiceIndex::with_capacity(self.backends.len());
         for (index, cluster) in self.backends.iter().enumerate() {
-            let Some((name, port)) = backend_cluster_service_key(cluster.name.as_str()) else {
+            let Some((name, port)) = backend_cluster_service_key(cluster.name.as_ref()) else {
                 continue;
             };
             self.backend_service_index
-                .insert(cluster.namespace.as_str(), name, port, index);
+                .insert(cluster.namespace.as_ref(), name, port, index);
         }
         self.secret_index = self
             .secrets
@@ -224,7 +224,7 @@ impl Snapshot {
 
     pub fn backend_protocol(&self, backend_name: &str) -> Option<&str> {
         self.backend_cluster_by_name(backend_name)
-            .map(|cluster| cluster.protocol.as_str())
+            .map(|cluster| cluster.protocol.as_ref())
     }
 
     pub fn secret_material(&self, namespace: &str, name: &str) -> Option<&SecretMaterial> {
@@ -1045,7 +1045,7 @@ impl Snapshot {
 
         for cluster in &self.backends {
             let Some((cluster_name, cluster_port)) =
-                backend_cluster_service_key(cluster.name.as_str())
+                backend_cluster_service_key(cluster.name.as_ref())
             else {
                 continue;
             };
@@ -1055,7 +1055,7 @@ impl Snapshot {
             match matched_namespace {
                 Some(namespace) if namespace != cluster.namespace => return None,
                 Some(_) => continue,
-                None => matched_namespace = Some(cluster.namespace.as_str()),
+                None => matched_namespace = Some(cluster.namespace.as_ref()),
             }
         }
 

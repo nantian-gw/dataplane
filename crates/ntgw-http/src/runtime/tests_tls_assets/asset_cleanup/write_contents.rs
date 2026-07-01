@@ -6,7 +6,7 @@ fn materialized_tls_assets_write_expected_contents_without_temp_files() {
         .join(super::listener_plan::unique_asset_dir_name());
     let plan = ListenerPlan {
         listeners: vec![PlannedListener {
-            name: "default/gw/https".to_string(),
+            name: "default/gw/https".to_string().into(),
             bind: "127.0.0.1:443".to_string(),
             protocol: ListenerProtocol::Tls(single_tls_material(
                 "default/example-cert",

@@ -698,7 +698,7 @@ mod tests {
     fn test_score_payload_shape() {
         let payload = LangfuseScorePayload {
             trace_id: "trace-abc".to_string(),
-            name: "accuracy".to_string(),
+            name: "accuracy".to_string().into(),
             value: 0.95,
             comment: Some("high quality".to_string()),
         };
@@ -715,7 +715,7 @@ mod tests {
     fn test_score_payload_no_comment() {
         let payload = LangfuseScorePayload {
             trace_id: "trace-xyz".to_string(),
-            name: "latency".to_string(),
+            name: "latency".to_string().into(),
             value: 42.0,
             comment: None,
         };
@@ -770,7 +770,7 @@ mod tests {
     #[test]
     fn test_dataset_create_payload_serialization() {
         let payload = DatasetCreatePayload {
-            name: "eval-dataset".to_string(),
+            name: "eval-dataset".to_string().into(),
         };
         #[allow(clippy::expect_used)]
         let json = serde_json::to_value(&payload).expect("serialize");
@@ -780,7 +780,7 @@ mod tests {
     #[test]
     fn test_experiment_create_payload_serialization() {
         let payload = ExperimentCreatePayload {
-            name: "exp-1".to_string(),
+            name: "exp-1".to_string().into(),
         };
         #[allow(clippy::expect_used)]
         let json = serde_json::to_value(&payload).expect("serialize");

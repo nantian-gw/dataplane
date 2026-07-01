@@ -2,8 +2,8 @@
 fn consistent_hash_by_header_uses_stable_non_crypto_backend_hash() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "hash".to_string(),
-            namespace: "default".to_string(),
+            name: "hash".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -23,9 +23,9 @@ fn consistent_hash_by_header_uses_stable_non_crypto_backend_hash() {
         }],
         backends: vec![
             BackendCluster {
-                name: "users:8080".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "users:8080".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.10".to_string(),
                     port: 8080,
@@ -37,9 +37,9 @@ fn consistent_hash_by_header_uses_stable_non_crypto_backend_hash() {
             
                 circuit_breaker: None,},
             BackendCluster {
-                name: "orders:8081".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "orders:8081".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.11".to_string(),
                     port: 8081,

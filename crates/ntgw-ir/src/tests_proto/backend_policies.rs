@@ -2,13 +2,13 @@
 fn decodes_backend_ref_weight_from_proto() {
     let snapshot = Snapshot::from(proto::ConfigSnapshot {
         http_routes: vec![proto::HttpRoute {
-            name: "route".to_string(),
-            namespace: "default".to_string(),
+            name: "route".to_string().into(),
+            namespace: "default".to_string().into(),
             rules: vec![proto::HttpRule {
                 name: String::new(),
                 backend_refs: vec![proto::BackendRef {
-                    namespace: "default".to_string(),
-                    name: "users".to_string(),
+                    namespace: "default".to_string().into(),
+                    name: "users".to_string().into(),
                     port: 8080,
                     weight: 7,
                     ..Default::default()
@@ -29,9 +29,9 @@ fn decodes_backend_timeouts_from_proto() {
         backends: vec![proto::BackendCluster {
             ai_service: None,
             token_policy: None,
-            name: "orders:8080".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTP".to_string(),
+            name: "orders:8080".to_string().into(),
+            namespace: "default".to_string().into(),
+            protocol: "HTTP".to_string().into(),
             connect_timeout: Some(prost_types::Duration {
                 seconds: 5,
                 nanos: 0,
@@ -65,9 +65,9 @@ fn decodes_proto_snapshot_without_runtime_indexes_for_staged_apply() {
         backends: vec![proto::BackendCluster {
             ai_service: None,
             token_policy: None,
-            name: "orders:8080".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTP".to_string(),
+            name: "orders:8080".to_string().into(),
+            namespace: "default".to_string().into(),
+            protocol: "HTTP".to_string().into(),
             wasm_plugin: None,
             ..Default::default()
         }],
@@ -89,9 +89,9 @@ fn decodes_zero_backend_request_timeout_as_unset() {
         backends: vec![proto::BackendCluster {
             ai_service: None,
             token_policy: None,
-            name: "orders:8080".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTP".to_string(),
+            name: "orders:8080".to_string().into(),
+            namespace: "default".to_string().into(),
+            protocol: "HTTP".to_string().into(),
             connect_timeout: Some(prost_types::Duration {
                 seconds: 5,
                 nanos: 0,
@@ -120,13 +120,13 @@ fn decodes_zero_backend_request_timeout_as_unset() {
 fn decodes_backend_ref_filters_from_proto() {
     let snapshot = Snapshot::from(proto::ConfigSnapshot {
         http_routes: vec![proto::HttpRoute {
-            name: "route".to_string(),
-            namespace: "default".to_string(),
+            name: "route".to_string().into(),
+            namespace: "default".to_string().into(),
             rules: vec![proto::HttpRule {
                 name: String::new(),
                 backend_refs: vec![proto::BackendRef {
-                    namespace: "default".to_string(),
-                    name: "echo".to_string(),
+                    namespace: "default".to_string().into(),
+                    name: "echo".to_string().into(),
                     port: 8080,
                     weight: 1,
                     filters: vec![proto::Filter {

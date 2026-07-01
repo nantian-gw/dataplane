@@ -198,7 +198,7 @@ fn certificate_match_names(cert: &X509) -> Vec<String> {
             .subject_name()
             .entries_by_nid(Nid::COMMONNAME)
             .next()
-            .and_then(|entry| entry.data().as_utf8().ok())
+            .and_then(|entry| entry.data().to_string().ok())
     {
         let normalized = normalize_tls_server_name(common_name.as_ref());
         if !normalized.is_empty() {

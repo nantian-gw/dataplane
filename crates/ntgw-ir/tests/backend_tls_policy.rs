@@ -5,11 +5,11 @@ use ntgw_proto::gateway::control::v1 as proto;
 fn decodes_backend_tls_validation_from_proto() {
     let snapshot = Snapshot::from(proto::ConfigSnapshot {
         backends: vec![proto::BackendCluster {
-            name: "orders:8443".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTPS".to_string(),
+            name: "orders:8443".into(),
+            namespace: "default".into(),
+            protocol: "HTTPS".into(),
             tls_validation: Some(proto::BackendTlsValidation {
-                hostname: "orders.internal.example".to_string(),
+                hostname: "orders.internal.example".into(),
                 use_system_ca_certificates: true,
                 ca_pems: vec!["PEM-A".to_string(), "PEM-B".to_string()],
                 min_version: "TLS1_2".to_string(),

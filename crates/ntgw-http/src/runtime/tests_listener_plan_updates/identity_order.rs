@@ -5,10 +5,10 @@ fn orders_multi_certificate_identities_by_sni_match_then_fallback_order() {
 
     let snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/https".to_string(),
+            name: "default/gw/https".to_string().into(),
             address: "127.0.0.1".to_string(),
             port: 443,
-            protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
+            protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
             tls: Some(TlsConfig {
                 enabled: true,
                 passthrough: false,
@@ -22,8 +22,8 @@ fn orders_multi_certificate_identities_by_sni_match_then_fallback_order() {
         }],
         secrets: vec![
             SecretMaterial {
-                namespace: "default".to_string(),
-                name: "client-cert".to_string(),
+                namespace: "default".to_string().into(),
+                name: "client-cert".to_string().into(),
                 cert_pem: CLIENT_CERT_PEM.to_string(),
                 key_pem: CLIENT_KEY_PEM.to_string(),
             },

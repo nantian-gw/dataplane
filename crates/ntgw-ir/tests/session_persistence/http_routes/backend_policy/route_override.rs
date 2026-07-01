@@ -2,8 +2,8 @@
 fn route_session_persistence_overrides_backend_policy() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "route".to_string(),
-            namespace: "default".to_string(),
+            name: "route".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -23,9 +23,9 @@ fn route_session_persistence_overrides_backend_policy() {
         }],
         backends: vec![
             BackendCluster {
-                name: "users:8080".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "users:8080".into(),
+                namespace: "default".into(),
+                protocol: "HTTP".into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.10".to_string(),
                     port: 8080,
@@ -37,9 +37,9 @@ fn route_session_persistence_overrides_backend_policy() {
             
                 circuit_breaker: None,},
             BackendCluster {
-                name: "orders:8081".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "orders:8081".into(),
+                namespace: "default".into(),
+                protocol: "HTTP".into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.11".to_string(),
                     port: 8081,

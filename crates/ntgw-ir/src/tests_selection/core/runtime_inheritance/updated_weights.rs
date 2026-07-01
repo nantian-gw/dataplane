@@ -2,8 +2,8 @@
 fn inherited_runtime_state_applies_updated_backend_weights() {
     let current = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "weighted".to_string(),
-            namespace: "default".to_string(),
+            name: "weighted".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -23,9 +23,9 @@ fn inherited_runtime_state_applies_updated_backend_weights() {
         }],
         backends: vec![
             BackendCluster {
-                name: "users:8080".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "users:8080".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.10".to_string(),
                     port: 8080,
@@ -37,9 +37,9 @@ fn inherited_runtime_state_applies_updated_backend_weights() {
             
                 circuit_breaker: None,},
             BackendCluster {
-                name: "orders:8081".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "orders:8081".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.11".to_string(),
                     port: 8081,
@@ -64,8 +64,8 @@ fn inherited_runtime_state_applies_updated_backend_weights() {
 
     let mut next = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "weighted".to_string(),
-            namespace: "default".to_string(),
+            name: "weighted".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {

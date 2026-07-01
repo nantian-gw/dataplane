@@ -19,6 +19,8 @@ mod timeouts;
 
 use std::{
     collections::{BTreeMap, HashMap, HashSet, hash_map::Entry},
+    fmt,
+    hash::{Hash, Hasher},
     sync::{
         Arc,
         atomic::{AtomicU64, Ordering},
@@ -64,6 +66,123 @@ const BACKEND_REF_META_VALID: &str = "nantian.dev/backend-ref-valid";
 pub const PASSIVE_EJECTION_CONSECUTIVE_FAILURES: u32 = 3;
 #[doc(hidden)]
 pub const PASSIVE_EJECTION_COOLDOWN: Duration = Duration::from_secs(30);
+
+mod arc_str_serde {
+    use serde::{Deserialize, Deserializer, Serializer};
+
+    pub fn serialize<S: Serializer>(arc: &std::sync::Arc<str>, s: S) -> Result<S::Ok, S::Error> {
+        s.serialize_str(arc.as_ref())
+    }
+
+    pub fn deserialize<'de, D: Deserializer<'de>>(d: D) -> Result<std::sync::Arc<str>, D::Error> {
+        let s: &str = Deserialize::deserialize(d)?;
+        Ok(std::sync::Arc::from(s))
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct ArcStr(#[serde(with = "arc_str_serde")] Arc<str>);
+
+use std::borrow::Borrow;
+use std::ops::Deref;
+
+impl Deref for ArcStr {
+    type Target = str;
+    fn deref(&self) -> &str {
+        &self.0
+    }
+}
+
+impl AsRef<str> for ArcStr {
+    fn as_ref(&self) -> &str {
+        &self.0
+    }
+}
+
+impl Borrow<str> for ArcStr {
+    fn borrow(&self) -> &str {
+        &self.0
+    }
+}
+
+impl fmt::Debug for ArcStr {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Debug::fmt(&self.0, f)
+    }
+}
+
+impl fmt::Display for ArcStr {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Display::fmt(&self.0, f)
+    }
+}
+
+impl PartialEq for ArcStr {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.as_ref() == other.0.as_ref()
+    }
+}
+
+impl Eq for ArcStr {}
+
+impl Hash for ArcStr {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.0.as_ref().hash(state)
+    }
+}
+
+impl PartialOrd for ArcStr {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for ArcStr {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.0.as_ref().cmp(other.0.as_ref())
+    }
+}
+
+impl From<&str> for ArcStr {
+    fn from(s: &str) -> Self {
+        Self(Arc::from(s))
+    }
+}
+
+impl From<String> for ArcStr {
+    fn from(s: String) -> Self {
+        Self(Arc::from(s.as_ref()))
+    }
+}
+
+impl From<Arc<str>> for ArcStr {
+    fn from(s: Arc<str>) -> Self {
+        Self(s)
+    }
+}
+
+impl From<&&str> for ArcStr {
+    fn from(s: &&str) -> Self {
+        Self(Arc::from(*s))
+    }
+}
+
+impl Default for ArcStr {
+    fn default() -> Self {
+        Self(Arc::from(""))
+    }
+}
+impl PartialEq<&str> for ArcStr {
+    fn eq(&self, other: &&str) -> bool {
+        self.0.as_ref() == *other
+    }
+}
+
+impl PartialEq<ArcStr> for &str {
+    fn eq(&self, other: &ArcStr) -> bool {
+        *self == other.0.as_ref()
+    }
+}
 
 #[derive(Debug)]
 pub struct SnapshotSignal {
@@ -842,9 +961,9 @@ impl Default for BackendRef {
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct BackendCluster {
-    pub name: String,
-    pub namespace: String,
-    pub protocol: String,
+    pub name: ArcStr,
+    pub namespace: ArcStr,
+    pub protocol: ArcStr,
     pub endpoints: Vec<BackendEndpoint>,
     pub wasm_plugin: Option<WasmPluginConfig>,
     pub ai_service: Option<AIServiceConfig>,

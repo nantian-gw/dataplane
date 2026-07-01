@@ -144,7 +144,7 @@ fn render_metrics_omits_traffic_ratio_gauges_without_denominators() {
 
     state.traffic.observe(TrafficObservation {
         listener_name: "web".to_string(),
-        protocol: "HTTP".to_string(),
+        protocol: "HTTP".to_string().into(),
         route_namespace: "default".to_string(),
         route_name: "web".to_string(),
         route_kind: "Http".to_string(),
@@ -192,7 +192,7 @@ fn render_metrics_retry_rate_uses_request_event_denominator() {
 
     state.traffic.observe(TrafficObservation {
         listener_name: "web".to_string(),
-        protocol: "HTTP".to_string(),
+        protocol: "HTTP".to_string().into(),
         route_namespace: "default".to_string(),
         route_name: "web".to_string(),
         route_kind: "Http".to_string(),
@@ -207,7 +207,7 @@ fn render_metrics_retry_rate_uses_request_event_denominator() {
     });
     state.traffic.observe(TrafficObservation {
         listener_name: "tcp".to_string(),
-        protocol: "TCP".to_string(),
+        protocol: "TCP".to_string().into(),
         route_namespace: "default".to_string(),
         route_name: "tcp".to_string(),
         route_kind: "Tcp".to_string(),
@@ -288,7 +288,7 @@ fn render_metrics_upstream_pool_views_ignore_stream_events() {
 
     state.traffic.observe(TrafficObservation {
         listener_name: "tcp".to_string(),
-        protocol: "TCP".to_string(),
+        protocol: "TCP".to_string().into(),
         route_namespace: "default".to_string(),
         route_name: "tcp".to_string(),
         route_kind: "Tcp".to_string(),

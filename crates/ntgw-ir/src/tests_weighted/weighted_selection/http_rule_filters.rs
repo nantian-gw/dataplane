@@ -2,8 +2,8 @@
 fn selects_http_backend_refs_by_weighted_round_robin_with_rule_filters() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "weighted".to_string(),
-            namespace: "default".to_string(),
+            name: "weighted".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -26,9 +26,9 @@ fn selects_http_backend_refs_by_weighted_round_robin_with_rule_filters() {
         }],
         backends: vec![
             BackendCluster {
-                name: "users:8080".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "users:8080".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.10".to_string(),
                     port: 8080,
@@ -40,9 +40,9 @@ fn selects_http_backend_refs_by_weighted_round_robin_with_rule_filters() {
             
                 circuit_breaker: None,},
             BackendCluster {
-                name: "orders:8081".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "orders:8081".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.11".to_string(),
                     port: 8081,

@@ -2,11 +2,11 @@
 fn build_listener_plan_expands_all_configured_listener_addresses() {
     let snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/https".to_string(),
+            name: "default/gw/https".to_string().into(),
             address: String::new(),
             addresses: vec!["192.0.2.10".to_string(), "gw.example.com".to_string()],
             port: 443,
-            protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
+            protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
             tls: Some(TlsConfig {
                 enabled: true,
                 passthrough: false,
@@ -39,24 +39,24 @@ fn build_listener_plan_ignores_non_tls_listeners() {
     let snapshot = Snapshot {
         listeners: vec![
             Listener {
-                name: "default/gw/http".to_string(),
+                name: "default/gw/http".to_string().into(),
                 address: "0.0.0.0".to_string(),
                 port: 80,
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
                 ..Listener::default()
             },
             Listener {
-                name: "default/gw/tcp".to_string(),
+                name: "default/gw/tcp".to_string().into(),
                 address: "0.0.0.0".to_string(),
                 port: 9000,
-                protocol: "LISTENER_PROTOCOL_TCP".to_string(),
+                protocol: "LISTENER_PROTOCOL_TCP".to_string().into(),
                 ..Listener::default()
             },
             Listener {
-                name: "default/gw/udp".to_string(),
+                name: "default/gw/udp".to_string().into(),
                 address: "0.0.0.0".to_string(),
                 port: 5300,
-                protocol: "LISTENER_PROTOCOL_UDP".to_string(),
+                protocol: "LISTENER_PROTOCOL_UDP".to_string().into(),
                 ..Listener::default()
             },
         ],
@@ -76,10 +76,10 @@ fn build_listener_plan_ignores_non_tls_listeners() {
 fn build_listener_plan_creates_both_surfaces_for_mixed_tls() {
     let snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/tls-mixed".to_string(),
+            name: "default/gw/tls-mixed".to_string().into(),
             address: "0.0.0.0".to_string(),
             port: 443,
-            protocol: "LISTENER_PROTOCOL_TLS".to_string(),
+            protocol: "LISTENER_PROTOCOL_TLS".to_string().into(),
             tls: Some(TlsConfig {
                 enabled: true,
                 passthrough: false,

@@ -114,7 +114,7 @@ pub(crate) fn collect_probe_targets(snapshot: &Snapshot) -> Vec<ProbeTarget> {
     let mut targets = Vec::new();
 
     for cluster in &snapshot.backends {
-        if backend_uses_udp(cluster.protocol.as_str()) {
+        if backend_uses_udp(cluster.protocol.as_ref()) {
             continue;
         }
 

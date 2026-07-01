@@ -29,7 +29,7 @@ pub(super) fn backend_cluster_matches_ref(
     port: u32,
 ) -> bool {
     cluster.namespace == namespace
-        && backend_cluster_name_matches_ref(cluster.name.as_str(), name, port)
+        && backend_cluster_name_matches_ref(cluster.name.as_ref(), name, port)
 }
 
 fn backend_cluster_name_matches_ref(cluster_name: &str, name: &str, port: u32) -> bool {

@@ -13,6 +13,7 @@ allocator-jemalloc = ["ntgw-allocator/allocator-jemalloc"]
 anyhow.workspace = true
 axum.workspace = true
 clap.workspace = true
+notify.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 subtle.workspace = true

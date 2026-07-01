@@ -5,8 +5,8 @@ fn treats_serviceimport_backend_refs_as_routable() {
     let snapshot = Snapshot {
         listeners: vec![listener("default/gw/http", "default/imported")],
         http_routes: vec![HttpRoute {
-            name: "imported".to_string(),
-            namespace: "default".to_string(),
+            name: "imported".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec![],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -14,8 +14,8 @@ fn treats_serviceimport_backend_refs_as_routable() {
                 backend_refs: vec![BackendRef {
                     group: "multicluster.x-k8s.io".to_string(),
                     kind: "ServiceImport".to_string(),
-                    namespace: "default".to_string(),
-                    name: "payments".to_string(),
+                    namespace: "default".to_string().into(),
+                    name: "payments".to_string().into(),
                     port: 9443,
                     ..BackendRef::default()
                 }],
@@ -25,9 +25,9 @@ fn treats_serviceimport_backend_refs_as_routable() {
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
-            name: "payments:9443".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTP".to_string(),
+            name: "payments:9443".into(),
+            namespace: "default".into(),
+            protocol: "HTTP".into(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.44".to_string(),
                 port: 19443,

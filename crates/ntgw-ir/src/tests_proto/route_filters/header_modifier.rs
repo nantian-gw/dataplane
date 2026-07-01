@@ -2,8 +2,8 @@
 fn decodes_header_modifier_filter_from_proto() {
     let snapshot = Snapshot::from(proto::ConfigSnapshot {
         http_routes: vec![proto::HttpRoute {
-            name: "route".to_string(),
-            namespace: "default".to_string(),
+            name: "route".to_string().into(),
+            namespace: "default".to_string().into(),
             rules: vec![proto::HttpRule {
                 name: String::new(),
                 filters: vec![proto::Filter {

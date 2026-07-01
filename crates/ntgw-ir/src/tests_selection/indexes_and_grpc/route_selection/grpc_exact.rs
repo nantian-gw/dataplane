@@ -2,8 +2,8 @@
 fn selects_grpc_backend_by_service_method_and_header() {
     let snapshot = Snapshot {
         grpc_routes: vec![GrpcRoute {
-            name: "grpc-route".to_string(),
-            namespace: "default".to_string(),
+            name: "grpc-route".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["grpc.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![GrpcRule {
@@ -13,7 +13,7 @@ fn selects_grpc_backend_by_service_method_and_header() {
                     method: "SayHello".to_string(),
                     match_type: "Exact".to_string(),
                     headers: vec![HeaderMatch {
-                        name: "x-tenant".to_string(),
+                        name: "x-tenant".to_string().into(),
                         value: "blue".to_string(),
                         match_type: "Exact".to_string(),
                         ..HeaderMatch::default()
@@ -28,9 +28,9 @@ fn selects_grpc_backend_by_service_method_and_header() {
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
-            name: "greeter:9090".to_string(),
-            namespace: "default".to_string(),
-            protocol: "GRPC".to_string(),
+            name: "greeter:9090".to_string().into(),
+            namespace: "default".to_string().into(),
+            protocol: "GRPC".to_string().into(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.30".to_string(),
                 port: 9090,

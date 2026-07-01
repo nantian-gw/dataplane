@@ -5,15 +5,15 @@ fn reports_unhealthy_backends_when_route_matches_without_healthy_endpoints() {
     let snapshot = Snapshot {
         listeners: vec![listener("default/gw/http", "default/unhealthy")],
         http_routes: vec![HttpRoute {
-            name: "unhealthy".to_string(),
-            namespace: "default".to_string(),
+            name: "unhealthy".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec![],
             parent_refs: vec![],
             rules: vec![HttpRule {
                 name: String::new(),
                 backend_refs: vec![BackendRef {
-                    namespace: "default".to_string(),
-                    name: "infra-backend-v1".to_string(),
+                    namespace: "default".to_string().into(),
+                    name: "infra-backend-v1".to_string().into(),
                     port: 8080,
                     ..BackendRef::default()
                 }],

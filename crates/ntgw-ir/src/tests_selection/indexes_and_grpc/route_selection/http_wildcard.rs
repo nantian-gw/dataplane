@@ -2,8 +2,8 @@
 fn selects_http_backend_with_wildcard_hostname() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "wildcard".to_string(),
-            namespace: "default".to_string(),
+            name: "wildcard".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["*.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -19,9 +19,9 @@ fn selects_http_backend_with_wildcard_hostname() {
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
-            name: "wild:8080".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTP".to_string(),
+            name: "wild:8080".to_string().into(),
+            namespace: "default".to_string().into(),
+            protocol: "HTTP".to_string().into(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.20".to_string(),
                 port: 8080,

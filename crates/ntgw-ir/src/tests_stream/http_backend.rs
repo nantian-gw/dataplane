@@ -2,8 +2,8 @@
 fn select_http_backend_preserves_route_timeouts() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "timeout-route".to_string(),
-            namespace: "default".to_string(),
+            name: "timeout-route".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -24,9 +24,9 @@ fn select_http_backend_preserves_route_timeouts() {
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
-            name: "users:8080".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTP".to_string(),
+            name: "users:8080".to_string().into(),
+            namespace: "default".to_string().into(),
+            protocol: "HTTP".to_string().into(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.70".to_string(),
                 port: 8080,
@@ -59,8 +59,8 @@ fn select_http_backend_preserves_route_timeouts() {
 fn skips_zero_weight_backend_refs() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "weighted".to_string(),
-            namespace: "default".to_string(),
+            name: "weighted".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -80,9 +80,9 @@ fn skips_zero_weight_backend_refs() {
         }],
         backends: vec![
             BackendCluster {
-                name: "disabled:8080".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "disabled:8080".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.20".to_string(),
                     port: 8080,
@@ -94,9 +94,9 @@ fn skips_zero_weight_backend_refs() {
             
                 circuit_breaker: None,},
             BackendCluster {
-                name: "active:8081".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
+                name: "active:8081".to_string().into(),
+                namespace: "default".to_string().into(),
+                protocol: "HTTP".to_string().into(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.21".to_string(),
                     port: 8081,

@@ -127,7 +127,7 @@ async fn response_side_access_log_variables_capture_proxied_retry_response() {
             filter_type: "ResponseHeaderModifier".to_string(),
             header_modifier: Some(HeaderModifier {
                 set: vec![HeaderOperation {
-                    name: "content-type".to_string(),
+                    name: "content-type".to_string().into(),
                     value: "text/plain".to_string(),
                 }],
                 ..HeaderModifier::default()

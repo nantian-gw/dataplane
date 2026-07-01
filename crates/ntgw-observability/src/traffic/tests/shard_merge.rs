@@ -3,7 +3,7 @@ fn traffic_stats_merge_across_shards() {
     let stats = SharedTrafficStats::with_shard_count(4);
     stats.observe(TrafficObservation {
         listener_name: "default/gw/http-a".to_string(),
-        protocol: "HTTP".to_string(),
+        protocol: "HTTP".to_string().into(),
         route_namespace: "default".to_string(),
         route_name: "route-a".to_string(),
         route_kind: "Http".to_string(),
@@ -25,7 +25,7 @@ fn traffic_stats_merge_across_shards() {
     });
     stats.observe(TrafficObservation {
         listener_name: "default/gw/http-b".to_string(),
-        protocol: "HTTP".to_string(),
+        protocol: "HTTP".to_string().into(),
         route_namespace: "default".to_string(),
         route_name: "route-b".to_string(),
         route_kind: "Http".to_string(),
@@ -150,7 +150,7 @@ fn traffic_stats_preserves_zero_ms_connect_latency_observation() {
 
     stats.observe(TrafficObservation {
         listener_name: "default/gw/http".to_string(),
-        protocol: "HTTP".to_string(),
+        protocol: "HTTP".to_string().into(),
         route_namespace: "default".to_string(),
         route_name: "route".to_string(),
         route_kind: "Http".to_string(),
@@ -189,7 +189,7 @@ fn request_status_and_latency_metrics_exclude_stream_and_udp_events() {
 
     stats.observe(TrafficObservation {
         listener_name: "default/gw/tcp".to_string(),
-        protocol: "TCP".to_string(),
+        protocol: "TCP".to_string().into(),
         route_namespace: "default".to_string(),
         route_name: "tcp".to_string(),
         route_kind: "Tcp".to_string(),
@@ -211,7 +211,7 @@ fn request_status_and_latency_metrics_exclude_stream_and_udp_events() {
     });
     stats.observe(TrafficObservation {
         listener_name: "default/gw/udp".to_string(),
-        protocol: "UDP".to_string(),
+        protocol: "UDP".to_string().into(),
         route_namespace: "default".to_string(),
         route_name: "udp".to_string(),
         route_kind: "Udp".to_string(),
@@ -257,7 +257,7 @@ fn request_upstream_pool_metrics_exclude_stream_and_udp_events() {
 
     stats.observe(TrafficObservation {
         listener_name: "default/gw/tcp".to_string(),
-        protocol: "TCP".to_string(),
+        protocol: "TCP".to_string().into(),
         route_namespace: "default".to_string(),
         route_name: "tcp".to_string(),
         route_kind: "Tcp".to_string(),
@@ -279,7 +279,7 @@ fn request_upstream_pool_metrics_exclude_stream_and_udp_events() {
     });
     stats.observe(TrafficObservation {
         listener_name: "default/gw/tls".to_string(),
-        protocol: "TLS_PASSTHROUGH".to_string(),
+        protocol: "TLS_PASSTHROUGH".to_string().into(),
         route_namespace: "default".to_string(),
         route_name: "tls".to_string(),
         route_kind: "Tls".to_string(),
@@ -301,7 +301,7 @@ fn request_upstream_pool_metrics_exclude_stream_and_udp_events() {
     });
     stats.observe(TrafficObservation {
         listener_name: "default/gw/udp".to_string(),
-        protocol: "UDP".to_string(),
+        protocol: "UDP".to_string().into(),
         route_namespace: "default".to_string(),
         route_name: "udp".to_string(),
         route_kind: "Udp".to_string(),
@@ -349,7 +349,7 @@ fn request_latency_histograms_include_request_protocol_aliases() {
     for protocol in protocols {
         stats.observe(TrafficObservation {
             listener_name: format!("default/gw/{protocol}"),
-            protocol: protocol.to_string(),
+            protocol: protocol.to_string().into(),
             route_namespace: "default".to_string(),
             route_name: "route".to_string(),
             route_kind: "Http".to_string(),
@@ -397,7 +397,7 @@ fn traffic_stats_counts_unmatched_requests_with_stable_fallback_labels() {
 
     stats.observe(TrafficObservation {
         listener_name: String::new(),
-        protocol: "HTTP".to_string(),
+        protocol: "HTTP".to_string().into(),
         route_namespace: String::new(),
         route_name: String::new(),
         route_kind: String::new(),
@@ -497,7 +497,7 @@ fn identical_route_observations_spread_across_worker_shards() {
             for _ in 0..100 {
                 stats.observe(TrafficObservation {
                     listener_name: "default/gw/http".to_string(),
-                    protocol: "HTTP".to_string(),
+                    protocol: "HTTP".to_string().into(),
                     route_namespace: "default".to_string(),
                     route_name: "route".to_string(),
                     route_kind: "Http".to_string(),

@@ -1,5 +1,6 @@
 use std::{mem, time::Duration};
 
+use crate::SentryOptions;
 use anyhow::{Result, anyhow};
 use opentelemetry::{KeyValue, global, trace::TracerProvider};
 use opentelemetry_otlp::WithExportConfig;
@@ -12,7 +13,6 @@ use sentry_tracing::EventFilter;
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::Layer;
 use tracing_subscriber::prelude::*;
-use crate::SentryOptions;
 use tracing_subscriber::{EnvFilter, fmt, fmt::writer::BoxMakeWriter};
 
 static TRACING_WORKER_GUARD: std::sync::OnceLock<WorkerGuard> = std::sync::OnceLock::new();
@@ -123,15 +123,13 @@ pub fn init_tracing(options: &TracingOptions, sentry: Option<&SentryOptions>) ->
                             .with_thread_names(options.include_thread_names)
                             .with_writer(log_writer),
                     )
-                    .with(
-                        sentry_tracing::layer().event_filter(|md| {
-                            if *md.level() >= tracing::Level::ERROR {
-                                EventFilter::Exception
-                            } else {
-                                EventFilter::Ignore
-                            }
-                        }),
-                    )
+                    .with(sentry_tracing::layer().event_filter(|md| {
+                        if *md.level() >= tracing::Level::ERROR {
+                            EventFilter::Exception
+                        } else {
+                            EventFilter::Ignore
+                        }
+                    }))
                     .init();
             } else {
                 tracing_subscriber::registry()
@@ -163,15 +161,13 @@ pub fn init_tracing(options: &TracingOptions, sentry: Option<&SentryOptions>) ->
                             .with_thread_names(options.include_thread_names)
                             .with_writer(log_writer),
                     )
-                    .with(
-                        sentry_tracing::layer().event_filter(|md| {
-                            if *md.level() >= tracing::Level::ERROR {
-                                EventFilter::Exception
-                            } else {
-                                EventFilter::Ignore
-                            }
-                        }),
-                    )
+                    .with(sentry_tracing::layer().event_filter(|md| {
+                        if *md.level() >= tracing::Level::ERROR {
+                            EventFilter::Exception
+                        } else {
+                            EventFilter::Ignore
+                        }
+                    }))
                     .init();
             } else {
                 tracing_subscriber::registry()
@@ -203,15 +199,13 @@ pub fn init_tracing(options: &TracingOptions, sentry: Option<&SentryOptions>) ->
                         .with_thread_names(options.include_thread_names)
                         .with_writer(log_writer),
                 )
-                .with(
-                    sentry_tracing::layer().event_filter(|md| {
-                        if *md.level() >= tracing::Level::ERROR {
-                            EventFilter::Exception
-                        } else {
-                            EventFilter::Ignore
-                        }
-                    }),
-                )
+                .with(sentry_tracing::layer().event_filter(|md| {
+                    if *md.level() >= tracing::Level::ERROR {
+                        EventFilter::Exception
+                    } else {
+                        EventFilter::Ignore
+                    }
+                }))
                 .init();
         } else {
             tracing_subscriber::registry()
@@ -241,15 +235,13 @@ pub fn init_tracing(options: &TracingOptions, sentry: Option<&SentryOptions>) ->
                         .with_thread_names(options.include_thread_names)
                         .with_writer(log_writer),
                 )
-                .with(
-                    sentry_tracing::layer().event_filter(|md| {
-                        if *md.level() >= tracing::Level::ERROR {
-                            EventFilter::Exception
-                        } else {
-                            EventFilter::Ignore
-                        }
-                    }),
-                )
+                .with(sentry_tracing::layer().event_filter(|md| {
+                    if *md.level() >= tracing::Level::ERROR {
+                        EventFilter::Exception
+                    } else {
+                        EventFilter::Ignore
+                    }
+                }))
                 .init();
         } else {
             tracing_subscriber::registry()

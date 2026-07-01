@@ -16,11 +16,11 @@ mod unhealthy;
 
 fn listener(name: &str, attached_route: &str) -> Listener {
     Listener {
-        name: name.to_string(),
+        name: name.to_string().into(),
         address: "0.0.0.0".to_string(),
         addresses: vec!["0.0.0.0".to_string()],
         port: 80,
-        protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
+        protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
         hostnames: vec![],
         attached_routes: vec![attached_route.to_string()],
         tls: None,
@@ -31,9 +31,9 @@ fn listener(name: &str, attached_route: &str) -> Listener {
 
 fn backend_cluster(namespace: &str, name: &str, healthy: bool) -> BackendCluster {
     BackendCluster {
-        name: format!("{name}:8080"),
-        namespace: namespace.to_string(),
-        protocol: "HTTP".to_string(),
+        name: format!("{name}:8080").into(),
+        namespace: namespace.to_string().into(),
+        protocol: "HTTP".to_string().into(),
         endpoints: vec![BackendEndpoint {
             address: if healthy {
                 "10.0.0.2".to_string()

@@ -2,8 +2,8 @@
 fn passive_endpoint_ejection_temporarily_removes_endpoint_from_rotation() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "route".to_string(),
-            namespace: "default".to_string(),
+            name: "route".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -19,9 +19,9 @@ fn passive_endpoint_ejection_temporarily_removes_endpoint_from_rotation() {
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
-            name: "echo:8080".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTP".to_string(),
+            name: "echo:8080".to_string().into(),
+            namespace: "default".to_string().into(),
+            protocol: "HTTP".to_string().into(),
             endpoints: vec![
                 BackendEndpoint {
                     address: "10.0.0.10".to_string(),
@@ -71,8 +71,8 @@ fn passive_endpoint_ejection_temporarily_removes_endpoint_from_rotation() {
 fn passive_endpoint_ejection_keeps_single_endpoint_as_last_resort() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "route".to_string(),
-            namespace: "default".to_string(),
+            name: "route".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -88,9 +88,9 @@ fn passive_endpoint_ejection_keeps_single_endpoint_as_last_resort() {
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
-            name: "echo:8080".to_string(),
-            namespace: "default".to_string(),
-            protocol: "HTTP".to_string(),
+            name: "echo:8080".to_string().into(),
+            namespace: "default".to_string().into(),
+            protocol: "HTTP".to_string().into(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8080,

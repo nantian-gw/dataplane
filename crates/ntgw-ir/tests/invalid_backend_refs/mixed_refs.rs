@@ -5,16 +5,16 @@ fn keeps_valid_backends_when_rule_contains_mixed_refs() {
     let snapshot = Snapshot {
         listeners: vec![listener("default/gw/http", "default/mixed")],
         http_routes: vec![HttpRoute {
-            name: "mixed".to_string(),
-            namespace: "default".to_string(),
+            name: "mixed".to_string().into(),
+            namespace: "default".to_string().into(),
             hostnames: vec![],
             parent_refs: vec![],
             rules: vec![HttpRule {
                 name: String::new(),
                 backend_refs: vec![
                     BackendRef {
-                        namespace: "default".to_string(),
-                        name: "infra-backend-v1".to_string(),
+                        namespace: "default".to_string().into(),
+                        name: "infra-backend-v1".to_string().into(),
                         port: 8080,
                         metadata: BTreeMap::from([(
                             "nantian.dev/backend-ref-valid".to_string(),
@@ -23,8 +23,8 @@ fn keeps_valid_backends_when_rule_contains_mixed_refs() {
                         ..BackendRef::default()
                     },
                     BackendRef {
-                        namespace: "default".to_string(),
-                        name: "infra-backend-v2".to_string(),
+                        namespace: "default".to_string().into(),
+                        name: "infra-backend-v2".to_string().into(),
                         port: 8080,
                         ..BackendRef::default()
                     },

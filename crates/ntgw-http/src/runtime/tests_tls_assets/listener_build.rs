@@ -2,10 +2,10 @@
 fn builds_https_listener_from_snapshot_secret() {
     let snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/https".to_string(),
+            name: "default/gw/https".to_string().into(),
             address: "0.0.0.0".to_string(),
             port: 443,
-            protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
+            protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
             hostnames: vec!["example.com".to_string()],
             attached_routes: vec![],
             tls: Some(TlsConfig {
@@ -35,10 +35,10 @@ fn builds_https_listener_from_snapshot_secret() {
 fn builds_https_listener_with_frontend_validation_bundle() {
     let snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/https".to_string(),
+            name: "default/gw/https".to_string().into(),
             address: "0.0.0.0".to_string(),
             port: 443,
-            protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
+            protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
             hostnames: vec!["example.com".to_string()],
             attached_routes: vec![],
             tls: Some(TlsConfig {
@@ -74,10 +74,10 @@ fn tls_asset_paths_do_not_collide_when_client_ca_bundle_differs() {
     let snapshot = Snapshot {
         listeners: vec![
             Listener {
-                name: "default/gw/https-a".to_string(),
+                name: "default/gw/https-a".to_string().into(),
                 address: "127.0.0.1".to_string(),
                 port: 443,
-                protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
                 tls: Some(TlsConfig {
                     enabled: true,
                     passthrough: false,
@@ -91,10 +91,10 @@ fn tls_asset_paths_do_not_collide_when_client_ca_bundle_differs() {
                 ..Listener::default()
             },
             Listener {
-                name: "default/gw/https-b".to_string(),
+                name: "default/gw/https-b".to_string().into(),
                 address: "127.0.0.1".to_string(),
                 port: 8443,
-                protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
                 tls: Some(TlsConfig {
                     enabled: true,
                     passthrough: false,
@@ -153,10 +153,10 @@ fn tls_asset_paths_do_not_collide_when_client_ca_bundle_differs() {
 fn builds_https_listener_with_insecure_frontend_validation_mode() {
     let snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/https".to_string(),
+            name: "default/gw/https".to_string().into(),
             address: "127.0.0.1".to_string(),
             port: 443,
-            protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
+            protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
             tls: Some(TlsConfig {
                 enabled: true,
                 passthrough: false,
