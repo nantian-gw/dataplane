@@ -109,7 +109,7 @@ async fn test_validate_valid_token() {
     let filter = make_jwt_auth_filter(&jwks_url);
     let validator = JwtValidator::new(&filter).unwrap();
 
-    let claims = serde_json::json!({"sub": "user-123", "role": "admin"});
+    let claims = serde_json::json!({"sub": "user-123", "role": "admin", "exp": 9999999999_i64});
     let token = keypair.sign_token(&claims);
 
     let result = validator
@@ -167,7 +167,8 @@ async fn test_validate_wrong_issuer() {
 
     let validator = JwtValidator::new(&filter).unwrap();
 
-    let claims = serde_json::json!({"iss": "https://wrong-issuer.example.com"});
+    let claims =
+        serde_json::json!({"iss": "https://wrong-issuer.example.com", "exp": 9999999999_i64});
     let token = keypair.sign_token(&claims);
 
     let result = validator.validate(&token, &[]).await;
@@ -188,7 +189,7 @@ async fn test_validate_wrong_audience() {
 
     let validator = JwtValidator::new(&filter).unwrap();
 
-    let claims = serde_json::json!({"aud": "wrong-audience"});
+    let claims = serde_json::json!({"aud": "wrong-audience", "exp": 9999999999_i64});
     let token = keypair.sign_token(&claims);
 
     let result = validator.validate(&token, &[]).await;
@@ -233,7 +234,7 @@ async fn test_no_matching_key() {
     let filter = make_jwt_auth_filter(&jwks_url);
     let validator = JwtValidator::new(&filter).unwrap();
 
-    let claims = serde_json::json!({"sub": "user-123"});
+    let claims = serde_json::json!({"sub": "user-123", "exp": 9999999999_i64});
     let token = keypair.sign_token_with_kid(&claims, "unknown-kid");
 
     let result = validator.validate(&token, &[]).await;
@@ -254,7 +255,7 @@ async fn test_claims_to_headers_mapping() {
         "email": "user@example.com",
         "role": "admin",
         "scope": 123
-    });
+    , "exp": 9999999999_i64});
     let token = keypair.sign_token(&claims);
 
     let claim_mappings = vec![
@@ -315,7 +316,7 @@ async fn test_jwks_fetch_failure() {
     let validator = JwtValidator::new(&filter).unwrap();
 
     let keypair = TestKeypair::generate();
-    let claims = serde_json::json!({"sub": "user-123"});
+    let claims = serde_json::json!({"sub": "user-123", "exp": 9999999999_i64});
     let token = keypair.sign_token(&claims);
 
     let result = validator.validate(&token, &[]).await;
@@ -343,7 +344,7 @@ async fn test_jwks_http_error_status() {
 
     let validator = JwtValidator::new(&filter).unwrap();
 
-    let claims = serde_json::json!({"sub": "user-123"});
+    let claims = serde_json::json!({"sub": "user-123", "exp": 9999999999_i64});
     let token = keypair.sign_token(&claims);
 
     let result = validator.validate(&token, &[]).await;
@@ -362,7 +363,8 @@ async fn test_empty_claims_to_headers() {
     let filter = make_jwt_auth_filter(&jwks_url);
     let validator = JwtValidator::new(&filter).unwrap();
 
-    let claims = serde_json::json!({"sub": "user-789", "email": "test@example.com"});
+    let claims =
+        serde_json::json!({"sub": "user-789", "email": "test@example.com", "exp": 9999999999_i64});
     let token = keypair.sign_token(&claims);
 
     let result = validator.validate(&token, &[]).await;
@@ -388,11 +390,11 @@ async fn test_jwks_cache_hit() {
 
     let validator = JwtValidator::new(&filter).unwrap();
 
-    let claims = serde_json::json!({"sub": "user-1"});
+    let claims = serde_json::json!({"sub": "user-1", "exp": 9999999999_i64});
     let token = keypair.sign_token(&claims);
     validator.validate(&token, &[]).await.unwrap();
 
-    let claims2 = serde_json::json!({"sub": "user-2"});
+    let claims2 = serde_json::json!({"sub": "user-2", "exp": 9999999999_i64});
     let token2 = keypair.sign_token(&claims2);
     validator.validate(&token2, &[]).await.unwrap();
 
@@ -403,7 +405,9 @@ async fn test_jwks_cache_hit() {
 async fn test_jwks_empty_keys_response() {
     let app = Router::new().route(
         "/.well-known/jwks.json",
-        get(|| async { axum::response::Json(serde_json::json!({"keys": []})) }),
+        get(|| async {
+            axum::response::Json(serde_json::json!({"keys": [], "exp": 9999999999_i64}))
+        }),
     );
 
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
@@ -425,7 +429,7 @@ async fn test_jwks_empty_keys_response() {
     let validator = JwtValidator::new(&filter).unwrap();
 
     let keypair = TestKeypair::generate();
-    let claims = serde_json::json!({"sub": "user-123"});
+    let claims = serde_json::json!({"sub": "user-123", "exp": 9999999999_i64});
     let token = keypair.sign_token(&claims);
 
     let result = validator.validate(&token, &[]).await;

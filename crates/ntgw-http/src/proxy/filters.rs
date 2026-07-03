@@ -557,7 +557,21 @@ pub(crate) async fn do_request_filter(
             }
         };
 
-        let validator = get_or_create_validator(jwt_auth);
+        let validator = match get_or_create_validator(jwt_auth) {
+            Ok(v) => v,
+            Err(e) => {
+                ctx.status = 500;
+                assign_ctx_string(&mut ctx.response_flags, "JWT");
+                record_request_span(ctx);
+                session
+                    .write_response_body(
+                        Some(Bytes::from(format!("JWT validator error: {e}"))),
+                        false,
+                    )
+                    .await?;
+                return Ok(true);
+            }
+        };
         match validator
             .validate(&token, &jwt_auth.claims_to_headers)
             .await
@@ -960,12 +974,16 @@ fn extract_bearer_token(request: &RequestHeader, jwt_auth: &JwtAuthFilter) -> Op
     }
 }
 
-fn get_or_create_validator(jwt_auth: &JwtAuthFilter) -> Arc<JwtValidator> {
-    let mut validators = JWT_VALIDATORS.lock().expect("JWT_VALIDATORS lock poisoned");
+fn get_or_create_validator(jwt_auth: &JwtAuthFilter) -> Result<Arc<JwtValidator>, String> {
+    let mut validators = JWT_VALIDATORS
+        .lock()
+        .map_err(|_| "JWT_VALIDATORS lock poisoned".to_string())?;
     if let Some(validator) = validators.get(&jwt_auth.jwks_url) {
-        return Arc::clone(validator);
+        return Ok(Arc::clone(validator));
     }
-    let validator = Arc::new(JwtValidator::new(jwt_auth).expect("failed to create JWT validator"));
+    let validator = Arc::new(
+        JwtValidator::new(jwt_auth).map_err(|e| format!("failed to create JWT validator: {e}"))?,
+    );
     validators.insert(jwt_auth.jwks_url.clone(), Arc::clone(&validator));
-    validator
+    Ok(validator)
 }

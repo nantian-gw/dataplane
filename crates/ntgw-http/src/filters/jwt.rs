@@ -94,6 +94,15 @@ impl JwtValidator {
         }
     }
 
+    async fn get_key_with_refresh(&self, kid: &str) -> Result<DecodingKey, JwtError> {
+        if let Some(key) = self.get_key(kid)? {
+            return Ok(key);
+        }
+        self.fetch_and_cache_jwks().await?;
+        self.get_key(kid)?
+            .ok_or_else(|| JwtError::NoMatchingKey(kid.to_string()))
+    }
+
     pub(crate) async fn validate(
         &self,
         token: &str,
@@ -114,13 +123,11 @@ impl JwtValidator {
             JwtError::InvalidToken("token header missing 'kid' claim".to_string())
         })?;
 
-        let key = self
-            .get_key(&kid)?
-            .ok_or_else(|| JwtError::NoMatchingKey(kid.clone()))?;
+        let key = self.get_key_with_refresh(&kid).await?;
 
         let mut validation = Validation::new(Algorithm::RS256);
-        // Do not require exp/iat by default — let users enforce via issuer/audience
-        validation.required_spec_claims.clear();
+        validation.algorithms = vec![Algorithm::RS256];
+        validation.validate_exp = true;
 
         if let Some(ref issuer) = self.issuer {
             validation.set_issuer(&[issuer]);
