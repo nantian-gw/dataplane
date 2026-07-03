@@ -1,18 +1,24 @@
 use bytes::Bytes;
-use ntgw_ir::SessionPersistence;
+use ntgw_ir::{JwtAuthFilter, SessionPersistence};
 use ntgw_wasm::WasmError;
+use pingora::http::RequestHeader;
 use pingora::prelude::Session;
 use pingora_cache::HitStatus;
 use std::collections::HashMap;
+use std::sync::{Arc, LazyLock, Mutex};
 
 use super::*;
 
 use crate::extensions::direct_response_filter;
+use crate::filters::jwt::{JwtError, JwtValidator};
 use crate::filters::{
     apply_response_filters, build_cors_preflight_response, build_redirect_location,
-    build_redirect_response, ensure_supported_filters, request_redirect_filter,
+    build_redirect_response, ensure_supported_filters, jwt_auth_filter, request_redirect_filter,
 };
 use crate::mirror::{selected_backend_from_subrequest, spawn_request_mirrors};
+
+static JWT_VALIDATORS: LazyLock<Mutex<HashMap<String, Arc<JwtValidator>>>> =
+    LazyLock::new(|| Mutex::new(HashMap::new()));
 pub(crate) async fn do_request_filter(
     proxy: &GatewayProxy,
     session: &mut Session,
@@ -535,6 +541,55 @@ pub(crate) async fn do_request_filter(
         return Ok(true);
     }
 
+    if let Some(jwt_auth) = jwt_auth_filter(&route.filters) {
+        let token = extract_bearer_token(session.req_header(), jwt_auth);
+        let token = match token {
+            Some(t) => t,
+            None => {
+                cache_selected_http_route_context(ctx, &proxy.access_log, &route);
+                ctx.status = 401;
+                assign_ctx_string(&mut ctx.response_flags, "JWT");
+                record_request_span(ctx);
+                session
+                    .write_response_body(Some(Bytes::from("missing JWT token")), false)
+                    .await?;
+                return Ok(true);
+            }
+        };
+
+        let validator = get_or_create_validator(jwt_auth);
+        match validator
+            .validate(&token, &jwt_auth.claims_to_headers)
+            .await
+        {
+            Ok(claims) => {
+                let req_header = session.req_header_mut();
+                for (header_name, header_value) in claims {
+                    let _ = req_header.insert_header(header_name, header_value);
+                }
+            }
+            Err(JwtError::Expired) => {
+                cache_selected_http_route_context(ctx, &proxy.access_log, &route);
+                ctx.status = 401;
+                assign_ctx_string(&mut ctx.response_flags, "JWT");
+                record_request_span(ctx);
+                session
+                    .write_response_body(Some(Bytes::from("JWT token expired")), false)
+                    .await?;
+                return Ok(true);
+            }
+            Err(e) => {
+                cache_selected_http_route_context(ctx, &proxy.access_log, &route);
+                ctx.status = 401;
+                assign_ctx_string(&mut ctx.response_flags, "JWT");
+                record_request_span(ctx);
+                let body = Bytes::from(format!("JWT validation failed: {e}"));
+                session.write_response_body(Some(body), false).await?;
+                return Ok(true);
+            }
+        }
+    }
+
     if let Some(auth) = external_auth_filter(&route.filters) {
         let endpoint = {
             let current = ctx.cached_snapshot(proxy);
@@ -893,4 +948,24 @@ async fn try_cache_hit(
             Ok(false)
         }
     }
+}
+
+fn extract_bearer_token(request: &RequestHeader, jwt_auth: &JwtAuthFilter) -> Option<String> {
+    let header_value = request.headers.get(&jwt_auth.header_name)?.to_str().ok()?;
+
+    if header_value.starts_with(&jwt_auth.token_prefix) {
+        Some(header_value[jwt_auth.token_prefix.len()..].to_string())
+    } else {
+        None
+    }
+}
+
+fn get_or_create_validator(jwt_auth: &JwtAuthFilter) -> Arc<JwtValidator> {
+    let mut validators = JWT_VALIDATORS.lock().expect("JWT_VALIDATORS lock poisoned");
+    if let Some(validator) = validators.get(&jwt_auth.jwks_url) {
+        return Arc::clone(validator);
+    }
+    let validator = Arc::new(JwtValidator::new(jwt_auth).expect("failed to create JWT validator"));
+    validators.insert(jwt_auth.jwks_url.clone(), Arc::clone(&validator));
+    validator
 }

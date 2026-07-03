@@ -38,9 +38,10 @@ use tokio::sync::watch;
 pub(crate) use endpoint_runtime::EndpointRuntimeStore;
 pub use endpoint_runtime::{EndpointRuntimeHandle, EndpointRuntimeSnapshot};
 pub use filters::{
-    CorsFilter, DirectResponseFilter, ExtensionFilter, ExternalAuthFilter, ExternalGRPCAuthConfig,
-    ExternalHTTPAuthConfig, Filter, Fraction, HeaderModifier, HeaderOperation, MatchedHttpPath,
-    PathModifier, RequestMirrorFilter, RequestRedirectFilter, UrlRewriteFilter,
+    ClaimToHeader, CorsFilter, DirectResponseFilter, ExtensionFilter, ExternalAuthFilter,
+    ExternalGRPCAuthConfig, ExternalHTTPAuthConfig, Filter, Fraction, HeaderModifier,
+    HeaderOperation, JwtAuthFilter, MatchedHttpPath, PathModifier, RequestMirrorFilter,
+    RequestRedirectFilter, UrlRewriteFilter,
 };
 pub use http_fast_path::{CompiledSelectedHttpBackend, HttpFastPathPlan, HttpFastPathRequest};
 pub(crate) use matching::{
