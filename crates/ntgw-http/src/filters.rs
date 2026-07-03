@@ -6,10 +6,11 @@ use pingora::{
 use std::collections::BTreeMap;
 
 use crate::extensions::extension_filters_supported;
-use ntgw_ir::{Filter, MatchedHttpPath, RequestMeta, RequestRedirectFilter};
+use ntgw_ir::{Filter, JwtAuthFilter, MatchedHttpPath, RequestMeta, RequestRedirectFilter};
 
 mod cors;
 mod headers;
+pub(crate) mod jwt;
 mod redirect;
 
 use self::{
@@ -28,6 +29,10 @@ pub(crate) fn request_redirect_filter(filters: &[Filter]) -> Option<&RequestRedi
     filters
         .iter()
         .find_map(|filter| filter.request_redirect.as_ref())
+}
+
+pub(crate) fn jwt_auth_filter(filters: &[Filter]) -> Option<&JwtAuthFilter> {
+    filters.iter().find_map(|filter| filter.jwt_auth.as_ref())
 }
 
 pub(crate) fn ensure_supported_filters(filters: &[Filter]) -> pingora::Result<()> {
@@ -182,6 +187,7 @@ fn is_supported_filter_type(filter_type: &str) -> bool {
             | "RequestMirror"
             | "ExternalAuth"
             | "ExtensionRef"
+            | "JwtAuth"
     )
 }
 

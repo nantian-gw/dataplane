@@ -31,8 +31,13 @@ ntgw-ai.workspace = true
 ntgw-wasm.workspace = true
 prometheus = "0.13"
 tonic.workspace = true
+reqwest.workspace = true
+jsonwebtoken.workspace = true
 
 [dev-dependencies]
 h2 = "0.4.14"
 proptest.workspace = true
 tracing-subscriber.workspace = true
+rsa = "0.9"
+rand = "0.8"
+axum.workspace = true

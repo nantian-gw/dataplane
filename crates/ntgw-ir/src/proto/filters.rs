@@ -39,6 +39,7 @@ pub(super) fn filter_from_proto(item: proto::Filter) -> Filter {
             _ => None,
         },
         filter_type,
+        ..Default::default()
     }
 }
 

@@ -13,6 +13,7 @@ pub struct Filter {
     pub request_mirror: Option<RequestMirrorFilter>,
     pub external_auth: Option<ExternalAuthFilter>,
     pub extension_ref: Option<ExtensionFilter>,
+    pub jwt_auth: Option<JwtAuthFilter>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -123,4 +124,31 @@ impl Default for Fraction {
 pub struct MatchedHttpPath {
     pub path: String,
     pub path_type: String,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct JwtAuthFilter {
+    pub jwks_url: String,
+    pub issuer: Option<String>,
+    pub audience: Option<String>,
+    #[serde(default = "default_header_name")]
+    pub header_name: String,
+    #[serde(default = "default_token_prefix")]
+    pub token_prefix: String,
+    pub claims_to_headers: Vec<ClaimToHeader>,
+    pub cache_ttl_secs: Option<u64>,
+}
+
+fn default_header_name() -> String {
+    "Authorization".to_string()
+}
+
+fn default_token_prefix() -> String {
+    "Bearer ".to_string()
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct ClaimToHeader {
+    pub claim: String,
+    pub header: String,
 }
