@@ -1,4 +1,4 @@
-const FLUSH_THRESHOLD: usize = 64;
+const FLUSH_THRESHOLD: usize = 1024;
 const _FLUSH_INTERVAL_MS: u64 = 100;
 
 #[derive(Debug)]
