@@ -304,4 +304,5 @@ pub struct TrafficEdgeStat {
 #[derive(Debug, Clone)]
 pub struct SharedTrafficStats {
     inner: Arc<TrafficStatsInner>,
+    shared_buffer: Arc<parking_lot::Mutex<Vec<TrafficObservation>>>,
 }
