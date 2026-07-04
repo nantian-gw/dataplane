@@ -118,6 +118,7 @@ jobs:
           echo "minor=${MAJOR}.${MINOR}" >> "$GITHUB_OUTPUT"
 
       - name: Create multi-arch manifest (exact tag)
+        continue-on-error: true
         run: |
           docker buildx imagetools create \
             --tag "ghcr.io/${{ github.repository }}:${{ github.ref_name }}" \
@@ -125,18 +126,20 @@ jobs:
             "ghcr.io/${{ github.repository }}:${{ github.ref_name }}-arm64"
 
       - name: Create multi-arch manifest (major.minor)
+        continue-on-error: true
         run: |
           docker buildx imagetools create \
             --tag "ghcr.io/${{ github.repository }}:${{ steps.semver.outputs.minor }}" \
-            "ghcr.io/${{ github.repository }}:${{ steps.semver.outputs.version }}-amd64" \
-            "ghcr.io/${{ github.repository }}:${{ steps.semver.outputs.version }}-arm64"
+            "ghcr.io/${{ github.repository }}:${{ github.ref_name }}-amd64" \
+            "ghcr.io/${{ github.repository }}:${{ github.ref_name }}-arm64"
 
       - name: Create multi-arch manifest (major)
+        continue-on-error: true
         run: |
           docker buildx imagetools create \
             --tag "ghcr.io/${{ github.repository }}:${{ steps.semver.outputs.major }}" \
-            "ghcr.io/${{ github.repository }}:${{ steps.semver.outputs.version }}-amd64" \
-            "ghcr.io/${{ github.repository }}:${{ steps.semver.outputs.version }}-arm64"
+            "ghcr.io/${{ github.repository }}:${{ github.ref_name }}-amd64" \
+            "ghcr.io/${{ github.repository }}:${{ github.ref_name }}-arm64"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@7c4723f7a335432393329f8f1c564994ce50185d
