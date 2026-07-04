@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
-      - uses: EmbarkStudios/cargo-deny-action@c6e2e0b44eabbcc2454b4b6c053f685f30e56b90
+      - uses: EmbarkStudios/cargo-deny-action@v2
         with:
           command: check advisories bans licenses sources
 
