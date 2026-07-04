@@ -108,7 +108,10 @@ impl SharedTrafficStats {
         if topology.is_some() {
             return self.observe_ref_direct(observation, topology);
         }
-        let mut buf = self.shared_buffer.lock();
+        let mut buf = match self.shared_buffer.try_lock() {
+            Some(buf) => buf,
+            None => return,
+        };
         buf.push(observation.to_owned());
         let should_flush = buf.len() >= FLUSH_THRESHOLD;
         drop(buf);
