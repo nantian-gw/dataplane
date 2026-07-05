@@ -36,9 +36,14 @@ pub(crate) fn to_tracing_options(cfg: &DataPlaneConfig) -> TracingOptions {
 }
 
 pub(crate) fn to_sentry_options(cfg: &DataPlaneConfig) -> SentryOptions {
+    let dsn = std::env::var("SENTRY_DSN")
+        .ok()
+        .filter(|v| !v.is_empty())
+        .unwrap_or_else(|| cfg.log.sentry.dsn.clone());
+    let enabled = cfg.log.sentry.enabled || std::env::var("SENTRY_DSN").ok().map_or(false, |v| !v.is_empty());
     SentryOptions {
-        enabled: cfg.log.sentry.enabled,
-        dsn: cfg.log.sentry.dsn.clone(),
+        enabled,
+        dsn,
         environment: cfg.log.sentry.environment.clone(),
         sample_rate: cfg.log.sentry.sample_rate,
         traces_sample_rate: cfg.log.sentry.traces_sample_rate,
