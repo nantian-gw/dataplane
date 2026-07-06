@@ -85,7 +85,7 @@ ntgw-xds = { version = "0.1.0", path = "crates/ntgw-xds" }
 ntgw-ai = { version = "0.1.0", path = "crates/ntgw-ai" }
 
 [profile.release]
-lto = "thin"
+lto = "fat"
 codegen-units = 1
 panic = "abort"
 strip = "symbols"
