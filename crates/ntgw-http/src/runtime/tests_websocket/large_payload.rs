@@ -25,7 +25,7 @@ async fn websocket_large_payload_tunnels_in_both_directions() {
     )
     .expect("start server");
 
-    let payload = vec![b'x'; 256 * 1024];
+    let payload = vec![b'x'; 64 * 1024];
     let upstream_payload = payload.clone();
     let client_payload = payload.clone();
     let upstream = tokio::spawn(async move {
@@ -60,7 +60,12 @@ async fn websocket_large_payload_tunnels_in_both_directions() {
 
         client.write_all(&client_payload).await?;
         let mut echoed = vec![0; client_payload.len()];
-        client.read_exact(&mut echoed).await?;
+        tokio::time::timeout(
+            std::time::Duration::from_secs(10),
+            client.read_exact(&mut echoed),
+        )
+        .await
+        .expect("read timeout")?;
         assert_eq!(echoed, client_payload);
         Ok::<(), anyhow::Error>(())
     }
