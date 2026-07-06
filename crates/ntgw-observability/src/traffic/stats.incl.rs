@@ -425,9 +425,10 @@ impl SharedTrafficStats {
             status_other: state.status_other,
             response_flags: {
                 if state.normal_response_events > 0 {
-                    state
+                    *state
                         .response_flags
-                        .insert("none".to_string(), state.normal_response_events);
+                        .entry(NORMAL_RESPONSE_FLAG.to_string())
+                        .or_default() += state.normal_response_events;
                 }
                 state.response_flags
             },
