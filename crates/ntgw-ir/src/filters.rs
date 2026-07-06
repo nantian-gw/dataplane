@@ -30,6 +30,7 @@ pub struct HeaderOperation {
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CorsFilter {
     pub allow_origins: Vec<String>,
     pub allow_methods: Vec<String>,
