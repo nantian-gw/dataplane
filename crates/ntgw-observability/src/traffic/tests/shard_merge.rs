@@ -480,7 +480,7 @@ fn traffic_response_flag_hot_path_reuses_normal_counter() {
     observe_response_flags(&mut state, "");
     observe_response_flags(&mut state, "UC");
 
-    assert_eq!(state.response_flags.get("none").copied(), Some(2));
+    assert_eq!(state.normal_response_events, 2);
     assert_eq!(state.response_flags.get("UC").copied(), Some(1));
 }
 

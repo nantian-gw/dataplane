@@ -232,6 +232,9 @@ impl TrafficState {
         self.status_4xx = self.status_4xx.saturating_add(other.status_4xx);
         self.status_5xx = self.status_5xx.saturating_add(other.status_5xx);
         self.status_other = self.status_other.saturating_add(other.status_other);
+        self.normal_response_events = self
+            .normal_response_events
+            .saturating_add(other.normal_response_events);
         for (flag, events) in &other.response_flags {
             let entry = self.response_flags.entry(flag.clone()).or_default();
             *entry = entry.saturating_add(*events);

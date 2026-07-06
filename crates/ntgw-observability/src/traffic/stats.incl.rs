@@ -40,6 +40,10 @@ struct TrafficState {
     status_4xx: u64,
     status_5xx: u64,
     status_other: u64,
+    /// Count of requests with no response flags (normal traffic).
+    /// Kept as a flat counter to avoid BTreeMap lookup/allocation in the hot path.
+    /// Injected into `response_flags` as the "none" key at snapshot time.
+    normal_response_events: u64,
     response_flags: BTreeMap<String, u64>,
     nodes: HashMap<String, TrafficNodeStat>,
     edges: HashMap<String, TrafficEdgeStat>,
@@ -419,7 +423,14 @@ impl SharedTrafficStats {
             status_4xx: state.status_4xx,
             status_5xx: state.status_5xx,
             status_other: state.status_other,
-            response_flags: state.response_flags,
+            response_flags: {
+                if state.normal_response_events > 0 {
+                    state
+                        .response_flags
+                        .insert("none".to_string(), state.normal_response_events);
+                }
+                state.response_flags
+            },
             nodes,
             edges,
         }
@@ -612,7 +623,7 @@ fn observe_response_flags(state: &mut TrafficState, flags: &str) {
         increment_response_flag(&mut state.response_flags, flag);
     }
     if !has_response_flag {
-        increment_response_flag(&mut state.response_flags, NORMAL_RESPONSE_FLAG);
+        state.normal_response_events = state.normal_response_events.saturating_add(1);
     }
 }
 
