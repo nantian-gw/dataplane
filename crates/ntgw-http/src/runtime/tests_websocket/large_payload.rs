@@ -62,6 +62,8 @@ async fn websocket_large_payload_tunnels_in_both_directions() {
         let mut echoed = vec![0; client_payload.len()];
         client.read_exact(&mut echoed).await?;
         assert_eq!(echoed, client_payload);
+        // Let the proxy finish flushing its write buffers before we stop the server.
+        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
         Ok::<(), anyhow::Error>(())
     }
     .await;
