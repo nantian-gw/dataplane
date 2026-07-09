@@ -50,6 +50,16 @@ impl AISandbox {
 
     /// Load a sandbox module from raw Wasm bytes.
     pub fn load_module(&mut self, name: &str, wasm_bytes: &[u8]) -> Result<(), WasmError> {
+        if wasm_bytes.len() > crate::engine::MAX_WASM_MODULE_BYTES {
+            return Err(WasmError::LoadFailed {
+                name: name.to_string(),
+                reason: format!(
+                    "sandbox module size {} exceeds limit {}",
+                    wasm_bytes.len(),
+                    crate::engine::MAX_WASM_MODULE_BYTES
+                ),
+            });
+        }
         let module =
             Module::from_binary(&self.engine, wasm_bytes).map_err(|e| WasmError::LoadFailed {
                 name: name.to_string(),

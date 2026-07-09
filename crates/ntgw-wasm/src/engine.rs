@@ -4,11 +4,20 @@ use std::sync::{Arc, OnceLock};
 use anyhow::Result;
 use wasmtime::{Config, Engine, Linker, OptLevel};
 
+/// Maximum accepted plugin/sandbox Wasm module size, checked before compilation.
+pub const MAX_WASM_MODULE_BYTES: usize = 32 * 1024 * 1024;
+
+/// Maximum number of table elements a guest may grow to at runtime.
+pub const MAX_WASM_TABLE_ELEMENTS: usize = 10_000;
+
 fn global_engine_config() -> Config {
     let mut config = Config::default();
     config.epoch_interruption(true);
-    config.wasm_multi_memory(true);
-    config.wasm_component_model(true);
+    // The plugin/sandbox loader only builds core modules with a single "memory"
+    // export, so keep the component model and multi-memory off to shrink the
+    // guest-reachable attack surface and compilation cost.
+    config.wasm_multi_memory(false);
+    config.wasm_component_model(false);
     config.wasm_backtrace_details(wasmtime::WasmBacktraceDetails::Disable);
     config.cranelift_opt_level(OptLevel::Speed);
     config.parallel_compilation(true);
@@ -36,6 +45,7 @@ pub struct PluginContext {
     pub response_headers: HashMap<String, String>,
     pub body: Vec<u8>,
     pub memory_limit: usize,
+    pub table_elements_limit: usize,
 }
 
 impl wasmtime::ResourceLimiter for PluginContext {
@@ -51,14 +61,40 @@ impl wasmtime::ResourceLimiter for PluginContext {
     fn table_growing(
         &mut self,
         _current: usize,
-        _desired: usize,
+        desired: usize,
         _maximum: Option<usize>,
     ) -> Result<bool, wasmtime::Error> {
-        Ok(true)
+        Ok(desired <= self.table_elements_limit)
     }
 
     fn instances(&self) -> usize {
         1
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use wasmtime::ResourceLimiter;
+
+    #[test]
+    fn table_growing_respects_limit() {
+        let mut ctx = PluginContext {
+            table_elements_limit: 8,
+            ..PluginContext::default()
+        };
+        assert!(ctx.table_growing(0, 8, None).unwrap());
+        assert!(!ctx.table_growing(0, 9, None).unwrap());
+    }
+
+    #[test]
+    fn memory_growing_respects_limit() {
+        let mut ctx = PluginContext {
+            memory_limit: 100,
+            ..PluginContext::default()
+        };
+        assert!(ctx.memory_growing(0, 100, None).unwrap());
+        assert!(!ctx.memory_growing(0, 101, None).unwrap());
     }
 }
 

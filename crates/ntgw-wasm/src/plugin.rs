@@ -138,6 +138,16 @@ impl PluginManager {
         hooks: Vec<WasmHook>,
         sandbox: WasmSandboxConfig,
     ) -> Result<(), WasmError> {
+        if wasm_bytes.len() > engine::MAX_WASM_MODULE_BYTES {
+            return Err(WasmError::LoadFailed {
+                name: name.to_string(),
+                reason: format!(
+                    "module size {} exceeds limit {}",
+                    wasm_bytes.len(),
+                    engine::MAX_WASM_MODULE_BYTES
+                ),
+            });
+        }
         let module = wasmtime::Module::from_binary(&self.engine, wasm_bytes).map_err(|e| {
             WasmError::LoadFailed {
                 name: name.to_string(),
@@ -196,6 +206,16 @@ impl PluginManager {
         sandbox: WasmSandboxConfig,
         sha256: Option<&str>,
     ) -> Result<bool, WasmError> {
+        if wasm_bytes.len() > engine::MAX_WASM_MODULE_BYTES {
+            return Err(WasmError::LoadFailed {
+                name: name.to_string(),
+                reason: format!(
+                    "module size {} exceeds limit {}",
+                    wasm_bytes.len(),
+                    engine::MAX_WASM_MODULE_BYTES
+                ),
+            });
+        }
         // Skip if SHA256 hasn't changed and plugin already loaded.
         if let Some(sha) = sha256 {
             let plugins = self.plugins.read();
@@ -418,6 +438,7 @@ impl PluginManager {
                 response_headers: HashMap::new(),
                 body,
                 memory_limit,
+                table_elements_limit: engine::MAX_WASM_TABLE_ELEMENTS,
             },
         );
 
@@ -504,6 +525,23 @@ mod tests {
         let cfg = WasmSandboxConfig::default();
         assert_eq!(cfg.max_memory_bytes, 16 * 1024 * 1024);
         assert_eq!(cfg.max_execution_ms, 10);
+    }
+
+    #[test]
+    fn load_plugin_rejects_oversized_module() {
+        let engine = crate::engine::create_engine().expect("engine");
+        let manager = PluginManager::new(engine).expect("manager");
+        let oversized = vec![0u8; crate::engine::MAX_WASM_MODULE_BYTES + 1];
+        let err = manager
+            .load_plugin(
+                "big",
+                &oversized,
+                serde_json::Value::Null,
+                vec![],
+                WasmSandboxConfig::default(),
+            )
+            .expect_err("oversized module must be rejected");
+        assert!(matches!(err, WasmError::LoadFailed { .. }));
     }
 }
 
