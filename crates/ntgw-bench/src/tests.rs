@@ -13,8 +13,11 @@ fn default_bench_config(iterations: u32) -> BenchConfig {
         session_persistence: ntgw_http::bench::SessionBenchConfig::default(),
         access_log: ntgw_observability::bench::AccessLogBenchConfig::default(),
         traffic_stats: ntgw_observability::bench::TrafficStatsBenchConfig::default(),
+        traffic_stats_cardinality:
+            ntgw_observability::bench::TrafficStatsCardinalityBenchConfig::default(),
         http_capacity: ntgw_http::runtime_bench::HttpCapacityMatrixBenchConfig::default(),
         stream: ntgw_stream::bench::StreamBenchConfig::default(),
+        stream_pool_contention: ntgw_stream::bench::TcpPoolContentionBenchConfig::default(),
     }
 }
 
