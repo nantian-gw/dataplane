@@ -3,6 +3,7 @@ use std::{
     collections::BTreeMap,
     fs,
     path::PathBuf,
+    sync::atomic::{AtomicUsize, Ordering},
     time::{SystemTime, UNIX_EPOCH},
 };
 
@@ -62,6 +63,21 @@ pub struct TrafficStatsBenchConfig {
 impl Default for TrafficStatsBenchConfig {
     fn default() -> Self {
         Self { shard_count: 16 }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct TrafficStatsCardinalityBenchConfig {
+    pub shard_count: usize,
+    pub series_cardinality: usize,
+}
+
+impl Default for TrafficStatsCardinalityBenchConfig {
+    fn default() -> Self {
+        Self {
+            shard_count: 16,
+            series_cardinality: 1024,
+        }
     }
 }
 
@@ -190,11 +206,93 @@ impl TrafficStatsFixture {
     pub fn snapshot_step(&self) -> TrafficStatsBenchStep {
         let snapshot = self.stats.snapshot();
         traffic_stats_step_from_snapshot(
-            self.topology_mode,
+            self.topology_mode.as_str(),
             self.shard_count,
             self.topology.is_some(),
             &snapshot,
         )
+    }
+}
+
+pub struct TrafficStatsCardinalityFixture {
+    stats: SharedTrafficStats,
+    series: Vec<(TrafficObservation, TrafficTopology)>,
+    cursor: AtomicUsize,
+    shard_count: usize,
+    series_cardinality: usize,
+}
+
+impl TrafficStatsCardinalityFixture {
+    pub fn build(config: TrafficStatsCardinalityBenchConfig) -> Self {
+        let series_cardinality = config.series_cardinality.max(1);
+        let mut series = Vec::with_capacity(series_cardinality);
+        for index in 0..series_cardinality {
+            let observation = TrafficObservation {
+                listener_name: format!("default/gw/http-{index}"),
+                protocol: "HTTP".to_string(),
+                route_namespace: "default".to_string(),
+                route_name: format!("bench-route-{index}"),
+                route_kind: "HTTPRoute".to_string(),
+                status: Some(200),
+                latency_ms: 3,
+                bytes_received: 128,
+                bytes_sent: 2048,
+                upstream_pool_hits: 1,
+                runtime_ids: TrafficRuntimeIds {
+                    listener: Some(0x1001),
+                    route: Some(0x2001),
+                    backend: None,
+                },
+                ..TrafficObservation::default()
+            };
+            let topology = TrafficTopology::from_parts(
+                observation.listener_name.as_str(),
+                observation.route_kind.as_str(),
+                observation.route_namespace.as_str(),
+                observation.route_name.as_str(),
+                observation.backend_name.as_str(),
+            );
+            series.push((observation, topology));
+        }
+
+        let fixture = Self {
+            stats: SharedTrafficStats::with_shard_count(config.shard_count),
+            series,
+            cursor: AtomicUsize::new(0),
+            shard_count: config.shard_count.max(1).next_power_of_two(),
+            series_cardinality,
+        };
+        // Warm every series into the histogram tables so the timed loop measures
+        // steady-state lookups against a full table, not first-insert cost.
+        fixture.warmup();
+        fixture
+    }
+
+    fn warmup(&self) {
+        for (observation, topology) in &self.series {
+            self.stats.observe_ref_with_topology(
+                TrafficObservationRef::from(observation),
+                Some(topology.as_ref()),
+            );
+        }
+    }
+
+    pub fn observe_once(&self) {
+        let index = self.cursor.fetch_add(1, Ordering::Relaxed) % self.series.len();
+        let (observation, topology) = &self.series[index];
+        self.stats.observe_ref_with_topology(
+            TrafficObservationRef::from(observation),
+            Some(topology.as_ref()),
+        );
+    }
+
+    pub fn series_cardinality(&self) -> usize {
+        self.series_cardinality
+    }
+
+    pub fn snapshot_step(&self) -> TrafficStatsBenchStep {
+        let snapshot = self.stats.snapshot();
+        traffic_stats_step_from_snapshot("high_cardinality", self.shard_count, true, &snapshot)
     }
 }
 
@@ -286,13 +384,13 @@ impl Drop for AccessLogFixture<'_> {
 }
 
 fn traffic_stats_step_from_snapshot(
-    topology_mode: TrafficStatsTopologyMode,
+    topology_mode: &str,
     shard_count: usize,
     provided_topology: bool,
     snapshot: &TrafficSnapshot,
 ) -> TrafficStatsBenchStep {
     TrafficStatsBenchStep {
-        topology_mode: topology_mode.as_str().to_string(),
+        topology_mode: topology_mode.to_string(),
         shard_count,
         provided_topology,
         has_backend_topology: snapshot

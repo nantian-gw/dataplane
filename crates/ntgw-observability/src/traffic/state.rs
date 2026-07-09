@@ -167,7 +167,7 @@ impl TrafficState {
         self.total_bytes_sent = self.total_bytes_sent.saturating_add(other.total_bytes_sent);
         self.total_latency_ms = self.total_latency_ms.saturating_add(other.total_latency_ms);
         self.max_latency_ms = self.max_latency_ms.max(other.max_latency_ms);
-        for (labels, histogram) in &other.request_latency_ms_histograms {
+        for (labels, histogram) in other.request_latency_ms_histograms.iter() {
             merge_request_latency_histogram(
                 &mut self.request_latency_ms_histograms,
                 labels,

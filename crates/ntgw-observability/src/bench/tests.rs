@@ -1,5 +1,6 @@
 use crate::bench::{
-    AccessLogBenchConfig, AccessLogFixture, TrafficStatsBenchConfig, TrafficStatsFixture,
+    AccessLogBenchConfig, AccessLogFixture, TrafficStatsBenchConfig,
+    TrafficStatsCardinalityBenchConfig, TrafficStatsCardinalityFixture, TrafficStatsFixture,
     TrafficStatsTopologyMode,
 };
 
@@ -104,4 +105,19 @@ fn traffic_stats_fixture_observes_backend_topology() {
     assert_eq!(step.total_events, 1);
     assert!(step.node_count >= 5);
     assert!(step.edge_count >= 4);
+}
+
+#[test]
+fn traffic_stats_cardinality_fixture_warms_full_series_table() {
+    let fixture = TrafficStatsCardinalityFixture::build(TrafficStatsCardinalityBenchConfig {
+        shard_count: 8,
+        series_cardinality: 128,
+    });
+
+    fixture.observe_once();
+    let step = fixture.snapshot_step();
+
+    assert_eq!(step.topology_mode, "high_cardinality");
+    assert_eq!(fixture.series_cardinality(), 128);
+    assert_eq!(step.request_latency_histogram_count, 128);
 }

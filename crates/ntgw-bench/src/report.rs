@@ -19,7 +19,8 @@ use crate::scenarios::{
     run_stream_route_selection, run_stream_tcp_buffer_matrix,
     run_stream_udp_dispatcher_distribution, run_stream_udp_payload_copy, run_tls_asset_rotation,
     run_traffic_observe_backend_topology_4_shards, run_traffic_observe_backend_topology_64_shards,
-    run_traffic_observe_no_route, run_traffic_observe_reused_topology, run_xds_snapshot_parse,
+    run_traffic_observe_high_cardinality, run_traffic_observe_no_route,
+    run_traffic_observe_reused_topology, run_xds_snapshot_parse,
 };
 
 #[derive(Debug, Clone, Serialize)]
@@ -33,6 +34,8 @@ pub(crate) struct BenchConfig {
     pub(crate) session_persistence: ntgw_http::bench::SessionBenchConfig,
     pub(crate) access_log: ntgw_observability::bench::AccessLogBenchConfig,
     pub(crate) traffic_stats: ntgw_observability::bench::TrafficStatsBenchConfig,
+    pub(crate) traffic_stats_cardinality:
+        ntgw_observability::bench::TrafficStatsCardinalityBenchConfig,
     pub(crate) http_capacity: ntgw_http::runtime_bench::HttpCapacityMatrixBenchConfig,
     pub(crate) stream: ntgw_stream::bench::StreamBenchConfig,
 }
@@ -141,6 +144,7 @@ pub(crate) async fn build_report(config: BenchConfig) -> Result<BenchReport> {
         run_traffic_observe_no_route(config.iterations, config.traffic_stats)?,
         run_traffic_observe_backend_topology_4_shards(config.iterations, config.traffic_stats)?,
         run_traffic_observe_backend_topology_64_shards(config.iterations, config.traffic_stats)?,
+        run_traffic_observe_high_cardinality(config.iterations, config.traffic_stats_cardinality)?,
         run_http_capacity_matrix(config.iterations, config.http_capacity)?,
         run_stream_tcp_buffer_matrix(config.iterations, config.stream)?,
         run_stream_udp_dispatcher_distribution(config.iterations, config.stream)?,

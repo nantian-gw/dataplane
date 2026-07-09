@@ -33,6 +33,7 @@ clap = { version = "4.6.1", features = ["derive"] }
 dashmap = "6.1.0"
 form_urlencoded = "1.2.2"
 getrandom = "0.2.15"
+hashbrown = "0.15"
 humantime = "2.1.0"
 hmac = "0.12.1"
 http = "1.4.1"

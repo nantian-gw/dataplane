@@ -17,7 +17,7 @@ struct TrafficState {
     total_bytes_sent: u64,
     total_latency_ms: u64,
     max_latency_ms: u64,
-    request_latency_ms_histograms: Vec<(TrafficLatencyLabels, TrafficHistogramState)>,
+    request_latency_ms_histograms: HashTable<(TrafficLatencyLabels, TrafficHistogramState)>,
     total_retried_events: u64,
     total_retry_attempts: u64,
     total_retried_success_events: u64,
@@ -536,45 +536,87 @@ impl TrafficLatencyLabels {
     }
 }
 
+fn hash_latency_labels(
+    listener: &str,
+    protocol: &str,
+    route_kind: &str,
+    status_class: &str,
+    response_flag: &str,
+) -> u64 {
+    let mut hasher = DefaultHasher::new();
+    listener.hash(&mut hasher);
+    protocol.hash(&mut hasher);
+    route_kind.hash(&mut hasher);
+    status_class.hash(&mut hasher);
+    response_flag.hash(&mut hasher);
+    hasher.finish()
+}
+
+fn hash_latency_label_ref(labels: TrafficLatencyLabelRef<'_>) -> u64 {
+    hash_latency_labels(
+        labels.listener,
+        labels.protocol,
+        labels.route_kind,
+        labels.status_class,
+        labels.response_flag,
+    )
+}
+
+fn hash_latency_label_owned(labels: &TrafficLatencyLabels) -> u64 {
+    hash_latency_labels(
+        &labels.listener,
+        &labels.protocol,
+        &labels.route_kind,
+        &labels.status_class,
+        &labels.response_flag,
+    )
+}
+
 fn observe_request_latency_ref(
     state: &mut TrafficState,
     labels: TrafficLatencyLabelRef<'_>,
     latency_ms: u64,
 ) {
-    if let Some((_, histogram)) = state
-        .request_latency_ms_histograms
-        .iter_mut()
-        .find(|(existing, _)| existing.matches_ref(labels))
-    {
-        observe_request_latency_histogram(histogram, latency_ms);
-        return;
+    let hash = hash_latency_label_ref(labels);
+    match state.request_latency_ms_histograms.entry(
+        hash,
+        |(existing, _)| existing.matches_ref(labels),
+        |(existing, _)| hash_latency_label_owned(existing),
+    ) {
+        hashbrown::hash_table::Entry::Occupied(mut entry) => {
+            observe_request_latency_histogram(&mut entry.get_mut().1, latency_ms);
+        }
+        hashbrown::hash_table::Entry::Vacant(entry) => {
+            let mut histogram = TrafficHistogramState::default();
+            observe_request_latency_histogram(&mut histogram, latency_ms);
+            entry.insert((TrafficLatencyLabels::from_ref(labels), histogram));
+        }
     }
-
-    let mut histogram = TrafficHistogramState::default();
-    observe_request_latency_histogram(&mut histogram, latency_ms);
-    state
-        .request_latency_ms_histograms
-        .push((TrafficLatencyLabels::from_ref(labels), histogram));
 }
 
 fn merge_request_latency_histogram(
-    histograms: &mut Vec<(TrafficLatencyLabels, TrafficHistogramState)>,
+    histograms: &mut HashTable<(TrafficLatencyLabels, TrafficHistogramState)>,
     labels: &TrafficLatencyLabels,
     source: &TrafficHistogramState,
 ) {
-    if let Some((_, histogram)) = histograms
-        .iter_mut()
-        .find(|(existing, _)| existing == labels)
-    {
-        histogram.sum = histogram.sum.saturating_add(source.sum);
-        histogram.count = histogram.count.saturating_add(source.count);
-        for (index, count) in source.buckets.iter().enumerate() {
-            histogram.buckets[index] = histogram.buckets[index].saturating_add(*count);
+    let hash = hash_latency_label_owned(labels);
+    match histograms.entry(
+        hash,
+        |(existing, _)| existing == labels,
+        |(existing, _)| hash_latency_label_owned(existing),
+    ) {
+        hashbrown::hash_table::Entry::Occupied(mut entry) => {
+            let histogram = &mut entry.get_mut().1;
+            histogram.sum = histogram.sum.saturating_add(source.sum);
+            histogram.count = histogram.count.saturating_add(source.count);
+            for (index, count) in source.buckets.iter().enumerate() {
+                histogram.buckets[index] = histogram.buckets[index].saturating_add(*count);
+            }
         }
-        return;
+        hashbrown::hash_table::Entry::Vacant(entry) => {
+            entry.insert((labels.clone(), source.clone()));
+        }
     }
-
-    histograms.push((labels.clone(), source.clone()));
 }
 
 fn observe_request_latency_histogram(histogram: &mut TrafficHistogramState, latency_ms: u64) {
@@ -659,7 +701,7 @@ where
 }
 
 fn request_latency_histogram_snapshot(
-    histograms: &[(TrafficLatencyLabels, TrafficHistogramState)],
+    histograms: &HashTable<(TrafficLatencyLabels, TrafficHistogramState)>,
 ) -> Vec<TrafficLabeledHistogram> {
     let mut sorted = histograms.iter().collect::<Vec<_>>();
     sorted.sort_by(|(left, _), (right, _)| left.cmp(right));

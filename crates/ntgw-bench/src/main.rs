@@ -60,6 +60,8 @@ async fn main() -> Result<()> {
     let session_config = ntgw_http::bench::SessionBenchConfig::default();
     let access_log_config = ntgw_observability::bench::AccessLogBenchConfig::default();
     let traffic_stats_config = ntgw_observability::bench::TrafficStatsBenchConfig::default();
+    let traffic_stats_cardinality_config =
+        ntgw_observability::bench::TrafficStatsCardinalityBenchConfig::default();
     let http_capacity_config = ntgw_http::runtime_bench::HttpCapacityMatrixBenchConfig::default();
     let stream_config = ntgw_stream::bench::StreamBenchConfig::default();
     let report = build_report(BenchConfig {
@@ -72,6 +74,7 @@ async fn main() -> Result<()> {
         session_persistence: session_config,
         access_log: access_log_config,
         traffic_stats: traffic_stats_config,
+        traffic_stats_cardinality: traffic_stats_cardinality_config,
         http_capacity: http_capacity_config,
         stream: stream_config,
     })

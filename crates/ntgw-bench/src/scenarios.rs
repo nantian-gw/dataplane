@@ -8,7 +8,8 @@ mod stream;
 
 pub(crate) use observability::{
     run_traffic_observe_backend_topology_4_shards, run_traffic_observe_backend_topology_64_shards,
-    run_traffic_observe_no_route, run_traffic_observe_reused_topology,
+    run_traffic_observe_high_cardinality, run_traffic_observe_no_route,
+    run_traffic_observe_reused_topology,
 };
 pub(crate) use reload::{run_high_frequency_apply, run_last_good_fallback, run_tls_asset_rotation};
 pub(crate) use request::{

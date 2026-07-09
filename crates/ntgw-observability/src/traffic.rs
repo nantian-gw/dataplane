@@ -1,12 +1,14 @@
 use std::{
     borrow::Cow,
     collections::{BTreeMap, HashMap},
+    hash::{DefaultHasher, Hash, Hasher},
     sync::{
         Arc,
         atomic::{AtomicUsize, Ordering},
     },
 };
 
+use hashbrown::HashTable;
 use parking_lot::RwLock;
 use serde::{Serialize, Serializer};
 

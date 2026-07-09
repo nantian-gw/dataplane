@@ -459,7 +459,11 @@ fn traffic_latency_histogram_hot_path_reuses_existing_series() {
     observe_request_latency_ref(&mut state, labels, 30);
 
     assert_eq!(state.request_latency_ms_histograms.len(), 1);
-    let (_, histogram) = &state.request_latency_ms_histograms[0];
+    let (_, histogram) = state
+        .request_latency_ms_histograms
+        .iter()
+        .next()
+        .expect("histogram series");
     assert_eq!(histogram.sum, 40);
     assert_eq!(histogram.count, 2);
     assert_eq!(

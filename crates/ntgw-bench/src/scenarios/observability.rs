@@ -57,6 +57,44 @@ pub(crate) fn run_traffic_observe_backend_topology_64_shards(
     )
 }
 
+pub(crate) fn run_traffic_observe_high_cardinality(
+    iterations: u32,
+    config: ntgw_observability::bench::TrafficStatsCardinalityBenchConfig,
+) -> Result<ScenarioReport> {
+    let fixture = ntgw_observability::bench::TrafficStatsCardinalityFixture::build(config);
+    let before = sample_resources();
+    let mut durations = Vec::with_capacity(iterations as usize);
+
+    for _ in 0..iterations {
+        let started = Instant::now();
+        fixture.observe_once();
+        durations.push(elapsed_ms(started.elapsed()));
+    }
+
+    let after = sample_resources();
+    let step = fixture.snapshot_step();
+    if step.total_events == 0 {
+        anyhow::bail!("traffic stats benchmark should execute at least one iteration");
+    }
+
+    Ok(ScenarioReport {
+        name: "traffic_observe_high_cardinality".to_string(),
+        iterations,
+        timing: summarize_durations(&durations),
+        resource_delta: ResourceDelta::between(&before, &after),
+        resources_before: before.clone(),
+        resources_after: after.clone(),
+        details: json!({
+            "shard_count": step.shard_count,
+            "series_cardinality": fixture.series_cardinality(),
+            "total_events": step.total_events,
+            "total_request_events": step.total_request_events,
+            "request_latency_histogram_count": step.request_latency_histogram_count,
+            "response_flag_count": step.response_flag_count,
+        }),
+    })
+}
+
 fn run_traffic_observe_path(
     name: &str,
     iterations: u32,
