@@ -306,14 +306,24 @@
 
 ### P1-4 Wasm sandbox 补齐 table/module/source 限制
 
-- [ ] 限制 Wasm table growth、module binary 大小和编译成本。
+- [x] 补齐 table growth、module 大小上限，关闭未用 wasmtime feature（2026-07-09）。
 
-风险：
+已落地：
 
-- memory growth 有上限。
-- table growth 当前直接允许。
-- module 大小、编译时间、component features 没看到明确边界。
-- epoch 增长线程是永久循环，无 stop 机制。
+- `ResourceLimiter::table_growing` 从无条件 `Ok(true)` 改为按 `PluginContext::table_elements_limit` 门控；`invoke_hook` 用 `engine::MAX_WASM_TABLE_ELEMENTS`（10_000）设定。
+- 新增 `engine::MAX_WASM_MODULE_BYTES`（32 MiB），在三处 load 路径（`load_plugin`、`load_or_update`、`AISandbox::load_module`）编译前检查，超限返回 `LoadFailed`。
+- `global_engine_config` 关闭 `wasm_component_model` 和 `wasm_multi_memory`：加载器只用核心 `Module`、host 只取单个 `"memory"` export，关掉纯减攻击面/编译成本，不影响现有插件（集成测试 `test_load_and_invoke_plugin` 仍通过）。
+- 新增单测：table/memory limiter 门控、oversized module 拒绝。
+
+已确认无需再做（roadmap 已过时）：
+
+- epoch 线程**已有** stop：`epoch_running: AtomicBool` + `shutdown()` + `Drop for PluginManager`（join）。
+
+范围外/后续：
+
+- table/module 上限目前是 crate 级常量（安全下限），未接入控制面 per-plugin 配置——接入需改 IR + BSR proto，另立项。
+- 编译 timeout / 离线预编译未做（当前已有 SHA 命名的序列化缓存）。
+- `AISandbox` 的 tokenize/embed 路径未挂 `store.limiter(...)`（memory/table 限制在该路径未生效），属独立缺口。
 
 建议：
 
