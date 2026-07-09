@@ -48,31 +48,42 @@ impl TcpConnectionPool {
 
         let key = (addr.to_string(), port);
 
-        if let Some(mut entry) = self.idle.get_mut(&key) {
-            while let Some(idle) = entry.pop() {
-                if idle.since.elapsed() >= self.idle_timeout {
-                    debug!(backend = ?key, "pool eviction: idle timeout");
+        loop {
+            // Hold the shard lock only for the O(1) pop, then release it before the
+            // try_read liveness probe so concurrent get/return on this backend do not
+            // serialize behind a syscall.
+            let idle = {
+                let Some(mut entry) = self.idle.get_mut(&key) else {
+                    break;
+                };
+                match entry.pop() {
+                    Some(idle) => idle,
+                    None => break,
+                }
+            };
+
+            if idle.since.elapsed() >= self.idle_timeout {
+                debug!(backend = ?key, "pool eviction: idle timeout");
+                continue;
+            }
+
+            let mut buf = [0u8; 1];
+            match idle.stream.try_read(&mut buf) {
+                Ok(0) => {
+                    debug!(backend = ?key, "pool eviction: stream closed");
                     continue;
                 }
-
-                let mut buf = [0u8; 1];
-                match idle.stream.try_read(&mut buf) {
-                    Ok(0) => {
-                        debug!(backend = ?key, "pool eviction: stream closed");
-                        continue;
-                    }
-                    Ok(_) => {
-                        debug!(backend = ?key, "pool eviction: unexpected data pending");
-                        continue;
-                    }
-                    Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
-                        debug!(backend = ?key, "pool hit");
-                        return (Ok(idle.stream), StreamPoolCounters { hits: 1, misses: 0 });
-                    }
-                    Err(_) => {
-                        debug!(backend = ?key, "pool eviction: error");
-                        continue;
-                    }
+                Ok(_) => {
+                    debug!(backend = ?key, "pool eviction: unexpected data pending");
+                    continue;
+                }
+                Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                    debug!(backend = ?key, "pool hit");
+                    return (Ok(idle.stream), StreamPoolCounters { hits: 1, misses: 0 });
+                }
+                Err(_) => {
+                    debug!(backend = ?key, "pool eviction: error");
+                    continue;
                 }
             }
         }
