@@ -82,6 +82,61 @@ pub(crate) fn run_stream_udp_dispatcher_distribution(
     })
 }
 
+pub(crate) fn run_stream_pool_contention_hot_key(
+    iterations: u32,
+    config: ntgw_stream::bench::TcpPoolContentionBenchConfig,
+) -> Result<ScenarioReport> {
+    run_pool_contention("stream_pool_contention_hot_key", iterations, config, 1)
+}
+
+pub(crate) fn run_stream_pool_contention_spread(
+    iterations: u32,
+    config: ntgw_stream::bench::TcpPoolContentionBenchConfig,
+) -> Result<ScenarioReport> {
+    let backend_keys = config.threads.max(1);
+    run_pool_contention(
+        "stream_pool_contention_spread",
+        iterations,
+        config,
+        backend_keys,
+    )
+}
+
+fn run_pool_contention(
+    name: &str,
+    iterations: u32,
+    config: ntgw_stream::bench::TcpPoolContentionBenchConfig,
+    backend_keys: usize,
+) -> Result<ScenarioReport> {
+    let fixture = ntgw_stream::bench::TcpPoolContentionFixture::build(config, backend_keys)
+        .context("build tcp pool contention fixture")?;
+    let before = sample_resources();
+    let (step, latencies) = fixture
+        .run(iterations as usize)
+        .context("run tcp pool contention fixture")?;
+    let after = sample_resources();
+
+    Ok(ScenarioReport {
+        name: name.to_string(),
+        iterations: step.total_ops.min(u64::from(u32::MAX)) as u32,
+        timing: summarize_durations(&latencies),
+        resource_delta: ResourceDelta::between(&before, &after),
+        resources_before: before.clone(),
+        resources_after: after.clone(),
+        details: json!({
+            "threads": step.threads,
+            "backend_keys": step.backend_keys,
+            "prewarm_idle": step.prewarm_idle,
+            "total_ops": step.total_ops,
+            "hits": step.hits,
+            "misses": step.misses,
+            "elapsed_ms": step.elapsed_ms,
+            "throughput_ops_per_sec": step.throughput_ops_per_sec,
+            "evidence_type": "tcp-pool-get-return-contention",
+        }),
+    })
+}
+
 pub(crate) fn run_stream_udp_payload_copy(
     iterations: u32,
     config: ntgw_stream::bench::StreamBenchConfig,

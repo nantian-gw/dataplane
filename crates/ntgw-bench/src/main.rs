@@ -64,6 +64,7 @@ async fn main() -> Result<()> {
         ntgw_observability::bench::TrafficStatsCardinalityBenchConfig::default();
     let http_capacity_config = ntgw_http::runtime_bench::HttpCapacityMatrixBenchConfig::default();
     let stream_config = ntgw_stream::bench::StreamBenchConfig::default();
+    let stream_pool_contention_config = ntgw_stream::bench::TcpPoolContentionBenchConfig::default();
     let report = build_report(BenchConfig {
         iterations,
         snapshot: snapshot_config,
@@ -77,6 +78,7 @@ async fn main() -> Result<()> {
         traffic_stats_cardinality: traffic_stats_cardinality_config,
         http_capacity: http_capacity_config,
         stream: stream_config,
+        stream_pool_contention: stream_pool_contention_config,
     })
     .await?;
 

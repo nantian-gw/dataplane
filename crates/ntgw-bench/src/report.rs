@@ -16,6 +16,7 @@ use crate::scenarios::{
     run_request_view_header_heavy, run_runtime_index_rebuild_endpoint_only,
     run_runtime_index_rebuild_route_only, run_runtime_index_rebuild_secret_only,
     run_session_persistence, run_snapshot_read_arc_swap, run_snapshot_read_rwlock,
+    run_stream_pool_contention_hot_key, run_stream_pool_contention_spread,
     run_stream_route_selection, run_stream_tcp_buffer_matrix,
     run_stream_udp_dispatcher_distribution, run_stream_udp_payload_copy, run_tls_asset_rotation,
     run_traffic_observe_backend_topology_4_shards, run_traffic_observe_backend_topology_64_shards,
@@ -38,6 +39,7 @@ pub(crate) struct BenchConfig {
         ntgw_observability::bench::TrafficStatsCardinalityBenchConfig,
     pub(crate) http_capacity: ntgw_http::runtime_bench::HttpCapacityMatrixBenchConfig,
     pub(crate) stream: ntgw_stream::bench::StreamBenchConfig,
+    pub(crate) stream_pool_contention: ntgw_stream::bench::TcpPoolContentionBenchConfig,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -149,6 +151,8 @@ pub(crate) async fn build_report(config: BenchConfig) -> Result<BenchReport> {
         run_stream_tcp_buffer_matrix(config.iterations, config.stream)?,
         run_stream_udp_dispatcher_distribution(config.iterations, config.stream)?,
         run_stream_udp_payload_copy(config.iterations, config.stream)?,
+        run_stream_pool_contention_hot_key(config.iterations, config.stream_pool_contention)?,
+        run_stream_pool_contention_spread(config.iterations, config.stream_pool_contention)?,
         run_tls_asset_rotation(config.iterations, config.tls_rotation)?,
         run_high_frequency_apply(config.iterations, config.xds_apply).await?,
         run_last_good_fallback(config.iterations, config.xds_apply).await?,
@@ -213,7 +217,27 @@ fn build_comparisons(scenarios: &[ScenarioReport]) -> Vec<ScenarioComparisonRepo
         comparisons.push(comparison);
     }
 
+    if let Some(comparison) = pool_contention_comparison(scenarios) {
+        comparisons.push(comparison);
+    }
+
     comparisons
+}
+
+fn pool_contention_comparison(scenarios: &[ScenarioReport]) -> Option<ScenarioComparisonReport> {
+    let baseline = scenario_by_name(scenarios, "stream_pool_contention_spread")?;
+    let current = scenario_by_name(scenarios, "stream_pool_contention_hot_key")?;
+    Some(scenario_comparison(
+        "pool_contention_hot_key_vs_spread",
+        baseline,
+        current,
+        json!({
+            "fixture": "concurrent tcp pool get/return, prewarmed reuse path",
+            "baseline_path": "distinct backend per worker (separate DashMap shards)",
+            "current_path": "single hot backend shared by all workers (one shard lock held across try_read)",
+            "production_path_changed": false,
+        }),
+    ))
 }
 
 fn access_log_disabled_comparison(

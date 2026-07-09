@@ -27,6 +27,7 @@ pub(crate) use snapshot::{
     run_runtime_index_rebuild_secret_only, run_snapshot_read_arc_swap, run_snapshot_read_rwlock,
 };
 pub(crate) use stream::{
+    run_stream_pool_contention_hot_key, run_stream_pool_contention_spread,
     run_stream_tcp_buffer_matrix, run_stream_udp_dispatcher_distribution,
     run_stream_udp_payload_copy,
 };
