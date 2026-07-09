@@ -208,9 +208,21 @@
 
 ### P1-1 扩展 HTTP fast path，减少慢路径分配
 
-- [ ] 继续减少热路径上的 `String`、`BTreeMap`、`Vec` 构造。
+- [x] 核心目标已实现：header 全量物化已按快照需求门控，fast path 零 header 分配。
 
-现状：
+已确认（2026-07-09 复核当前代码）：
+
+- 真正的 fast path（`fast_path_request_from_header`，`proxy/request.rs`）只借用 host/path/method + is_grpc 判断，不构造任何 header map。
+- 全量物化由 `Snapshot::request_materialization`（`RequestMaterializationHints`）门控，`proxy.rs` 用 `requires_full_headers()` 决定是否回退慢路径。该 flag 每次快照构建时算一次（`snapshot/helpers.rs::build_request_materialization_hints`），仅当配置真的用到 header 时才为 true：http/grpc route 的 header matcher、session persistence、consistent-hash LB 且 key 为 Header。
+- roadmap 原文点名的 CORS / header-modifier / external-auth / Wasm 不经过物化 map，它们在 filter 阶段直接读活 `RequestHeader`；access log 的 `ctx.request_headers` 是另一条独立 lazy 路径（`proxy/request.rs`，仅在 response filter 需要时按 allowlist 填充）。
+- 因此 roadmap 建议里“仅在需要时 lazy capture / 区分日志与路由需求”已经落地，且比原设想更细。
+
+剩余更窄的机会（需 profiling 才值得动，非本条主目标）：
+
+- (a) tracing 开启会强制禁用 fast path（`fast_path_request_features_are_safe(request_tracing_enabled, ...)`），但 span 在选路前已用活 header 建好；若确认 tracing 不需要物化 map，放开此限制可让所有开 tracing 的部署每请求少一次全量物化。
+- (b) 慢路径确需物化时，`request_headers()` 仍构造 `BTreeMap<String, Vec<String>>`（小写 owned key）；可换更便宜结构，但只帮到已降级的慢路径。
+
+原始现状记录（2026-06-14，已过时）：
 
 - 已有 `HttpFastPathPlan`，架构方向正确。
 - 需要访问日志、tracing、完整 headers、source IP 等功能时会回退慢路径。
