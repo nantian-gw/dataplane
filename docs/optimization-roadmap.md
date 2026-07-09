@@ -337,9 +337,20 @@
 
 ### P1-5 TCP upstream pool 降低热点 backend 竞争
 
-- [ ] 对 `DashMap<String, Vec<IdleConnection>>` 在热点 backend 下做压测和分片优化。
+- [x] 已加多线程竞争 benchmark 并收窄锁持有（2026-07-09）；worker-sharded 重构暂缓，按数据决定是否需要。
 
-风险：
+已落地：
+
+- 新增多线程 pool 竞争 benchmark（`crates/ntgw-stream/src/bench.rs` 的 `TcpPoolContentionFixture`，`ntgw-bench` 场景 `stream_pool_contention_hot_key` / `stream_pool_contention_spread`）。单线程 harness 内起 N 个 OS 线程打预热过的池，hot_key（同 backend，单 DashMap 分片）对 spread（每 worker 各自 backend）做对照。
+- `get_connection` 不再在持 DashMap 分片锁时跑 `try_read`：改为锁内 O(1) `pop` 候选、锁外做超时判断和存活探测；LIFO、命中即返回、剩余留池、淘汰规则不变。
+- 效果（8 worker × 4000 ops，全命中复用）：同 backend 竞争惩罚（hot_key vs spread p99 比）从约 7× 收窄到约 3.4×，hot_key p99 约 0.081ms → 0.032ms。
+
+后续可选（需 profiling 支撑再做）：
+
+- worker-sharded 本地池 / 每 backend 多 shard queue（roadmap 原建议），改动大、涉及连接亲和与 draining。
+- eviction 计数指标（当前只 `debug!` 未计数）。
+
+原始风险记录：
 
 - 当前每个 backend key 下一个 `Vec<IdleConnection>`。
 - 同一 backend 高并发时，单 key entry 可能成为锁竞争点。
