@@ -284,7 +284,7 @@
 
 ### P1-3 Wasm hook 引入实例池或预实例化池
 
-- [ ] 避免每次 hook 调用都新建 `Store` 并 instantiate module。
+- [x] 以 baseline 结项（2026-07-10，选项 C，won't-fix）：开销真实但 opt-in 且 modest（空 hook ~7.4µs / 20 allocs/call，仅配置 wasm 插件时在请求路径上），判定当前无需动生产代码。`ntgw-bench` 的 wasm hook benchmark 作为永久回归护栏保留；将来确有高 RPS wasm workload 时，再据 baseline 决定上选项 A（header marshaling，低风险）或 B（pooling allocator，高风险高收益）。
 
 Baseline（2026-07-10，`ntgw-bench` 新增 `wasm_hook_empty_invoke` / `wasm_hook_header_heavy_invoke`，commit `fc144ff`，release，2000 iters/warm-up 后测量）：
 
@@ -293,11 +293,11 @@ Baseline（2026-07-10，`ntgw-bench` 新增 `wasm_hook_empty_invoke` / `wasm_hoo
 - 两个独立信号：(a) instantiate 本身 ~7.4µs + 20 allocs/call，是 pooling allocator 能打的部分；(b) header marshaling 每 16 header 多 ~33 allocs/call、~1.4µs，是 allowlist/lazy hostcall 能打的部分，改动更小、无虚拟内存预留风险。
 - 判断：开销真实但**仅在配置了 wasm 插件时**才在请求路径上；无插件部署此项为零。pooling allocator 属高风险生产改动（`InstanceAllocationStrategy::Pooling` 会按上限预留虚拟内存，配置不当会让 instantiate 直接失败），未在无实测收益目标前擅自上。下一步取舍见下方"实施选项"。
 
-实施选项（择一，待定）：
+实施选项（2026-07-10 选定 **C**；A/B 留作将来高 RPS wasm workload 出现时的入口）：
 
 - **A. 先做 header marshaling(低风险)**：把 `HashMap<String,String>` 全量 clone 改 allowlist / lazy hostcall lookup，只动 `ntgw-wasm` + 调用点，无虚拟内存风险；预期削掉 header-heavy 那 ~33 allocs/call。
 - **B. pooling allocator(高风险高收益)**：engine 启用 `Pooling`，保守配置上限 + 失败回退，预期削掉 instantiate 的 per-call alloc/syscall；需专门的上限压测防 instantiate 失败。
-- **C. 以 baseline 结项**：若判定 7.4µs/20-alloc 对目标部署可忽略，用数据把 P1-3 关成 won't-fix，而非凭感觉。
+- **C. 以 baseline 结项（已选）**：判定 7.4µs/20-alloc 且 opt-in 的开销对当前目标可忽略，用数据把 P1-3 关成 won't-fix，而非凭感觉。
 
 风险：
 
