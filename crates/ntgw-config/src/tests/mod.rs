@@ -5,6 +5,7 @@ use super::{
 };
 
 mod basics;
+mod config_load;
 mod logging;
 mod route_policy;
 mod runtime_protection;

@@ -1,6 +1,6 @@
 use std::{fs, path::Path, time::Duration};
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use pingora::protocols::l4::ext::TcpKeepalive;
 use sha2::{Digest, Sha256};
 
@@ -27,10 +27,22 @@ use super::{
 
 impl DataPlaneConfig {
     pub fn load(path: impl AsRef<Path>) -> Result<Self> {
-        let raw = fs::read_to_string(path)?;
-        let mut cfg: Self = serde_yaml::from_str(&raw)?;
+        let path = path.as_ref();
+        let raw = fs::read_to_string(path)
+            .with_context(|| format!("reading dataplane config file {}", path.display()))?;
+        let mut cfg = Self::parse_yaml(&raw)
+            .with_context(|| format!("parsing dataplane config file {}", path.display()))?;
         cfg.apply_env_overrides(|key| std::env::var(key).ok());
         Ok(cfg)
+    }
+
+    /// Parse a dataplane config from a YAML document.
+    ///
+    /// The YAML implementation is isolated to this single function so it can be
+    /// swapped in one place (e.g. when the deprecated `serde_yaml` is dropped
+    /// upstream). Callers should add file/source context to the returned error.
+    pub(crate) fn parse_yaml(raw: &str) -> Result<Self> {
+        Ok(serde_yaml::from_str(raw)?)
     }
 
     pub(crate) fn apply_env_overrides<F>(&mut self, lookup: F)
