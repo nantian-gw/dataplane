@@ -5,6 +5,7 @@ mod route;
 mod runtime;
 mod snapshot;
 mod stream;
+mod wasm;
 
 pub(crate) use observability::{
     run_traffic_observe_backend_topology_4_shards, run_traffic_observe_backend_topology_64_shards,
@@ -31,3 +32,4 @@ pub(crate) use stream::{
     run_stream_tcp_buffer_matrix, run_stream_udp_dispatcher_distribution,
     run_stream_udp_payload_copy,
 };
+pub(crate) use wasm::{run_wasm_hook_empty_invoke, run_wasm_hook_header_heavy_invoke};

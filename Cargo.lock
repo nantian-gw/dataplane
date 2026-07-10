@@ -2110,11 +2110,13 @@ dependencies = [
  "ntgw-ir",
  "ntgw-observability",
  "ntgw-stream",
+ "ntgw-wasm",
  "ntgw-xds",
  "serde",
  "serde_json",
  "stats_alloc",
  "tokio",
+ "wat",
 ]
 
 [[package]]

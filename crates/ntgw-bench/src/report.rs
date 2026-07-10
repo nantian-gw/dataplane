@@ -21,7 +21,8 @@ use crate::scenarios::{
     run_stream_udp_dispatcher_distribution, run_stream_udp_payload_copy, run_tls_asset_rotation,
     run_traffic_observe_backend_topology_4_shards, run_traffic_observe_backend_topology_64_shards,
     run_traffic_observe_high_cardinality, run_traffic_observe_no_route,
-    run_traffic_observe_reused_topology, run_xds_snapshot_parse,
+    run_traffic_observe_reused_topology, run_wasm_hook_empty_invoke,
+    run_wasm_hook_header_heavy_invoke, run_xds_snapshot_parse,
 };
 
 #[derive(Debug, Clone, Serialize)]
@@ -153,6 +154,8 @@ pub(crate) async fn build_report(config: BenchConfig) -> Result<BenchReport> {
         run_stream_udp_payload_copy(config.iterations, config.stream)?,
         run_stream_pool_contention_hot_key(config.iterations, config.stream_pool_contention)?,
         run_stream_pool_contention_spread(config.iterations, config.stream_pool_contention)?,
+        run_wasm_hook_empty_invoke(config.iterations)?,
+        run_wasm_hook_header_heavy_invoke(config.iterations)?,
         run_tls_asset_rotation(config.iterations, config.tls_rotation)?,
         run_high_frequency_apply(config.iterations, config.xds_apply).await?,
         run_last_good_fallback(config.iterations, config.xds_apply).await?,
