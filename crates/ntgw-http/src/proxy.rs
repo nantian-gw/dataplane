@@ -54,6 +54,7 @@ use self::backend::{
     build_upstream_peer_for_fast_path, build_upstream_peer_with_cached_config,
     error_for_backend_selection, validate_backend_tls_subject_alt_name_result,
 };
+pub(crate) use self::cache::BackendTlsValidationCacheKey;
 use self::cache::SessionResolutionCache;
 pub use self::context::RequestContext;
 #[cfg(test)]

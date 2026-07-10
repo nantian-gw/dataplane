@@ -278,3 +278,38 @@ fn run_access_log_path(
         }),
     })
 }
+
+pub(crate) fn run_backend_tls_cache_key_construction(iterations: u32) -> Result<ScenarioReport> {
+    let fixture = ntgw_http::bench::TlsCacheKeyFixture::build(
+        ntgw_http::bench::TlsCacheKeyBenchConfig::default(),
+    );
+    let before = sample_resources();
+    let mut durations = Vec::with_capacity(iterations as usize);
+    let mut last_step = None;
+
+    for _ in 0..iterations {
+        let started = Instant::now();
+        let step = black_box(fixture.construct_key());
+        durations.push(elapsed_ms(started.elapsed()));
+        last_step = Some(step);
+    }
+
+    let after = sample_resources();
+    let step = last_step
+        .context("backend tls cache key benchmark should execute at least one iteration")?;
+    Ok(ScenarioReport {
+        name: "backend_tls_cache_key_construction".to_string(),
+        iterations,
+        timing: summarize_durations(&durations),
+        resource_delta: ResourceDelta::between(&before, &after),
+        resources_before: before.clone(),
+        resources_after: after.clone(),
+        details: json!({
+            "ca_pem_total_bytes": step.ca_pem_total_bytes,
+            "san_count": step.san_count,
+            "cache_key_hash": step.cache_key_hash,
+            "evidence_type": "backend-tls-validation-cache-key-sha256",
+            "note": "constructs BackendTlsValidationCacheKey (sha256 over CA PEM bundle + SANs) then hashes it, mirroring the per-connection cache lookup key build",
+        }),
+    })
+}

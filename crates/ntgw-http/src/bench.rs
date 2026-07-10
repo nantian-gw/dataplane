@@ -578,3 +578,79 @@ fn header_value(value: Option<&http::HeaderValue>, field_name: &str) -> Result<S
         .map(str::to_string)
         .with_context(|| format!("missing benchmark header value for {field_name}"))
 }
+
+// --- Backend TLS cache key construction benchmark ---
+
+use std::hash::{Hash, Hasher};
+
+use ntgw_ir::{BackendSubjectAltName, BackendTlsValidation};
+
+use crate::proxy::BackendTlsValidationCacheKey;
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct TlsCacheKeyBenchConfig {
+    pub ca_pem_count: usize,
+    pub ca_pem_bytes: usize,
+    pub san_count: usize,
+}
+
+impl Default for TlsCacheKeyBenchConfig {
+    fn default() -> Self {
+        Self {
+            ca_pem_count: 3,
+            ca_pem_bytes: 2048,
+            san_count: 4,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TlsCacheKeyStep {
+    pub cache_key_hash: u64,
+    pub ca_pem_total_bytes: usize,
+    pub san_count: usize,
+}
+
+pub struct TlsCacheKeyFixture {
+    validation: BackendTlsValidation,
+}
+
+impl TlsCacheKeyFixture {
+    pub fn build(config: TlsCacheKeyBenchConfig) -> Self {
+        let ca_pems: Vec<String> = (0..config.ca_pem_count)
+            .map(|i| {
+                format!(
+                    "-----BEGIN CERTIFICATE-----\n{}\n-----END CERTIFICATE-----",
+                    "A".repeat(config.ca_pem_bytes)
+                        .replace(&"A".repeat(8), &format!("{i:08}"))
+                )
+            })
+            .collect();
+        let subject_alt_names: Vec<BackendSubjectAltName> = (0..config.san_count)
+            .map(|i| BackendSubjectAltName {
+                kind: "DNS".to_string(),
+                value: format!("backend-{i}.bench.internal"),
+            })
+            .collect();
+        let validation = BackendTlsValidation {
+            hostname: "backend-0.bench.internal".to_string(),
+            use_system_ca_certificates: true,
+            ca_pems,
+            subject_alt_names,
+            min_version: "1.2".to_string(),
+            max_version: "1.3".to_string(),
+        };
+        Self { validation }
+    }
+
+    pub fn construct_key(&self) -> TlsCacheKeyStep {
+        let key = BackendTlsValidationCacheKey::new(&self.validation);
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        key.hash(&mut hasher);
+        TlsCacheKeyStep {
+            cache_key_hash: hasher.finish(),
+            ca_pem_total_bytes: self.validation.ca_pems.iter().map(|p| p.len()).sum(),
+            san_count: self.validation.subject_alt_names.len(),
+        }
+    }
+}
