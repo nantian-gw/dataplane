@@ -580,7 +580,26 @@ if !ctx.method.eq_ignore_ascii_case("GET") && !ctx.method.eq_ignore_ascii_case("
 
 ### P2-1 迁移 `serde_yaml`
 
-- [ ] 评估从 `serde_yaml 0.9.34+deprecated` 迁移。
+- [x] 已评估并落地"隔离 + 加固"(2026-07-10，选项 A)；实际 crate 替换推迟到 pingora 弃用 serde_yaml 时才做（那时才真正移出依赖树）。
+
+评估结论（2026-07-10）：
+
+- **生产用法仅 1 处**（`DataPlaneConfig::load` → `impls.rs`），其余 ~28 处全在 `ntgw-config/src/tests/**`。
+- **换 YAML crate 的价值被 pingora 抵消**：serde_yaml 经 pingora 传递引入，无论我们直接用哪个 YAML crate 都留在 build 里；换成 `serde_yml`/`serde_yaml_ng` 只会让 build 里同时存在两个 YAML crate（重复功能、更多依赖，cargo-deny 已警告 duplicate），且不移除 deprecated crate。fork 各有维护/信任争议。
+- config 是运维本地文件、非远程输入；deprecation 是维护性风险而非在跑的 CVE（cargo-deny 当前 `advisories ok`，无 CI 压力）。
+
+已落地（选项 A，commit `4834e9a`）：
+
+- 把唯一的 `serde_yaml::from_str` 隔离进 `DataPlaneConfig::parse_yaml(raw)`——未来换 YAML 后端收敛为"一处一行"。
+- `DataPlaneConfig::load` 给 read/parse 两阶段各加文件路径错误上下文（此前是裸 `?`，报错无路径）。
+- 新增首批 `load` 错误上下文测试 + `parse_yaml` 测试（此前 `load` 无任何测试覆盖）。
+
+后续（触发条件明确才做）：
+
+- pingora 弃用/替换 serde_yaml 后，同步把 `parse_yaml` 换到维护中的 YAML crate——届时才真正把 deprecated crate 移出依赖树。
+- 可选：config 解析 fuzz 测试（roadmap 验证项，本次未做）。
+
+原始风险/建议记录：
 
 风险：
 
