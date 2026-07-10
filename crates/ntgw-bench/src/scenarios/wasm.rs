@@ -34,8 +34,8 @@ struct WasmHookFixture {
 impl WasmHookFixture {
     fn build() -> Result<Self> {
         let engine = create_engine().context("create wasm engine")?;
-        let manager =
-            PluginManager::new(engine).map_err(|e| anyhow::anyhow!("create plugin manager: {e}"))?;
+        let manager = PluginManager::new(engine)
+            .map_err(|e| anyhow::anyhow!("create plugin manager: {e}"))?;
         let wasm_bytes = wat::parse_str(MINIMAL_PLUGIN_WAT).context("compile bench plugin wat")?;
         manager
             .load_plugin(
@@ -49,7 +49,10 @@ impl WasmHookFixture {
 
         let mut header_template = HashMap::with_capacity(HEADER_COUNT);
         for index in 0..HEADER_COUNT {
-            header_template.insert(format!("x-bench-header-{index:02}"), format!("value-{index:02}"));
+            header_template.insert(
+                format!("x-bench-header-{index:02}"),
+                format!("value-{index:02}"),
+            );
         }
 
         Ok(Self {
