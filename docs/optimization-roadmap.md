@@ -605,9 +605,17 @@ if !ctx.method.eq_ignore_ascii_case("GET") && !ctx.method.eq_ignore_ascii_case("
 
 ### P2-2 建立性能基准和回归门槛
 
-- [ ] 为核心热路径补 benchmark，并在优化 PR 中使用数据决策。
+- [x] 基本达成（2026-07-10）：`ntgw-bench` 已覆盖绝大多数核心热路径，且"PR 用数据决策"实践本会话反复演示（P1-2/P1-5 before-after、P1-3 baseline→结项）。
 
-建议覆盖：
+覆盖现状（2026-07-10 核实）：
+
+- ✅ route selection（`http/grpc/stream_route_selection`）、fast/slow path request filter（`request_fast_path_selection` / `request_meta_header_heavy` / `request_view_header_heavy` / `header_filter_chain`）、traffic 高基数写入（`traffic_observe_high_cardinality` 等 5 个）、wasm hook（`wasm_hook_empty_invoke` / `wasm_hook_header_heavy_invoke`）、TCP/UDP 热路径（`stream_tcp_buffer_matrix` / `stream_udp_*` / `stream_pool_contention_*`）、snapshot 读/重建、session、TLS asset rotation。
+- ✅ 本轮新增 backend TLS validation cache key 构造（`backend_tls_cache_key_construction`，sha256 over CA bundle+SAN，baseline ~5.85µs / 3 allocs/call）。
+- ⚠️ 未做（非遗漏，与重运行时脚手架纠缠，投入产出不成比例）：**响应 cache hit/miss**（`try_cache_hit` 是 `async` 且直接操作 Pingora `Session`/`HttpCache`，只能起真 socket 集成测，信号被 I/O 淹没）；**AI gateway body parse**（需模型配置 + 大量 mock）。二者的廉价 gating 部分（`cache_lookup_method_allowed`）已在 P1-6 优化 + 单测覆盖。
+- 指标层：p50/p95/p99、allocation count/bytes、RSS 已在 report 结构全覆盖；CPU cycles/flamegraph 属外部工具（perf/flamegraph），不在 harness 范围。
+- 回归门槛：benchmark 作为常驻回归护栏保留；尚未在 CI 里加自动阈值 gating（CI 跑 bench 会显著拉长时长），当前依赖 PR 手动附数据，符合本条"在优化 PR 中使用数据决策"的原意。
+
+原始建议（2026-06-14）——建议覆盖：
 
 - `ntgw-ir` route selection。
 - HTTP fast path 和慢路径 request filter。
