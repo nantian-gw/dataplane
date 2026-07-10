@@ -248,7 +248,14 @@
 
 ### P1-2 Traffic latency histogram 从线性 Vec 改为 Map
 
-- [ ] 将 request latency histogram 的标签查找从 `Vec` 线性查找改成哈希索引。
+- [x] 已实现（2026-07-09）：histogram 存储从线性 `Vec` 改为 `hashbrown::HashTable`，查找 O(1) 且热路径零分配。
+
+已落地：
+
+- `TrafficState.request_latency_ms_histograms` 现为 `HashTable<(TrafficLatencyLabels, TrafficHistogramState)>`；`observe`/`merge` 用 `HashTable::entry(hash, eq, hasher)`，命中零分配，未命中才构造 owned key。snapshot 阶段仍 `sort_by(labels)`，对外 `TrafficSnapshot` 仍是排序 `Vec`，语义/输出不变。
+- 新增高基数 benchmark（`ntgw-bench` 场景 `traffic_observe_high_cardinality`，1024 series warmup 后稳态 lookup）：p99 ~1µs 且不随基数增长，2000 次 observe 热路径 0 分配。
+
+原始建议（2026-06-14）：
 
 风险：
 
@@ -452,7 +459,18 @@ if !ctx.method.eq_ignore_ascii_case("GET") && !ctx.method.eq_ignore_ascii_case("
 
 ### P1-8 精简生产 Docker runtime 镜像
 
-- [ ] 将调试工具从主运行镜像移到 debug 镜像。
+- [x] 主运行镜像已精简为仅 `ca-certificates` + `ntgw-app`，且非 root 运行（2026-07-10 复核）。
+
+已确认（2026-07-10 复核当前代码）：
+
+- runtime 阶段（`Dockerfile:39-49`）只 `apt-get install ca-certificates`，roadmap 点名的 `curl`/`dnsutils`/`iproute2`/`netcat-openbsd`/`procps`/`tcpdump` 均已不在镜像内。
+- `USER 65532`（`Dockerfile:47`）非 root 运行，roadmap 建议的“设置非 root 用户”已达成。
+- 核心攻击面收敛诉求已满足。
+
+范围外/后续（非本条主目标）：
+
+- 未提供独立 `Dockerfile.debug` / build-arg debug variant——当前若需排障需临时装工具或用别的镜像；若确有需要可另立项。
+- 只读 rootfs、drop capabilities、seccomp/apparmor 属部署时的 runtime 加固，不在 Dockerfile 范围内。
 
 风险：
 
@@ -505,7 +523,12 @@ if !ctx.method.eq_ignore_ascii_case("GET") && !ctx.method.eq_ignore_ascii_case("
 
 ### P1-10 将供应链检查纳入 CI
 
-- [ ] 增加 `cargo deny check` 到 CI。
+- [x] 增加 `cargo deny check` 到 CI（2026-07-10 复核已落地）。
+
+已确认（2026-07-10 复核当前代码）：
+
+- `.github/workflows/ci.yml` 已有独立 `cargo-deny` job（`ci.yml:63`），安装 `cargo-deny --locked` 后运行 `cargo deny check advisories bans licenses sources`，四项全覆盖。
+- 本轮 RUSTSEC-2026-0204 正是被此 job 拦下，验证其确实生效。
 
 现状：
 
