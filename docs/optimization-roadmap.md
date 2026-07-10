@@ -509,9 +509,18 @@ if !ctx.method.eq_ignore_ascii_case("GET") && !ctx.method.eq_ignore_ascii_case("
 
 ### P1-9 CI/release 使用固定 Rust 1.96.0
 
-- [ ] 将 GitHub Actions 的 `toolchain: stable` 改为固定工具链或读取 `rust-toolchain.toml`。
+- [x] 已达成（2026-07-10 核实当前代码）：CI/release 已通过 `rust-toolchain.toml` 统一到 1.96.0，无版本分叉，正是本条推荐解法之一（"不显式设置 toolchain，让 action 读取 `rust-toolchain.toml`"）。无需再改。
 
-风险：
+已确认（2026-07-10）：
+
+- `rust-toolchain.toml` pin `channel = "1.96.0"`（components rustfmt/clippy）。
+- `ci.yml` 全部 7 个 job 用 SHA-pin 的 `dtolnay/rust-toolchain@29eef336`，**均无 `toolchain:` 输入** → action 读取 `rust-toolchain.toml`；今天 fmt job 日志实测 "syncing 1.96.0" 印证。
+- `release.yml`（`build-binary`，line 21）同样无 toolchain 输入，走 toml。
+- 本条原文引用的 `toolchain: stable` 及行号（`ci.yml:21` / `release.yml:18`）已过时——现网无 `toolchain: stable`，两处 workflow 都经 toml 统一到 1.96.0。
+
+判断：**不加**显式 `toolchain: 1.96.0`。显式 pin 会与 toml 形成两处 pin，升级时需改两地；当前隐式读 toml 是 DRY 正解。剩余唯一非必要瑕疵：dtolnay action 步骤仍会附带装一个用不到的 stable，但因 toml override，实际编译始终是 1.96.0 —— 属 cosmetic，不值得动一个已绿的 CI。
+
+原风险（已不成立，保留原文记录）：
 
 - 文档和 Docker 使用 Rust 1.96.0。
 - CI/release 使用 stable，可能与本地和 Docker 构建不一致。
