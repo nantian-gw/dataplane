@@ -13,7 +13,9 @@ jobs:
       matrix:
         arch: [amd64, arm64]
     permissions:
+      contents: read
       packages: write
+      id-token: write # P2-3 DRAFT: cosign keyless image signing/attestation
 
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
@@ -57,6 +59,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker image
+        id: build
         uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf
         with:
           context: /tmp/docker-build
@@ -68,6 +71,51 @@ jobs:
             DATAPLANE_CARGO_FEATURES=allocator-jemalloc
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # ---- P2-3 DRAFT (UNVERIFIED — not run through Actions) ----
+      # Actions pinned to commit SHAs (version in trailing comment) per repo
+      # convention. Keyless cosign needs `id-token: write` (added above) and
+      # GHCR must trust the Sigstore OIDC issuer.
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      - name: Sign image (keyless)
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: cosign sign --yes "ghcr.io/${{ github.repository }}@${DIGEST}"
+
+      - name: Generate SBOM (syft)
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        with:
+          image: ghcr.io/${{ github.repository }}@${{ steps.build.outputs.digest }}
+          format: spdx-json
+          output-file: sbom-${{ matrix.arch }}.spdx.json
+
+      - name: Attest SBOM to image (cosign)
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          cosign attest --yes --type spdxjson \
+            --predicate sbom-${{ matrix.arch }}.spdx.json \
+            "ghcr.io/${{ github.repository }}@${DIGEST}"
+
+      - name: Scan image (Trivy)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ghcr.io/${{ github.repository }}@${{ steps.build.outputs.digest }}
+          format: sarif
+          output: trivy-${{ matrix.arch }}.sarif
+          severity: CRITICAL,HIGH
+          exit-code: '0' # DRAFT: report-only; set '1' to fail the release on findings
+
+      - name: Upload supply-chain artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: supply-chain-${{ matrix.arch }}
+          path: |
+            sbom-${{ matrix.arch }}.spdx.json
+            trivy-${{ matrix.arch }}.sarif
+      # ---- end P2-3 DRAFT ----
 
       - name: Upload binary artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -84,8 +132,12 @@ jobs:
     permissions:
       contents: write
       packages: write
+      id-token: write # P2-3 DRAFT: cosign keyless blob signing of release binaries
 
     steps:
+      - name: Checkout # P2-3 DRAFT: needed to read rust-toolchain.toml / Cargo.lock for provenance
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+
       - name: Download amd64 artifact
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
@@ -141,12 +193,48 @@ jobs:
             "ghcr.io/${{ github.repository }}:${{ github.ref_name }}-amd64" \
             "ghcr.io/${{ github.repository }}:${{ github.ref_name }}-arm64"
 
+      # ---- P2-3 DRAFT (UNVERIFIED — not run through Actions) ----
+      # Pin action versions to SHAs before merge. Keyless signing needs the
+      # `id-token: write` permission added to this job above.
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      - name: Sign release binaries (keyless)
+        run: |
+          for f in artifacts/amd64/ntgw-app artifacts/arm64/ntgw-app; do
+            cosign sign-blob --yes \
+              --output-signature "${f}.sig" \
+              --output-certificate "${f}.pem" \
+              "${f}"
+          done
+
+      - name: Build provenance note
+        run: |
+          MANIFEST_DIGEST="$(docker buildx imagetools inspect \
+            "ghcr.io/${{ github.repository }}:${{ github.ref_name }}" \
+            --format '{{ .Manifest.Digest }}' 2>/dev/null || echo unknown)"
+          {
+            echo "## Provenance"
+            echo
+            echo "- Git SHA: \`${GITHUB_SHA}\`"
+            echo "- Rust toolchain: \`$(grep -oE '[0-9]+\.[0-9]+\.[0-9]+' rust-toolchain.toml | head -1)\`"
+            echo "- Cargo.lock sha256: \`$(sha256sum Cargo.lock | cut -d' ' -f1)\`"
+            echo "- Image digest: \`${MANIFEST_DIGEST}\`"
+            echo "- Binaries signed with cosign keyless (verify with \`cosign verify-blob\`)."
+          } > provenance.md
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@7c4723f7a335432393329f8f1c564994ce50185d
         with:
+          body_path: provenance.md
           files: |
             artifacts/amd64/ntgw-app
             artifacts/amd64/ntgw-app.sha256
+            artifacts/amd64/ntgw-app.sig
+            artifacts/amd64/ntgw-app.pem
             artifacts/arm64/ntgw-app
             artifacts/arm64/ntgw-app.sha256
+            artifacts/arm64/ntgw-app.sig
+            artifacts/arm64/ntgw-app.pem
           generate_release_notes: true
+      # ---- end P2-3 DRAFT ----
