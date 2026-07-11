@@ -205,12 +205,12 @@ impl<'a> RequestRouteLabels<'a> {
 fn request_route_labels(ctx: &RequestContext) -> RequestRouteLabels<'_> {
     if let Some(selected) = ctx.selected_backend.as_ref() {
         return RequestRouteLabels {
-            listener_name: selected.listener_name.as_str(),
-            listener_protocol: selected.listener_protocol.as_str(),
-            route_namespace: selected.route_namespace.as_str(),
-            route_name: selected.route_name.as_str(),
+            listener_name: selected.listener_name.as_ref(),
+            listener_protocol: selected.listener_protocol.as_ref(),
+            route_namespace: selected.route_namespace.as_ref(),
+            route_name: selected.route_name.as_ref(),
             route_kind: route_kind_name(&selected.route_kind),
-            backend_name: selected.backend_name.as_str(),
+            backend_name: selected.backend_name.as_ref(),
         };
     }
 
@@ -220,12 +220,12 @@ fn request_route_labels(ctx: &RequestContext) -> RequestRouteLabels<'_> {
         .map(|state| &state.selected)
     {
         return RequestRouteLabels {
-            listener_name: selected.listener_name.as_str(),
-            listener_protocol: selected.listener_protocol.as_str(),
-            route_namespace: selected.route_namespace.as_str(),
-            route_name: selected.route_name.as_str(),
+            listener_name: selected.listener_name.as_ref(),
+            listener_protocol: selected.listener_protocol.as_ref(),
+            route_namespace: selected.route_namespace.as_ref(),
+            route_name: selected.route_name.as_ref(),
             route_kind: route_kind_name(&selected.route_kind),
-            backend_name: selected.backend_name.as_str(),
+            backend_name: selected.backend_name.as_ref(),
         };
     }
 
@@ -306,21 +306,21 @@ mod tests {
     fn route_annotations_for_log_prefers_fast_selected_backend_annotations() {
         let selected = CompiledSelectedHttpBackend {
             route_kind: RouteKind::Http,
-            route_name: "route".to_string(),
-            route_namespace: "default".to_string(),
+            route_name: "route".into(),
+            route_namespace: "default".into(),
             rule_index: None,
             route_annotations: Arc::new(BTreeMap::from([(
                 "gateway.nantian.dev/access-log-sample-rate".to_string(),
                 "0".to_string(),
             )])),
-            listener_name: "default/gw/http".to_string(),
-            listener_protocol: "HTTP".to_string(),
+            listener_name: "default/gw/http".into(),
+            listener_protocol: "HTTP".into(),
             backend: BackendEndpoint {
                 address: "127.0.0.1".to_string(),
                 port: 8080,
                 healthy: true,
             },
-            backend_name: "default/echo:8080".to_string(),
+            backend_name: "default/echo:8080".into(),
             matched_http_path: ntgw_ir::MatchedHttpPath::default(),
             runtime_ids: SelectedBackendRuntimeIds::default(),
         };

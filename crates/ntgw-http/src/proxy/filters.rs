@@ -158,8 +158,8 @@ pub(crate) async fn do_request_filter(
             proxy,
             session,
             ctx,
-            selected.route_namespace.as_str(),
-            selected.route_name.as_str(),
+            selected.route_namespace.as_ref(),
+            selected.route_name.as_ref(),
             fast_host.as_str(),
             fast_path.as_str(),
         )
@@ -202,7 +202,7 @@ pub(crate) async fn do_request_filter(
             )?;
             let mirrors = select_request_mirrors_for_selected_backend(&current, &selected);
             let frontend_client_certificate_requirement =
-                current.frontend_client_certificate_requirement(selected.listener_name.as_str());
+                current.frontend_client_certificate_requirement(selected.listener_name.as_ref());
             Some((
                 selected,
                 mirrors,
@@ -235,7 +235,7 @@ pub(crate) async fn do_request_filter(
             )?
             .map(|(selected, config)| {
                 let frontend_client_certificate_requirement = current
-                    .frontend_client_certificate_requirement(selected.listener_name.as_str());
+                    .frontend_client_certificate_requirement(selected.listener_name.as_ref());
                 (selected, config, frontend_client_certificate_requirement)
             })
         } else {

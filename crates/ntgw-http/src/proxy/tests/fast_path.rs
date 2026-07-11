@@ -75,7 +75,7 @@ fn initial_request_state_carries_fast_path_selection_from_current_snapshot() {
     let selected = state
         .fast_path_selected
         .as_ref()
-        .map(|selected| selected.selected.backend_name.as_str());
+        .map(|selected| selected.selected.backend_name.as_ref());
     assert_eq!(selected, Some("default/orders:8080"));
 }
 
@@ -133,18 +133,18 @@ fn initial_request_state_skips_snapshot_version_when_unobserved() {
 fn cache_fast_selected_backend_state_fills_context_without_full_selected_backend() {
     let selected = CompiledSelectedHttpBackend {
         route_kind: RouteKind::Http,
-        route_name: "orders".to_string(),
-        route_namespace: "default".to_string(),
+        route_name: "orders".into(),
+        route_namespace: "default".into(),
         rule_index: Some(0),
         route_annotations: Default::default(),
-        listener_name: "default/gw/http".to_string(),
-        listener_protocol: "HTTP".to_string(),
+        listener_name: "default/gw/http".into(),
+        listener_protocol: "HTTP".into(),
         backend: BackendEndpoint {
             address: "10.0.0.10".to_string(),
             port: 8080,
             healthy: true,
         },
-        backend_name: "default/orders:8080".to_string(),
+        backend_name: "default/orders:8080".into(),
         matched_http_path: ntgw_ir::MatchedHttpPath {
             path: "/".to_string(),
             path_type: "PathPrefix".to_string(),
@@ -169,21 +169,21 @@ fn cache_fast_selected_backend_state_fills_context_without_full_selected_backend
 fn cache_fast_selected_backend_state_keeps_route_annotations_for_access_log() {
     let selected = CompiledSelectedHttpBackend {
         route_kind: RouteKind::Http,
-        route_name: "orders".to_string(),
-        route_namespace: "default".to_string(),
+        route_name: "orders".into(),
+        route_namespace: "default".into(),
         rule_index: Some(0),
         route_annotations: Arc::new(BTreeMap::from([(
             "gateway.nantian.dev/access-log-mode".to_string(),
             "text".to_string(),
         )])),
-        listener_name: "default/gw/http".to_string(),
-        listener_protocol: "HTTP".to_string(),
+        listener_name: "default/gw/http".into(),
+        listener_protocol: "HTTP".into(),
         backend: BackendEndpoint {
             address: "10.0.0.10".to_string(),
             port: 8080,
             healthy: true,
         },
-        backend_name: "default/orders:8080".to_string(),
+        backend_name: "default/orders:8080".into(),
         matched_http_path: ntgw_ir::MatchedHttpPath::default(),
         runtime_ids: SelectedBackendRuntimeIds::default(),
     };
@@ -208,18 +208,18 @@ fn cache_fast_selected_backend_state_keeps_route_annotations_for_access_log() {
 fn cache_fast_selected_backend_state_can_skip_context_display_strings() {
     let selected = CompiledSelectedHttpBackend {
         route_kind: RouteKind::Http,
-        route_name: "orders".to_string(),
-        route_namespace: "default".to_string(),
+        route_name: "orders".into(),
+        route_namespace: "default".into(),
         rule_index: Some(0),
         route_annotations: Default::default(),
-        listener_name: "default/gw/http".to_string(),
-        listener_protocol: "HTTP".to_string(),
+        listener_name: "default/gw/http".into(),
+        listener_protocol: "HTTP".into(),
         backend: BackendEndpoint {
             address: "10.0.0.10".to_string(),
             port: 8080,
             healthy: true,
         },
-        backend_name: "default/orders:8080".to_string(),
+        backend_name: "default/orders:8080".into(),
         matched_http_path: ntgw_ir::MatchedHttpPath::default(),
         runtime_ids: SelectedBackendRuntimeIds::default(),
     };
@@ -241,18 +241,18 @@ fn cache_fast_selected_backend_state_can_skip_context_display_strings() {
 fn fast_path_state_builds_upstream_peer_from_cached_config() {
     let selected = CompiledSelectedHttpBackend {
         route_kind: RouteKind::Http,
-        route_name: "orders".to_string(),
-        route_namespace: "default".to_string(),
+        route_name: "orders".into(),
+        route_namespace: "default".into(),
         rule_index: Some(0),
         route_annotations: Default::default(),
-        listener_name: "default/gw/http".to_string(),
-        listener_protocol: "HTTP".to_string(),
+        listener_name: "default/gw/http".into(),
+        listener_protocol: "HTTP".into(),
         backend: BackendEndpoint {
             address: "10.0.0.10".to_string(),
             port: 8080,
             healthy: true,
         },
-        backend_name: "default/orders:8080".to_string(),
+        backend_name: "default/orders:8080".into(),
         matched_http_path: ntgw_ir::MatchedHttpPath::default(),
         runtime_ids: SelectedBackendRuntimeIds::default(),
     };
@@ -274,18 +274,18 @@ fn sample_fast_selected_backend_config(address: &str, port: u16) -> SelectedBack
     let selected_backend = ntgw_ir::SelectedBackend {
         route_policy: None,
         route_kind: RouteKind::Http,
-        route_name: "orders".to_string(),
-        route_namespace: "default".to_string(),
+        route_name: "orders".into(),
+        route_namespace: "default".into(),
         rule_index: Some(0),
         route_annotations: Default::default(),
-        listener_name: "default/gw/http".to_string(),
-        listener_protocol: "HTTP".to_string(),
+        listener_name: "default/gw/http".into(),
+        listener_protocol: "HTTP".into(),
         backend: BackendEndpoint {
             address: address.to_string(),
             port: u32::from(port),
             healthy: true,
         },
-        backend_name: "default/orders:8080".to_string(),
+        backend_name: "default/orders:8080".into(),
         filters: Vec::new(),
         matched_http_path: None,
         timeouts: None,

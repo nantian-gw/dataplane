@@ -18,14 +18,14 @@ pub struct HttpFastPathRequest<'a> {
 #[derive(Debug, Clone)]
 pub struct CompiledSelectedHttpBackend {
     pub route_kind: RouteKind,
-    pub route_name: String,
-    pub route_namespace: String,
+    pub route_name: Arc<str>,
+    pub route_namespace: Arc<str>,
     pub rule_index: Option<usize>,
     pub route_annotations: Arc<BTreeMap<String, String>>,
-    pub listener_name: String,
-    pub listener_protocol: String,
+    pub listener_name: Arc<str>,
+    pub listener_protocol: Arc<str>,
     pub backend: BackendEndpoint,
-    pub backend_name: String,
+    pub backend_name: Arc<str>,
     pub matched_http_path: MatchedHttpPath,
     pub runtime_ids: SelectedBackendRuntimeIds,
 }
@@ -33,12 +33,15 @@ pub struct CompiledSelectedHttpBackend {
 #[derive(Debug, Clone, Default)]
 pub struct HttpFastPathPlan {
     routes: Vec<CompiledHttpFastRoute>,
+    listener_labels: Vec<(Arc<str>, Arc<str>)>,
     selection_safe: bool,
 }
 
 #[derive(Debug, Clone)]
 struct CompiledHttpFastRoute {
     route_index: usize,
+    route_name: Arc<str>,
+    route_namespace: Arc<str>,
     route_annotations: Arc<BTreeMap<String, String>>,
     eligible_rules: Vec<CompiledHttpFastRule>,
 }
@@ -100,7 +103,8 @@ struct FastCandidateListeners {
 }
 
 struct FastCandidate {
-    route_index: usize,
+    route_name: Arc<str>,
+    route_namespace: Arc<str>,
     rule_index: usize,
     route_annotations: Arc<BTreeMap<String, String>>,
     listener_index: Option<usize>,
@@ -155,14 +159,28 @@ impl HttpFastPathPlan {
 
                 (!eligible_rules.is_empty()).then_some(CompiledHttpFastRoute {
                     route_index,
+                    route_name: Arc::from(route.name.as_str()),
+                    route_namespace: Arc::from(route.namespace.as_str()),
                     route_annotations: Arc::new(route.annotations.clone()),
                     eligible_rules,
                 })
             })
             .collect();
 
+        let listener_labels = snapshot
+            .listeners
+            .iter()
+            .map(|listener| {
+                (
+                    Arc::from(listener.name.as_str()),
+                    Arc::from(listener.protocol.as_str()),
+                )
+            })
+            .collect();
+
         Self {
             routes,
+            listener_labels,
             selection_safe,
         }
     }
@@ -273,7 +291,8 @@ impl HttpFastPathPlan {
                 };
 
                 best = Some(FastCandidate {
-                    route_index: compiled_route.route_index,
+                    route_name: Arc::clone(&compiled_route.route_name),
+                    route_namespace: Arc::clone(&compiled_route.route_namespace),
                     rule_index: compiled_rule.rule_index,
                     route_annotations: Arc::clone(&compiled_route.route_annotations),
                     listener_index: listener_match.map(|item| item.listener_index),
@@ -285,27 +304,26 @@ impl HttpFastPathPlan {
             }
         }
 
-        best.and_then(|candidate| {
-            let route = snapshot.http_routes.get(candidate.route_index)?;
+        best.map(|candidate| {
             let (listener_name, listener_protocol) = candidate
                 .listener_index
-                .and_then(|index| snapshot.listeners.get(index))
-                .map(|listener| (listener.name.clone(), listener.protocol.clone()))
-                .unwrap_or_default();
+                .and_then(|index| self.listener_labels.get(index))
+                .map(|(name, protocol)| (Arc::clone(name), Arc::clone(protocol)))
+                .unwrap_or_else(|| (Arc::from(""), Arc::from("")));
 
-            Some(CompiledSelectedHttpBackend {
+            CompiledSelectedHttpBackend {
                 route_kind: RouteKind::Http,
-                route_name: route.name.clone(),
-                route_namespace: route.namespace.clone(),
+                route_name: candidate.route_name,
+                route_namespace: candidate.route_namespace,
                 rule_index: Some(candidate.rule_index),
                 route_annotations: candidate.route_annotations,
                 listener_name,
                 listener_protocol,
                 backend: candidate.selected.endpoint,
-                backend_name: candidate.selected.backend_name.to_string(),
+                backend_name: candidate.selected.backend_name,
                 matched_http_path: candidate.matched_http_path,
                 runtime_ids: candidate.runtime_ids,
-            })
+            }
         })
     }
 }

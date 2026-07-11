@@ -398,13 +398,13 @@ fn observe_selected_backend_result(
 pub(crate) fn remember_transport_retry_excluded_endpoint(ctx: &mut RequestContext) {
     let excluded = if let Some(selected) = ctx.selected_backend.as_ref() {
         Some(TransportRetryExcludedEndpoint::new(
-            selected.backend_name.as_str(),
+            selected.backend_name.as_ref(),
             &selected.backend,
         ))
     } else {
         ctx.fast_selected_backend.as_ref().map(|fast| {
             TransportRetryExcludedEndpoint::new(
-                fast.selected.backend_name.as_str(),
+                fast.selected.backend_name.as_ref(),
                 &fast.selected.backend,
             )
         })
@@ -501,14 +501,14 @@ pub(crate) fn cache_fast_selected_backend_state(
 ) {
     if display_fields_needed {
         assign_ctx_string(&mut ctx.route_kind, route_kind_name(&selected.route_kind));
-        assign_ctx_string(&mut ctx.route_name, selected.route_name.as_str());
-        assign_ctx_string(&mut ctx.route_namespace, selected.route_namespace.as_str());
-        assign_ctx_string(&mut ctx.listener_name, selected.listener_name.as_str());
+        assign_ctx_string(&mut ctx.route_name, selected.route_name.as_ref());
+        assign_ctx_string(&mut ctx.route_namespace, selected.route_namespace.as_ref());
+        assign_ctx_string(&mut ctx.listener_name, selected.listener_name.as_ref());
         assign_ctx_string(
             &mut ctx.listener_protocol,
-            selected.listener_protocol.as_str(),
+            selected.listener_protocol.as_ref(),
         );
-        assign_ctx_string(&mut ctx.backend, selected.backend_name.as_str());
+        assign_ctx_string(&mut ctx.backend, selected.backend_name.as_ref());
     } else {
         clear_selected_backend_display_fields(ctx);
     }
@@ -532,14 +532,14 @@ fn cache_selected_backend_fields(
     let display_fields_needed = access_log_enabled || ctx.request_span.is_some();
     if display_fields_needed {
         assign_ctx_string(&mut ctx.route_kind, route_kind_name(&selected.route_kind));
-        assign_ctx_string(&mut ctx.route_name, selected.route_name.as_str());
-        assign_ctx_string(&mut ctx.route_namespace, selected.route_namespace.as_str());
-        assign_ctx_string(&mut ctx.listener_name, selected.listener_name.as_str());
+        assign_ctx_string(&mut ctx.route_name, selected.route_name.as_ref());
+        assign_ctx_string(&mut ctx.route_namespace, selected.route_namespace.as_ref());
+        assign_ctx_string(&mut ctx.listener_name, selected.listener_name.as_ref());
         assign_ctx_string(
             &mut ctx.listener_protocol,
-            selected.listener_protocol.as_str(),
+            selected.listener_protocol.as_ref(),
         );
-        assign_ctx_string(&mut ctx.backend, selected.backend_name.as_str());
+        assign_ctx_string(&mut ctx.backend, selected.backend_name.as_ref());
     } else {
         clear_selected_backend_display_fields(ctx);
     }

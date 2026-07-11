@@ -206,7 +206,7 @@ pub(crate) fn prepare_initial_request_state(
                     &selected,
                 )?;
                 let frontend_client_certificate_requirement = current
-                    .frontend_client_certificate_requirement(selected.listener_name.as_str());
+                    .frontend_client_certificate_requirement(selected.listener_name.as_ref());
                 Ok::<_, Box<Error>>(InitialFastPathSelection {
                     selected,
                     config,

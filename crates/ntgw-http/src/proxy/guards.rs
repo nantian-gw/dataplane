@@ -45,21 +45,21 @@ impl GatewayProxy {
         let route_key = route_budget_key_if_enabled(
             self.admission.route_scope_enabled(),
             route_kind_name(&selected.route_kind),
-            selected.route_namespace.as_str(),
-            selected.route_name.as_str(),
+            selected.route_namespace.as_ref(),
+            selected.route_name.as_ref(),
         );
         let permit = if let Some(route_key) = route_key.as_deref() {
             if ctx.admission_permit.is_some() {
                 self.admission.try_acquire_route(route_key)
             } else {
                 self.admission
-                    .try_acquire(selected.listener_name.as_str(), route_key)
+                    .try_acquire(selected.listener_name.as_ref(), route_key)
             }
         } else if ctx.admission_permit.is_some() {
             return Ok(true);
         } else {
             self.admission
-                .try_acquire_listener(selected.listener_name.as_str())
+                .try_acquire_listener(selected.listener_name.as_ref())
         };
         match permit {
             Ok(permit) => {
@@ -152,21 +152,21 @@ impl GatewayProxy {
         let route_key = route_budget_key_if_enabled(
             self.admission.route_scope_enabled(),
             "Http",
-            selected.route_namespace.as_str(),
-            selected.route_name.as_str(),
+            selected.route_namespace.as_ref(),
+            selected.route_name.as_ref(),
         );
         let permit = if let Some(route_key) = route_key.as_deref() {
             if ctx.admission_permit.is_some() {
                 self.admission.try_acquire_route(route_key)
             } else {
                 self.admission
-                    .try_acquire(selected.listener_name.as_str(), route_key)
+                    .try_acquire(selected.listener_name.as_ref(), route_key)
             }
         } else if ctx.admission_permit.is_some() {
             return Ok(true);
         } else {
             self.admission
-                .try_acquire_listener(selected.listener_name.as_str())
+                .try_acquire_listener(selected.listener_name.as_ref())
         };
         match permit {
             Ok(permit) => {
@@ -194,19 +194,19 @@ impl GatewayProxy {
         let route_key = route_budget_key_if_enabled(
             self.rate_limit.route_scope_enabled(),
             route_kind_name(&selected.route_kind),
-            selected.route_namespace.as_str(),
-            selected.route_name.as_str(),
+            selected.route_namespace.as_ref(),
+            selected.route_name.as_ref(),
         );
         let limited = if let Some(route_key) = route_key.as_deref() {
             if self.listener_name_hint.is_none() {
                 self.rate_limit
-                    .try_acquire(selected.listener_name.as_str(), route_key)
+                    .try_acquire(selected.listener_name.as_ref(), route_key)
             } else {
                 self.rate_limit.try_acquire_route(route_key)
             }
         } else if self.listener_name_hint.is_none() {
             self.rate_limit
-                .try_acquire_listener(selected.listener_name.as_str())
+                .try_acquire_listener(selected.listener_name.as_ref())
         } else {
             return Ok(true);
         };
@@ -278,19 +278,19 @@ impl GatewayProxy {
         let route_key = route_budget_key_if_enabled(
             self.rate_limit.route_scope_enabled(),
             "Http",
-            selected.route_namespace.as_str(),
-            selected.route_name.as_str(),
+            selected.route_namespace.as_ref(),
+            selected.route_name.as_ref(),
         );
         let limited = if let Some(route_key) = route_key.as_deref() {
             if self.listener_name_hint.is_none() {
                 self.rate_limit
-                    .try_acquire(selected.listener_name.as_str(), route_key)
+                    .try_acquire(selected.listener_name.as_ref(), route_key)
             } else {
                 self.rate_limit.try_acquire_route(route_key)
             }
         } else if self.listener_name_hint.is_none() {
             self.rate_limit
-                .try_acquire_listener(selected.listener_name.as_str())
+                .try_acquire_listener(selected.listener_name.as_ref())
         } else {
             return Ok(true);
         };
