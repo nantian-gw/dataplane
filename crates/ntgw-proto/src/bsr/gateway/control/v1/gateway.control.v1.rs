@@ -67,9 +67,11 @@ pub struct StatusReport {
     pub observed_at: ::core::option::Option<::prost_types::Timestamp>,
 }
 /// StatusAck is the control plane's acknowledgement of a StatusReport.
+/// It confirms receipt and optionally carries back instructions to the
+/// data plane (future: e.g. "reload", "drain", "shutdown").
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct StatusAck {
-    /// Whether the status report was accepted.
+    /// Whether the status report was received and processed successfully.
     #[prost(bool, tag="1")]
     pub accepted: bool,
 }
