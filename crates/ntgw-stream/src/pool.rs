@@ -38,15 +38,15 @@ impl TcpConnectionPool {
 
     pub(crate) async fn get_connection(
         &self,
-        addr: &str,
+        addr: String,
         port: u16,
     ) -> (std::io::Result<TcpStream>, StreamPoolCounters) {
         if !self.is_enabled() {
-            let conn = TcpStream::connect((addr, port)).await;
+            let conn = TcpStream::connect((addr.as_str(), port)).await;
             return (conn, StreamPoolCounters::default());
         }
 
-        let key = (addr.to_string(), port);
+        let key = (addr, port);
 
         loop {
             // Hold the shard lock only for the O(1) pop, then release it before the
@@ -89,20 +89,21 @@ impl TcpConnectionPool {
         }
 
         debug!(backend = ?key, "pool miss");
-        let conn = TcpStream::connect((addr, port)).await;
+        let conn = TcpStream::connect((key.0.as_str(), port)).await;
         (conn, StreamPoolCounters { hits: 0, misses: 1 })
     }
 
-    pub(crate) fn return_connection(&self, addr: &str, port: u16, stream: TcpStream) {
+    pub(crate) fn return_connection(&self, addr: String, port: u16, stream: TcpStream) {
         if !self.is_enabled() {
             return;
         }
-        let key = (addr.to_string(), port);
+        let backend_addr = addr.clone();
+        let key = (addr, port);
         let mut entry = self.idle.entry(key).or_default();
 
         if entry.len() >= self.max_idle_per_backend {
             debug!(
-                backend.addr = addr,
+                backend.addr = backend_addr,
                 backend.port = port,
                 "pool full, dropping returned connection"
             );
@@ -114,7 +115,7 @@ impl TcpConnectionPool {
             since: Instant::now(),
         });
         debug!(
-            backend.addr = addr,
+            backend.addr = backend_addr,
             backend.port = port,
             count = entry.len(),
             "pool return"
@@ -161,7 +162,7 @@ mod tests {
         let (ip, port) = echo_server().await;
         let pool = TcpConnectionPool::new(10, Duration::from_secs(30));
 
-        let (result, counters) = pool.get_connection(&ip, port).await;
+        let (result, counters) = pool.get_connection(ip.clone(), port).await;
         assert!(result.is_ok(), "should connect to server");
         assert_eq!(counters.hits, 0);
         assert_eq!(counters.misses, 1);
@@ -172,14 +173,14 @@ mod tests {
         let (ip, port) = echo_server().await;
         let pool = TcpConnectionPool::new(10, Duration::from_secs(30));
 
-        let (conn1, c1) = pool.get_connection(&ip, port).await;
+        let (conn1, c1) = pool.get_connection(ip.clone(), port).await;
         assert!(conn1.is_ok());
         assert_eq!(c1.misses, 1);
 
-        pool.return_connection(&ip, port, conn1.unwrap());
+        pool.return_connection(ip.clone(), port, conn1.unwrap());
         assert_eq!(pool.idle_count(&ip, port), 1);
 
-        let (conn2, c2) = pool.get_connection(&ip, port).await;
+        let (conn2, c2) = pool.get_connection(ip.clone(), port).await;
         assert!(conn2.is_ok());
         assert_eq!(c2.hits, 1);
         assert_eq!(c2.misses, 0);

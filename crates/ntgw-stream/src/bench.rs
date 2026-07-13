@@ -298,11 +298,11 @@ impl TcpPoolContentionFixture {
             for (addr, port) in &backends {
                 let mut conns = Vec::with_capacity(prewarm);
                 for _ in 0..prewarm {
-                    let (conn, _) = pool.get_connection(addr, *port).await;
+                    let (conn, _) = pool.get_connection(addr.clone(), *port).await;
                     conns.push(conn?);
                 }
                 for conn in conns {
-                    pool.return_connection(addr, *port, conn);
+                    pool.return_connection(addr.clone(), *port, conn);
                 }
             }
             io::Result::Ok(())
@@ -335,9 +335,9 @@ impl TcpPoolContentionFixture {
                     let mut latencies = Vec::with_capacity(ops_per_thread);
                     for _ in 0..ops_per_thread {
                         let op_start = Instant::now();
-                        let (conn, counters) = pool.get_connection(&addr, port).await;
+                        let (conn, counters) = pool.get_connection(addr.clone(), port).await;
                         let conn = conn?;
-                        pool.return_connection(&addr, port, conn);
+                        pool.return_connection(addr.clone(), port, conn);
                         latencies.push(op_start.elapsed().as_secs_f64() * 1000.0);
                         hits += u64::from(counters.hits);
                         misses += u64::from(counters.misses);

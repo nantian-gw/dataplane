@@ -63,6 +63,36 @@ pub struct RuntimeListenerProgress {
     pub recent_events: Vec<RuntimeListenerEvent>,
 }
 
+#[derive(Debug, Default)]
+struct RuntimeStatsInner {
+    supervisor_last_shutdown_reason: String,
+    supervisor_last_exit_message: String,
+    http_last_reload_attempt_version: String,
+    http_last_exit_message: String,
+    tls_last_reload_attempt_version: String,
+    tls_last_exit_message: String,
+    http_last_good_reload_version: String,
+    tls_last_good_reload_version: String,
+    http_last_reload_failure_version: String,
+    tls_last_reload_failure_version: String,
+    http_last_reload_failure_listener: String,
+    tls_last_reload_failure_listener: String,
+    http_last_reload_failure_message: String,
+    tls_last_reload_failure_message: String,
+    http_current_failures: Vec<RuntimeListenerFailure>,
+    tls_current_failures: Vec<RuntimeListenerFailure>,
+    http_listener_progress: BTreeMap<String, RuntimeListenerProgress>,
+    tls_listener_progress: BTreeMap<String, RuntimeListenerProgress>,
+    stream_last_reload_attempt_version: String,
+    stream_last_exit_message: String,
+    stream_last_good_reload_version: String,
+    stream_last_reload_failure_version: String,
+    stream_last_reload_failure_listener: String,
+    stream_last_reload_failure_message: String,
+    stream_current_failures: Vec<RuntimeListenerFailure>,
+    stream_listener_progress: BTreeMap<String, RuntimeListenerProgress>,
+}
+
 #[derive(Debug)]
 pub struct RuntimeStats {
     http_listener_reload_failures: AtomicU64,
@@ -76,34 +106,9 @@ pub struct RuntimeStats {
     tls_runtime_running: AtomicBool,
     http_last_exit_unix_seconds: AtomicU64,
     tls_last_exit_unix_seconds: AtomicU64,
-    supervisor_last_shutdown_reason: RwLock<String>,
-    supervisor_last_exit_message: RwLock<String>,
-    http_last_reload_attempt_version: RwLock<String>,
-    http_last_exit_message: RwLock<String>,
-    tls_last_reload_attempt_version: RwLock<String>,
-    tls_last_exit_message: RwLock<String>,
-    http_last_good_reload_version: RwLock<String>,
-    tls_last_good_reload_version: RwLock<String>,
-    http_last_reload_failure_version: RwLock<String>,
-    tls_last_reload_failure_version: RwLock<String>,
-    http_last_reload_failure_listener: RwLock<String>,
-    tls_last_reload_failure_listener: RwLock<String>,
-    http_last_reload_failure_message: RwLock<String>,
-    tls_last_reload_failure_message: RwLock<String>,
-    http_current_failures: RwLock<Vec<RuntimeListenerFailure>>,
-    tls_current_failures: RwLock<Vec<RuntimeListenerFailure>>,
-    http_listener_progress: RwLock<BTreeMap<String, RuntimeListenerProgress>>,
-    tls_listener_progress: RwLock<BTreeMap<String, RuntimeListenerProgress>>,
-    stream_last_reload_attempt_version: RwLock<String>,
     stream_runtime_running: AtomicBool,
     stream_last_exit_unix_seconds: AtomicU64,
-    stream_last_exit_message: RwLock<String>,
-    stream_last_good_reload_version: RwLock<String>,
-    stream_last_reload_failure_version: RwLock<String>,
-    stream_last_reload_failure_listener: RwLock<String>,
-    stream_last_reload_failure_message: RwLock<String>,
-    stream_current_failures: RwLock<Vec<RuntimeListenerFailure>>,
-    stream_listener_progress: RwLock<BTreeMap<String, RuntimeListenerProgress>>,
+    inner: RwLock<RuntimeStatsInner>,
     apply_event_tx: watch::Sender<Option<RuntimeApplyEvent>>,
 }
 
@@ -159,33 +164,31 @@ impl RuntimeStats {
         self.supervisor_running.store(true, Ordering::Relaxed);
         self.supervisor_shutdown_requested
             .store(false, Ordering::Relaxed);
-        self.supervisor_last_shutdown_reason
+        let mut inner = self
+            .inner
             .write()
-            .unwrap_or_else(|err| err.into_inner())
-            .clear();
-        self.supervisor_last_exit_message
-            .write()
-            .unwrap_or_else(|err| err.into_inner())
-            .clear();
+            .unwrap_or_else(|err| err.into_inner());
+        inner.supervisor_last_shutdown_reason.clear();
+        inner.supervisor_last_exit_message.clear();
     }
 
     pub fn observe_supervisor_shutdown_requested(&self, reason: &str) {
         self.supervisor_shutdown_requested
             .store(true, Ordering::Relaxed);
-        *self
-            .supervisor_last_shutdown_reason
+        self.inner
             .write()
-            .unwrap_or_else(|err| err.into_inner()) = reason.to_string();
+            .unwrap_or_else(|err| err.into_inner())
+            .supervisor_last_shutdown_reason = reason.to_string();
     }
 
     pub fn observe_supervisor_exited(&self, message: &str) {
         self.supervisor_running.store(false, Ordering::Relaxed);
         self.supervisor_last_exit_unix_seconds
             .store(epoch_seconds(), Ordering::Relaxed);
-        *self
-            .supervisor_last_exit_message
+        self.inner
             .write()
-            .unwrap_or_else(|err| err.into_inner()) = message.to_string();
+            .unwrap_or_else(|err| err.into_inner())
+            .supervisor_last_exit_message = message.to_string();
     }
 
     pub fn observe_http_listener_reload_success(&self, version: &str) {
@@ -194,9 +197,10 @@ impl RuntimeStats {
 
     pub fn observe_http_runtime_started(&self) {
         self.http_runtime_running.store(true, Ordering::Relaxed);
-        self.http_last_exit_message
+        self.inner
             .write()
             .unwrap_or_else(|err| err.into_inner())
+            .http_last_exit_message
             .clear();
     }
 
@@ -204,10 +208,10 @@ impl RuntimeStats {
         self.http_runtime_running.store(false, Ordering::Relaxed);
         self.http_last_exit_unix_seconds
             .store(epoch_seconds(), Ordering::Relaxed);
-        *self
-            .http_last_exit_message
+        self.inner
             .write()
-            .unwrap_or_else(|err| err.into_inner()) = message.to_string();
+            .unwrap_or_else(|err| err.into_inner())
+            .http_last_exit_message = message.to_string();
     }
 
     pub fn observe_http_tls_asset_reuses(&self, count: u64) {
@@ -225,9 +229,10 @@ impl RuntimeStats {
 
     pub fn observe_tls_runtime_started(&self) {
         self.tls_runtime_running.store(true, Ordering::Relaxed);
-        self.tls_last_exit_message
+        self.inner
             .write()
             .unwrap_or_else(|err| err.into_inner())
+            .tls_last_exit_message
             .clear();
     }
 
@@ -235,10 +240,10 @@ impl RuntimeStats {
         self.tls_runtime_running.store(false, Ordering::Relaxed);
         self.tls_last_exit_unix_seconds
             .store(epoch_seconds(), Ordering::Relaxed);
-        *self
-            .tls_last_exit_message
+        self.inner
             .write()
-            .unwrap_or_else(|err| err.into_inner()) = message.to_string();
+            .unwrap_or_else(|err| err.into_inner())
+            .tls_last_exit_message = message.to_string();
     }
 
     pub fn observe_stream_listener_reload_success(&self, version: &str) {
@@ -247,9 +252,10 @@ impl RuntimeStats {
 
     pub fn observe_stream_runtime_started(&self) {
         self.stream_runtime_running.store(true, Ordering::Relaxed);
-        self.stream_last_exit_message
+        self.inner
             .write()
             .unwrap_or_else(|err| err.into_inner())
+            .stream_last_exit_message
             .clear();
     }
 
@@ -257,10 +263,10 @@ impl RuntimeStats {
         self.stream_runtime_running.store(false, Ordering::Relaxed);
         self.stream_last_exit_unix_seconds
             .store(epoch_seconds(), Ordering::Relaxed);
-        *self
-            .stream_last_exit_message
+        self.inner
             .write()
-            .unwrap_or_else(|err| err.into_inner()) = message.to_string();
+            .unwrap_or_else(|err| err.into_inner())
+            .stream_last_exit_message = message.to_string();
     }
 
     pub fn subscribe_apply_events(&self) -> RuntimeApplyEventReceiver {
@@ -268,11 +274,17 @@ impl RuntimeStats {
     }
 
     pub fn snapshot(&self) -> RuntimeStatsSnapshot {
+        let inner = self
+            .inner
+            .read()
+            .unwrap_or_else(|err| err.into_inner());
         RuntimeStatsSnapshot {
             http_listener_reload_failures: self
                 .http_listener_reload_failures
                 .load(Ordering::Relaxed),
-            tls_listener_reload_failures: self.tls_listener_reload_failures.load(Ordering::Relaxed),
+            tls_listener_reload_failures: self
+                .tls_listener_reload_failures
+                .load(Ordering::Relaxed),
             stream_listener_reload_failures: self
                 .stream_listener_reload_failures
                 .load(Ordering::Relaxed),
@@ -284,144 +296,40 @@ impl RuntimeStats {
             supervisor_last_exit_unix_seconds: self
                 .supervisor_last_exit_unix_seconds
                 .load(Ordering::Relaxed),
-            supervisor_last_shutdown_reason: self
-                .supervisor_last_shutdown_reason
-                .read()
-                .unwrap_or_else(|err| err.into_inner())
-                .clone(),
-            supervisor_last_exit_message: self
-                .supervisor_last_exit_message
-                .read()
-                .unwrap_or_else(|err| err.into_inner())
-                .clone(),
+            supervisor_last_shutdown_reason: inner.supervisor_last_shutdown_reason.clone(),
+            supervisor_last_exit_message: inner.supervisor_last_exit_message.clone(),
             http_runtime_running: self.http_runtime_running.load(Ordering::Relaxed),
             tls_runtime_running: self.tls_runtime_running.load(Ordering::Relaxed),
             http_last_exit_unix_seconds: self.http_last_exit_unix_seconds.load(Ordering::Relaxed),
             tls_last_exit_unix_seconds: self.tls_last_exit_unix_seconds.load(Ordering::Relaxed),
-            http_last_reload_attempt_version: self
-                .http_last_reload_attempt_version
-                .read()
-                .unwrap_or_else(|err| err.into_inner())
-                .clone(),
-            http_last_exit_message: self
-                .http_last_exit_message
-                .read()
-                .unwrap_or_else(|err| err.into_inner())
-                .clone(),
-            tls_last_reload_attempt_version: self
-                .tls_last_reload_attempt_version
-                .read()
-                .unwrap_or_else(|err| err.into_inner())
-                .clone(),
-            tls_last_exit_message: self
-                .tls_last_exit_message
-                .read()
-                .unwrap_or_else(|err| err.into_inner())
-                .clone(),
-            http_last_good_reload_version: self
-                .http_last_good_reload_version
-                .read()
-                .unwrap_or_else(|err| err.into_inner())
-                .clone(),
-            tls_last_good_reload_version: self
-                .tls_last_good_reload_version
-                .read()
-                .unwrap_or_else(|err| err.into_inner())
-                .clone(),
-            http_last_reload_failure_version: self
-                .http_last_reload_failure_version
-                .read()
-                .unwrap_or_else(|err| err.into_inner())
-                .clone(),
-            tls_last_reload_failure_version: self
-                .tls_last_reload_failure_version
-                .read()
-                .unwrap_or_else(|err| err.into_inner())
-                .clone(),
-            http_last_reload_failure_listener: self
-                .http_last_reload_failure_listener
-                .read()
-                .unwrap_or_else(|err| err.into_inner())
-                .clone(),
-            tls_last_reload_failure_listener: self
-                .tls_last_reload_failure_listener
-                .read()
-                .unwrap_or_else(|err| err.into_inner())
-                .clone(),
-            http_last_reload_failure_message: self
-                .http_last_reload_failure_message
-                .read()
-                .unwrap_or_else(|err| err.into_inner())
-                .clone(),
-            tls_last_reload_failure_message: self
-                .tls_last_reload_failure_message
-                .read()
-                .unwrap_or_else(|err| err.into_inner())
-                .clone(),
-            http_current_failures: self
-                .http_current_failures
-                .read()
-                .unwrap_or_else(|err| err.into_inner())
-                .clone(),
-            tls_current_failures: self
-                .tls_current_failures
-                .read()
-                .unwrap_or_else(|err| err.into_inner())
-                .clone(),
-            http_listener_progress: self
-                .http_listener_progress
-                .read()
-                .unwrap_or_else(|err| err.into_inner())
-                .clone(),
-            tls_listener_progress: self
-                .tls_listener_progress
-                .read()
-                .unwrap_or_else(|err| err.into_inner())
-                .clone(),
-            stream_last_reload_attempt_version: self
-                .stream_last_reload_attempt_version
-                .read()
-                .unwrap_or_else(|err| err.into_inner())
-                .clone(),
+            http_last_reload_attempt_version: inner.http_last_reload_attempt_version.clone(),
+            http_last_exit_message: inner.http_last_exit_message.clone(),
+            tls_last_reload_attempt_version: inner.tls_last_reload_attempt_version.clone(),
+            tls_last_exit_message: inner.tls_last_exit_message.clone(),
+            http_last_good_reload_version: inner.http_last_good_reload_version.clone(),
+            tls_last_good_reload_version: inner.tls_last_good_reload_version.clone(),
+            http_last_reload_failure_version: inner.http_last_reload_failure_version.clone(),
+            tls_last_reload_failure_version: inner.tls_last_reload_failure_version.clone(),
+            http_last_reload_failure_listener: inner.http_last_reload_failure_listener.clone(),
+            tls_last_reload_failure_listener: inner.tls_last_reload_failure_listener.clone(),
+            http_last_reload_failure_message: inner.http_last_reload_failure_message.clone(),
+            tls_last_reload_failure_message: inner.tls_last_reload_failure_message.clone(),
+            http_current_failures: inner.http_current_failures.clone(),
+            tls_current_failures: inner.tls_current_failures.clone(),
+            http_listener_progress: inner.http_listener_progress.clone(),
+            tls_listener_progress: inner.tls_listener_progress.clone(),
+            stream_last_reload_attempt_version: inner.stream_last_reload_attempt_version.clone(),
             stream_runtime_running: self.stream_runtime_running.load(Ordering::Relaxed),
             stream_last_exit_unix_seconds: self
                 .stream_last_exit_unix_seconds
                 .load(Ordering::Relaxed),
-            stream_last_exit_message: self
-                .stream_last_exit_message
-                .read()
-                .unwrap_or_else(|err| err.into_inner())
-                .clone(),
-            stream_last_good_reload_version: self
-                .stream_last_good_reload_version
-                .read()
-                .unwrap_or_else(|err| err.into_inner())
-                .clone(),
-            stream_last_reload_failure_version: self
-                .stream_last_reload_failure_version
-                .read()
-                .unwrap_or_else(|err| err.into_inner())
-                .clone(),
-            stream_last_reload_failure_listener: self
-                .stream_last_reload_failure_listener
-                .read()
-                .unwrap_or_else(|err| err.into_inner())
-                .clone(),
-            stream_last_reload_failure_message: self
-                .stream_last_reload_failure_message
-                .read()
-                .unwrap_or_else(|err| err.into_inner())
-                .clone(),
-            stream_current_failures: self
-                .stream_current_failures
-                .read()
-                .unwrap_or_else(|err| err.into_inner())
-                .clone(),
-            stream_listener_progress: self
-                .stream_listener_progress
-                .read()
-                .unwrap_or_else(|err| err.into_inner())
-                .clone(),
+            stream_last_exit_message: inner.stream_last_exit_message.clone(),
+            stream_last_good_reload_version: inner.stream_last_good_reload_version.clone(),
+            stream_last_reload_failure_version: inner.stream_last_reload_failure_version.clone(),
+            stream_last_reload_failure_listener: inner.stream_last_reload_failure_listener.clone(),
+            stream_last_reload_failure_message: inner.stream_last_reload_failure_message.clone(),
+            stream_current_failures: inner.stream_current_failures.clone(),
+            stream_listener_progress: inner.stream_listener_progress.clone(),
         }
     }
 }
@@ -442,34 +350,9 @@ impl Default for RuntimeStats {
             tls_runtime_running: AtomicBool::new(false),
             http_last_exit_unix_seconds: AtomicU64::new(0),
             tls_last_exit_unix_seconds: AtomicU64::new(0),
-            supervisor_last_shutdown_reason: RwLock::new(String::new()),
-            supervisor_last_exit_message: RwLock::new(String::new()),
-            http_last_reload_attempt_version: RwLock::new(String::new()),
-            http_last_exit_message: RwLock::new(String::new()),
-            tls_last_reload_attempt_version: RwLock::new(String::new()),
-            tls_last_exit_message: RwLock::new(String::new()),
-            http_last_good_reload_version: RwLock::new(String::new()),
-            tls_last_good_reload_version: RwLock::new(String::new()),
-            http_last_reload_failure_version: RwLock::new(String::new()),
-            tls_last_reload_failure_version: RwLock::new(String::new()),
-            http_last_reload_failure_listener: RwLock::new(String::new()),
-            tls_last_reload_failure_listener: RwLock::new(String::new()),
-            http_last_reload_failure_message: RwLock::new(String::new()),
-            tls_last_reload_failure_message: RwLock::new(String::new()),
-            http_current_failures: RwLock::new(Vec::new()),
-            tls_current_failures: RwLock::new(Vec::new()),
-            http_listener_progress: RwLock::new(BTreeMap::new()),
-            tls_listener_progress: RwLock::new(BTreeMap::new()),
-            stream_last_reload_attempt_version: RwLock::new(String::new()),
             stream_runtime_running: AtomicBool::new(false),
             stream_last_exit_unix_seconds: AtomicU64::new(0),
-            stream_last_exit_message: RwLock::new(String::new()),
-            stream_last_good_reload_version: RwLock::new(String::new()),
-            stream_last_reload_failure_version: RwLock::new(String::new()),
-            stream_last_reload_failure_listener: RwLock::new(String::new()),
-            stream_last_reload_failure_message: RwLock::new(String::new()),
-            stream_current_failures: RwLock::new(Vec::new()),
-            stream_listener_progress: RwLock::new(BTreeMap::new()),
+            inner: RwLock::new(RuntimeStatsInner::default()),
             apply_event_tx,
         }
     }

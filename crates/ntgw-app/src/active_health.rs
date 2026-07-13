@@ -1,4 +1,3 @@
-use std::sync::Arc;
 use std::time::Duration;
 
 use ntgw_ir::{BackendEndpoint, SharedSnapshot, Snapshot};
@@ -104,9 +103,8 @@ async fn run(
         }
 
         let unhealthy_threshold = current.unhealthy_threshold;
-        let mut current_snapshot = Snapshot::clone(&snapshot.load());
-        apply_probe_results(&mut current_snapshot, &results, unhealthy_threshold);
-        snapshot.store(Arc::new(current_snapshot));
+        let current = snapshot.load();
+        apply_probe_results(&current, &results, unhealthy_threshold);
     }
 }
 
@@ -151,7 +149,7 @@ pub(crate) async fn probe_target_once(target: &ProbeTarget, probe_timeout: Durat
 }
 
 pub(crate) fn apply_probe_results(
-    snapshot: &mut Snapshot,
+    snapshot: &Snapshot,
     results: &[ProbeResult],
     unhealthy_threshold: u32,
 ) {

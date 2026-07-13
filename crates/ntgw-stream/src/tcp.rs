@@ -144,11 +144,13 @@ async fn handle_connection(
         .as_ref()
         .and_then(|_| downstream.peer_addr().ok());
     downstream.set_nodelay(true)?;
-    let upstream_addr = socket_addr(&selected.backend.address, selected.backend.port);
+    let backend_addr = selected.backend.address.clone();
+    let backend_port = selected.backend.port as u16;
+    let upstream_addr = socket_addr(&backend_addr, selected.backend.port);
     let connect_started = std::time::Instant::now();
     let _connect_latency_ms;
     let (upstream_result_from_pool, pool_counters_from_connect) = pool
-        .get_connection(&selected.backend.address, selected.backend.port as u16)
+        .get_connection(backend_addr.clone(), backend_port)
         .await;
     let pool_counters = pool_counters_from_connect;
     let mut upstream = match upstream_result_from_pool {
@@ -215,8 +217,8 @@ async fn handle_connection(
             };
             if is_alive {
                 pool.return_connection(
-                    &selected.backend.address,
-                    selected.backend.port as u16,
+                    backend_addr,
+                    backend_port,
                     upstream_reunited,
                 );
             }
