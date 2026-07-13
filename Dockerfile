@@ -1,3 +1,6 @@
+# NOTE: For production deployments, pin base images to a digest (e.g., debian:bookworm-slim@sha256:...)
+# The ARG defaults below allow CI to override, but pinned digests prevent supply-chain attacks.
+# Use Renovate/Dependabot to auto-update digest references in CI.
 ARG RUST_IMAGE=docker.io/library/rust:1.96-bookworm
 ARG RUNTIME_IMAGE=docker.io/library/debian:bookworm-slim
 
