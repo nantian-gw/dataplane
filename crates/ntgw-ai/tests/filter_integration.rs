@@ -20,11 +20,11 @@ fn test_filter() -> (AIGatewayFilter, Registry) {
 fn gather_metric_value(registry: &Registry, name: &str, labels: &[(&str, &str)]) -> f64 {
     let families = registry.gather();
     for family in &families {
-        if family.get_name() == name {
+        if family.name() == name {
             for m in family.get_metric() {
                 if labels_match(m.get_label(), labels) {
                     if family.get_field_type() == prometheus::proto::MetricType::COUNTER {
-                        return m.get_counter().get_value();
+                        return m.get_counter().value();
                     }
                 }
             }
@@ -40,7 +40,7 @@ fn labels_match(got: &[prometheus::proto::LabelPair], want: &[(&str, &str)]) -> 
     for w in want {
         if !got
             .iter()
-            .any(|lp| lp.get_name() == w.0 && lp.get_value() == w.1)
+            .any(|lp| lp.name() == w.0 && lp.value() == w.1)
         {
             return false;
         }

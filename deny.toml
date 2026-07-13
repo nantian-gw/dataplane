@@ -1,8 +1,27 @@
 [advisories]
+# Direct dependencies have been upgraded where possible (prometheus 0.13→0.14,
+# jsonwebtoken 9→10). Remaining advisories are transitive dependencies of
+# pingora-core 0.8.1 (latest) or have no safe upgrade available.
 ignore = [
+    # RUSTSEC-2024-0437: protobuf 2.28.0 crash via uncontrolled recursion.
+    # Transitive: pingora-core 0.8.1→prometheus 0.13.4→protobuf 2.28.0.
+    # Our direct deps use prometheus 0.14.0 (protobuf 3.7.2, safe).
+    # Cannot resolve until pingora-core upgrades its prometheus dependency.
     "RUSTSEC-2024-0437",
+
+    # RUSTSEC-2024-0388: derivative 2.2.0 is unmaintained.
+    # Transitive: pingora-core 0.8.1→derivative 2.2.0.
+    # No safe upgrade available; requires pingora-core to migrate away.
     "RUSTSEC-2024-0388",
+
+    # RUSTSEC-2025-0069: daemonize 0.5.0 is unmaintained (since Jun 2023).
+    # Transitive: pingora-core 0.8.1→daemonize 0.5.0.
+    # No safe upgrade available; requires pingora-core to replace daemonize.
     "RUSTSEC-2025-0069",
+
+    # RUSTSEC-2023-0071: rsa 0.9.10 — Marvin Attack timing side-channel.
+    # Dev-only dependency of ntgw-http (used in tests only, not in production).
+    # No safe upgrade available; RustCrypto/RSA is working on constant-time impl.
     "RUSTSEC-2023-0071",
 ]
 
