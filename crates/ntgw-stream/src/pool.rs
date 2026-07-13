@@ -1,3 +1,4 @@
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -11,10 +12,28 @@ const MAX_CONNECTION_COUNT: usize = 32_768;
 
 type PoolKey = (String, u16);
 
+/// Snapshot of cumulative connection pool counters at a point in time.
+#[derive(Debug, Clone, Copy, Default)]
+pub(crate) struct PoolCountersSnapshot {
+    /// Connections currently held by callers (not in idle pool).
+    pub active_connections: u64,
+    /// Connections currently sitting idle in the pool.
+    pub idle_connections: u64,
+    /// Cumulative number of successful pool reuses.
+    pub connection_hits: u64,
+    /// Cumulative number of new connections created (pool misses).
+    pub connection_misses: u64,
+}
+
 pub(crate) struct TcpConnectionPool {
     idle: Arc<DashMap<PoolKey, Vec<IdleConnection>>>,
     pub(super) max_idle_per_backend: usize,
     idle_timeout: Duration,
+    /// Cumulative pool-level counters (best-effort, relaxed ordering).
+    active_connections: AtomicU64,
+    idle_connections: AtomicU64,
+    connection_hits: AtomicU64,
+    connection_misses: AtomicU64,
 }
 
 struct IdleConnection {
@@ -29,6 +48,10 @@ impl TcpConnectionPool {
             idle: Arc::new(DashMap::new()),
             max_idle_per_backend,
             idle_timeout,
+            active_connections: AtomicU64::new(0),
+            idle_connections: AtomicU64::new(0),
+            connection_hits: AtomicU64::new(0),
+            connection_misses: AtomicU64::new(0),
         }
     }
 
@@ -57,7 +80,10 @@ impl TcpConnectionPool {
                     break;
                 };
                 match entry.pop() {
-                    Some(idle) => idle,
+                    Some(idle) => {
+                        self.idle_connections.fetch_sub(1, Ordering::Relaxed);
+                        idle
+                    }
                     None => break,
                 }
             };
@@ -79,6 +105,8 @@ impl TcpConnectionPool {
                 }
                 Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
                     debug!(backend = ?key, "pool hit");
+                    self.connection_hits.fetch_add(1, Ordering::Relaxed);
+                    self.active_connections.fetch_add(1, Ordering::Relaxed);
                     return (Ok(idle.stream), StreamPoolCounters { hits: 1, misses: 0 });
                 }
                 Err(_) => {
@@ -89,11 +117,16 @@ impl TcpConnectionPool {
         }
 
         debug!(backend = ?key, "pool miss");
+        self.connection_misses.fetch_add(1, Ordering::Relaxed);
         let conn = TcpStream::connect((key.0.as_str(), port)).await;
+        if conn.is_ok() {
+            self.active_connections.fetch_add(1, Ordering::Relaxed);
+        }
         (conn, StreamPoolCounters { hits: 0, misses: 1 })
     }
 
     pub(crate) fn return_connection(&self, addr: String, port: u16, stream: TcpStream) {
+        self.active_connections.fetch_sub(1, Ordering::Relaxed);
         if !self.is_enabled() {
             return;
         }
@@ -110,6 +143,7 @@ impl TcpConnectionPool {
             return;
         }
 
+        self.idle_connections.fetch_add(1, Ordering::Relaxed);
         entry.push(IdleConnection {
             stream,
             since: Instant::now(),
@@ -125,7 +159,17 @@ impl TcpConnectionPool {
     pub(crate) fn drain(&self) {
         let count = self.idle.len();
         self.idle.clear();
+        self.idle_connections.store(0, Ordering::Relaxed);
         debug!(count, "pool drained");
+    }
+
+    pub(crate) fn counter_snapshot(&self) -> PoolCountersSnapshot {
+        PoolCountersSnapshot {
+            active_connections: self.active_connections.load(Ordering::Relaxed),
+            idle_connections: self.idle_connections.load(Ordering::Relaxed),
+            connection_hits: self.connection_hits.load(Ordering::Relaxed),
+            connection_misses: self.connection_misses.load(Ordering::Relaxed),
+        }
     }
 
     #[cfg(test)]
@@ -184,5 +228,94 @@ mod tests {
         assert!(conn2.is_ok());
         assert_eq!(c2.hits, 1);
         assert_eq!(c2.misses, 0);
+    }
+
+    #[test]
+    fn cumulative_counters_track_hits_misses_and_active_idle() {
+        let pool = TcpConnectionPool::new(10, Duration::from_secs(30));
+
+        let snap = pool.counter_snapshot();
+        assert_eq!(snap.active_connections, 0);
+        assert_eq!(snap.idle_connections, 0);
+        assert_eq!(snap.connection_hits, 0);
+        assert_eq!(snap.connection_misses, 0);
+    }
+
+    #[tokio::test]
+    async fn counters_track_miss_and_active() {
+        let (ip, port) = echo_server().await;
+        let pool = TcpConnectionPool::new(10, Duration::from_secs(30));
+
+        let (result, _) = pool.get_connection(ip.clone(), port).await;
+        assert!(result.is_ok());
+
+        let snap = pool.counter_snapshot();
+        assert_eq!(snap.connection_misses, 1);
+        assert_eq!(snap.connection_hits, 0);
+        assert_eq!(snap.active_connections, 1);
+        assert_eq!(snap.idle_connections, 0);
+    }
+
+    #[tokio::test]
+    async fn counters_track_hit_and_active_idle_transitions() {
+        let (ip, port) = echo_server().await;
+        let pool = TcpConnectionPool::new(10, Duration::from_secs(30));
+
+        // First connection: miss, becomes active
+        let (conn1, _) = pool.get_connection(ip.clone(), port).await;
+        assert!(conn1.is_ok());
+
+        let snap = pool.counter_snapshot();
+        assert_eq!(snap.connection_misses, 1);
+        assert_eq!(snap.active_connections, 1);
+
+        // Return to pool: active→idle
+        pool.return_connection(ip.clone(), port, conn1.unwrap());
+
+        let snap = pool.counter_snapshot();
+        assert_eq!(snap.active_connections, 0);
+        assert_eq!(snap.idle_connections, 1);
+        assert_eq!(snap.connection_hits, 0);
+
+        // Second connection: hit, idle→active
+        let (conn2, c2) = pool.get_connection(ip.clone(), port).await;
+        assert!(conn2.is_ok());
+        assert_eq!(c2.hits, 1);
+
+        let snap = pool.counter_snapshot();
+        assert_eq!(snap.connection_hits, 1);
+        assert_eq!(snap.connection_misses, 1);
+        assert_eq!(snap.active_connections, 1);
+        assert_eq!(snap.idle_connections, 0);
+
+        drop(conn2);
+    }
+
+    #[test]
+    fn drain_resets_idle_counters() {
+        let pool = TcpConnectionPool::new(10, Duration::from_secs(30));
+        pool.drain();
+
+        let snap = pool.counter_snapshot();
+        assert_eq!(snap.idle_connections, 0);
+        assert_eq!(snap.active_connections, 0);
+    }
+
+    #[tokio::test]
+    async fn counter_snapshot_is_clone_send() {
+        let (ip, port) = echo_server().await;
+        let pool = TcpConnectionPool::new(10, Duration::from_secs(30));
+
+        let (result, _) = pool.get_connection(ip.clone(), port).await;
+        assert!(result.is_ok());
+
+        let snap = pool.counter_snapshot();
+        let snap2 = snap;
+        assert_eq!(snap2.connection_misses, snap.connection_misses);
+
+        let handle = tokio::spawn(async move {
+            let _ = snap;
+        });
+        handle.await.unwrap();
     }
 }
