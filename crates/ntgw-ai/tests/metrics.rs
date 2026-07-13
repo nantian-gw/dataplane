@@ -37,10 +37,7 @@ fn labels_match(got: &[prometheus::proto::LabelPair], want: &[(&str, &str)]) -> 
         return false;
     }
     for w in want {
-        if !got
-            .iter()
-            .any(|lp| lp.name() == w.0 && lp.value() == w.1)
-        {
+        if !got.iter().any(|lp| lp.name() == w.0 && lp.value() == w.1) {
             return false;
         }
     }
