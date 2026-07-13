@@ -1,24 +1,21 @@
+mod cache;
+mod cors;
+mod jwt;
+mod redirect;
+
 use bytes::Bytes;
-use ntgw_ir::{JwtAuthFilter, SessionPersistence};
+use ntgw_ir::SessionPersistence;
 use ntgw_wasm::WasmError;
-use pingora::http::RequestHeader;
 use pingora::prelude::Session;
-use pingora_cache::HitStatus;
 use std::collections::HashMap;
-use std::sync::{Arc, LazyLock, Mutex};
 
 use super::*;
 
 use crate::extensions::direct_response_filter;
-use crate::filters::jwt::{JwtError, JwtValidator};
 use crate::filters::{
-    apply_response_filters, build_cors_preflight_response, build_redirect_location,
-    build_redirect_response, ensure_supported_filters, jwt_auth_filter, request_redirect_filter,
+    apply_response_filters, ensure_supported_filters,
 };
 use crate::mirror::{selected_backend_from_subrequest, spawn_request_mirrors};
-
-static JWT_VALIDATORS: LazyLock<Mutex<HashMap<String, Arc<JwtValidator>>>> =
-    LazyLock::new(|| Mutex::new(HashMap::new()));
 pub(crate) async fn do_request_filter(
     proxy: &GatewayProxy,
     session: &mut Session,
@@ -475,29 +472,7 @@ pub(crate) async fn do_request_filter(
         &proxy.access_log,
         &route.route_annotations,
     );
-    if let Some(response) = match build_cors_preflight_response(
-        &route.filters,
-        &filter_request.method,
-        &filter_request.headers,
-    ) {
-        Ok(response) => response,
-        Err(err) => {
-            cache_selected_http_route_context(ctx, &proxy.access_log, &route);
-            return Err(err);
-        }
-    } {
-        cache_selected_http_route_context(ctx, &proxy.access_log, &route);
-        ctx.status = response.status.as_u16();
-        record_request_span(ctx);
-        write_response_header_with_access_log_capture(
-            session,
-            response,
-            true,
-            ctx,
-            &proxy.access_log,
-            &route.route_annotations,
-        )
-        .await?;
+    if cors::handle_cors_preflight(proxy, session, ctx, &route, filter_request).await? {
         return Ok(true);
     }
     if let Some(direct_response) = direct_response_filter(&route.filters) {
@@ -517,91 +492,12 @@ pub(crate) async fn do_request_filter(
         return Ok(true);
     }
 
-    if let Some(redirect) = request_redirect_filter(&route.filters) {
-        cache_selected_http_route_context(ctx, &proxy.access_log, &route);
-        let location =
-            build_redirect_location(session, &request, &route.matched_http_path, redirect);
-        let mut response = build_redirect_response(redirect.status_code, &location)?;
-        apply_response_filters(
-            &mut response,
-            &route.filters,
-            Some(&filter_request.method),
-            Some(&filter_request.headers),
-        )?;
-        write_response_header_with_access_log_capture(
-            session,
-            response,
-            true,
-            ctx,
-            &proxy.access_log,
-            &route.route_annotations,
-        )
-        .await?;
-        ctx.status = redirect.status_code;
+    if redirect::handle_redirect(proxy, session, ctx, &route, &request, filter_request).await? {
         return Ok(true);
     }
 
-    if let Some(jwt_auth) = jwt_auth_filter(&route.filters) {
-        let token = extract_bearer_token(session.req_header(), jwt_auth);
-        let token = match token {
-            Some(t) => t,
-            None => {
-                cache_selected_http_route_context(ctx, &proxy.access_log, &route);
-                ctx.status = 401;
-                assign_ctx_string(&mut ctx.response_flags, "JWT");
-                record_request_span(ctx);
-                session
-                    .write_response_body(Some(Bytes::from("missing JWT token")), false)
-                    .await?;
-                return Ok(true);
-            }
-        };
-
-        let validator = match get_or_create_validator(jwt_auth) {
-            Ok(v) => v,
-            Err(e) => {
-                ctx.status = 500;
-                assign_ctx_string(&mut ctx.response_flags, "JWT");
-                record_request_span(ctx);
-                session
-                    .write_response_body(
-                        Some(Bytes::from(format!("JWT validator error: {e}"))),
-                        false,
-                    )
-                    .await?;
-                return Ok(true);
-            }
-        };
-        match validator
-            .validate(&token, &jwt_auth.claims_to_headers)
-            .await
-        {
-            Ok(claims) => {
-                let req_header = session.req_header_mut();
-                for (header_name, header_value) in claims {
-                    let _ = req_header.insert_header(header_name, header_value);
-                }
-            }
-            Err(JwtError::Expired) => {
-                cache_selected_http_route_context(ctx, &proxy.access_log, &route);
-                ctx.status = 401;
-                assign_ctx_string(&mut ctx.response_flags, "JWT");
-                record_request_span(ctx);
-                session
-                    .write_response_body(Some(Bytes::from("JWT token expired")), false)
-                    .await?;
-                return Ok(true);
-            }
-            Err(e) => {
-                cache_selected_http_route_context(ctx, &proxy.access_log, &route);
-                ctx.status = 401;
-                assign_ctx_string(&mut ctx.response_flags, "JWT");
-                record_request_span(ctx);
-                let body = Bytes::from(format!("JWT validation failed: {e}"));
-                session.write_response_body(Some(body), false).await?;
-                return Ok(true);
-            }
-        }
+    if jwt::handle_jwt_auth(proxy, session, ctx, &route).await? {
+        return Ok(true);
     }
 
     if let Some(auth) = external_auth_filter(&route.filters) {
@@ -855,11 +751,12 @@ pub(super) fn ai_request_body_limit_exceeded(
     chunk_len: usize,
     limit: usize,
 ) -> bool {
-    limit > 0 && current_len.saturating_add(chunk_len) > limit
+    cache::ai_request_body_limit_exceeded(current_len, chunk_len, limit)
 }
 
+#[allow(dead_code)]
 pub(super) fn cache_lookup_method_allowed(method: &str) -> bool {
-    method.eq_ignore_ascii_case("GET") || method.eq_ignore_ascii_case("HEAD")
+    cache::cache_lookup_method_allowed(method)
 }
 
 fn cache_fast_path_access_log_fields(
@@ -867,23 +764,7 @@ fn cache_fast_path_access_log_fields(
     session: &Session,
     ctx: &mut RequestContext,
 ) {
-    if !proxy.access_log.enabled {
-        return;
-    }
-
-    let route_access_log_annotations = super::request::access_log_route_annotations(ctx).clone();
-    super::request::cache_access_log_connection_fields_if_needed(
-        session,
-        ctx,
-        &proxy.access_log,
-        &route_access_log_annotations,
-    );
-    super::request::cache_access_log_request_headers_from_header_if_needed(
-        ctx,
-        session.req_header(),
-        &proxy.access_log,
-        &route_access_log_annotations,
-    );
+    cache::cache_fast_path_access_log_fields(proxy, session, ctx)
 }
 
 async fn try_cache_hit(
@@ -895,95 +776,5 @@ async fn try_cache_hit(
     host: &str,
     path: &str,
 ) -> pingora::Result<bool> {
-    if !proxy.cache.enabled {
-        return Ok(false);
-    }
-
-    if !cache_lookup_method_allowed(&ctx.method) {
-        return Ok(false);
-    }
-
-    if !CacheManager::is_request_cacheable(session.req_header()) {
-        return Ok(false);
-    }
-
-    let mut http_cache = proxy.cache.create_cache();
-    let key = proxy
-        .cache
-        .generate_key(route_namespace, route_name, host, path);
-    http_cache.set_cache_key(key);
-
-    let lookup_result = http_cache.cache_lookup().await.unwrap_or(None);
-    match lookup_result {
-        Some((meta, hit_handler)) => {
-            let cached_header = meta.response_header_copy();
-            http_cache.cache_found(meta, hit_handler, HitStatus::Fresh);
-
-            let status = cached_header.status.as_u16();
-            let route_access_log_annotations =
-                super::request::access_log_route_annotations(ctx).clone();
-            write_response_header_with_access_log_capture(
-                session,
-                cached_header,
-                false,
-                ctx,
-                &proxy.access_log,
-                &route_access_log_annotations,
-            )
-            .await?;
-
-            {
-                let body_reader = http_cache.hit_handler();
-                loop {
-                    match body_reader.read_body().await {
-                        Ok(Some(chunk)) => {
-                            session.write_response_body(Some(chunk), false).await?;
-                        }
-                        Ok(None) => {
-                            session.write_response_body(None, true).await?;
-                            break;
-                        }
-                        Err(_) => {
-                            session.write_response_body(None, true).await?;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            http_cache.finish_hit_handler().await.ok();
-            ctx.status = status;
-            record_request_span(ctx);
-            Ok(true)
-        }
-        None => {
-            http_cache.cache_miss();
-            ctx.http_cache.0 = Some(http_cache);
-            Ok(false)
-        }
-    }
-}
-
-fn extract_bearer_token(request: &RequestHeader, jwt_auth: &JwtAuthFilter) -> Option<String> {
-    let header_value = request.headers.get(&jwt_auth.header_name)?.to_str().ok()?;
-
-    if header_value.starts_with(&jwt_auth.token_prefix) {
-        Some(header_value[jwt_auth.token_prefix.len()..].to_string())
-    } else {
-        None
-    }
-}
-
-fn get_or_create_validator(jwt_auth: &JwtAuthFilter) -> Result<Arc<JwtValidator>, String> {
-    let mut validators = JWT_VALIDATORS
-        .lock()
-        .map_err(|_| "JWT_VALIDATORS lock poisoned".to_string())?;
-    if let Some(validator) = validators.get(&jwt_auth.jwks_url) {
-        return Ok(Arc::clone(validator));
-    }
-    let validator = Arc::new(
-        JwtValidator::new(jwt_auth).map_err(|e| format!("failed to create JWT validator: {e}"))?,
-    );
-    validators.insert(jwt_auth.jwks_url.clone(), Arc::clone(&validator));
-    Ok(validator)
+    cache::try_cache_hit(proxy, session, ctx, route_namespace, route_name, host, path).await
 }
