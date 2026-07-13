@@ -12,7 +12,7 @@ use tokio::{
     task::JoinHandle,
     time::{MissedTickBehavior, interval},
 };
-use tracing::{info, warn};
+use tracing::{error, info, warn};
 
 use ntgw_config::{DataPlaneConfig, ReloadingDataPlaneConfig};
 use ntgw_http::SessionPersistenceOptions;
@@ -148,11 +148,21 @@ pub(crate) fn apply_config_snapshot(snapshot: ConfigSnapshot, targets: &ReloadTa
         .retry_budget
         .write()
         .unwrap_or_else(|err| err.into_inner()) = RetryBudgetController::new(snapshot.retry_budget);
-    let _ = targets.http.send(Arc::new(snapshot.http));
-    let _ = targets.shared_tls.send(Arc::new(snapshot.shared_tls));
-    let _ = targets.stream.send(Arc::new(snapshot.stream));
-    let _ = targets.xds.send(Arc::new(snapshot.xds));
-    let _ = targets.active_health.send(Arc::new(snapshot.active_health));
+    if targets.http.send(Arc::new(snapshot.http)).is_err() {
+        error!("http runtime not receiving config reloads");
+    }
+    if targets.shared_tls.send(Arc::new(snapshot.shared_tls)).is_err() {
+        error!("shared-tls runtime not receiving config reloads");
+    }
+    if targets.stream.send(Arc::new(snapshot.stream)).is_err() {
+        error!("stream runtime not receiving config reloads");
+    }
+    if targets.xds.send(Arc::new(snapshot.xds)).is_err() {
+        error!("xds runtime not receiving config reloads");
+    }
+    if targets.active_health.send(Arc::new(snapshot.active_health)).is_err() {
+        error!("active health runtime not receiving config reloads");
+    }
 }
 
 pub(crate) fn spawn_config_reload_loop(

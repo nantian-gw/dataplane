@@ -13,6 +13,7 @@ use std::{
 
 use anyhow::{Result, anyhow};
 use parking_lot::Mutex;
+use tracing::error;
 use tracing::warn;
 
 use super::{AccessLogWriterSnapshot, FlushSyncSender};
@@ -294,7 +295,7 @@ fn run_access_log_worker(
                     Err(err) => {
                         worker_stats.record_sink_error();
                         if recover_access_log_target(&worker_path, &mut writer, &line).is_err() {
-                            eprintln!("failed to emit access log to {worker_path}: {err}");
+                            error!(%worker_path, %err, "failed to emit access log");
                             false
                         } else {
                             true

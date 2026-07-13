@@ -44,6 +44,9 @@ RUN apt-get update \
 
 COPY --from=builder /src/dataplane/target/release/ntgw-app /usr/local/bin/ntgw-app
 
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:19080/health || exit 1
+
 USER 65532
 
 ENTRYPOINT ["/usr/local/bin/ntgw-app"]

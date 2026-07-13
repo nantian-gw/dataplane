@@ -348,13 +348,27 @@ async fn main() -> Result<()> {
     .await;
 
     signal_task.abort();
-    let _ = admin_task.await;
-    let _ = shared_tls_task.await;
-    let _ = stream_task.await;
-    let _ = xds_task.await;
-    let _ = active_health_task.await;
-    let _ = config_reload_task.await;
-    let _ = http_join.await;
+    if let Err(e) = admin_task.await {
+        error!(%e, "admin task panicked during shutdown");
+    }
+    if let Err(e) = shared_tls_task.await {
+        error!(%e, "shared-tls task panicked during shutdown");
+    }
+    if let Err(e) = stream_task.await {
+        error!(%e, "stream task panicked during shutdown");
+    }
+    if let Err(e) = xds_task.await {
+        error!(%e, "xds task panicked during shutdown");
+    }
+    if let Err(e) = active_health_task.await {
+        error!(%e, "active health task panicked during shutdown");
+    }
+    if let Err(e) = config_reload_task.await {
+        error!(%e, "config reload task panicked during shutdown");
+    }
+    if let Err(e) = http_join.await {
+        error!(%e, "http task panicked during shutdown");
+    }
 
     let shutdown_message = if shutdown_cause.graceful {
         "graceful shutdown complete".to_string()
