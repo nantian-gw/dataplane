@@ -2,9 +2,8 @@ use crate::filters::build_cors_preflight_response;
 use pingora::prelude::Session;
 
 use super::super::{
-    cache_selected_http_route_context, record_request_span,
-    write_response_header_with_access_log_capture, GatewayProxy, RequestContext,
-    SelectedHttpRoute,
+    GatewayProxy, RequestContext, SelectedHttpRoute, cache_selected_http_route_context,
+    record_request_span, write_response_header_with_access_log_capture,
 };
 
 /// Handles CORS preflight requests for a selected HTTP route.

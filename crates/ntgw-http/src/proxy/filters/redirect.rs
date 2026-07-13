@@ -5,9 +5,8 @@ use crate::filters::{
 use pingora::prelude::Session;
 
 use super::super::{
-    cache_selected_http_route_context,
-    write_response_header_with_access_log_capture, GatewayProxy, RequestContext,
-    SelectedHttpRoute,
+    GatewayProxy, RequestContext, SelectedHttpRoute, cache_selected_http_route_context,
+    write_response_header_with_access_log_capture,
 };
 
 /// Handles request redirect filter for a selected HTTP route.
@@ -26,8 +25,7 @@ pub(super) async fn handle_redirect(
     };
 
     cache_selected_http_route_context(ctx, &proxy.access_log, route);
-    let location =
-        build_redirect_location(session, request, &route.matched_http_path, redirect);
+    let location = build_redirect_location(session, request, &route.matched_http_path, redirect);
     let mut response = build_redirect_response(redirect.status_code, &location)?;
     apply_response_filters(
         &mut response,

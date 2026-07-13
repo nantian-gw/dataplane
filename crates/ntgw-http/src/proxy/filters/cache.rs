@@ -4,8 +4,8 @@ use pingora_cache::HitStatus;
 use crate::cache::CacheManager;
 
 use super::super::{
-    record_request_span,
-    write_response_header_with_access_log_capture, GatewayProxy, RequestContext,
+    GatewayProxy, RequestContext, record_request_span,
+    write_response_header_with_access_log_capture,
 };
 
 pub(super) fn ai_request_body_limit_exceeded(
@@ -29,7 +29,8 @@ pub(super) fn cache_fast_path_access_log_fields(
         return;
     }
 
-    let route_access_log_annotations = super::super::request::access_log_route_annotations(ctx).clone();
+    let route_access_log_annotations =
+        super::super::request::access_log_route_annotations(ctx).clone();
     super::super::request::cache_access_log_connection_fields_if_needed(
         session,
         ctx,

@@ -6,15 +6,16 @@ use std::sync::{Arc, LazyLock, Mutex};
 use crate::filters::jwt::{JwtError, JwtValidator};
 
 use super::super::{
-    assign_ctx_string, cache_selected_http_route_context, record_request_span,
-    SelectedHttpRoute,
+    SelectedHttpRoute, assign_ctx_string, cache_selected_http_route_context, record_request_span,
 };
 use crate::filters::jwt_auth_filter;
 
 static JWT_VALIDATORS: LazyLock<Mutex<HashMap<String, Arc<JwtValidator>>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));
 
-pub(super) fn get_or_create_validator(jwt_auth: &JwtAuthFilter) -> Result<Arc<JwtValidator>, String> {
+pub(super) fn get_or_create_validator(
+    jwt_auth: &JwtAuthFilter,
+) -> Result<Arc<JwtValidator>, String> {
     let mut validators = JWT_VALIDATORS
         .lock()
         .map_err(|_| "JWT_VALIDATORS lock poisoned".to_string())?;
@@ -38,8 +39,8 @@ fn extract_bearer_token(request: &RequestHeader, jwt_auth: &JwtAuthFilter) -> Op
     }
 }
 
-use std::collections::HashMap;
 use pingora::prelude::Session;
+use std::collections::HashMap;
 
 use super::super::{GatewayProxy, RequestContext};
 
