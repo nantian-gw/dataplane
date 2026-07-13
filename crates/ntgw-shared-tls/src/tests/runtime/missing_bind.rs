@@ -82,13 +82,13 @@ async fn shared_tls_runtime_marks_version_applied_when_https_listener_has_no_bin
         runtime_stats.clone(),
         SharedTrafficStats::shared(),
         ntgw_observability::OverloadStats::shared(),
-        Arc::new(std::sync::RwLock::new(HttpCircuitBreakerController::new(
+        Arc::new(parking_lot::RwLock::new(HttpCircuitBreakerController::new(
             Default::default(),
         ))),
-        Arc::new(std::sync::RwLock::new(HttpRateLimitController::new(
+        Arc::new(parking_lot::RwLock::new(HttpRateLimitController::new(
             Default::default(),
         ))),
-        Arc::new(std::sync::RwLock::new(RetryBudgetController::new(
+        Arc::new(parking_lot::RwLock::new(RetryBudgetController::new(
             Default::default(),
         ))),
         Some(stage_recorder),

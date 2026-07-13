@@ -4,7 +4,7 @@ use ntgw_ir::{ClaimToHeader, JwtAuthFilter};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fmt;
-use std::sync::RwLock;
+use parking_lot::RwLock;
 use std::time::{Duration, Instant};
 
 #[derive(Debug)]
@@ -81,17 +81,11 @@ impl JwtValidator {
     }
 
     fn needs_refresh(&self) -> bool {
-        match self.cache.read() {
-            Ok(cache) => cache.fetched_at.elapsed() >= self.cache_ttl,
-            Err(_) => true,
-        }
+        self.cache.read().fetched_at.elapsed() >= self.cache_ttl
     }
 
     fn get_key(&self, kid: &str) -> Result<Option<DecodingKey>, JwtError> {
-        match self.cache.read() {
-            Ok(cache) => Ok(cache.keys.get(kid).cloned()),
-            Err(_) => Err(JwtError::JwksFetchFailed("cache lock poisoned".to_string())),
-        }
+        Ok(self.cache.read().keys.get(kid).cloned())
     }
 
     async fn get_key_with_refresh(&self, kid: &str) -> Result<DecodingKey, JwtError> {
@@ -206,14 +200,10 @@ impl JwtValidator {
             ));
         }
 
-        match self.cache.write() {
-            Ok(mut cache) => {
-                cache.keys = keys;
-                cache.fetched_at = Instant::now();
-                Ok(())
-            }
-            Err(_) => Err(JwtError::JwksFetchFailed("cache lock poisoned".to_string())),
-        }
+        let mut cache = self.cache.write();
+        cache.keys = keys;
+        cache.fetched_at = Instant::now();
+        Ok(())
     }
 }
 

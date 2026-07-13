@@ -1,6 +1,7 @@
+use parking_lot::RwLock;
 use std::{
     path::PathBuf,
-    sync::{Arc, RwLock},
+    sync::Arc,
     time::Duration,
 };
 
@@ -32,7 +33,6 @@ impl AdminAuth {
         let config = self
             .config
             .read()
-            .unwrap_or_else(|err| err.into_inner())
             .clone();
 
         let bearer_token_file = config

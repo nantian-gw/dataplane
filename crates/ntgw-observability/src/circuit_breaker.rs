@@ -1,6 +1,7 @@
+use parking_lot::RwLock;
 use std::{
     collections::{BTreeMap, HashMap},
-    sync::{Arc, RwLock},
+    sync::Arc,
 };
 
 use tokio::sync::{OwnedSemaphorePermit, Semaphore};
@@ -127,7 +128,6 @@ impl HttpCircuitBreakerController {
     fn backend_limit_for(&self, backend: &str) -> usize {
         self.per_backend_limits
             .read()
-            .unwrap_or_else(|err| err.into_inner())
             .get(backend)
             .copied()
             .unwrap_or(self.backend_limit)
@@ -136,15 +136,13 @@ impl HttpCircuitBreakerController {
     pub fn set_backend_limit(&self, backend: &str, limit: usize) {
         self.per_backend_limits
             .write()
-            .unwrap_or_else(|err| err.into_inner())
             .insert(backend.to_string(), limit);
     }
 
     pub fn set_per_backend_limits(&self, limits: HashMap<String, usize>) {
         *self
             .per_backend_limits
-            .write()
-            .unwrap_or_else(|err| err.into_inner()) = limits;
+            .write() = limits;
     }
 
     pub fn snapshot(&self) -> HttpCircuitBreakerSnapshot {
@@ -156,22 +154,21 @@ impl HttpCircuitBreakerStats {
     fn snapshot(&self) -> HttpCircuitBreakerSnapshot {
         self.state
             .read()
-            .unwrap_or_else(|err| err.into_inner())
             .clone()
     }
 
     fn observe_backend_acquire(&self, backend: &str) {
-        let mut state = self.state.write().unwrap_or_else(|err| err.into_inner());
+        let mut state = self.state.write();
         increment_named(&mut state.backend_inflight_current, backend);
     }
 
     fn observe_backend_release(&self, backend: &str) {
-        let mut state = self.state.write().unwrap_or_else(|err| err.into_inner());
+        let mut state = self.state.write();
         decrement_named(&mut state.backend_inflight_current, backend);
     }
 
     fn observe_backend_reject(&self, backend: &str) {
-        let mut state = self.state.write().unwrap_or_else(|err| err.into_inner());
+        let mut state = self.state.write();
         state.rejected_total += 1;
         state.rejected_backend_total += 1;
         increment_named(&mut state.rejected_backend_by_name, backend);
@@ -187,8 +184,7 @@ impl Drop for HttpCircuitBreakerPermit {
         if let Some(cleanup) = &self.cleanup {
             let mut entries = cleanup
                 .entries
-                .write()
-                .unwrap_or_else(|err| err.into_inner());
+                .write();
             let remove = entries.get(cleanup.key.as_str()).is_some_and(|semaphore| {
                 Arc::strong_count(semaphore) == 1 && semaphore.available_permits() == cleanup.limit
             });
@@ -202,14 +198,13 @@ impl Drop for HttpCircuitBreakerPermit {
 fn keyed_semaphore(entries: &SemaphoreMap, key: &str, limit: usize) -> Arc<Semaphore> {
     if let Some(semaphore) = entries
         .read()
-        .unwrap_or_else(|err| err.into_inner())
         .get(key)
         .cloned()
     {
         return semaphore;
     }
 
-    let mut entries = entries.write().unwrap_or_else(|err| err.into_inner());
+    let mut entries = entries.write();
     entries
         .entry(key.to_string())
         .or_insert_with(|| Arc::new(Semaphore::new(limit)))

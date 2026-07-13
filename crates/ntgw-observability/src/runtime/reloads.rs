@@ -6,7 +6,6 @@ impl RuntimeStats {
     pub fn observe_http_listener_reload_attempt(&self, version: &str) {
         self.inner
             .write()
-            .unwrap_or_else(|err| err.into_inner())
             .http_last_reload_attempt_version = version.to_string();
     }
 
@@ -38,7 +37,7 @@ impl RuntimeStats {
         self.http_listener_reload_failures
             .fetch_add(u64::from(!failures.is_empty()), Ordering::Relaxed);
         self.observe_http_listener_reload_attempt(version);
-        let mut inner = self.inner.write().unwrap_or_else(|err| err.into_inner());
+        let mut inner = self.inner.write();
         update_listener_progress(
             &mut inner.http_listener_progress,
             version,
@@ -78,7 +77,6 @@ impl RuntimeStats {
     pub fn observe_tls_listener_reload_attempt(&self, version: &str) {
         self.inner
             .write()
-            .unwrap_or_else(|err| err.into_inner())
             .tls_last_reload_attempt_version = version.to_string();
     }
 
@@ -110,7 +108,7 @@ impl RuntimeStats {
         self.tls_listener_reload_failures
             .fetch_add(u64::from(!failures.is_empty()), Ordering::Relaxed);
         self.observe_tls_listener_reload_attempt(version);
-        let mut inner = self.inner.write().unwrap_or_else(|err| err.into_inner());
+        let mut inner = self.inner.write();
         update_listener_progress(
             &mut inner.tls_listener_progress,
             version,
@@ -150,7 +148,6 @@ impl RuntimeStats {
     pub fn observe_stream_listener_reload_attempt(&self, version: &str) {
         self.inner
             .write()
-            .unwrap_or_else(|err| err.into_inner())
             .stream_last_reload_attempt_version = version.to_string();
     }
 
@@ -187,7 +184,7 @@ impl RuntimeStats {
         self.stream_listener_reload_failures
             .fetch_add(u64::from(!failures.is_empty()), Ordering::Relaxed);
         self.observe_stream_listener_reload_attempt(version);
-        let mut inner = self.inner.write().unwrap_or_else(|err| err.into_inner());
+        let mut inner = self.inner.write();
         update_listener_progress(
             &mut inner.stream_listener_progress,
             version,

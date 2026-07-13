@@ -1,4 +1,5 @@
-use std::sync::{Arc, RwLock};
+use parking_lot::RwLock;
+use std::sync::Arc;
 
 use serde::Serialize;
 
@@ -76,7 +77,7 @@ impl RetryBudgetController {
             return;
         }
 
-        let mut state = self.state.write().unwrap_or_else(|err| err.into_inner());
+        let mut state = self.state.write();
         state.retryable_requests_observed_total =
             state.retryable_requests_observed_total.saturating_add(1);
         state.available_milli_tokens = state
@@ -90,7 +91,7 @@ impl RetryBudgetController {
             return true;
         }
 
-        let mut state = self.state.write().unwrap_or_else(|err| err.into_inner());
+        let mut state = self.state.write();
         if state.available_milli_tokens < RETRY_BUDGET_TOKEN_SCALE {
             state.retry_rejected_total = state.retry_rejected_total.saturating_add(1);
             return false;
@@ -102,7 +103,7 @@ impl RetryBudgetController {
     }
 
     pub fn snapshot(&self) -> RetryBudgetSnapshot {
-        let state = self.state.read().unwrap_or_else(|err| err.into_inner());
+        let state = self.state.read();
         RetryBudgetSnapshot {
             enabled: self.options.enabled,
             ratio_percent: self.options.ratio_percent.min(100),

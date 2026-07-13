@@ -1,6 +1,7 @@
+use parking_lot::RwLock;
 use std::{
     collections::BTreeMap,
-    sync::{Arc, RwLock as StdRwLock},
+    sync::Arc,
 };
 
 use tokio::sync::Semaphore;
@@ -15,7 +16,7 @@ use budget::{
     BudgetScope, TrackedPermit, semaphore_for_limit, try_acquire_keyed_scope, try_acquire_scope,
 };
 
-type SemaphoreMap = Arc<StdRwLock<BTreeMap<String, Arc<Semaphore>>>>;
+type SemaphoreMap = Arc<RwLock<BTreeMap<String, Arc<Semaphore>>>>;
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct HttpAdmissionOptions {
@@ -130,8 +131,8 @@ impl HttpAdmissionController {
             global: semaphore_for_limit(options.global_inflight_limit),
             listener_limit: options.listener_inflight_limit,
             route_limit: options.route_inflight_limit,
-            listeners: Arc::new(StdRwLock::new(BTreeMap::new())),
-            routes: Arc::new(StdRwLock::new(BTreeMap::new())),
+            listeners: Arc::new(RwLock::new(BTreeMap::new())),
+            routes: Arc::new(RwLock::new(BTreeMap::new())),
             stats,
         }
     }
@@ -200,7 +201,7 @@ impl TcpAdmissionController {
         Self {
             global: semaphore_for_limit(options.global_connection_limit),
             listener_limit: options.listener_connection_limit,
-            listeners: Arc::new(StdRwLock::new(BTreeMap::new())),
+            listeners: Arc::new(RwLock::new(BTreeMap::new())),
             stats,
         }
     }
@@ -234,7 +235,7 @@ impl UdpAdmissionController {
         Self {
             global: semaphore_for_limit(options.global_datagram_limit),
             listener_limit: options.listener_datagram_limit,
-            listeners: Arc::new(StdRwLock::new(BTreeMap::new())),
+            listeners: Arc::new(RwLock::new(BTreeMap::new())),
             stats,
         }
     }

@@ -16,10 +16,11 @@ pub(super) use ntgw_observability::{
     UdpAdmissionController, UdpAdmissionOptions, UdpSessionStats,
 };
 pub(super) use ntgw_xds::ClientStats;
+pub(super) use parking_lot::RwLock;
 pub(super) use std::{
     fs,
     path::PathBuf,
-    sync::{Arc, RwLock},
+    sync::Arc,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 pub(super) use tower::util::ServiceExt;
@@ -231,7 +232,6 @@ fn set_http3_configured(state: &AppState, value: bool) {
     state
         .config
         .write()
-        .unwrap_or_else(|err| err.into_inner())
         .http3_configured = value;
 }
 
@@ -239,7 +239,6 @@ fn set_session_persistence_uses_ephemeral_secret(state: &AppState, value: bool) 
     state
         .config
         .write()
-        .unwrap_or_else(|err| err.into_inner())
         .session_persistence_uses_ephemeral_secret = value;
 }
 
@@ -247,15 +246,13 @@ fn set_snapshot_freshness_timeout(state: &AppState, value: Duration) {
     state
         .config
         .write()
-        .unwrap_or_else(|err| err.into_inner())
         .snapshot_freshness_timeout = value;
 }
 
 fn replace_circuit_breaker(state: &AppState, options: HttpCircuitBreakerOptions) {
     *state
         .circuit_breaker
-        .write()
-        .unwrap_or_else(|err| err.into_inner()) = HttpCircuitBreakerController::new(options);
+        .write() = HttpCircuitBreakerController::new(options);
 }
 
 fn with_circuit_breaker<T>(
@@ -264,22 +261,19 @@ fn with_circuit_breaker<T>(
 ) -> T {
     let mut guard = state
         .circuit_breaker
-        .write()
-        .unwrap_or_else(|err| err.into_inner());
+        .write();
     f(&mut guard)
 }
 
 fn replace_rate_limit(state: &AppState, options: HttpRateLimitOptions) {
     *state
         .rate_limit
-        .write()
-        .unwrap_or_else(|err| err.into_inner()) = HttpRateLimitController::new(options);
+        .write() = HttpRateLimitController::new(options);
 }
 
 fn with_rate_limit<T>(state: &AppState, f: impl FnOnce(&mut HttpRateLimitController) -> T) -> T {
     let mut guard = state
         .rate_limit
-        .write()
-        .unwrap_or_else(|err| err.into_inner());
+        .write();
     f(&mut guard)
 }

@@ -1,6 +1,7 @@
+use parking_lot::RwLock;
 use std::collections::BTreeMap;
 use std::sync::{
-    Arc, RwLock,
+    Arc,
     atomic::{AtomicBool, AtomicU64, Ordering},
 };
 
@@ -164,7 +165,7 @@ impl RuntimeStats {
         self.supervisor_running.store(true, Ordering::Relaxed);
         self.supervisor_shutdown_requested
             .store(false, Ordering::Relaxed);
-        let mut inner = self.inner.write().unwrap_or_else(|err| err.into_inner());
+        let mut inner = self.inner.write();
         inner.supervisor_last_shutdown_reason.clear();
         inner.supervisor_last_exit_message.clear();
     }
@@ -174,7 +175,6 @@ impl RuntimeStats {
             .store(true, Ordering::Relaxed);
         self.inner
             .write()
-            .unwrap_or_else(|err| err.into_inner())
             .supervisor_last_shutdown_reason = reason.to_string();
     }
 
@@ -184,7 +184,6 @@ impl RuntimeStats {
             .store(epoch_seconds(), Ordering::Relaxed);
         self.inner
             .write()
-            .unwrap_or_else(|err| err.into_inner())
             .supervisor_last_exit_message = message.to_string();
     }
 
@@ -196,7 +195,6 @@ impl RuntimeStats {
         self.http_runtime_running.store(true, Ordering::Relaxed);
         self.inner
             .write()
-            .unwrap_or_else(|err| err.into_inner())
             .http_last_exit_message
             .clear();
     }
@@ -207,7 +205,6 @@ impl RuntimeStats {
             .store(epoch_seconds(), Ordering::Relaxed);
         self.inner
             .write()
-            .unwrap_or_else(|err| err.into_inner())
             .http_last_exit_message = message.to_string();
     }
 
@@ -228,7 +225,6 @@ impl RuntimeStats {
         self.tls_runtime_running.store(true, Ordering::Relaxed);
         self.inner
             .write()
-            .unwrap_or_else(|err| err.into_inner())
             .tls_last_exit_message
             .clear();
     }
@@ -239,7 +235,6 @@ impl RuntimeStats {
             .store(epoch_seconds(), Ordering::Relaxed);
         self.inner
             .write()
-            .unwrap_or_else(|err| err.into_inner())
             .tls_last_exit_message = message.to_string();
     }
 
@@ -251,7 +246,6 @@ impl RuntimeStats {
         self.stream_runtime_running.store(true, Ordering::Relaxed);
         self.inner
             .write()
-            .unwrap_or_else(|err| err.into_inner())
             .stream_last_exit_message
             .clear();
     }
@@ -262,7 +256,6 @@ impl RuntimeStats {
             .store(epoch_seconds(), Ordering::Relaxed);
         self.inner
             .write()
-            .unwrap_or_else(|err| err.into_inner())
             .stream_last_exit_message = message.to_string();
     }
 
@@ -271,7 +264,7 @@ impl RuntimeStats {
     }
 
     pub fn snapshot(&self) -> RuntimeStatsSnapshot {
-        let inner = self.inner.read().unwrap_or_else(|err| err.into_inner());
+        let inner = self.inner.read();
         RuntimeStatsSnapshot {
             http_listener_reload_failures: self
                 .http_listener_reload_failures

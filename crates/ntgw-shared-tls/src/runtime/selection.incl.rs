@@ -38,15 +38,12 @@ fn build_runtime_http_app(
     let http_config = config.http.clone();
     let circuit_breaker = circuit_breaker
         .read()
-        .unwrap_or_else(|err| err.into_inner())
         .clone();
     let rate_limit = rate_limit
         .read()
-        .unwrap_or_else(|err| err.into_inner())
         .clone();
     let retry_budget = retry_budget
         .read()
-        .unwrap_or_else(|err| err.into_inner())
         .clone();
     build_http_app(
         snapshot,

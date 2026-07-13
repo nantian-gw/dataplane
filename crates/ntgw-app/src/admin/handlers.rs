@@ -95,7 +95,6 @@ pub(crate) async fn circuit_breaker_view(
         state
             .circuit_breaker
             .read()
-            .unwrap_or_else(|err| err.into_inner())
             .snapshot(),
     )
 }
@@ -107,7 +106,6 @@ pub(crate) async fn rate_limit_view(
         state
             .rate_limit
             .read()
-            .unwrap_or_else(|err| err.into_inner())
             .snapshot(),
     )
 }

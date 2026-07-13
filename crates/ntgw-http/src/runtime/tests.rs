@@ -135,13 +135,13 @@ fn http_runtime_records_listener_plan_and_tls_asset_reload_stages() -> anyhow::R
         RuntimeStats::shared(),
         SharedTrafficStats::shared(),
         OverloadStats::shared(),
-        Arc::new(std::sync::RwLock::new(HttpCircuitBreakerController::new(
+        Arc::new(parking_lot::RwLock::new(HttpCircuitBreakerController::new(
             Default::default(),
         ))),
-        Arc::new(std::sync::RwLock::new(HttpRateLimitController::new(
+        Arc::new(parking_lot::RwLock::new(HttpRateLimitController::new(
             Default::default(),
         ))),
-        Arc::new(std::sync::RwLock::new(RetryBudgetController::new(
+        Arc::new(parking_lot::RwLock::new(RetryBudgetController::new(
             Default::default(),
         ))),
         Some(stage_recorder),

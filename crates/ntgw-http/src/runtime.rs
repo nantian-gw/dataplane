@@ -2,13 +2,14 @@ use std::{
     collections::{BTreeMap, BTreeSet},
     fs, io,
     path::{Path, PathBuf},
-    sync::{Arc, RwLock},
+    sync::{Arc},
     thread,
     time::{Duration, Instant},
 };
 
 use anyhow::{Context, Result, anyhow};
 use async_trait::async_trait;
+use parking_lot::RwLock;
 use pingora::{
     apps::HttpServerOptions,
     listeners::tls::TlsSettings,
@@ -244,15 +245,12 @@ pub fn spawn(
                 let version = snapshot.load().id.clone();
                 let active_circuit_breaker = circuit_breaker
                     .read()
-                    .unwrap_or_else(|err| err.into_inner())
                     .clone();
                 let active_rate_limit = rate_limit
                     .read()
-                    .unwrap_or_else(|err| err.into_inner())
                     .clone();
                 let active_retry_budget = retry_budget
                     .read()
-                    .unwrap_or_else(|err| err.into_inner())
                     .clone();
                 let result = active.replace(
                     desired.plan,

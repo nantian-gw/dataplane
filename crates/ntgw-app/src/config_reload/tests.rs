@@ -1,4 +1,5 @@
-use std::sync::{Arc, RwLock};
+use parking_lot::RwLock;
+use std::sync::Arc;
 
 use tokio::sync::watch;
 
@@ -97,7 +98,7 @@ fn apply_config_snapshot_updates_shared_targets_and_watch_channels() {
         },
     );
 
-    let admin = admin.read().unwrap_or_else(|err| err.into_inner()).clone();
+    let admin = admin.read().clone();
     assert_eq!(admin.node_id, "dp-2");
     assert_eq!(admin.cluster, "prod");
     assert_eq!(admin.admin_bearer_token.as_deref(), Some("secret-token"));
@@ -144,13 +145,11 @@ fn apply_config_snapshot_updates_shared_targets_and_watch_channels() {
 
     let circuit_breaker = circuit_breaker
         .read()
-        .unwrap_or_else(|err| err.into_inner())
         .snapshot();
     assert_eq!(circuit_breaker.backend_max_inflight_requests, 17);
 
     let rate_limit = rate_limit
         .read()
-        .unwrap_or_else(|err| err.into_inner())
         .snapshot();
     assert_eq!(rate_limit.global.requests_per_second, 9);
     assert_eq!(rate_limit.global.burst, 11);
@@ -159,7 +158,6 @@ fn apply_config_snapshot_updates_shared_targets_and_watch_channels() {
 
     let retry_budget = retry_budget
         .read()
-        .unwrap_or_else(|err| err.into_inner())
         .snapshot();
     assert!(!retry_budget.enabled);
     assert_eq!(retry_budget.ratio_percent, 35);

@@ -10,7 +10,8 @@ mod summary;
 mod traffic;
 mod types;
 
-use std::sync::{Arc, RwLock};
+use parking_lot::RwLock;
+use std::sync::Arc;
 
 use ntgw_observability::{
     HttpCircuitBreakerController, HttpRateLimitController, RetryBudgetController,
@@ -77,7 +78,6 @@ impl AppState {
     pub(crate) fn current_config(&self) -> AdminRuntimeConfig {
         self.config
             .read()
-            .unwrap_or_else(|err| err.into_inner())
             .clone()
     }
 }

@@ -71,17 +71,14 @@ impl MetricsContext {
         let circuit_breaker = state
             .circuit_breaker
             .read()
-            .unwrap_or_else(|err| err.into_inner())
             .snapshot();
         let rate_limit = state
             .rate_limit
             .read()
-            .unwrap_or_else(|err| err.into_inner())
             .snapshot();
         let retry_budget = state
             .retry_budget
             .read()
-            .unwrap_or_else(|err| err.into_inner())
             .snapshot();
         let current_snapshot = build_current_snapshot_state(&snapshot, &runtime, &xds);
         let http_runtime = build_runtime_plane_state(

@@ -7,9 +7,10 @@ mod config_reload;
 mod supervisor;
 mod xds_runtime;
 
+use parking_lot::RwLock;
 use std::{
     net::SocketAddr,
-    sync::{Arc, RwLock},
+    sync::Arc,
 };
 
 use anyhow::{Result, anyhow};
