@@ -1,8 +1,5 @@
 use parking_lot::RwLock;
-use std::{
-    collections::BTreeMap,
-    sync::Arc,
-};
+use std::{collections::BTreeMap, sync::Arc};
 
 use tokio::sync::Semaphore;
 

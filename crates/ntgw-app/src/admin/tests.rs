@@ -229,10 +229,7 @@ fn temp_token_path(prefix: &str) -> PathBuf {
 }
 
 fn set_http3_configured(state: &AppState, value: bool) {
-    state
-        .config
-        .write()
-        .http3_configured = value;
+    state.config.write().http3_configured = value;
 }
 
 fn set_session_persistence_uses_ephemeral_secret(state: &AppState, value: bool) {
@@ -243,37 +240,26 @@ fn set_session_persistence_uses_ephemeral_secret(state: &AppState, value: bool) 
 }
 
 fn set_snapshot_freshness_timeout(state: &AppState, value: Duration) {
-    state
-        .config
-        .write()
-        .snapshot_freshness_timeout = value;
+    state.config.write().snapshot_freshness_timeout = value;
 }
 
 fn replace_circuit_breaker(state: &AppState, options: HttpCircuitBreakerOptions) {
-    *state
-        .circuit_breaker
-        .write() = HttpCircuitBreakerController::new(options);
+    *state.circuit_breaker.write() = HttpCircuitBreakerController::new(options);
 }
 
 fn with_circuit_breaker<T>(
     state: &AppState,
     f: impl FnOnce(&mut HttpCircuitBreakerController) -> T,
 ) -> T {
-    let mut guard = state
-        .circuit_breaker
-        .write();
+    let mut guard = state.circuit_breaker.write();
     f(&mut guard)
 }
 
 fn replace_rate_limit(state: &AppState, options: HttpRateLimitOptions) {
-    *state
-        .rate_limit
-        .write() = HttpRateLimitController::new(options);
+    *state.rate_limit.write() = HttpRateLimitController::new(options);
 }
 
 fn with_rate_limit<T>(state: &AppState, f: impl FnOnce(&mut HttpRateLimitController) -> T) -> T {
-    let mut guard = state
-        .rate_limit
-        .write();
+    let mut guard = state.rate_limit.write();
     f(&mut guard)
 }

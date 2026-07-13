@@ -1,10 +1,10 @@
 use jsonwebtoken::errors::ErrorKind;
 use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode, decode_header};
 use ntgw_ir::{ClaimToHeader, JwtAuthFilter};
+use parking_lot::RwLock;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fmt;
-use parking_lot::RwLock;
 use std::time::{Duration, Instant};
 
 #[derive(Debug)]

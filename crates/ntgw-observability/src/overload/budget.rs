@@ -37,9 +37,7 @@ impl Drop for TrackedPermit {
             drop(permit);
         }
         if let Some(cleanup) = &self.cleanup {
-            let mut entries = cleanup
-                .entries
-                .write();
+            let mut entries = cleanup.entries.write();
             let remove = entries.get(&cleanup.key).is_some_and(|semaphore| {
                 Arc::strong_count(semaphore) == 1 && semaphore.available_permits() == cleanup.limit
             });
@@ -118,11 +116,7 @@ pub(super) fn try_acquire_keyed_scope<E: Copy, F: FnOnce(&str) -> BudgetScope>(
 }
 
 pub(super) fn keyed_semaphore(entries: &SemaphoreMap, key: &str, limit: usize) -> Arc<Semaphore> {
-    if let Some(semaphore) = entries
-        .read()
-        .get(key)
-        .cloned()
-    {
+    if let Some(semaphore) = entries.read().get(key).cloned() {
         return semaphore;
     }
 

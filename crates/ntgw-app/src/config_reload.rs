@@ -1,13 +1,9 @@
-use std::{
-    path::Path,
-    sync::Arc,
-    time::Duration,
-};
+use std::{path::Path, sync::Arc, time::Duration};
 
 use anyhow::Result;
 use notify::event::ModifyKind;
-use parking_lot::RwLock;
 use notify::{Config, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
+use parking_lot::RwLock;
 use tokio::{
     sync::{mpsc, watch},
     task::JoinHandle,
@@ -136,16 +132,9 @@ pub(crate) fn build_config_snapshot(cfg: &DataPlaneConfig) -> Result<ConfigSnaps
 pub(crate) fn apply_config_snapshot(snapshot: ConfigSnapshot, targets: &ReloadTargets) {
     ntgw_http::configure_request_mirror_budget(snapshot.request_mirror_max_concurrency);
     *targets.admin.write() = snapshot.admin;
-    *targets
-        .circuit_breaker
-        .write() =
-        HttpCircuitBreakerController::new(snapshot.circuit_breaker);
-    *targets
-        .rate_limit
-        .write() = HttpRateLimitController::new(snapshot.rate_limit);
-    *targets
-        .retry_budget
-        .write() = RetryBudgetController::new(snapshot.retry_budget);
+    *targets.circuit_breaker.write() = HttpCircuitBreakerController::new(snapshot.circuit_breaker);
+    *targets.rate_limit.write() = HttpRateLimitController::new(snapshot.rate_limit);
+    *targets.retry_budget.write() = RetryBudgetController::new(snapshot.retry_budget);
     if targets.http.send(Arc::new(snapshot.http)).is_err() {
         error!("http runtime not receiving config reloads");
     }

@@ -4,9 +4,7 @@ use std::collections::BTreeSet;
 
 impl RuntimeStats {
     pub fn observe_http_listener_reload_attempt(&self, version: &str) {
-        self.inner
-            .write()
-            .http_last_reload_attempt_version = version.to_string();
+        self.inner.write().http_last_reload_attempt_version = version.to_string();
     }
 
     pub fn observe_http_listener_reload_failure(&self, version: &str, listener: &str, error: &str) {
@@ -75,9 +73,7 @@ impl RuntimeStats {
     }
 
     pub fn observe_tls_listener_reload_attempt(&self, version: &str) {
-        self.inner
-            .write()
-            .tls_last_reload_attempt_version = version.to_string();
+        self.inner.write().tls_last_reload_attempt_version = version.to_string();
     }
 
     pub fn observe_tls_listener_reload_failure(&self, version: &str, listener: &str, error: &str) {
@@ -146,9 +142,7 @@ impl RuntimeStats {
     }
 
     pub fn observe_stream_listener_reload_attempt(&self, version: &str) {
-        self.inner
-            .write()
-            .stream_last_reload_attempt_version = version.to_string();
+        self.inner.write().stream_last_reload_attempt_version = version.to_string();
     }
 
     pub fn observe_stream_listener_reload_failure(

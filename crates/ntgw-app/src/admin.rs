@@ -76,8 +76,6 @@ pub(crate) struct AppState {
 
 impl AppState {
     pub(crate) fn current_config(&self) -> AdminRuntimeConfig {
-        self.config
-            .read()
-            .clone()
+        self.config.read().clone()
     }
 }

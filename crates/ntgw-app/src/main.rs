@@ -8,10 +8,7 @@ mod supervisor;
 mod xds_runtime;
 
 use parking_lot::RwLock;
-use std::{
-    net::SocketAddr,
-    sync::Arc,
-};
+use std::{net::SocketAddr, sync::Arc};
 
 use anyhow::{Result, anyhow};
 use clap::Parser;

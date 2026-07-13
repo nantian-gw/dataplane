@@ -143,22 +143,16 @@ fn apply_config_snapshot_updates_shared_targets_and_watch_channels() {
             .uses_ephemeral_secret()
     );
 
-    let circuit_breaker = circuit_breaker
-        .read()
-        .snapshot();
+    let circuit_breaker = circuit_breaker.read().snapshot();
     assert_eq!(circuit_breaker.backend_max_inflight_requests, 17);
 
-    let rate_limit = rate_limit
-        .read()
-        .snapshot();
+    let rate_limit = rate_limit.read().snapshot();
     assert_eq!(rate_limit.global.requests_per_second, 9);
     assert_eq!(rate_limit.global.burst, 11);
     assert_eq!(rate_limit.listener.requests_per_second, 5);
     assert_eq!(rate_limit.listener.burst, 7);
 
-    let retry_budget = retry_budget
-        .read()
-        .snapshot();
+    let retry_budget = retry_budget.read().snapshot();
     assert!(!retry_budget.enabled);
     assert_eq!(retry_budget.ratio_percent, 35);
     assert_eq!(retry_budget.burst, 9);

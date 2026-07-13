@@ -5,19 +5,19 @@ use std::os::windows::io::AsRawSocket;
 use std::{
     collections::{BTreeMap, BTreeSet},
     net::SocketAddr,
-    sync::{Arc},
+    sync::Arc,
     time::Instant,
 };
 
 use anyhow::{Context, Result, anyhow};
 use ntgw_http::{AcceptedHttpApp, build_http_app, process_accepted_stream};
-use parking_lot::RwLock;
 use ntgw_ir::{Listener, SharedSnapshot, SharedSnapshotSignal, Snapshot, TlsRouteMode};
 use ntgw_observability::{
     HttpCircuitBreakerController, HttpRateLimitController, RetryBudgetController,
     RuntimeListenerFailure, SharedApplyStageRecorder, SharedOverloadStats, SharedRuntimeStats,
     SharedTrafficStats,
 };
+use parking_lot::RwLock;
 use pingora::protocols::l4::stream::Stream as L4Stream;
 use pingora::protocols::{GetSocketDigest, SocketDigest};
 use socket2::{Domain, Protocol, Socket, Type};

@@ -140,9 +140,7 @@ impl HttpCircuitBreakerController {
     }
 
     pub fn set_per_backend_limits(&self, limits: HashMap<String, usize>) {
-        *self
-            .per_backend_limits
-            .write() = limits;
+        *self.per_backend_limits.write() = limits;
     }
 
     pub fn snapshot(&self) -> HttpCircuitBreakerSnapshot {
@@ -152,9 +150,7 @@ impl HttpCircuitBreakerController {
 
 impl HttpCircuitBreakerStats {
     fn snapshot(&self) -> HttpCircuitBreakerSnapshot {
-        self.state
-            .read()
-            .clone()
+        self.state.read().clone()
     }
 
     fn observe_backend_acquire(&self, backend: &str) {
@@ -182,9 +178,7 @@ impl Drop for HttpCircuitBreakerPermit {
         }
 
         if let Some(cleanup) = &self.cleanup {
-            let mut entries = cleanup
-                .entries
-                .write();
+            let mut entries = cleanup.entries.write();
             let remove = entries.get(cleanup.key.as_str()).is_some_and(|semaphore| {
                 Arc::strong_count(semaphore) == 1 && semaphore.available_permits() == cleanup.limit
             });
@@ -196,11 +190,7 @@ impl Drop for HttpCircuitBreakerPermit {
 }
 
 fn keyed_semaphore(entries: &SemaphoreMap, key: &str, limit: usize) -> Arc<Semaphore> {
-    if let Some(semaphore) = entries
-        .read()
-        .get(key)
-        .cloned()
-    {
+    if let Some(semaphore) = entries.read().get(key).cloned() {
         return semaphore;
     }
 

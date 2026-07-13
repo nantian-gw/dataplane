@@ -91,23 +91,13 @@ pub(crate) async fn overload_view(
 pub(crate) async fn circuit_breaker_view(
     State(state): State<Arc<AppState>>,
 ) -> Json<HttpCircuitBreakerSnapshot> {
-    Json(
-        state
-            .circuit_breaker
-            .read()
-            .snapshot(),
-    )
+    Json(state.circuit_breaker.read().snapshot())
 }
 
 pub(crate) async fn rate_limit_view(
     State(state): State<Arc<AppState>>,
 ) -> Json<HttpRateLimitSnapshot> {
-    Json(
-        state
-            .rate_limit
-            .read()
-            .snapshot(),
-    )
+    Json(state.rate_limit.read().snapshot())
 }
 
 pub(crate) async fn listeners_view(

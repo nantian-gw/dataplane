@@ -2,7 +2,7 @@ use std::{
     collections::{BTreeMap, BTreeSet},
     fs, io,
     path::{Path, PathBuf},
-    sync::{Arc},
+    sync::Arc,
     thread,
     time::{Duration, Instant},
 };
@@ -243,15 +243,9 @@ pub fn spawn(
                     desired
                 };
                 let version = snapshot.load().id.clone();
-                let active_circuit_breaker = circuit_breaker
-                    .read()
-                    .clone();
-                let active_rate_limit = rate_limit
-                    .read()
-                    .clone();
-                let active_retry_budget = retry_budget
-                    .read()
-                    .clone();
+                let active_circuit_breaker = circuit_breaker.read().clone();
+                let active_rate_limit = rate_limit.read().clone();
+                let active_retry_budget = retry_budget.read().clone();
                 let result = active.replace(
                     desired.plan,
                     ListenerReplaceContext {

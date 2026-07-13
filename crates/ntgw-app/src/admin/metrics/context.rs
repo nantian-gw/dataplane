@@ -68,18 +68,9 @@ impl MetricsContext {
         let process = snapshot_process();
         let xds = state.xds.snapshot();
         let overload = state.overload.snapshot();
-        let circuit_breaker = state
-            .circuit_breaker
-            .read()
-            .snapshot();
-        let rate_limit = state
-            .rate_limit
-            .read()
-            .snapshot();
-        let retry_budget = state
-            .retry_budget
-            .read()
-            .snapshot();
+        let circuit_breaker = state.circuit_breaker.read().snapshot();
+        let rate_limit = state.rate_limit.read().snapshot();
+        let retry_budget = state.retry_budget.read().snapshot();
         let current_snapshot = build_current_snapshot_state(&snapshot, &runtime, &xds);
         let http_runtime = build_runtime_plane_state(
             snapshot_requires_http_runtime(&snapshot),

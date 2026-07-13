@@ -1,9 +1,5 @@
 use parking_lot::RwLock;
-use std::{
-    path::PathBuf,
-    sync::Arc,
-    time::Duration,
-};
+use std::{path::PathBuf, sync::Arc, time::Duration};
 
 use anyhow::{Result, anyhow};
 use axum::{
@@ -30,10 +26,7 @@ impl AdminAuth {
     }
 
     fn resolve_bearer_token(&self) -> Option<Arc<str>> {
-        let config = self
-            .config
-            .read()
-            .clone();
+        let config = self.config.read().clone();
 
         let bearer_token_file = config
             .admin_bearer_token_file

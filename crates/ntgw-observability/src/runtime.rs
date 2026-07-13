@@ -173,18 +173,14 @@ impl RuntimeStats {
     pub fn observe_supervisor_shutdown_requested(&self, reason: &str) {
         self.supervisor_shutdown_requested
             .store(true, Ordering::Relaxed);
-        self.inner
-            .write()
-            .supervisor_last_shutdown_reason = reason.to_string();
+        self.inner.write().supervisor_last_shutdown_reason = reason.to_string();
     }
 
     pub fn observe_supervisor_exited(&self, message: &str) {
         self.supervisor_running.store(false, Ordering::Relaxed);
         self.supervisor_last_exit_unix_seconds
             .store(epoch_seconds(), Ordering::Relaxed);
-        self.inner
-            .write()
-            .supervisor_last_exit_message = message.to_string();
+        self.inner.write().supervisor_last_exit_message = message.to_string();
     }
 
     pub fn observe_http_listener_reload_success(&self, version: &str) {
@@ -193,19 +189,14 @@ impl RuntimeStats {
 
     pub fn observe_http_runtime_started(&self) {
         self.http_runtime_running.store(true, Ordering::Relaxed);
-        self.inner
-            .write()
-            .http_last_exit_message
-            .clear();
+        self.inner.write().http_last_exit_message.clear();
     }
 
     pub fn observe_http_runtime_exited(&self, message: &str) {
         self.http_runtime_running.store(false, Ordering::Relaxed);
         self.http_last_exit_unix_seconds
             .store(epoch_seconds(), Ordering::Relaxed);
-        self.inner
-            .write()
-            .http_last_exit_message = message.to_string();
+        self.inner.write().http_last_exit_message = message.to_string();
     }
 
     pub fn observe_http_tls_asset_reuses(&self, count: u64) {
@@ -223,19 +214,14 @@ impl RuntimeStats {
 
     pub fn observe_tls_runtime_started(&self) {
         self.tls_runtime_running.store(true, Ordering::Relaxed);
-        self.inner
-            .write()
-            .tls_last_exit_message
-            .clear();
+        self.inner.write().tls_last_exit_message.clear();
     }
 
     pub fn observe_tls_runtime_exited(&self, message: &str) {
         self.tls_runtime_running.store(false, Ordering::Relaxed);
         self.tls_last_exit_unix_seconds
             .store(epoch_seconds(), Ordering::Relaxed);
-        self.inner
-            .write()
-            .tls_last_exit_message = message.to_string();
+        self.inner.write().tls_last_exit_message = message.to_string();
     }
 
     pub fn observe_stream_listener_reload_success(&self, version: &str) {
@@ -244,19 +230,14 @@ impl RuntimeStats {
 
     pub fn observe_stream_runtime_started(&self) {
         self.stream_runtime_running.store(true, Ordering::Relaxed);
-        self.inner
-            .write()
-            .stream_last_exit_message
-            .clear();
+        self.inner.write().stream_last_exit_message.clear();
     }
 
     pub fn observe_stream_runtime_exited(&self, message: &str) {
         self.stream_runtime_running.store(false, Ordering::Relaxed);
         self.stream_last_exit_unix_seconds
             .store(epoch_seconds(), Ordering::Relaxed);
-        self.inner
-            .write()
-            .stream_last_exit_message = message.to_string();
+        self.inner.write().stream_last_exit_message = message.to_string();
     }
 
     pub fn subscribe_apply_events(&self) -> RuntimeApplyEventReceiver {
