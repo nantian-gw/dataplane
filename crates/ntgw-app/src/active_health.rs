@@ -109,11 +109,7 @@ async fn run(
 }
 
 pub(crate) fn collect_probe_targets(snapshot: &Snapshot) -> Vec<ProbeTarget> {
-    let capacity = snapshot
-        .backends
-        .iter()
-        .map(|c| c.endpoints.len())
-        .sum();
+    let capacity = snapshot.backends.iter().map(|c| c.endpoints.len()).sum();
     let mut targets = Vec::with_capacity(capacity);
 
     for cluster in &snapshot.backends {

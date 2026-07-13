@@ -329,9 +329,7 @@ fn build_tls_identity(secret_ref: &str, secret: &SecretMaterial) -> Result<Share
 }
 
 fn certificate_match_names(cert: &X509) -> Vec<String> {
-    let mut names = Vec::with_capacity(
-        cert.subject_alt_names().map_or(0, |sans| sans.len()),
-    );
+    let mut names = Vec::with_capacity(cert.subject_alt_names().map_or(0, |sans| sans.len()));
 
     if let Some(subject_alt_names) = cert.subject_alt_names() {
         for san in subject_alt_names {
