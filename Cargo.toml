@@ -89,4 +89,10 @@ ntgw-ai = { version = "0.1.0", path = "crates/ntgw-ai" }
 lto = "fat"
 codegen-units = 1
 panic = "abort"
+opt-level = 3
 strip = "symbols"
+
+[profile.profiling]
+inherits = "release"
+debug = true
+strip = "none"

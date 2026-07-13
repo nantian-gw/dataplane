@@ -206,7 +206,7 @@ fn current_runtime_rejection_message(
         (None, Some(tls), None) => Some(tls),
         (None, None, Some(stream)) => Some(stream),
         (http, tls, stream) => {
-            let mut segments = Vec::new();
+            let mut segments = Vec::with_capacity(3);
             if let Some(http) = http {
                 segments.push(format!("HTTP runtime: {http}"));
             }

@@ -167,7 +167,7 @@ fn listener_bind_addrs(listener: &Listener, runtime: &RuntimeOptions) -> Vec<Str
 
 fn listener_configured_addresses(listener: &Listener) -> Vec<String> {
     if !listener.addresses.is_empty() {
-        let mut out = Vec::new();
+        let mut out = Vec::with_capacity(listener.addresses.len());
         let mut seen = BTreeSet::new();
         for value in listener
             .addresses
@@ -186,7 +186,7 @@ fn listener_configured_addresses(listener: &Listener) -> Vec<String> {
     }
 
     if let Some(raw) = listener.metadata.get(LISTENER_ADDRESSES_METADATA_KEY) {
-        let mut out = Vec::new();
+        let mut out = Vec::with_capacity(raw.matches(',').count() + 1);
         let mut seen = BTreeSet::new();
         for value in raw
             .split(',')
@@ -291,10 +291,11 @@ fn resolve_tls_identities(
     listener: &Listener,
     snapshot: &Snapshot,
 ) -> Result<Vec<SharedTlsIdentity>> {
-    let mut identities = Vec::new();
     let Some(tls) = listener.tls.as_ref() else {
-        return Ok(identities);
+        return Ok(Vec::new());
     };
+
+    let mut identities = Vec::with_capacity(tls.secret_refs.len());
 
     for secret_ref in &tls.secret_refs {
         let Some(secret) = snapshot
@@ -328,7 +329,9 @@ fn build_tls_identity(secret_ref: &str, secret: &SecretMaterial) -> Result<Share
 }
 
 fn certificate_match_names(cert: &X509) -> Vec<String> {
-    let mut names = Vec::new();
+    let mut names = Vec::with_capacity(
+        cert.subject_alt_names().map_or(0, |sans| sans.len()),
+    );
 
     if let Some(subject_alt_names) = cert.subject_alt_names() {
         for san in subject_alt_names {

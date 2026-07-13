@@ -252,8 +252,8 @@ impl ListenerSet {
         let mut failed_starts = 0usize;
         let mut first_error = None;
         let mut first_failed_listener = None;
-        let mut failures = Vec::new();
-        let mut started_listeners = Vec::new();
+        let mut failures = Vec::with_capacity(updates.start.len());
+        let mut started_listeners = Vec::with_capacity(updates.start.len());
 
         for name in updates.stop {
             if let Some(task) = self.tasks.remove(&name) {
