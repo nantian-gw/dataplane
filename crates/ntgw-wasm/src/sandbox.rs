@@ -107,9 +107,9 @@ impl AISandbox {
                 WasmError::PluginExecution(model.to_string(), format!("alloc failed: {e}"))
             })?;
 
-        let memory = instance.get_memory(&mut store, "memory").ok_or_else(|| {
-            WasmError::Memory("sandbox module has no memory export".to_string())
-        })?;
+        let memory = instance
+            .get_memory(&mut store, "memory")
+            .ok_or_else(|| WasmError::Memory("sandbox module has no memory export".to_string()))?;
         memory
             .write(&mut store, ptr as usize, text_bytes)
             .map_err(|e| WasmError::Memory(format!("memory write failed: {e}")))?;
@@ -177,9 +177,9 @@ impl AISandbox {
                 WasmError::PluginExecution(model.to_string(), format!("alloc failed: {e}"))
             })?;
 
-        let memory = instance.get_memory(&mut store, "memory").ok_or_else(|| {
-            WasmError::Memory("sandbox module has no memory export".to_string())
-        })?;
+        let memory = instance
+            .get_memory(&mut store, "memory")
+            .ok_or_else(|| WasmError::Memory("sandbox module has no memory export".to_string()))?;
         memory
             .write(&mut store, ptr as usize, text_bytes)
             .map_err(|e| WasmError::Memory(format!("memory write failed: {e}")))?;
