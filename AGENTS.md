@@ -70,8 +70,31 @@ ntgw-app (binary) — orchestrates everything
 - **Edition 2024**, **Apache-2.0** license.
 
 ### Test Patterns
-- Module-level `#[cfg(test)]` with `tests.rs` as entry point
-- `include!("tests_*.rs")` macro used to compose test modules within a single `#[cfg(test)]` block
+
+Two test tiers with different placement rules:
+
+**Integration tests** (`tests/` directory at crate root) — Standard Rust integration
+tests compiled as separate binaries. Use when tests only need the crate's public
+API and benefit from real-world end-to-end scenarios.
+
+Crates using this pattern: `ntgw-ai` (22 test files), `ntgw-ir` (15 test files),
+`ntgw-wasm` (2 test files).
+
+**Unit tests** (`src/tests/` or `src/<module>/tests/`) — `#[cfg(test)]` modules
+inside the source tree. Use when tests need access to private internals. Two
+composition styles:
+
+- Standard `mod` declarations: `ntgw-config/src/tests/mod.rs` declares `mod
+  basics; mod config_load; …` — each sub-file is a standard Rust module.
+- `include!()` composition: `ntgw-xds/src/tests/runtime_apply.rs` pulls in test
+  files via `include!("runtime_apply/apply_result.rs");` — keeps all test code
+  within a single `#[cfg(test)]` module, useful when tests share many helpers.
+
+Deep sub-module tests in `src/<module>/tests/` follow the same conventions and
+are co-located with the code they test (e.g. `ntgw-http/src/session/tests/`,
+`ntgw-stream/src/tcp/tests/`).
+
+**Additional patterns:**
 - `proptest` for property-based testing in `ntgw-ir`, `ntgw-http`, `ntgw-stream`
 - `h2` crate used for HTTP/2 test fixtures in `ntgw-http`
 
