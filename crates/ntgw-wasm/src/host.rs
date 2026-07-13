@@ -1,12 +1,12 @@
-use anyhow::Result;
 use tracing::{debug, warn};
 use wasmtime::Linker;
 
 use crate::engine::PluginContext;
+use crate::error::WasmError;
 use crate::mem;
 
 /// Register all host functions available to guest plugins under the "upstream" module.
-pub fn register_host_functions(linker: &mut Linker<PluginContext>) -> Result<()> {
+pub fn register_host_functions(linker: &mut Linker<PluginContext>) -> Result<(), WasmError> {
     linker
         .func_wrap(
             "pingora",
@@ -28,7 +28,10 @@ pub fn register_host_functions(linker: &mut Linker<PluginContext>) -> Result<()>
                 }
             },
         )
-        .map_err(|e| anyhow::anyhow!("failed to register pingora::log: {e}"))?;
+        .map_err(|e| WasmError::HostRegistration {
+            function: "pingora::log".to_string(),
+            error: e.to_string(),
+        })?;
 
     linker
         .func_wrap(
@@ -60,7 +63,10 @@ pub fn register_host_functions(linker: &mut Linker<PluginContext>) -> Result<()>
                 }
             },
         )
-        .map_err(|e| anyhow::anyhow!("failed to register pingora::get_header: {e}"))?;
+        .map_err(|e| WasmError::HostRegistration {
+            function: "pingora::get_header".to_string(),
+            error: e.to_string(),
+        })?;
 
     linker
         .func_wrap(
@@ -83,7 +89,10 @@ pub fn register_host_functions(linker: &mut Linker<PluginContext>) -> Result<()>
                 ctx.response_headers.insert(name, value);
             },
         )
-        .map_err(|e| anyhow::anyhow!("failed to register pingora::set_header: {e}"))?;
+        .map_err(|e| WasmError::HostRegistration {
+            function: "pingora::set_header".to_string(),
+            error: e.to_string(),
+        })?;
 
     linker
         .func_wrap(
@@ -111,7 +120,10 @@ pub fn register_host_functions(linker: &mut Linker<PluginContext>) -> Result<()>
                 }
             },
         )
-        .map_err(|e| anyhow::anyhow!("failed to register pingora::get_body: {e}"))?;
+        .map_err(|e| WasmError::HostRegistration {
+            function: "pingora::get_body".to_string(),
+            error: e.to_string(),
+        })?;
 
     linker
         .func_wrap(
@@ -141,7 +153,10 @@ pub fn register_host_functions(linker: &mut Linker<PluginContext>) -> Result<()>
                 len as i32
             },
         )
-        .map_err(|e| anyhow::anyhow!("failed to register pingora::get_all_headers: {e}"))?;
+        .map_err(|e| WasmError::HostRegistration {
+            function: "pingora::get_all_headers".to_string(),
+            error: e.to_string(),
+        })?;
 
     Ok(())
 }

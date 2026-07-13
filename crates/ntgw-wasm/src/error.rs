@@ -17,7 +17,9 @@ pub enum WasmError {
     #[error("failed to initialize wasm runtime: {0}")]
     RuntimeInit(String),
     #[error("memory operation failed: {0}")]
-    Memory(#[from] anyhow::Error),
+    Memory(String),
+    #[error("failed to register host function '{function}': {error}")]
+    HostRegistration { function: String, error: String },
     #[error("sandbox module not found: {0}")]
     SandboxModuleNotFound(String),
 }

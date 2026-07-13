@@ -108,11 +108,11 @@ impl AISandbox {
             })?;
 
         let memory = instance.get_memory(&mut store, "memory").ok_or_else(|| {
-            WasmError::Memory(anyhow::anyhow!("sandbox module has no memory export"))
+            WasmError::Memory("sandbox module has no memory export".to_string())
         })?;
         memory
             .write(&mut store, ptr as usize, text_bytes)
-            .map_err(|e| WasmError::Memory(anyhow::anyhow!("memory write failed: {e}")))?;
+            .map_err(|e| WasmError::Memory(format!("memory write failed: {e}")))?;
 
         // Call tokenize(ptr, len) -> token count
         let tokenize_func = instance
@@ -178,11 +178,11 @@ impl AISandbox {
             })?;
 
         let memory = instance.get_memory(&mut store, "memory").ok_or_else(|| {
-            WasmError::Memory(anyhow::anyhow!("sandbox module has no memory export"))
+            WasmError::Memory("sandbox module has no memory export".to_string())
         })?;
         memory
             .write(&mut store, ptr as usize, text_bytes)
-            .map_err(|e| WasmError::Memory(anyhow::anyhow!("memory write failed: {e}")))?;
+            .map_err(|e| WasmError::Memory(format!("memory write failed: {e}")))?;
 
         let embed_func = instance
             .get_typed_func::<(i32, i32), i32>(&mut store, "embed")
@@ -232,7 +232,7 @@ impl AISandbox {
         let mut f32_bytes = vec![0u8; dim as usize * 4];
         memory
             .read(&store, buf_ptr as usize, &mut f32_bytes)
-            .map_err(|e| WasmError::Memory(anyhow::anyhow!("read embedding failed: {e}")))?;
+            .map_err(|e| WasmError::Memory(format!("read embedding failed: {e}")))?;
 
         let floats: Vec<f32> = f32_bytes
             .chunks_exact(4)

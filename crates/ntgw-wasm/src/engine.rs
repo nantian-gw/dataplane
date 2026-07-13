@@ -1,7 +1,7 @@
+use crate::error::WasmError;
 use std::collections::HashMap;
 use std::sync::{Arc, OnceLock};
 
-use anyhow::Result;
 use wasmtime::{Config, Engine, Linker, OptLevel};
 
 /// Maximum accepted plugin/sandbox Wasm module size, checked before compilation.
@@ -27,14 +27,14 @@ fn global_engine_config() -> Config {
 
 static GLOBAL_ENGINE: OnceLock<Result<Arc<Engine>, String>> = OnceLock::new();
 
-pub fn create_engine() -> Result<Engine> {
-    Engine::new(&global_engine_config()).map_err(|e| anyhow::anyhow!("{e}"))
+pub fn create_engine() -> Result<Engine, WasmError> {
+    Engine::new(&global_engine_config()).map_err(|e| WasmError::RuntimeInit(e.to_string()))
 }
 
-pub fn global_engine() -> Result<Arc<Engine>> {
+pub fn global_engine() -> Result<Arc<Engine>, WasmError> {
     match GLOBAL_ENGINE.get_or_init(|| create_engine().map(Arc::new).map_err(|e| e.to_string())) {
         Ok(engine) => Ok(Arc::clone(engine)),
-        Err(error) => Err(anyhow::anyhow!(error.clone())),
+        Err(error) => Err(WasmError::RuntimeInit(error.clone())),
     }
 }
 
@@ -98,7 +98,7 @@ mod tests {
     }
 }
 
-pub fn create_linker(engine: &Engine) -> Result<Linker<PluginContext>> {
+pub fn create_linker(engine: &Engine) -> Result<Linker<PluginContext>, WasmError> {
     let mut linker = Linker::new(engine);
     crate::host::register_host_functions(&mut linker)?;
     Ok(linker)
@@ -109,13 +109,13 @@ pub struct WasmEngine {
 }
 
 impl WasmEngine {
-    pub fn new() -> Result<Self> {
+    pub fn new() -> Result<Self, WasmError> {
         Ok(Self {
             engine: create_engine().map(Arc::new)?,
         })
     }
 
-    pub fn global() -> Result<Self> {
+    pub fn global() -> Result<Self, WasmError> {
         Ok(Self {
             engine: global_engine()?,
         })
