@@ -151,7 +151,11 @@ pub(crate) fn apply_config_snapshot(snapshot: ConfigSnapshot, targets: &ReloadTa
     if targets.http.send(Arc::new(snapshot.http)).is_err() {
         error!("http runtime not receiving config reloads");
     }
-    if targets.shared_tls.send(Arc::new(snapshot.shared_tls)).is_err() {
+    if targets
+        .shared_tls
+        .send(Arc::new(snapshot.shared_tls))
+        .is_err()
+    {
         error!("shared-tls runtime not receiving config reloads");
     }
     if targets.stream.send(Arc::new(snapshot.stream)).is_err() {
@@ -160,7 +164,11 @@ pub(crate) fn apply_config_snapshot(snapshot: ConfigSnapshot, targets: &ReloadTa
     if targets.xds.send(Arc::new(snapshot.xds)).is_err() {
         error!("xds runtime not receiving config reloads");
     }
-    if targets.active_health.send(Arc::new(snapshot.active_health)).is_err() {
+    if targets
+        .active_health
+        .send(Arc::new(snapshot.active_health))
+        .is_err()
+    {
         error!("active health runtime not receiving config reloads");
     }
 }

@@ -38,10 +38,7 @@ impl RuntimeStats {
         self.http_listener_reload_failures
             .fetch_add(u64::from(!failures.is_empty()), Ordering::Relaxed);
         self.observe_http_listener_reload_attempt(version);
-        let mut inner = self
-            .inner
-            .write()
-            .unwrap_or_else(|err| err.into_inner());
+        let mut inner = self.inner.write().unwrap_or_else(|err| err.into_inner());
         update_listener_progress(
             &mut inner.http_listener_progress,
             version,
@@ -113,10 +110,7 @@ impl RuntimeStats {
         self.tls_listener_reload_failures
             .fetch_add(u64::from(!failures.is_empty()), Ordering::Relaxed);
         self.observe_tls_listener_reload_attempt(version);
-        let mut inner = self
-            .inner
-            .write()
-            .unwrap_or_else(|err| err.into_inner());
+        let mut inner = self.inner.write().unwrap_or_else(|err| err.into_inner());
         update_listener_progress(
             &mut inner.tls_listener_progress,
             version,
@@ -193,10 +187,7 @@ impl RuntimeStats {
         self.stream_listener_reload_failures
             .fetch_add(u64::from(!failures.is_empty()), Ordering::Relaxed);
         self.observe_stream_listener_reload_attempt(version);
-        let mut inner = self
-            .inner
-            .write()
-            .unwrap_or_else(|err| err.into_inner());
+        let mut inner = self.inner.write().unwrap_or_else(|err| err.into_inner());
         update_listener_progress(
             &mut inner.stream_listener_progress,
             version,

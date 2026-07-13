@@ -216,11 +216,7 @@ async fn handle_connection(
                 Err(_) => false,
             };
             if is_alive {
-                pool.return_connection(
-                    backend_addr,
-                    backend_port,
-                    upstream_reunited,
-                );
+                pool.return_connection(backend_addr, backend_port, upstream_reunited);
             }
         }
     } else {

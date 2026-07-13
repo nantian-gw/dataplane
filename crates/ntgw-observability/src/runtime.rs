@@ -164,10 +164,7 @@ impl RuntimeStats {
         self.supervisor_running.store(true, Ordering::Relaxed);
         self.supervisor_shutdown_requested
             .store(false, Ordering::Relaxed);
-        let mut inner = self
-            .inner
-            .write()
-            .unwrap_or_else(|err| err.into_inner());
+        let mut inner = self.inner.write().unwrap_or_else(|err| err.into_inner());
         inner.supervisor_last_shutdown_reason.clear();
         inner.supervisor_last_exit_message.clear();
     }
@@ -274,17 +271,12 @@ impl RuntimeStats {
     }
 
     pub fn snapshot(&self) -> RuntimeStatsSnapshot {
-        let inner = self
-            .inner
-            .read()
-            .unwrap_or_else(|err| err.into_inner());
+        let inner = self.inner.read().unwrap_or_else(|err| err.into_inner());
         RuntimeStatsSnapshot {
             http_listener_reload_failures: self
                 .http_listener_reload_failures
                 .load(Ordering::Relaxed),
-            tls_listener_reload_failures: self
-                .tls_listener_reload_failures
-                .load(Ordering::Relaxed),
+            tls_listener_reload_failures: self.tls_listener_reload_failures.load(Ordering::Relaxed),
             stream_listener_reload_failures: self
                 .stream_listener_reload_failures
                 .load(Ordering::Relaxed),
