@@ -14,6 +14,7 @@ type PoolKey = (String, u16);
 
 /// Snapshot of cumulative connection pool counters at a point in time.
 #[derive(Debug, Clone, Copy, Default)]
+#[allow(dead_code)]
 pub(crate) struct PoolCountersSnapshot {
     /// Connections currently held by callers (not in idle pool).
     pub active_connections: u64,
@@ -163,6 +164,7 @@ impl TcpConnectionPool {
         debug!(count, "pool drained");
     }
 
+    #[allow(dead_code)]
     pub(crate) fn counter_snapshot(&self) -> PoolCountersSnapshot {
         PoolCountersSnapshot {
             active_connections: self.active_connections.load(Ordering::Relaxed),
