@@ -135,6 +135,24 @@ codegen-units = 1
 panic = "abort"
 ```
 
+## Naming Conventions
+
+### Config vs Options
+
+Use two distinct suffixes for configuration structs depending on where they are used:
+
+- **`Config`** — Deserialized from YAML or other persistent configuration sources. These types implement `serde::Deserialize` (and often `Serialize`) and live primarily in `ntgw-config`. They represent the user-facing, file-based configuration surface.
+
+  Examples: `DataPlaneConfig`, `LogConfig`, `AccessLogConfig`, `AdminAuthConfig`, `RuntimeConfig`, `SessionPersistenceConfig`, `XdsTlsConfig`, `ExperimentalConfig`.
+
+  Isolated `Config` types outside `ntgw-config` (e.g., `AdminRuntimeConfig` in `ntgw-app`, `RateLimitConfig` in `ntgw-ai`) follow the same rule: they represent configuration data that is either derived from the file config or consumed as structured input by a subsystem.
+
+- **`Options`** — Runtime parameters passed to constructors at startup. These types aggregate the settings a subsystem needs to operate, are typically cloned or `Arc`-wrapped, and are NOT deserialized directly from config files. Builders consume file-based `*Config` values and produce `*Options`.
+
+  Examples: `RuntimeOptions`, `ConnectOptions`, `TransportOptions`, `ClientTlsOptions`, `SessionPersistenceOptions`, `AccessLogOptions`, `HttpAdmissionOptions`, `HttpCircuitBreakerOptions`, `HttpRateLimitOptions`, `RetryBudgetOptions`.
+
+**Rule of thumb**: If it comes from a file → `Config`. If it is handed to a subsystem constructor → `Options`.
+
 ## Known Issues
 
 - **prometheus 0.13** is pinned (not workspace-managed) in `ntgw-http` and `ntgw-ai`. Upstream `pingora-core 0.8.0` pulls `prometheus 0.13.x` → `protobuf 2.x`. Tracked as `RUSTSEC-2024-0437` in `deny.toml` — the dataplane only exports Prometheus text format, no attacker-supplied protobuf parsing.
