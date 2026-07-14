@@ -325,3 +325,181 @@ These serialize to camelCase for compatibility with external API specifications:
 ### Applied Fixes
 
 - **TCP connection span in `ntgw-stream/src/tcp.rs`**: Added `info_span!("tcp_connection", %listener_name)` wrapping `handle_connection()`. Every TCP proxy connection now has a named span. This adds observability to the busiest hot path with minimal overhead (~no-op until subscriber samples).
+
+## Config Hot-Reload Audit (P1)
+
+**Status**: Audited 2026-07-14. No changes made; documentation only.
+
+### Current Architecture
+
+There are **three distinct config reload mechanisms** at different layers:
+
+#### Layer 1: YAML File Config (`ntgw-config/src/reload.rs`)
+
+`ReloadingDataPlaneConfig` wraps `Arc<RwLock<CachedConfig>>`. On each `load()` or `load_if_changed()`:
+
+1. Fast path: acquire read lock, check if cached value is fresh enough (`refresh_interval` elapsed?). If not, return cached.
+2. Slow path: acquire write lock, re-check freshness (double-checked locking), compare file stamp (mtime + size).
+3. If file changed: re-parse YAML, update cache in-place, return new value.
+
+**Key detail**: Uses `std::sync::RwLock` (from std, not `parking_lot`). Readers block during writes. This is NOT lock-free. On config reload, any concurrent `load()` caller waits for the write lock to be released.
+
+#### Layer 2: Runtime Config Propagation (`ntgw-app/src/config_reload.rs`)
+
+The `spawn_config_reload_loop` task watches the config file (inotify + 30s watchdog polling fallback), calls `ReloadingDataPlaneConfig::load_if_changed()` on each change, builds a `ConfigSnapshot`, and pushes it to subsystems via:
+
+- `tokio::sync::watch::Sender<Arc<Config>>` — for HTTP, stream, shared-TLS, xDS, active-health configs (lock-free for readers via `watch::Receiver::borrow()`)
+- `Arc<RwLock<Config>>` (parking_lot) — for admin, circuit-breaker, rate-limit, retry-budget (requires write lock to update)
+
+The `watch` channels are the modern approach — readers get a shared `Arc` clone without any locking.
+
+#### Layer 3: Snapshot (IR) Switching (`ntgw-ir/src/lib.rs`)
+
+`SharedSnapshot = Arc<ArcSwap<Snapshot>>`. This is the runtime IR used for per-request route matching. **This already uses `arc-swap` for truly lock-free readers.** The `ArcSwap::store(Arc::new(snapshot))` atomically swaps the pointer — readers see either the old or new snapshot, never a partial state.
+
+### Gap Analysis
+
+| Area | Mechanism | Lock-Free? | Assessment |
+|------|-----------|------------|------------|
+| YAML config reload | `std::sync::RwLock` | No | Readers block on write. Low impact — config reloads are rare (human-scale). |
+| Subsystem config broadcast | `tokio::sync::watch` | Yes (readers) | ✅ Good. Uses Arc clone, no locking on read path. |
+| Subsystem mutable state | `parking_lot::RwLock` | No | Admin/circuit_breaker/rate_limit/retry_budget use write locks on reload. Low contention. |
+| Snapshot (IR) switching | `arc_swap::ArcSwap` | **Yes** | ✅ Already optimal. The hottest path (per-request route matching) reads snapshots without any lock. |
+
+### Recommendation
+
+The `RwLock` in `ReloadingDataPlaneConfig` is **not a performance concern** because:
+- Config reload is a rare operation (seconds to minutes between reloads)
+- The `refresh_interval` guard ensures readers don't hammer the lock
+- The critical hot path (snapshot lookup) already uses `ArcSwap`
+
+**No changes recommended for the RwLock in ntgw-config.** The architecture is well-layered: slow operations use locks, hot paths are lock-free.
+
+### Files Involved
+
+| File | Role |
+|------|------|
+| `crates/ntgw-config/src/reload.rs` | YAML file config reload with RwLock |
+| `crates/ntgw-config/src/lib.rs` | `DataPlaneConfig` struct (YAML deserialization) |
+| `crates/ntgw-config/src/impls.rs` | Config methods (load, env overrides) |
+| `crates/ntgw-app/src/config_reload.rs` | File watcher + config broadcast loop |
+| `crates/ntgw-ir/src/lib.rs` L31: `use arc_swap::ArcSwap;` L62: `type SharedSnapshot = Arc<ArcSwap<Snapshot>>;` | Lock-free snapshot switching |
+| `crates/ntgw-ir/src/snapshot.rs` L22-24: `Snapshot::shared()` | Creates `ArcSwap`-wrapped snapshot |
+
+## Route Matching Performance Audit (P2)
+
+**Status**: Audited 2026-07-14. No changes made; documentation only.
+
+### Current Architecture
+
+Route matching uses a **three-tier** strategy: hash-based index narrowing → fast-path linear scan → slow-path hostname-index + linear scoring.
+
+#### Tier 1: Runtime Indexes (built in `rebuild_runtime_indexes`)
+
+Pre-built hash maps narrow the search space:
+
+| Index | Type | Key → Value |
+|-------|------|------------|
+| `listener_name_index` | `HashMap<String, usize>` | Listener name → index |
+| `http_listener_port_index` | `HashMap<u32, Vec<usize>>` | Port → listener indices |
+| `http_route_hostname_index` | `HostnameRouteIndex` (see below) | Hostname → route indices |
+| `grpc_route_hostname_index` | `HostnameRouteIndex` | Hostname → route indices |
+| `stream_listener_route_index` | `HashMap<String, Vec<usize>>` | Listener name → stream route indices |
+| `route_attachment_listener_index` | `RouteAttachmentListenerIndex` (HashMap) | Namespace+name → listener indices |
+| `backend_service_index` | `HashMap<String, BackendServiceBucket>` | Service name → backend entries |
+| `backend_index` | `HashMap<Arc<str>, usize>` | Backend name → index |
+
+#### Tier 2: HostnameRouteIndex
+
+`HostnameRouteIndex` is a **custom hash-based hostname matcher** (not a Trie):
+
+```
+struct HostnameRouteIndex {
+    catch_all: Vec<usize>,           // routes with no hostname filter
+    exact: HashMap<String, Vec<usize>>,  // exact hostname matches
+    wildcard_suffix: HashMap<String, Vec<usize>>,  // wildcard suffix ("*.example.com" → "example.com")
+}
+```
+
+For a request host like `foo.bar.example.com`, it checks:
+1. `exact["foo.bar.example.com"]`
+2. `wildcard_suffix["bar.example.com"]` (suffix of `*.bar.example.com`)
+3. `wildcard_suffix["example.com"]` (suffix of `*.example.com`)
+4. `wildcard_suffix["com"]` (suffix of `*.com` — unlikely match)
+5. `catch_all`
+
+Uses **merged-cell iteration** (`next_candidate_index_after_normalized`) to return route indices in order without duplicates across multiple HashMap matches. Uses `partition_point` for O(log n) skip-ahead within each vector.
+
+#### Tier 3: Linear Scan with Scoring
+
+After narrowing by hostname index, the system does a **linear scan** over candidate routes, computing a score for each match and keeping the best one:
+
+```
+HTTP scoring (HttpCandidateScore):
+  listener_host_score + route_host_score + rule_score
+    where rule_score = path_rank (Exact=3 > Regex=2 > Prefix=1) 
+                      + path_length 
+                      + method_specified
+
+Stream scoring (StreamMatchScore):
+  hostname_rank (exact=2 > wildcard=1) + hostname_length
+
+gRPC scoring (GrpcCandidateScore):
+  listener_host_score + route_host_score + service_score + method_score
+```
+
+#### Fast Path (`http_fast_path.rs`, `stream_fast_path.rs`)
+
+For **simple routes** (no filters, no retries, no timeouts, no session persistence, no header/query matching), the system pre-compiles a `HttpFastPathPlan` / `StreamFastPathPlan` during index building. This pre-compiles:
+- All pre-resolved backend references (endpoint + runtime IDs)
+- Flat vectors of compiled rules per route
+- Listener→route attachment mappings
+
+The fast path selection does a **pure linear scan** over these pre-compiled structures — no hash map lookups in the hot path. This is optimal for the common case where most routes are simple.
+
+### Design Analysis
+
+| Aspect | Approach | Notable |
+|--------|----------|---------|
+| Hostname matching | Hash-based exact + wildcard suffix map | O(1) average for exact; O(k) for wildcard suffixes (k = number of `.` in hostname) |
+| Path matching | Linear scan with scoring | O(n) where n = candidate routes after hostname narrowing |
+| Regex compilation | Pre-compiled at index-build time (`compile_runtime_state`) | Regexes stored as `Option<Arc<Regex>>`, only compiled once |
+| Fast path | Flat vectors, no HashMap lookups | Bypasses ALL index lookups for simple routes; pure sequential scan |
+| Merge iteration | Deduplication via `partition_point` | Prevents visiting the same route index twice across different hostname matches |
+| Header matching | Loop over expected headers, HashMap lookup per header | O(h × log v) where h = expected headers, v = values per header |
+
+### Trie vs Hash-Based
+
+**No character-based Trie is used.** The hostname index uses HashMaps, not a prefix tree. This is actually **correct for this domain** because:
+
+1. Hostname matching in HTTP routing is NOT longest-prefix — it's **exact match or wildcard suffix** (`*.example.com`). A Trie would not help here.
+2. Path matching uses linear scan with scoring, not Trie lookup. The scoring is needed because Gateway API defines priority ordering (Exact > Prefix > Regex), which doesn't fit a pure Trie.
+3. The fast path avoids even HashMap lookups.
+
+A Trie *could* benefit path prefix matching if there are hundreds of routes with the same hostname but different path prefixes, but:
+- The `PathPrefix` match has a simple `starts_with` check — already O(min(len(prefix), len(path)))
+- With hostname narrowing, the number of candidate routes per request is typically small (single digits)
+- The scoring system already provides correct priority ordering
+
+### Recommendation
+
+**No changes recommended.** The architecture is well-tuned for the problem domain:
+- Hash-based hostname narrowing reduces the candidate set to single digits in most configurations
+- Fast path compilation eliminates all overhead for simple routes
+- The linear scan over a small candidate set is negligible
+- Regex pre-compilation eliminates repeated regex parsing
+
+A Trie would be a premature optimization that would add complexity without measurable benefit for realistic route table sizes (tens to low hundreds of routes).
+
+### Files Involved
+
+| File | Role |
+|------|------|
+| `crates/ntgw-ir/src/matching.rs` | Low-level match functions (HTTP path, headers, query, gRPC, stream, hostname) |
+| `crates/ntgw-ir/src/http_fast_path.rs` | Fast path: pre-compiled HTTP route selection (no index lookups) |
+| `crates/ntgw-ir/src/stream_fast_path.rs` | Fast path: pre-compiled stream route selection |
+| `crates/ntgw-ir/src/http_selection/candidates.rs` | Listener/route candidate generation using hostname indexes |
+| `crates/ntgw-ir/src/http_selection/scoring.rs` | Scoring logic for HTTP/gRPC route matching |
+| `crates/ntgw-ir/src/http_selection/selection.rs` | Full HTTP/gRPC route selection loop |
+| `crates/ntgw-ir/src/snapshot.rs` | `rebuild_runtime_indexes()` — builds all hash indexes and fast path plans |
+| `crates/ntgw-ir/src/lib.rs` L391-453 | `HostnameRouteIndex` definition and merged-cell iteration |
