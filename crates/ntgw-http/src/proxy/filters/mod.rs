@@ -12,7 +12,9 @@ use std::collections::HashMap;
 use super::*;
 
 use crate::extensions::direct_response_filter;
-use crate::filters::{apply_response_filters, build_cors_preflight_response, ensure_supported_filters};
+use crate::filters::{
+    apply_response_filters, build_cors_preflight_response, ensure_supported_filters,
+};
 use crate::mirror::{selected_backend_from_subrequest, spawn_request_mirrors};
 pub(crate) async fn do_request_filter(
     proxy: &GatewayProxy,
