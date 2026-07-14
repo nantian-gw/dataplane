@@ -69,7 +69,7 @@ tracing-subscriber = { version = "0.3.19", features = ["env-filter", "fmt", "jso
 rustls = { version = "0.23.39", default-features = false, features = ["ring"] }
 zeroize = { version = "1", features = ["derive"] }
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }
-jsonwebtoken = "10"
+jsonwebtoken = { version = "10", features = ["aws_lc_rs"] }
 sentry = { version = "0.36", default-features = false, features = ["backtrace", "contexts", "panic", "transport"] }
 sentry-tracing = "0.36"
 ntgw-allocator = { version = "0.1.0", path = "crates/ntgw-allocator" }
