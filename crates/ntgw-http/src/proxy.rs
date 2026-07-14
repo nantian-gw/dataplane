@@ -344,11 +344,19 @@ pub(crate) fn request_for_response_filters<'a>(
     request_headers_complete: bool,
     filters: &[Filter],
 ) -> &'a RequestMeta {
-    if request_headers_complete || !response_filters_need_request_headers(filters) {
+    if request_headers_complete
+        || (!response_filters_need_request_headers(filters) && !cors_filter_present(filters))
+    {
         return request;
     }
 
     full_request.get_or_insert_with(|| build_request_meta(session))
+}
+
+/// Returns true if the filter list contains a CORS filter that needs access to
+/// request headers (Origin, Access-Control-Request-Method, etc.) for preflight checks.
+fn cors_filter_present(filters: &[Filter]) -> bool {
+    filters.iter().any(|f| f.cors.is_some())
 }
 
 #[derive(Clone)]
