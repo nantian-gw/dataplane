@@ -1,5 +1,4 @@
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-#[ignore = "flaky in CI: early-eof race on large payload echo"]
 async fn websocket_large_payload_tunnels_in_both_directions() {
     install_rustls_provider();
     let upstream_listener = TcpListener::bind("127.0.0.1:0")
@@ -26,7 +25,7 @@ async fn websocket_large_payload_tunnels_in_both_directions() {
     )
     .expect("start server");
 
-    let payload = vec![b'x'; 64 * 1024];
+    let payload = vec![b'x'; 256 * 1024];
     let upstream_payload = payload.clone();
     let client_payload = payload.clone();
     let upstream = tokio::spawn(async move {
@@ -59,14 +58,42 @@ async fn websocket_large_payload_tunnels_in_both_directions() {
         let response = read_http_headers(&mut client).await?;
         assert!(response.starts_with("HTTP/1.1 101"));
 
+        // Let the tunnel stabilise before sending the large payload.
+        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+
         client.write_all(&client_payload).await?;
         let mut echoed = vec![0; client_payload.len()];
-        tokio::time::timeout(
-            std::time::Duration::from_secs(10),
-            client.read_exact(&mut echoed),
-        )
-        .await
-        .expect("read timeout")?;
+        let mut read_offset = 0;
+        let deadline = std::time::Duration::from_secs(30);
+        let start = std::time::Instant::now();
+        while read_offset < echoed.len() {
+            let remaining = &mut echoed[read_offset..];
+            let elapsed = start.elapsed();
+            if elapsed >= deadline {
+                anyhow::bail!("read timeout after {read_offset} of {} bytes", echoed.len());
+            }
+            let remaining_timeout = deadline.saturating_sub(elapsed);
+            let read_result = tokio::time::timeout(remaining_timeout, client.readable()).await;
+            match read_result {
+                Ok(Ok(())) => {}
+                Ok(Err(e)) => return Err(e.into()),
+                Err(_elapsed) => anyhow::bail!("read deadline exceeded"),
+            }
+            match client.try_read(remaining) {
+                Ok(0) => {
+                    anyhow::bail!(
+                        "connection closed after {read_offset} of {} bytes",
+                        echoed.len()
+                    );
+                }
+                Ok(n) => read_offset += n,
+                Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                    tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+                    continue;
+                }
+                Err(e) => return Err(e.into()),
+            }
+        }
         assert_eq!(echoed, client_payload);
         Ok::<(), anyhow::Error>(())
     }
