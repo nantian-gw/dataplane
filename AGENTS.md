@@ -156,3 +156,105 @@ Use two distinct suffixes for configuration structs depending on where they are 
 ## Known Issues
 
 - **prometheus 0.13** is pinned (not workspace-managed) in `ntgw-http` and `ntgw-ai`. Upstream `pingora-core 0.8.0` pulls `prometheus 0.13.x` → `protobuf 2.x`. Tracked as `RUSTSEC-2024-0437` in `deny.toml` — the dataplane only exports Prometheus text format, no attacker-supplied protobuf parsing.
+- **camelCase YAML convention gap (P1)** — Dataplane config structs use `#[serde(rename_all = "camelCase")]`, meaning YAML keys are camelCase while Rust fields are snake_case. This is non-idiomatic for YAML configs (industry standard is snake_case). See [Config Naming Convention Gap](#config-naming-convention-gap) below for full audit and migration plan.
+
+## Config Naming Convention Gap
+
+**Status**: Audited 2026-07-14. No renaming has been performed yet.
+
+### Scope
+
+The camelCase convention for YAML/JSON serialization spans four categories with different migration feasibility:
+
+#### Category 1: YAML config structs (`ntgw-config`) — MIGRATION TARGET
+
+These 21 structs in `crates/ntgw-config/src/lib.rs` all use `#[serde(rename_all = "camelCase")]`:
+
+| Struct | Fields | YAML Path |
+|--------|--------|-----------|
+| `DataPlaneConfig` | 6 (identity fields) | root |
+| `LogConfig` | 10 | `log.*` |
+| `OpenTelemetryConfig` | 7 | `log.openTelemetry.*` |
+| `SentryConfig` | 7 | `log.sentry.*` |
+| `AccessLogConfig` | 8 | `accessLog.*` |
+| `AdminAuthConfig` | 2 | `adminAuth.*` |
+| `RuntimeConfig` | 5 | `runtime.*` |
+| `SessionPersistenceConfig` | 3 | `sessionPersistence.*` |
+| `XdsTlsConfig` | 5 | `xdsTls.*` |
+| `XdsTransportConfig` | 9 | `xdsTransport.*` |
+| `RuntimeProtectionConfig` | 16 | `runtimeProtection.*` |
+| `HttpCapacityConfig` | 4 | `runtimeTuning.httpCapacity.*` |
+| `RuntimeTuningConfig` | 29 | `runtimeTuning.*` |
+| `HttpCacheConfig` | 4 | `runtimeTuning.httpCache.*` |
+| `ExperimentalConfig` | 3 | `experimental.*` |
+| `RoutePolicyConfig` | 4 | xDS-sourced route policies |
+| `RoutePolicyTimeoutConfig` | 4 | xDS-sourced |
+| `RoutePolicyBodyLimitConfig` | 3 | xDS-sourced |
+| `RoutePolicyProxyConfig` | 4 | xDS-sourced |
+| `RoutePolicyConnectionConfig` | 5 | xDS-sourced |
+| `TcpKeepaliveConfig` | 5 | `*TcpKeepalive.*` |
+
+**Total**: ~130 camelCase YAML keys across 21 structs.
+
+#### Category 2: Observability snapshots (`ntgw-observability`) — SERIALIZE-ONLY, JSON API
+
+These 11+ structs are `Serialize`-only (no `Deserialize`), outputting JSON via admin API:
+
+- `HttpCircuitBreakerSnapshot` (4 fields)
+- `RetryBudgetSnapshot` (7 fields)
+- `UdpSessionSnapshot` (8 fields)
+- `RateLimitScopeSnapshot` (4 fields)
+- `NamedRateLimitScopeSnapshot` (5 fields)
+- `HttpRateLimitSnapshot` (10 fields)
+- `AdminRequestStatsSnapshot` (1 field)
+- `AdminRequestMetricSeries` (4 fields)
+- `AdminRequestDurationBucket` (2 fields)
+- `OverloadSnapshot` (20+ fields)
+- `AccessLogMode` enum (2 variants, serialize + deserialize)
+
+**Verdict**: These are admin API responses. Changing them is a **breaking API change** for consumers of the admin JSON API. Lower priority than Category 1. Could migrate with API versioning.
+
+#### Category 3: External API compatibility — DO NOT CHANGE
+
+These serialize to camelCase for compatibility with external API specifications:
+
+- `Filter` / `CorsFilter` in `ntgw-ir` — Gateway API spec uses camelCase JSON
+- `ListenerRuntimeStatus`, `ListenerListQuery`, `RouteListQuery`, `BackendListQuery` in `ntgw-app/src/admin/types.rs` — admin API query params use camelCase
+- `LangfuseTracePayload` in `ntgw-ai` — Langfuse API requires camelCase
+
+**Verdict**: These are dictated by external API contracts. Do not change.
+
+#### Category 4: Individual field renaming — MIXED
+
+- `WasmHook` enum variants (`#[serde(rename = "on_request")]`) — fixed spec names, do not change
+- `Filter.filter_type` (`#[serde(rename = "type")]`) — JSON field name conflict, do not change
+- `AccessLogRecord` (serialize + deserialize, ~18 fields) — also a JSON API concern
+
+### Files Using camelCase YAML
+
+| File | Lines | Status |
+|------|-------|--------|
+| `configs/dataplane/config.yaml` | 135 | Bundled default |
+| `configs/dataplane/config.production.yaml` | 105 | Bundled production |
+| `helm-charts/charts/nantian-gw/values.yaml` (L398-462) | ~65 | Helm values, generates ConfigMap YAML |
+| Test fixtures in `crates/ntgw-config/src/tests/*.rs` | ~20 inline YAML blocks | Inline test YAML |
+
+### Migration Plan
+
+1. **Add snake_case aliases**: Add `#[serde(alias = "snake_case_name")]` to each field OR use `#[serde(rename_all = "camelCase")]` + `#[serde(alias)]` at the struct level. Both camelCase and snake_case YAML keys accepted during transition.
+
+2. **Update bundled configs**: Rewrite `configs/dataplane/*.yaml` with snake_case keys.
+
+3. **Update test fixtures**: Rewrite all inline YAML in test files.
+
+4. **Log deprecation warnings**: Log a warning (rate-limited) when camelCase keys are used, pointing to the new snake_case equivalent.
+
+5. **Update Helm chart**: Rewrite `values.yaml` `dataplane.config` section to emit snake_case YAML.
+
+6. **Remove camelCase support**: After a deprecation period (1-2 releases), remove `#[serde(rename_all = "camelCase")]` and rely on Rust's default snake_case serialization.
+
+### Estimated Effort
+
+- Category 1 migration (YAML configs): ~2 days including test updates
+- Category 2 migration (admin API): ~1 day + API version coordination
+- Docs and Helm chart: ~0.5 day
