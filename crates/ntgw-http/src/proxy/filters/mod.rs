@@ -12,7 +12,7 @@ use std::collections::HashMap;
 use super::*;
 
 use crate::extensions::direct_response_filter;
-use crate::filters::{apply_response_filters, ensure_supported_filters};
+use crate::filters::{apply_response_filters, build_cors_preflight_response, ensure_supported_filters};
 use crate::mirror::{selected_backend_from_subrequest, spawn_request_mirrors};
 pub(crate) async fn do_request_filter(
     proxy: &GatewayProxy,
@@ -325,6 +325,31 @@ pub(crate) async fn do_request_filter(
             &proxy.access_log,
             &selected.route_annotations,
         );
+        if let Some(response) = match build_cors_preflight_response(
+            &selected.filters,
+            &filter_request.method,
+            &filter_request.headers,
+        ) {
+            Ok(response) => response,
+            Err(err) => {
+                cache_selected_backend_ref(ctx, &selected, proxy.access_log.enabled);
+                return Err(err);
+            }
+        } {
+            cache_selected_backend_ref(ctx, &selected, proxy.access_log.enabled);
+            ctx.status = response.status.as_u16();
+            record_request_span(ctx);
+            write_response_header_with_access_log_capture(
+                session,
+                response,
+                true,
+                ctx,
+                &proxy.access_log,
+                &selected.route_annotations,
+            )
+            .await?;
+            return Ok(true);
+        }
         ctx.resolved_session = selected
             .session_persistence
             .as_ref()
@@ -370,6 +395,31 @@ pub(crate) async fn do_request_filter(
                 &proxy.access_log,
                 &selected.route_annotations,
             );
+            if let Some(response) = match build_cors_preflight_response(
+                &selected.filters,
+                &filter_request.method,
+                &filter_request.headers,
+            ) {
+                Ok(response) => response,
+                Err(err) => {
+                    cache_selected_backend_ref(ctx, &selected, proxy.access_log.enabled);
+                    return Err(err);
+                }
+            } {
+                cache_selected_backend_ref(ctx, &selected, proxy.access_log.enabled);
+                ctx.status = response.status.as_u16();
+                record_request_span(ctx);
+                write_response_header_with_access_log_capture(
+                    session,
+                    response,
+                    true,
+                    ctx,
+                    &proxy.access_log,
+                    &selected.route_annotations,
+                )
+                .await?;
+                return Ok(true);
+            }
             ctx.resolved_session = selected
                 .session_persistence
                 .as_ref()

@@ -28,6 +28,8 @@ impl fmt::Display for JwtError {
     }
 }
 
+impl std::error::Error for JwtError {}
+
 #[derive(Debug, Deserialize)]
 struct JwksResponse {
     keys: Vec<JwkKey>,

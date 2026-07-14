@@ -258,3 +258,70 @@ These serialize to camelCase for compatibility with external API specifications:
 - Category 1 migration (YAML configs): ~2 days including test updates
 - Category 2 migration (admin API): ~1 day + API version coordination
 - Docs and Helm chart: ~0.5 day
+
+## Error Type Audit
+
+**Status**: Audited 2026-07-14. Only JwtError fix applied; full typed-error migration pending.
+
+### Findings Summary
+
+| Crate | Rating | anyhow uses (prod) | thiserror? | Custom error types |
+|-------|--------|---------------------|------------|--------------------|
+| `ntgw-ir` | **GOOD** | 0 | — | `BackendSelectionError` (data enum) |
+| `ntgw-ai` | MIXED | 33 (8 files) | `AIError` (16 variants) | wraps `anyhow::Error` as `Internal` variant |
+| `ntgw-wasm` | MIXED | 3 (2 files) | `WasmError` (11 variants) | clean, anyhow only in `mem.rs` |
+| `ntgw-app` | MIXED | 6 (4 files) | — | `ApiError` (no `Error` trait) |
+| `ntgw-config` | MIXED | 2 (2 files) | — | — |
+| `ntgw-observability` | MIXED | 5 (5 files) | — | — |
+| `ntgw-bench` | MIXED | 17 (10 files) | — | — (bench binary, acceptable) |
+| `ntgw-http` | MIXED | 13 `anyhow!()` + 29 `.context()` (6 files) | — | `JwtError` (5 variants, ✅ `Error` impl added) |
+| `ntgw-stream` | **POOR** | 5 `anyhow!()` + 18 func sigs (5 files) | — | — (no typed errors) |
+| `ntgw-xds` | **POOR** | 5 (4 files) | — | — (public API returns `anyhow::Result`) |
+| `ntgw-shared-tls` | **POOR** | 5 (5 files) | — | — (no typed errors) |
+| `ntgw-proto` | NONE | 0 | — | — |
+| `ntgw-wasm-sdk` | NONE | 0 | — | — |
+| `ntgw-allocator` | NONE | 0 | — | — |
+
+### Applied Fixes
+
+- **`JwtError` in `ntgw-http/src/filters/jwt.rs`**: Added `impl std::error::Error for JwtError {}` (had `Debug` + `Display` but was missing `Error` trait). Now compatible with `Box<dyn Error>` and `pingora::Error::because()`.
+
+### Migration Priorities
+
+1. **ntgw-stream** (5 `anyhow!()` + 18 function signatures): Create `StreamError` enum. Replace route-mismatch, preface-timeout, preface-closed, dispatcher-stopped errors.
+2. **ntgw-xds** (5 production uses, public API): Create `XdsError` enum for `ConnectionFailed`, `StreamError`, `PreflightFailed`, `TlsConfig`. Fixes public API return type.
+3. **ntgw-shared-tls** (5 production uses): Create `SharedTlsError` for `CertificateLoad`, `HandshakeFailure`, `BindFailure`, `IdentityConfig`.
+4. **ntgw-http** (13 `anyhow!()` in session.rs + TLS handling): Create `SessionError` and `TlsIdentityError` enums.
+5. **ntgw-ai** (19 langfuse.rs uses): Convert langfuse anyhow uses to `AIError` variants or dedicated `LangfuseError`.
+
+## Tracing Coverage
+
+**Status**: Audited 2026-07-14. TCP span added; no other instrumentation added.
+
+### Macro Usage by Crate
+
+| Crate | info_span! | info! | debug! | warn! | error! | trace! | #[instrument] | Span API |
+|-------|-----------|-------|--------|-------|--------|--------|---------------|----------|
+| `ntgw-http` | **1** | 7 | 2 | 36 | 6 | 0 | 0 | `.record()` ×3, `field::Empty` ×15 |
+| `ntgw-ai` | 3 | 3 | 2 | 10 | 0 | 0 | 0 | — |
+| `ntgw-stream` | **1** (new) | 5 | 14 | 13 | 3 | 0 | 0 | — |
+| `ntgw-app` | 0 | 3 | 0 | 7 | 15 | 0 | 0 | — |
+| `ntgw-wasm` | 0 | 4 | 5 | 9 | 0 | 0 | 0 | — |
+| `ntgw-xds` | 0 | 1 | 4 | 4 | 0 | 0 | 0 | — |
+| `ntgw-shared-tls` | 0 | 2 | 0 | 6 | 1 | 0 | 0 | — |
+| `ntgw-observability` | 0 | 0 | 0 | 4 | 1 | 0 | 0 | — |
+| `ntgw-ir` | 0 | 0 | 0 | 0 | 0 | 0 | 0 | — |
+| `ntgw-config` | 0 | 0 | 0 | 0 | 0 | 0 | 0 | — |
+| **Total** | **5** | **25** | **27** | **89** | **26** | **0** | **0** | **3 record + 15 field** |
+
+### Key Gaps
+
+- **No `#[tracing::instrument]` anywhere** — zero use of the procedural macro for automatic span creation on async functions.
+- **No `debug_span!`, `error_span!`, `warn_span!`, `trace_span!`** — only `info_span!` is used.
+- **No `trace!` level logging** — completely unused, even in high-cardinality paths.
+- **Only 1 span in HTTP proxy** — `ntgw-http/src/proxy/request.rs` creates a per-request span with 15 fields. Filter execution, retry, and downstream/upstream I/O run outside any span.
+- **ntgw-stream had zero spans** — TCP and UDP proxy hot paths had no span instrumentation. Added 1 span in `tcp::handle_connection`.
+
+### Applied Fixes
+
+- **TCP connection span in `ntgw-stream/src/tcp.rs`**: Added `info_span!("tcp_connection", %listener_name)` wrapping `handle_connection()`. Every TCP proxy connection now has a named span. This adds observability to the busiest hot path with minimal overhead (~no-op until subscriber samples).
