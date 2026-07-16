@@ -18,7 +18,7 @@ jobs:
       id-token: write # P2-3 DRAFT: cosign keyless image signing/attestation
 
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
       - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
 
@@ -136,7 +136,7 @@ jobs:
 
     steps:
       - name: Checkout # P2-3 DRAFT: needed to read rust-toolchain.toml / Cargo.lock for provenance
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
       - name: Download amd64 artifact
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
