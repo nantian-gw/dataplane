@@ -17,6 +17,57 @@ impl ModelPricing {
             output_per_1k,
         }
     }
+
+    /// Estimate the dollar cost for the given token counts using this pricing.
+    pub fn estimate(&self, prompt_tokens: u64, completion_tokens: u64) -> f64 {
+        let input_cost = (prompt_tokens as f64 / 1000.0) * self.input_per_1k;
+        let output_cost = (completion_tokens as f64 / 1000.0) * self.output_per_1k;
+        (input_cost + output_cost).max(0.0)
+    }
+}
+
+/// Per-request cost snapshot linking a model to its token usage and estimated dollar cost.
+///
+/// # Future Integration
+///
+/// The request pipeline currently records cost through `CostTracker::record()` and
+/// `AIMetrics::record_cost()`. A `TokenCost` can be attached to each request's context
+/// to carry the estimated cost through filters and observability layers without coupling
+/// them to the global `CostTracker`. Planned integration points:
+///
+/// - **Filter chain**: Attach a `TokenCost` to the request extension map so filters
+///   (rate limit, quota, billing) can inspect per-request cost before or after upstream.
+/// - **Response logging**: Include `TokenCost` in structured access logs alongside
+///   latency and status code.
+/// - **Streaming**: Update `completion_tokens` and `dollars` incrementally as chunks
+///   arrive, then finalize on stream end.
+#[derive(Debug, Clone)]
+pub struct TokenCost {
+    pub model: String,
+    pub prompt_tokens: u64,
+    pub completion_tokens: u64,
+    pub total_tokens: u64,
+    pub dollars: f64,
+}
+
+impl TokenCost {
+    /// Estimate cost from token counts and per-model pricing.
+    ///
+    /// Returns `None` if the model has no known pricing.
+    pub fn estimate(
+        model: &str,
+        prompt_tokens: u64,
+        completion_tokens: u64,
+        pricing: &ModelPricing,
+    ) -> Self {
+        Self {
+            model: model.to_string(),
+            prompt_tokens,
+            completion_tokens,
+            total_tokens: prompt_tokens + completion_tokens,
+            dollars: pricing.estimate(prompt_tokens, completion_tokens),
+        }
+    }
 }
 
 /// Real-time cost tracker. Accumulates cost in deci-cent-dollars (1 unit = 0.0001 dollars)

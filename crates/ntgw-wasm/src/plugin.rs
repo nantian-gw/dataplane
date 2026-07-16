@@ -80,6 +80,13 @@ struct LoadedPlugin {
 ///
 /// Responsible for compiling, storing, invoking, and unloading plugins.
 /// Maintains a shared engine, linker, and an epoch counter for timeout enforcement.
+///
+/// # Execution Metrics
+///
+/// Three counters track plugin engine health:
+/// - `load_count` — incremented on every successful plugin load or reload
+/// - `exec_count` — incremented on every hook invocation attempt
+/// - `error_count` — incremented on every hook invocation error (timeout, trap, etc.)
 pub struct PluginManager {
     engine: wasmtime::Engine,
     linker: wasmtime::Linker<PluginContext>,
@@ -87,6 +94,13 @@ pub struct PluginManager {
     epoch_deadline: Arc<AtomicU64>,
     epoch_running: Arc<AtomicBool>,
     epoch_handle: Option<std::thread::JoinHandle<()>>,
+
+    /// Total number of successful plugin loads (including reloads).
+    pub load_count: Arc<AtomicU64>,
+    /// Total number of hook invocation attempts.
+    pub exec_count: Arc<AtomicU64>,
+    /// Total number of hook invocation errors (timeout, trap, missing export, etc.).
+    pub error_count: Arc<AtomicU64>,
 }
 
 impl PluginManager {
@@ -121,6 +135,9 @@ impl PluginManager {
             epoch_deadline,
             epoch_running: running,
             epoch_handle: Some(handle),
+            load_count: Arc::new(AtomicU64::new(0)),
+            exec_count: Arc::new(AtomicU64::new(0)),
+            error_count: Arc::new(AtomicU64::new(0)),
         })
     }
 
@@ -173,6 +190,8 @@ impl PluginManager {
 
         let mut plugins = self.plugins.write();
         plugins.insert(name.to_string(), loaded);
+
+        self.load_count.fetch_add(1, Ordering::Relaxed);
 
         info!(plugin = name, "loaded plugin");
         Ok(())
@@ -318,6 +337,8 @@ impl PluginManager {
             existed
         };
 
+        self.load_count.fetch_add(1, Ordering::Relaxed);
+
         if was_update {
             info!(plugin = name, "reloaded plugin (wasm bytes changed)");
         } else {
@@ -411,6 +432,8 @@ impl PluginManager {
         request_headers: HashMap<String, String>,
         body: Vec<u8>,
     ) -> Result<HookResult, WasmError> {
+        self.exec_count.fetch_add(1, Ordering::Relaxed);
+
         let plugins = self.plugins.read();
         let plugin = plugins
             .get(name)
@@ -457,6 +480,7 @@ impl PluginManager {
         // Call the hook export
         let export_name = hook.export_name();
         let func = instance.get_func(&mut store, export_name).ok_or_else(|| {
+            self.error_count.fetch_add(1, Ordering::Relaxed);
             WasmError::InvalidHook(format!("plugin '{name}' missing export '{export_name}'"))
         })?;
 
@@ -473,6 +497,7 @@ impl PluginManager {
                 }
             }
             Err(e) => {
+                self.error_count.fetch_add(1, Ordering::Relaxed);
                 if let Some(trap) = e.downcast_ref::<wasmtime::Trap>()
                     && matches!(trap, wasmtime::Trap::Interrupt)
                 {
