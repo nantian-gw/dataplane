@@ -8,6 +8,7 @@ use ntgw_ir::SessionPersistence;
 use ntgw_wasm::WasmError;
 use pingora::prelude::Session;
 use std::collections::HashMap;
+use tracing::info_span;
 
 use super::*;
 
@@ -22,6 +23,13 @@ pub(crate) async fn do_request_filter(
     ctx: &mut RequestContext,
 ) -> pingora::Result<bool> {
     reset_request_context(ctx, proxy.access_log.enabled);
+    let span = info_span!(
+        "http_request_filter",
+        listener.name = %proxy.listener_name_hint.as_deref().unwrap_or("unknown"),
+        http.method = %session.req_header().method,
+        http.uri = %session.req_header().uri.path(),
+    );
+    let _enter = span.enter();
     let request_has_body = !session.as_downstream_mut().is_body_empty();
     // Access log: capture HTTP version, query string, connection ID
     if proxy.access_log.enabled {

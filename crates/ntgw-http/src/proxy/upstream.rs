@@ -5,6 +5,7 @@ use pingora::{
     Error, ErrorType,
     prelude::{HttpPeer, Session},
 };
+use tracing::instrument;
 
 use super::*;
 
@@ -32,6 +33,7 @@ fn apply_route_policy_to_peer(peer: &mut HttpPeer, ctx: &RequestContext) {
     }
 }
 
+#[instrument(skip_all)]
 pub(crate) async fn do_upstream_peer(
     proxy: &GatewayProxy,
     session: &mut Session,

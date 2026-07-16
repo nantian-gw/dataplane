@@ -254,6 +254,7 @@ pub fn build_http_app(
     })
 }
 
+#[tracing::instrument(skip_all)]
 pub async fn process_accepted_stream(
     app: AcceptedHttpApp,
     stream: Stream,

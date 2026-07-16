@@ -10,7 +10,7 @@ use tokio::{
     sync::watch,
     time::{Duration, Instant as TokioInstant, timeout},
 };
-use tracing::{debug, info, info_span, warn};
+use tracing::{debug, field, info, info_span, warn};
 
 use ntgw_ir::{SelectedBackend, SelectedBackendRuntimeIds, SharedSnapshot};
 use ntgw_observability::{
@@ -122,7 +122,12 @@ async fn handle_connection(
     max_connection_age: Option<Duration>,
     pool: Arc<TcpConnectionPool>,
 ) -> Result<()> {
-    let span = info_span!("tcp_connection", %listener_name);
+    let span = info_span!(
+        "tcp_connection",
+        %listener_name,
+        route.name = field::Empty,
+        backend.name = field::Empty,
+    );
     let _enter = span.enter();
 
     let started_at = std::time::Instant::now();
@@ -143,6 +148,8 @@ async fn handle_connection(
         let access_log_state = stream_access_log_state(&access_log, &selected, current.id.as_str());
         (access_log_state, selected, runtime_ids)
     };
+    span.record("route.name", selected.route_name.as_str());
+    span.record("backend.name", selected.backend_name.as_str());
     let client_addr = access_log_state
         .as_ref()
         .and_then(|_| downstream.peer_addr().ok());
