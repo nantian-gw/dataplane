@@ -72,6 +72,11 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Smoke test (catch glibc mismatch)
+        run: |
+          TAG=$(echo "${{ steps.meta.outputs.tags }}" | head -1)
+          docker run --rm "$TAG" /usr/local/bin/ntgw-app --help
+
       # ---- P2-3 DRAFT (UNVERIFIED — not run through Actions) ----
       # Actions pinned to commit SHAs (version in trailing comment) per repo
       # convention. Keyless cosign needs `id-token: write` (added above) and
