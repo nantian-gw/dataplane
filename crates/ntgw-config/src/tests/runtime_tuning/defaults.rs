@@ -4,10 +4,10 @@ use super::*;
 fn parses_runtime_tuning_defaults() {
     let default_cfg: DataPlaneConfig = serde_yaml::from_str(
         r#"
-nodeId: dp
+node_id: dp
 cluster: kind
-controlPlaneAddr: http://127.0.0.1:18080
-adminAddr: 127.0.0.1:19080
+control_plane_addr: http://127.0.0.1:18080
+admin_addr: 127.0.0.1:19080
 "#,
     )
     .expect("default config should parse");
@@ -138,12 +138,12 @@ adminAddr: 127.0.0.1:19080
 fn parses_partial_http_capacity_with_nested_defaults() {
     let empty_capacity_cfg: DataPlaneConfig = serde_yaml::from_str(
         r#"
-nodeId: dp
+node_id: dp
 cluster: kind
-controlPlaneAddr: http://127.0.0.1:18080
-adminAddr: 127.0.0.1:19080
-runtimeTuning:
-  httpCapacity: {}
+control_plane_addr: http://127.0.0.1:18080
+admin_addr: 127.0.0.1:19080
+runtime_tuning:
+  http_capacity: {}
 "#,
     )
     .expect("partial http capacity config should parse");
@@ -156,13 +156,13 @@ runtimeTuning:
 
     let override_only_cfg: DataPlaneConfig = serde_yaml::from_str(
         r#"
-nodeId: dp
+node_id: dp
 cluster: kind
-controlPlaneAddr: http://127.0.0.1:18080
-adminAddr: 127.0.0.1:19080
-runtimeTuning:
-  httpCapacity:
-    workerThreads: 4
+control_plane_addr: http://127.0.0.1:18080
+admin_addr: 127.0.0.1:19080
+runtime_tuning:
+  http_capacity:
+    worker_threads: 4
 "#,
     )
     .expect("partial http capacity override config should parse");
@@ -178,12 +178,12 @@ runtimeTuning:
 fn rejects_legacy_http_capacity_profile() {
     let result = serde_yaml::from_str::<DataPlaneConfig>(
         r#"
-nodeId: dp
+node_id: dp
 cluster: kind
-controlPlaneAddr: http://127.0.0.1:18080
-adminAddr: 127.0.0.1:19080
-runtimeTuning:
-  httpCapacity:
+control_plane_addr: http://127.0.0.1:18080
+admin_addr: 127.0.0.1:19080
+runtime_tuning:
+  http_capacity:
     profile: legacy
 "#,
     );
@@ -198,13 +198,13 @@ runtimeTuning:
 fn rejects_high_concurrency_http_capacity_profile() {
     let result = serde_yaml::from_str::<DataPlaneConfig>(
         r#"
-nodeId: dp
+node_id: dp
 cluster: kind
-controlPlaneAddr: http://127.0.0.1:18080
-adminAddr: 127.0.0.1:19080
-runtimeTuning:
-  httpCapacity:
-    profile: highConcurrency
+control_plane_addr: http://127.0.0.1:18080
+admin_addr: 127.0.0.1:19080
+runtime_tuning:
+  http_capacity:
+    profile: high_concurrency
 "#,
     );
 

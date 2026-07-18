@@ -57,12 +57,12 @@ fn resolve_shared_secret_different_secrets_produce_different_hashes() {
 fn resolve_shared_secret_parses_from_yaml() {
     let cfg: DataPlaneConfig = serde_yaml::from_str(
         r#"
-nodeId: dp
+node_id: dp
 cluster: kind
-controlPlaneAddr: http://127.0.0.1:18080
-adminAddr: 127.0.0.1:19080
-sessionPersistence:
-  sharedSecret: "yaml-secret"
+control_plane_addr: http://127.0.0.1:18080
+admin_addr: 127.0.0.1:19080
+session_persistence:
+  shared_secret: "yaml-secret"
 "#,
     )
     .expect("config should parse");
@@ -75,12 +75,12 @@ sessionPersistence:
 fn config_without_shared_secret_still_resolves_secret_key() {
     let cfg: DataPlaneConfig = serde_yaml::from_str(
         r#"
-nodeId: dp
+node_id: dp
 cluster: kind
-controlPlaneAddr: http://127.0.0.1:18080
-adminAddr: 127.0.0.1:19080
-sessionPersistence:
-  secretKey: "inline-key"
+control_plane_addr: http://127.0.0.1:18080
+admin_addr: 127.0.0.1:19080
+session_persistence:
+  secret_key: "inline-key"
 "#,
     )
     .expect("config should parse");

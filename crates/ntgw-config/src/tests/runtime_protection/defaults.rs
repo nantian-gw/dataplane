@@ -4,10 +4,10 @@ use super::*;
 fn parses_runtime_protection_defaults() {
     let default_cfg: DataPlaneConfig = serde_yaml::from_str(
         r#"
-nodeId: dp
+node_id: dp
 cluster: kind
-controlPlaneAddr: http://127.0.0.1:18080
-adminAddr: 127.0.0.1:19080
+control_plane_addr: http://127.0.0.1:18080
+admin_addr: 127.0.0.1:19080
 "#,
     )
     .expect("default config should parse");

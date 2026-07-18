@@ -4,27 +4,27 @@ use super::*;
 fn parses_extended_logging_options() {
     let cfg: DataPlaneConfig = serde_yaml::from_str(
         r#"
-nodeId: dp
+node_id: dp
 cluster: kind
-controlPlaneAddr: http://127.0.0.1:18080
-adminAddr: 127.0.0.1:19080
+control_plane_addr: http://127.0.0.1:18080
+admin_addr: 127.0.0.1:19080
 log:
   level: debug
   format: text
-  addSource: true
-  includeTarget: true
-  includeThreadIds: true
-  includeThreadNames: true
-  nonBlocking: false
-  nonBlockingBufferedLines: 2048
-  dropWhenFull: false
-accessLog:
+  add_source: true
+  include_target: true
+  include_thread_ids: true
+  include_thread_names: true
+  non_blocking: false
+  non_blocking_buffered_lines: 2048
+  drop_when_full: false
+access_log:
   enabled: true
   path: /var/log/ntgw/access.log
   format: "%EVENT% %ROUTE_NAME%"
   mode: json
-  sampleRate: 0.5
-  routeAnnotationPrefix: custom.dev/access-log-
+  sample_rate: 0.5
+  route_annotation_prefix: custom.dev/access-log-
 "#,
     )
     .expect("config should parse");
@@ -50,10 +50,10 @@ accessLog:
 fn parses_open_telemetry_logging_defaults_and_overrides() {
     let default_cfg: DataPlaneConfig = serde_yaml::from_str(
         r#"
-nodeId: dp
+node_id: dp
 cluster: kind
-controlPlaneAddr: http://127.0.0.1:18080
-adminAddr: 127.0.0.1:19080
+control_plane_addr: http://127.0.0.1:18080
+admin_addr: 127.0.0.1:19080
 "#,
     )
     .expect("default config should parse");
@@ -75,20 +75,20 @@ adminAddr: 127.0.0.1:19080
 
     let custom_cfg: DataPlaneConfig = serde_yaml::from_str(
         r#"
-nodeId: dp
+node_id: dp
 cluster: kind
-controlPlaneAddr: http://127.0.0.1:18080
-adminAddr: 127.0.0.1:19080
+control_plane_addr: http://127.0.0.1:18080
+admin_addr: 127.0.0.1:19080
 log:
-  openTelemetry:
+  open_telemetry:
     enabled: true
     endpoint: http://otel-collector.observability:4317
     protocol: grpc
-    timeoutMs: 4500
+    timeout_ms: 4500
     insecure: true
-    sampleRatio: 0.25
-    serviceName: edge-gateway
-    serviceNamespace: gateways
+    sample_ratio: 0.25
+    service_name: edge-gateway
+    service_namespace: gateways
 "#,
     )
     .expect("custom config should parse");
@@ -110,12 +110,12 @@ log:
 fn parses_runtime_tls_asset_dir() {
     let cfg: DataPlaneConfig = serde_yaml::from_str(
         r#"
-nodeId: dp
+node_id: dp
 cluster: kind
-controlPlaneAddr: http://127.0.0.1:18080
-adminAddr: 127.0.0.1:19080
+control_plane_addr: http://127.0.0.1:18080
+admin_addr: 127.0.0.1:19080
 runtime:
-  tlsAssetDir: /var/lib/nantian-gw/tls
+  tls_asset_dir: /var/lib/nantian-gw/tls
 "#,
     )
     .expect("config should parse");
@@ -127,21 +127,21 @@ runtime:
 fn parses_named_access_log_formats() {
     let cfg: DataPlaneConfig = serde_yaml::from_str(
         r#"
-nodeId: dp
+node_id: dp
 cluster: kind
-controlPlaneAddr: http://127.0.0.1:18080
-adminAddr: 127.0.0.1:19080
-accessLog:
+control_plane_addr: http://127.0.0.1:18080
+admin_addr: 127.0.0.1:19080
+access_log:
   enabled: true
   path: /var/log/ntgw/access.log
   mode: text
-  formatName: main
+  format_name: main
   formats:
     main: '$remote_addr "$request" $status'
     upstream_debug: '$request_id $upstream_addr $upstream_status'
   format: "%EVENT% %ROUTE_NAME%"
-  sampleRate: 0.5
-  routeAnnotationPrefix: custom.dev/access-log-
+  sample_rate: 0.5
+  route_annotation_prefix: custom.dev/access-log-
 "#,
     )
     .expect("config should parse");

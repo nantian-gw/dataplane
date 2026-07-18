@@ -5,10 +5,10 @@ use std::path::Path;
 fn parses_sample_yaml() {
     let cfg: DataPlaneConfig = serde_yaml::from_str(
         r#"
-nodeId: dp
+node_id: dp
 cluster: kind
-controlPlaneAddr: http://127.0.0.1:18080
-adminAddr: 127.0.0.1:19080
+control_plane_addr: http://127.0.0.1:18080
+admin_addr: 127.0.0.1:19080
 "#,
     )
     .expect("config should parse");
@@ -109,12 +109,12 @@ fn reloading_data_plane_config_reloads_after_file_change() {
     fs::write(
         &config_path,
         r#"
-nodeId: dp-old
+node_id: dp-old
 cluster: kind
-controlPlaneAddr: http://127.0.0.1:18080
-adminAddr: 127.0.0.1:19080
-runtimeTuning:
-  requestMirrorMaxConcurrency: 8
+control_plane_addr: http://127.0.0.1:18080
+admin_addr: 127.0.0.1:19080
+runtime_tuning:
+  request_mirror_max_concurrency: 8
 "#,
     )
     .expect("initial config should be written");
@@ -128,12 +128,12 @@ runtimeTuning:
     fs::write(
         &config_path,
         r#"
-nodeId: dp-new
+node_id: dp-new
 cluster: prod
-controlPlaneAddr: https://controlplane.example:18080
-adminAddr: 0.0.0.0:19080
-runtimeTuning:
-  requestMirrorMaxConcurrency: 17
+control_plane_addr: https://controlplane.example:18080
+admin_addr: 0.0.0.0:19080
+runtime_tuning:
+  request_mirror_max_concurrency: 17
 "#,
     )
     .expect("updated config should be written");
@@ -196,10 +196,10 @@ fn resolves_session_persistence_secret_from_file() {
 fn config_applies_env_overrides_to_runtime_identity() {
     let mut cfg: DataPlaneConfig = serde_yaml::from_str(
         r#"
-nodeId: dp
+node_id: dp
 cluster: default
-controlPlaneAddr: http://127.0.0.1:18080
-adminAddr: 127.0.0.1:19080
+control_plane_addr: http://127.0.0.1:18080
+admin_addr: 127.0.0.1:19080
 "#,
     )
     .expect("config should parse");
@@ -223,10 +223,10 @@ adminAddr: 127.0.0.1:19080
 fn experimental_config_defaults_disabled() {
     let cfg: DataPlaneConfig = serde_yaml::from_str(
         r#"
-nodeId: dp
+node_id: dp
 cluster: kind
-controlPlaneAddr: http://127.0.0.1:18080
-adminAddr: 127.0.0.1:19080
+control_plane_addr: http://127.0.0.1:18080
+admin_addr: 127.0.0.1:19080
 "#,
     )
     .expect("config should parse");
@@ -243,14 +243,14 @@ adminAddr: 127.0.0.1:19080
 fn experimental_config_enabled() {
     let cfg: DataPlaneConfig = serde_yaml::from_str(
         r#"
-nodeId: dp
+node_id: dp
 cluster: kind
-controlPlaneAddr: http://127.0.0.1:18080
-adminAddr: 127.0.0.1:19080
+control_plane_addr: http://127.0.0.1:18080
+admin_addr: 127.0.0.1:19080
 experimental:
-  enableExperimentalGateway: true
-  enableAiGateway: true
-  aiGatewayMaxRequestBodyBytes: 8192
+  enable_experimental_gateway: true
+  enable_ai_gateway: true
+  ai_gateway_max_request_body_bytes: 8192
 "#,
     )
     .expect("config should parse");
