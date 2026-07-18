@@ -2,7 +2,7 @@ use std::{net::SocketAddr, sync::Arc, time::Instant};
 
 use anyhow::{Result, anyhow};
 use tokio::{net::UdpSocket, sync::watch, time::Duration};
-use tracing::{info_span, debug, info, warn};
+use tracing::{debug, info, info_span, warn};
 
 use ntgw_ir::SharedSnapshot;
 use ntgw_observability::{

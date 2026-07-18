@@ -47,6 +47,7 @@ fn decodes_flattened_extension_ref_direct_response_from_proto() {
         extensions: None,
         required_features: vec![],
         compatibility_profile: String::new(),
+        traceparent: String::new(),
     });
 
     let filter = &snapshot.http_routes[0].rules[0].filters[0];

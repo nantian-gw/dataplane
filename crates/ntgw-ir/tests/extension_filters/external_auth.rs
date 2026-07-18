@@ -88,6 +88,7 @@ fn decodes_external_auth_http_filter_from_proto() {
         extensions: None,
         required_features: vec![],
         compatibility_profile: String::new(),
+        traceparent: String::new(),
     });
 
     let filter = &snapshot.http_routes[0].rules[0].filters[0];
@@ -177,6 +178,7 @@ fn decodes_external_auth_grpc_filter_from_proto() {
         extensions: None,
         required_features: vec![],
         compatibility_profile: String::new(),
+        traceparent: String::new(),
     });
 
     let filter = &snapshot.http_routes[0].rules[0].filters[0];
@@ -284,6 +286,7 @@ fn decodes_external_auth_backend_with_tls_validation_from_proto() {
         extensions: None,
         required_features: vec![],
         compatibility_profile: String::new(),
+        traceparent: String::new(),
     });
 
     let filter = &snapshot.http_routes[0].rules[0].filters[0];
