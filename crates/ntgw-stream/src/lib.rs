@@ -11,7 +11,7 @@ mod tests;
 mod traffic;
 mod udp;
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, HashSet};
 use std::sync::Arc;
 
 use anyhow::Result;
@@ -148,6 +148,8 @@ pub async fn run(
                     &result.failures,
                 );
             }
+
+            prewarm_stream_backends(&pool, &snapshot);
         } else if desired.is_some() {
             let retained_listeners = active
                 .active_plan()
@@ -435,6 +437,28 @@ async fn stop_listener_task(name: &str, task: ListenerTask) {
     let _ = task.shutdown.send(true);
     if let Err(err) = task.join.await {
         error!(listener = %name, error = %err, "failed to join stream listener");
+    }
+}
+
+/// Spawn concurrent best-effort prewarm tasks — one connection per unique
+/// backend endpoint in the current snapshot.  Prewarm happens after every
+/// listener reload so the idle pool is always seeded for the active backends.
+fn prewarm_stream_backends(pool: &Arc<TcpConnectionPool>, snapshot: &SharedSnapshot) {
+    let snap = snapshot.load();
+    let mut seen: HashSet<(String, u16)> = HashSet::new();
+
+    for backend in &snap.backends {
+        for endpoint in &backend.endpoints {
+            let key = (endpoint.address.clone(), endpoint.port as u16);
+            if seen.insert(key.clone()) {
+                let p = pool.clone();
+                let addr = endpoint.address.clone();
+                let port = endpoint.port as u16;
+                tokio::spawn(async move {
+                    p.prewarm(addr, port, 1).await;
+                });
+            }
+        }
     }
 }
 

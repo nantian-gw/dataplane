@@ -4,7 +4,7 @@ use std::time::{Duration, Instant};
 
 use dashmap::DashMap;
 use tokio::net::TcpStream;
-use tracing::debug;
+use tracing::{debug, warn};
 
 use crate::traffic::StreamPoolCounters;
 
@@ -155,6 +155,62 @@ impl TcpConnectionPool {
             count = entry.len(),
             "pool return"
         );
+    }
+
+    /// Best-effort pre-establish idle connections to a backend so the first
+    /// request does not pay TCP handshake latency.
+    ///
+    /// Respects `max_idle_per_backend` — never exceeds it.  Failures are
+    /// logged at warn level and do not propagate.
+    pub(crate) async fn prewarm(&self, addr: String, port: u16, count: usize) {
+        if !self.is_enabled() {
+            return;
+        }
+
+        let key = (addr.clone(), port);
+
+        let available = {
+            let entry = self.idle.entry(key.clone()).or_default();
+            self.max_idle_per_backend.saturating_sub(entry.len())
+        };
+
+        let effective = count.min(available);
+        if effective == 0 {
+            return;
+        }
+
+        let mut warmed = 0usize;
+        for _ in 0..effective {
+            match TcpStream::connect((addr.as_str(), port)).await {
+                Ok(stream) => {
+                    let mut entry = self.idle.entry(key.clone()).or_default();
+                    entry.push(IdleConnection {
+                        stream,
+                        since: Instant::now(),
+                    });
+                    warmed += 1;
+                }
+                Err(err) => {
+                    warn!(
+                        backend.addr = %addr,
+                        backend.port = port,
+                        error = %err,
+                        "prewarm: connection failed"
+                    );
+                }
+            }
+        }
+
+        if warmed > 0 {
+            self.idle_connections
+                .fetch_add(warmed as u64, Ordering::Relaxed);
+            debug!(
+                backend.addr = %addr,
+                backend.port = port,
+                count = warmed,
+                "prewarmed {warmed} connections to {addr}:{port}"
+            );
+        }
     }
 
     pub(crate) fn drain(&self) {
