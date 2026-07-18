@@ -4,8 +4,8 @@ fn ephemeral_session_persistence_summary_value() -> serde_json::Value {
     let snapshot = Snapshot {
         id: "v-sticky".to_string(),
         http_routes: vec![ntgw_ir::HttpRoute {
-            name: "sticky".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "sticky".to_string(),
+            namespace: "default".to_string(),
             rules: vec![HttpRule {
                 name: String::new(),
                 session_persistence: Some(SessionPersistence {

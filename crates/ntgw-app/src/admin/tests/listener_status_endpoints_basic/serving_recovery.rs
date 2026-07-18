@@ -5,23 +5,23 @@ async fn listener_status_endpoint_filters_by_serving_and_recovery_state() {
         id: "v2".to_string(),
         listeners: vec![
             Listener {
-                name: "retained".to_string().into(),
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+                name: "retained".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 ..Listener::default()
             },
             Listener {
-                name: "stale".to_string().into(),
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+                name: "stale".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 ..Listener::default()
             },
             Listener {
-                name: "recovered".to_string().into(),
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+                name: "recovered".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 ..Listener::default()
             },
             Listener {
-                name: "failed".to_string().into(),
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+                name: "failed".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 ..Listener::default()
             },
         ],

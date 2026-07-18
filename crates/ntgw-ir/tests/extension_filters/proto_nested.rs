@@ -8,8 +8,8 @@ fn decodes_extension_ref_direct_response_from_proto() {
         listeners: vec![],
         http_routes: vec![proto::HttpRoute {
             route_policy: None,
-            name: "orders".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "orders".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["example.com".to_string()],
             parent_refs: vec![],
             rules: vec![proto::HttpRule {

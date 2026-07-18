@@ -5,7 +5,7 @@ fn traffic_stats_snapshot_caps_topology_growth_per_shard() {
     for index in 0..=DEFAULT_TRAFFIC_NODE_LIMIT_PER_SHARD {
         stats.observe(TrafficObservation {
             listener_name: format!("default/gw/http-{index}"),
-            protocol: "HTTP".to_string().into(),
+            protocol: "HTTP".to_string(),
             route_namespace: "default".to_string(),
             route_name: "web".to_string(),
             route_kind: "Http".to_string(),

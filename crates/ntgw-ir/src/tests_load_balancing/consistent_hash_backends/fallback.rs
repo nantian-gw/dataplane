@@ -2,8 +2,8 @@
 fn missing_consistent_hash_key_falls_back_to_weighted_round_robin() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "hash".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "hash".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {

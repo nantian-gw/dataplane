@@ -2,8 +2,8 @@
 fn active_probe_success_recovers_passively_ejected_endpoint() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "route".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "route".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {

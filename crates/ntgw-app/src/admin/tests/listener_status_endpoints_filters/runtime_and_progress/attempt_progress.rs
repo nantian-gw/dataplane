@@ -7,23 +7,23 @@ async fn listener_status_endpoint_filters_by_attempt_progress_and_failure_age() 
         id: "v2".to_string(),
         listeners: vec![
             Listener {
-                name: "pending-historical".to_string().into(),
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+                name: "pending-historical".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 ..Listener::default()
             },
             Listener {
-                name: "rejected-current".to_string().into(),
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+                name: "rejected-current".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 ..Listener::default()
             },
             Listener {
-                name: "stale-historical".to_string().into(),
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+                name: "stale-historical".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 ..Listener::default()
             },
             Listener {
-                name: "accepted-clean".to_string().into(),
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+                name: "accepted-clean".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 ..Listener::default()
             },
         ],

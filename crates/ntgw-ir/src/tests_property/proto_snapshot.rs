@@ -22,7 +22,7 @@ proptest! {
             }],
             http_routes: vec![proto::HttpRoute {
                 name: route_name.clone(),
-                namespace: "default".to_string().into(),
+                namespace: "default".to_string(),
                 hostnames: vec![hostname.clone()],
                 rules: vec![proto::HttpRule {
                     name: String::new(),
@@ -39,7 +39,7 @@ proptest! {
                         }),
                     }],
                     backend_refs: vec![proto::BackendRef {
-                        namespace: "default".to_string().into(),
+                        namespace: "default".to_string(),
                         name: backend_name.clone(),
                         port: backend_port,
                         weight: backend_weight,
@@ -53,8 +53,8 @@ proptest! {
                 ai_service: None,
                 token_policy: None,
                 name: format!("{backend_name}:{backend_port}"),
-                namespace: "default".to_string().into(),
-                protocol: "HTTP".to_string().into(),
+                namespace: "default".to_string(),
+                protocol: "HTTP".to_string(),
                 endpoints: vec![proto::BackendEndpoint {
                     address: "10.0.0.20".to_string(),
                     port: backend_port,

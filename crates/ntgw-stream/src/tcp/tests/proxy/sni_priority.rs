@@ -24,20 +24,20 @@ async fn tls_passthrough_prefers_exact_sni_match_over_wildcard() -> Result<()> {
         listeners: vec![listener.clone()],
         stream_routes: vec![
             StreamRoute {
-                name: "wildcard-route".to_string().into(),
-                namespace: "default".to_string().into(),
+                name: "wildcard-route".to_string(),
+                namespace: "default".to_string(),
                 kind: "ROUTE_KIND_TLS".to_string(),
                 parent_refs: Vec::new(),
                 rules: vec![StreamRule {
                     name: String::new(),
                     matches: vec![ntgw_ir::StreamMatch {
                         port: gateway_addr.port() as u32,
-                        sni_hostname: "*.example.com".to_string().into(),
+                        sni_hostname: "*.example.com".to_string(),
                         mode: ntgw_ir::TlsRouteMode::default(),
                     }],
                     backend_refs: vec![BackendRef {
-                        namespace: "default".to_string().into(),
-                        name: "wildcard-upstream".to_string().into(),
+                        namespace: "default".to_string(),
+                        name: "wildcard-upstream".to_string(),
                         port: wildcard_addr.port() as u32,
                         ..BackendRef::default()
                     }],
@@ -46,20 +46,20 @@ async fn tls_passthrough_prefers_exact_sni_match_over_wildcard() -> Result<()> {
                 annotations: BTreeMap::new(),
             },
             StreamRoute {
-                name: "exact-route".to_string().into(),
-                namespace: "default".to_string().into(),
+                name: "exact-route".to_string(),
+                namespace: "default".to_string(),
                 kind: "ROUTE_KIND_TLS".to_string(),
                 parent_refs: Vec::new(),
                 rules: vec![StreamRule {
                     name: String::new(),
                     matches: vec![ntgw_ir::StreamMatch {
                         port: gateway_addr.port() as u32,
-                        sni_hostname: "api.example.com".to_string().into(),
+                        sni_hostname: "api.example.com".to_string(),
                         mode: ntgw_ir::TlsRouteMode::default(),
                     }],
                     backend_refs: vec![BackendRef {
-                        namespace: "default".to_string().into(),
-                        name: "exact-upstream".to_string().into(),
+                        namespace: "default".to_string(),
+                        name: "exact-upstream".to_string(),
                         port: exact_addr.port() as u32,
                         ..BackendRef::default()
                     }],

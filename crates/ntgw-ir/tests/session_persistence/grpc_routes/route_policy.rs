@@ -2,8 +2,8 @@
 fn prefers_grpc_persistent_session_backend_over_weighted_selection() {
     let snapshot = Snapshot {
         grpc_routes: vec![GrpcRoute {
-            name: "grpc-route".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "grpc-route".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["grpc.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![GrpcRule {

@@ -2,8 +2,8 @@
 fn select_http_backend_preserves_route_timeouts() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "timeout-route".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "timeout-route".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -59,8 +59,8 @@ fn select_http_backend_preserves_route_timeouts() {
 fn skips_zero_weight_backend_refs() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "weighted".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "weighted".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {

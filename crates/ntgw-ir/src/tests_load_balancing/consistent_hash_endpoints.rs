@@ -2,8 +2,8 @@
 fn consistent_hash_by_header_keeps_same_endpoint_for_same_key() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "hash".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "hash".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {

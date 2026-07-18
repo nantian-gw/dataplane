@@ -3,8 +3,8 @@ fn listener_runtime_status_exposes_recent_recovery_history() {
     let snapshot = Snapshot {
         id: "v2".to_string(),
         listeners: vec![Listener {
-            name: "web".to_string().into(),
-            protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+            name: "web".to_string(),
+            protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
             ..Listener::default()
         }],
         ..Snapshot::default()

@@ -2,8 +2,8 @@
 fn selects_http_backend_with_wildcard_hostname() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "wildcard".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "wildcard".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["*.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {

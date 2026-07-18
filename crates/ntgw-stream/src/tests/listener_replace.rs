@@ -14,7 +14,7 @@ async fn replace_reports_listener_start_failure() -> Result<()> {
         .replace(
             Some(ListenerPlan {
                 listeners: vec![PlannedListener {
-                    name: "default/gw/tcp".to_string().into(),
+                    name: "default/gw/tcp".to_string(),
                     bind,
                     protocol: StreamProtocol::Tcp,
                 }],

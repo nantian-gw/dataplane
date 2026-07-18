@@ -2,11 +2,11 @@
 fn selects_stream_backend_refs_by_weighted_round_robin() {
     let snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/tcp".to_string().into(),
+            name: "default/gw/tcp".to_string(),
             address: "0.0.0.0".to_string(),
             addresses: vec!["0.0.0.0".to_string()],
             port: 9000,
-            protocol: "LISTENER_PROTOCOL_TCP".to_string().into(),
+            protocol: "LISTENER_PROTOCOL_TCP".to_string(),
             hostnames: vec![],
             attached_routes: vec!["default/tcp-route".to_string()],
             tls: None,
@@ -14,8 +14,8 @@ fn selects_stream_backend_refs_by_weighted_round_robin() {
             metadata: BTreeMap::new(),
         }],
         stream_routes: vec![StreamRoute {
-            name: "tcp-route".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "tcp-route".to_string(),
+            namespace: "default".to_string(),
             kind: "ROUTE_KIND_TCP".to_string(),
             parent_refs: vec![],
             rules: vec![StreamRule {

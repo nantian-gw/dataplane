@@ -3,10 +3,10 @@ fn materialized_tls_assets_are_reused_for_identical_material() {
     let snapshot = Snapshot {
         listeners: vec![
             Listener {
-                name: "default/gw/https-a".to_string().into(),
+                name: "default/gw/https-a".to_string(),
                 address: "127.0.0.1".to_string(),
                 port: 443,
-                protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
                 tls: Some(TlsConfig {
                     enabled: true,
                     passthrough: false,
@@ -16,10 +16,10 @@ fn materialized_tls_assets_are_reused_for_identical_material() {
                 ..Listener::default()
             },
             Listener {
-                name: "default/gw/https-b".to_string().into(),
+                name: "default/gw/https-b".to_string(),
                 address: "127.0.0.1".to_string(),
                 port: 8443,
-                protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
                 tls: Some(TlsConfig {
                     enabled: true,
                     passthrough: false,
@@ -55,10 +55,10 @@ fn materialized_tls_assets_are_reused_across_separate_listener_starts() {
     let snapshot = Snapshot {
         listeners: vec![
             Listener {
-                name: "default/gw/https-a".to_string().into(),
+                name: "default/gw/https-a".to_string(),
                 address: "127.0.0.1".to_string(),
                 port: 443,
-                protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
                 tls: Some(TlsConfig {
                     enabled: true,
                     passthrough: false,
@@ -68,10 +68,10 @@ fn materialized_tls_assets_are_reused_across_separate_listener_starts() {
                 ..Listener::default()
             },
             Listener {
-                name: "default/gw/https-b".to_string().into(),
+                name: "default/gw/https-b".to_string(),
                 address: "127.0.0.1".to_string(),
                 port: 8443,
-                protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
                 tls: Some(TlsConfig {
                     enabled: true,
                     passthrough: false,

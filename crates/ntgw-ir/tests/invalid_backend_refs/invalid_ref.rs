@@ -5,15 +5,15 @@ fn marks_invalid_backend_refs_as_route_errors() {
     let snapshot = Snapshot {
         listeners: vec![listener("default/gw/http", "default/invalid-kind")],
         http_routes: vec![HttpRoute {
-            name: "invalid-kind".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "invalid-kind".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec![],
             parent_refs: vec![],
             rules: vec![HttpRule {
                 name: String::new(),
                 backend_refs: vec![BackendRef {
-                    namespace: "default".to_string().into(),
-                    name: "infra-backend-v1".to_string().into(),
+                    namespace: "default".to_string(),
+                    name: "infra-backend-v1".to_string(),
                     port: 8080,
                     metadata: BTreeMap::from([(
                         "nantian.dev/backend-ref-valid".to_string(),

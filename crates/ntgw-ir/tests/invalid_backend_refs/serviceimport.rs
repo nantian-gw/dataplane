@@ -5,8 +5,8 @@ fn treats_serviceimport_backend_refs_as_routable() {
     let snapshot = Snapshot {
         listeners: vec![listener("default/gw/http", "default/imported")],
         http_routes: vec![HttpRoute {
-            name: "imported".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "imported".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec![],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -14,8 +14,8 @@ fn treats_serviceimport_backend_refs_as_routable() {
                 backend_refs: vec![BackendRef {
                     group: "multicluster.x-k8s.io".to_string(),
                     kind: "ServiceImport".to_string(),
-                    namespace: "default".to_string().into(),
-                    name: "payments".to_string().into(),
+                    namespace: "default".to_string(),
+                    name: "payments".to_string(),
                     port: 9443,
                     ..BackendRef::default()
                 }],

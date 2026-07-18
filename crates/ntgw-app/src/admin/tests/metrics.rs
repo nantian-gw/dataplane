@@ -13,11 +13,10 @@ fn empty_metric_families(metrics: &str) -> Vec<String> {
 
     for line in metrics.lines() {
         if let Some(rest) = line.strip_prefix("# HELP ") {
-            if let Some(name) = current_name.take() {
-                if !has_samples {
+            if let Some(name) = current_name.take()
+                && !has_samples {
                     families.push(name);
                 }
-            }
             current_name = rest.split_whitespace().next().map(str::to_string);
             has_samples = false;
             continue;
@@ -30,11 +29,10 @@ fn empty_metric_families(metrics: &str) -> Vec<String> {
         has_samples = true;
     }
 
-    if let Some(name) = current_name {
-        if !has_samples {
+    if let Some(name) = current_name
+        && !has_samples {
             families.push(name);
         }
-    }
 
     families
 }

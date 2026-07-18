@@ -2,8 +2,8 @@
 fn selects_grpc_backend_for_catch_all_rule_without_parseable_grpc_path() {
     let snapshot = Snapshot {
         grpc_routes: vec![GrpcRoute {
-            name: "grpc-catch-all".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "grpc-catch-all".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["grpc.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![GrpcRule {
@@ -50,15 +50,15 @@ fn selects_grpc_backend_for_catch_all_rule_without_parseable_grpc_path() {
 fn selects_grpc_backend_for_header_only_match_without_parseable_grpc_path() {
     let snapshot = Snapshot {
         grpc_routes: vec![GrpcRoute {
-            name: "grpc-header-only".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "grpc-header-only".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["grpc.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![GrpcRule {
                 name: String::new(),
                 matches: vec![GrpcMatch {
                     headers: vec![HeaderMatch {
-                        name: "x-tenant".to_string().into(),
+                        name: "x-tenant".to_string(),
                         value: "blue".to_string(),
                         match_type: "Exact".to_string(),
                         ..HeaderMatch::default()

@@ -26,7 +26,7 @@ fn mesh_listener(
         name: format!("mesh/{namespace}/{name}/{listen_port}"),
         address: "0.0.0.0".to_string(),
         port: listen_port,
-        protocol: protocol.to_string().into(),
+        protocol: protocol.to_string(),
         hostnames: vec![],
         attached_routes: attached_routes
             .iter()

@@ -2,8 +2,8 @@
 fn selects_grpc_backend_by_service_method_and_header() {
     let snapshot = Snapshot {
         grpc_routes: vec![GrpcRoute {
-            name: "grpc-route".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "grpc-route".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["grpc.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![GrpcRule {
@@ -13,7 +13,7 @@ fn selects_grpc_backend_by_service_method_and_header() {
                     method: "SayHello".to_string(),
                     match_type: "Exact".to_string(),
                     headers: vec![HeaderMatch {
-                        name: "x-tenant".to_string().into(),
+                        name: "x-tenant".to_string(),
                         value: "blue".to_string(),
                         match_type: "Exact".to_string(),
                         ..HeaderMatch::default()

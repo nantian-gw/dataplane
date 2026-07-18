@@ -49,11 +49,10 @@ fn temp_log_path(prefix: &str) -> PathBuf {
 
 async fn wait_for_log_contents(path: &Path, needle: &str) -> Result<String> {
     for _ in 0..100 {
-        if let Ok(contents) = fs::read_to_string(path) {
-            if contents.contains(needle) {
+        if let Ok(contents) = fs::read_to_string(path)
+            && contents.contains(needle) {
                 return Ok(contents);
             }
-        }
         tokio::time::sleep(Duration::from_millis(10)).await;
     }
 

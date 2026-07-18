@@ -72,6 +72,30 @@ impl wasmtime::ResourceLimiter for PluginContext {
     }
 }
 
+pub fn create_linker(engine: &Engine) -> Result<Linker<PluginContext>, WasmError> {
+    let mut linker = Linker::new(engine);
+    crate::host::register_host_functions(&mut linker)?;
+    Ok(linker)
+}
+
+pub struct WasmEngine {
+    pub engine: Arc<Engine>,
+}
+
+impl WasmEngine {
+    pub fn new() -> Result<Self, WasmError> {
+        Ok(Self {
+            engine: create_engine().map(Arc::new)?,
+        })
+    }
+
+    pub fn global() -> Result<Self, WasmError> {
+        Ok(Self {
+            engine: global_engine()?,
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -95,29 +119,5 @@ mod tests {
         };
         assert!(ctx.memory_growing(0, 100, None).unwrap());
         assert!(!ctx.memory_growing(0, 101, None).unwrap());
-    }
-}
-
-pub fn create_linker(engine: &Engine) -> Result<Linker<PluginContext>, WasmError> {
-    let mut linker = Linker::new(engine);
-    crate::host::register_host_functions(&mut linker)?;
-    Ok(linker)
-}
-
-pub struct WasmEngine {
-    pub engine: Arc<Engine>,
-}
-
-impl WasmEngine {
-    pub fn new() -> Result<Self, WasmError> {
-        Ok(Self {
-            engine: create_engine().map(Arc::new)?,
-        })
-    }
-
-    pub fn global() -> Result<Self, WasmError> {
-        Ok(Self {
-            engine: global_engine()?,
-        })
     }
 }

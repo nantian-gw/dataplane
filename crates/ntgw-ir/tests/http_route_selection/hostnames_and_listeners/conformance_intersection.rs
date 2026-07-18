@@ -8,7 +8,7 @@ fn hostname_intersection_conformance_case_does_not_leak_to_unspecified_listener(
                 address: "0.0.0.0".to_string(),
                 addresses: vec!["0.0.0.0".to_string()],
                 port: 80,
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 hostnames: vec!["very.specific.com".to_string()],
                 attached_routes: vec![
                     "gateway-conformance-infra/specific-host-matches-listener-specific-host"
@@ -26,7 +26,7 @@ fn hostname_intersection_conformance_case_does_not_leak_to_unspecified_listener(
                 address: "0.0.0.0".to_string(),
                 addresses: vec!["0.0.0.0".to_string()],
                 port: 80,
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 hostnames: vec!["*.wildcard.io".to_string()],
                 attached_routes: vec![
                     "gateway-conformance-infra/specific-host-matches-listener-wildcard-host"
@@ -42,7 +42,7 @@ fn hostname_intersection_conformance_case_does_not_leak_to_unspecified_listener(
                 address: "0.0.0.0".to_string(),
                 addresses: vec!["0.0.0.0".to_string()],
                 port: 80,
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 hostnames: vec!["*.anotherwildcard.io".to_string()],
                 attached_routes: vec![
                     "gateway-conformance-infra/wildcard-host-matches-listener-wildcard-host"
@@ -58,7 +58,7 @@ fn hostname_intersection_conformance_case_does_not_leak_to_unspecified_listener(
                 address: "0.0.0.0".to_string(),
                 addresses: vec!["0.0.0.0".to_string()],
                 port: 80,
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 hostnames: vec![],
                 attached_routes: vec![
                     "gateway-conformance-infra/httproute-hostname-intersection-all".to_string(),
@@ -70,8 +70,8 @@ fn hostname_intersection_conformance_case_does_not_leak_to_unspecified_listener(
         ],
         http_routes: vec![
             HttpRoute {
-                name: "wildcard-host-matches-listener-wildcard-host".to_string().into(),
-                namespace: "gateway-conformance-infra".to_string().into(),
+                name: "wildcard-host-matches-listener-wildcard-host".to_string(),
+                namespace: "gateway-conformance-infra".to_string(),
                 hostnames: vec!["*.anotherwildcard.io".to_string()],
                 parent_refs: vec![],
                 rules: vec![path_rule(
@@ -84,8 +84,8 @@ fn hostname_intersection_conformance_case_does_not_leak_to_unspecified_listener(
             annotations: BTreeMap::new(),
             },
             HttpRoute {
-                name: "httproute-hostname-intersection-all".to_string().into(),
-                namespace: "gateway-conformance-infra".to_string().into(),
+                name: "httproute-hostname-intersection-all".to_string(),
+                namespace: "gateway-conformance-infra".to_string(),
                 hostnames: vec![
                     "first.com".to_string(),
                     "sub.first.com".to_string(),

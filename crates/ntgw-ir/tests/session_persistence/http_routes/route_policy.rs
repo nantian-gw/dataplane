@@ -2,8 +2,8 @@
 fn prefers_http_persistent_session_backend_over_weighted_selection() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "route".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "route".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -75,8 +75,8 @@ fn prefers_http_persistent_session_backend_over_weighted_selection() {
 fn falls_back_to_weighted_selection_when_session_target_is_unavailable() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "route".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "route".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {

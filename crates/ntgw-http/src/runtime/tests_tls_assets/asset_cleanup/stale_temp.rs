@@ -12,7 +12,7 @@ fn materialize_tls_assets_cleans_up_stale_temp_files() {
 
     let plan = ListenerPlan {
         listeners: vec![PlannedListener {
-            name: "default/gw/https".to_string().into(),
+            name: "default/gw/https".to_string(),
             bind: "127.0.0.1:443".to_string(),
             protocol: ListenerProtocol::Tls(single_tls_material(
                 "default/example-cert",

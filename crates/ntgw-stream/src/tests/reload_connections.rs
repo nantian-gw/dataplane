@@ -116,11 +116,11 @@ fn reloadable_config(tcp_proxy_buffer_bytes: usize) -> ReloadableRuntimeConfig {
 
 fn tcp_listener(port: u16) -> Listener {
     Listener {
-        name: "default/gw/tcp".to_string().into(),
+        name: "default/gw/tcp".to_string(),
         address: "127.0.0.1".to_string(),
         addresses: vec!["127.0.0.1".to_string()],
         port: u32::from(port),
-        protocol: "LISTENER_PROTOCOL_TCP".to_string().into(),
+        protocol: "LISTENER_PROTOCOL_TCP".to_string(),
         attached_routes: vec!["default/tcp-route".to_string()],
         ..Listener::default()
     }
@@ -136,8 +136,8 @@ fn tcp_snapshot(
         id: version.to_string(),
         listeners: vec![listener.clone()],
         stream_routes: vec![ntgw_ir::StreamRoute {
-            name: "tcp-route".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "tcp-route".to_string(),
+            namespace: "default".to_string(),
             kind: "ROUTE_KIND_TCP".to_string(),
             parent_refs: Vec::new(),
             rules: vec![ntgw_ir::StreamRule {
@@ -148,8 +148,8 @@ fn tcp_snapshot(
                     mode: ntgw_ir::TlsRouteMode::default(),
                 }],
                 backend_refs: vec![ntgw_ir::BackendRef {
-                    namespace: "default".to_string().into(),
-                    name: backend_name.to_string().into(),
+                    namespace: "default".to_string(),
+                    name: backend_name.to_string(),
                     port: upstream_addr.port() as u32,
                     ..ntgw_ir::BackendRef::default()
                 }],

@@ -2,8 +2,8 @@
 fn active_probe_failure_threshold_temporarily_removes_endpoint_from_rotation() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "route".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "route".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -85,8 +85,8 @@ fn active_probe_failure_threshold_temporarily_removes_endpoint_from_rotation() {
 fn active_probe_flapping_below_threshold_keeps_endpoint_in_rotation() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "route".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "route".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -166,8 +166,8 @@ fn active_probe_flapping_below_threshold_keeps_endpoint_in_rotation() {
 fn all_active_unhealthy_endpoints_return_after_probe_recovery() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "route".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "route".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {

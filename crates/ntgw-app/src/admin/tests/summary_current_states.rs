@@ -12,23 +12,23 @@ fn summary_view_counts_listener_current_states() {
         id: "v2".to_string(),
         listeners: vec![
             Listener {
-                name: "retained".to_string().into(),
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+                name: "retained".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 ..Listener::default()
             },
             Listener {
-                name: "accepted".to_string().into(),
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+                name: "accepted".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 ..Listener::default()
             },
             Listener {
-                name: "stale".to_string().into(),
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+                name: "stale".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 ..Listener::default()
             },
             Listener {
-                name: "stream-pending".to_string().into(),
-                protocol: "LISTENER_PROTOCOL_TCP".to_string().into(),
+                name: "stream-pending".to_string(),
+                protocol: "LISTENER_PROTOCOL_TCP".to_string(),
                 ..Listener::default()
             },
         ],

@@ -16,8 +16,8 @@ fn prefers_the_most_specific_listener_hostname_group() {
         ],
         http_routes: vec![
             HttpRoute {
-                name: "empty-route".to_string().into(),
-                namespace: "default".to_string().into(),
+                name: "empty-route".to_string(),
+                namespace: "default".to_string(),
                 hostnames: vec![],
                 parent_refs: vec![],
                 rules: vec![path_rule("/empty", "default", "infra-backend-v1", 8080)],
@@ -25,8 +25,8 @@ fn prefers_the_most_specific_listener_hostname_group() {
             annotations: BTreeMap::new(),
             },
             HttpRoute {
-                name: "example-route".to_string().into(),
-                namespace: "default".to_string().into(),
+                name: "example-route".to_string(),
+                namespace: "default".to_string(),
                 hostnames: vec!["*.example.com".to_string()],
                 parent_refs: vec![],
                 rules: vec![path_rule("/example", "default", "infra-backend-v2", 8080)],
@@ -34,8 +34,8 @@ fn prefers_the_most_specific_listener_hostname_group() {
             annotations: BTreeMap::new(),
             },
             HttpRoute {
-                name: "foo-example-route".to_string().into(),
-                namespace: "default".to_string().into(),
+                name: "foo-example-route".to_string(),
+                namespace: "default".to_string(),
                 hostnames: vec!["*.foo.example.com".to_string()],
                 parent_refs: vec![],
                 rules: vec![path_rule(

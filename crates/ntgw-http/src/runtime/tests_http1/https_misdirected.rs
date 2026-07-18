@@ -174,13 +174,13 @@ fn https_misdirected_snapshot(
         ],
         http_routes: vec![
             HttpRoute {
-                name: "example".to_string().into(),
-                namespace: "default".to_string().into(),
+                name: "example".to_string(),
+                namespace: "default".to_string(),
                 hostnames: vec!["example.org".to_string()],
                 parent_refs: vec![ParentRef {
-                    namespace: "default".to_string().into(),
-                    name: "gw".to_string().into(),
-                    section_name: "https".to_string().into(),
+                    namespace: "default".to_string(),
+                    name: "gw".to_string(),
+                    section_name: "https".to_string(),
                     port: listener_port as u32,
                     ..ParentRef::default()
                 }],
@@ -189,13 +189,13 @@ fn https_misdirected_snapshot(
                 annotations: BTreeMap::new(),
             },
             HttpRoute {
-                name: "second".to_string().into(),
-                namespace: "default".to_string().into(),
+                name: "second".to_string(),
+                namespace: "default".to_string(),
                 hostnames: Vec::new(),
                 parent_refs: vec![ParentRef {
-                    namespace: "default".to_string().into(),
-                    name: "gw".to_string().into(),
-                    section_name: "https-with-hostname".to_string().into(),
+                    namespace: "default".to_string(),
+                    name: "gw".to_string(),
+                    section_name: "https-with-hostname".to_string(),
                     port: listener_port as u32,
                     ..ParentRef::default()
                 }],
@@ -209,8 +209,8 @@ fn https_misdirected_snapshot(
             https_misdirected_backend(second_backend_port as u32),
         ],
         secrets: vec![SecretMaterial {
-            namespace: "default".to_string().into(),
-            name: "example-cert".to_string().into(),
+            namespace: "default".to_string(),
+            name: "example-cert".to_string(),
             cert_pem: VALID_SERVER_CERT_PEM.to_string(),
             key_pem: VALID_SERVER_KEY_PEM.to_string(),
         }],
@@ -224,11 +224,11 @@ fn https_misdirected_snapshot(
 
 fn https_misdirected_listener(name: &str, port: u16, hostnames: Vec<&str>) -> Listener {
     Listener {
-        name: name.to_string().into(),
+        name: name.to_string(),
         address: "127.0.0.1".to_string(),
         addresses: vec!["127.0.0.1".to_string()],
         port: port as u32,
-        protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
+        protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
         hostnames: hostnames.into_iter().map(str::to_string).collect(),
         attached_routes: vec!["default/example".to_string(), "default/second".to_string()],
         tls: Some(TlsConfig {
@@ -249,8 +249,8 @@ fn https_misdirected_rule(backend_port: u32) -> HttpRule {
             ..HttpMatch::default()
         }],
         backend_refs: vec![BackendRef {
-            namespace: "default".to_string().into(),
-            name: "backend".to_string().into(),
+            namespace: "default".to_string(),
+            name: "backend".to_string(),
             port: backend_port,
             ..BackendRef::default()
         }],

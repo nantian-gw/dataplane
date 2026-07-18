@@ -7,11 +7,11 @@ fn disabled_access_log() -> AccessLogOptions {
 
 fn test_listener(name: &str, port: u32) -> Listener {
     Listener {
-        name: name.to_string().into(),
+        name: name.to_string(),
         address: "127.0.0.1".to_string(),
         addresses: vec!["127.0.0.1".to_string()],
         port,
-        protocol: "LISTENER_PROTOCOL_UDP".to_string().into(),
+        protocol: "LISTENER_PROTOCOL_UDP".to_string(),
         hostnames: Vec::new(),
         attached_routes: vec!["default/udp-route".to_string()],
         tls: None,
@@ -25,16 +25,16 @@ fn test_snapshot(listener: Listener, upstream_addr: std::net::SocketAddr) -> Sha
     shared.store(Arc::new(Snapshot {
         listeners: vec![listener],
         stream_routes: vec![StreamRoute {
-            name: "udp-route".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "udp-route".to_string(),
+            namespace: "default".to_string(),
             kind: "ROUTE_KIND_UDP".to_string(),
             parent_refs: Vec::new(),
             rules: vec![StreamRule {
                 name: String::new(),
                 matches: vec![StreamMatch::default()],
                 backend_refs: vec![BackendRef {
-                    namespace: "default".to_string().into(),
-                    name: "dns".to_string().into(),
+                    namespace: "default".to_string(),
+                    name: "dns".to_string(),
                     port: upstream_addr.port() as u32,
                     ..BackendRef::default()
                 }],

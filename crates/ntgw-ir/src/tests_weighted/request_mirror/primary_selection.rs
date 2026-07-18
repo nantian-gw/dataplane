@@ -2,8 +2,8 @@
 fn request_mirror_does_not_change_primary_backend_selection() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "mirror".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "mirror".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -18,8 +18,8 @@ fn request_mirror_does_not_change_primary_backend_selection() {
                         filter_type: "RequestMirror".to_string(),
                         request_mirror: Some(crate::RequestMirrorFilter {
                             backend_ref: BackendRef {
-                                namespace: "observability".to_string().into(),
-                                name: "shadow".to_string().into(),
+                                namespace: "observability".to_string(),
+                                name: "shadow".to_string(),
                                 port: 8081,
                                 ..BackendRef::default()
                             },

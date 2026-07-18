@@ -2,11 +2,11 @@
 fn selects_udp_backend_by_listener() {
     let snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/udp".to_string().into(),
+            name: "default/gw/udp".to_string(),
             address: "0.0.0.0".to_string(),
             addresses: vec!["0.0.0.0".to_string()],
             port: 53,
-            protocol: "LISTENER_PROTOCOL_UDP".to_string().into(),
+            protocol: "LISTENER_PROTOCOL_UDP".to_string(),
             hostnames: vec![],
             attached_routes: vec!["default/dns".to_string()],
             tls: None,
@@ -14,8 +14,8 @@ fn selects_udp_backend_by_listener() {
             metadata: BTreeMap::new(),
         }],
         stream_routes: vec![StreamRoute {
-            name: "dns".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "dns".to_string(),
+            namespace: "default".to_string(),
             kind: "ROUTE_KIND_UDP".to_string(),
             parent_refs: vec![],
             rules: vec![StreamRule {

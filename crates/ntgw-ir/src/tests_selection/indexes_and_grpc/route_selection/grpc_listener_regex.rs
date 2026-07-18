@@ -2,11 +2,11 @@
 fn selects_grpc_backend_on_http_listener() {
     let snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/http".to_string().into(),
+            name: "default/gw/http".to_string(),
             address: "0.0.0.0".to_string(),
             addresses: vec!["0.0.0.0".to_string()],
             port: 80,
-            protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+            protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
             hostnames: vec!["grpc.example.com".to_string()],
             attached_routes: vec!["default/grpc-route".to_string()],
             tls: None,
@@ -14,8 +14,8 @@ fn selects_grpc_backend_on_http_listener() {
             metadata: BTreeMap::new(),
         }],
         grpc_routes: vec![GrpcRoute {
-            name: "grpc-route".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "grpc-route".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["grpc.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![GrpcRule {
@@ -68,8 +68,8 @@ fn selects_grpc_backend_on_http_listener() {
 fn selects_grpc_backend_by_regex_service_and_method() {
     let snapshot = Snapshot {
         grpc_routes: vec![GrpcRoute {
-            name: "grpc-regex-route".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "grpc-regex-route".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["grpc.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![GrpcRule {

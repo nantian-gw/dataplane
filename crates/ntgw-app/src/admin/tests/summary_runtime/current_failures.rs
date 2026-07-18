@@ -3,13 +3,13 @@ fn multiple_current_failures_summary_value() -> serde_json::Value {
         id: "v-multi".to_string(),
         listeners: vec![
             Listener {
-                name: "web".to_string().into(),
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+                name: "web".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 ..Listener::default()
             },
             Listener {
-                name: "passthrough".to_string().into(),
-                protocol: "LISTENER_PROTOCOL_TLS_PASSTHROUGH".to_string().into(),
+                name: "passthrough".to_string(),
+                protocol: "LISTENER_PROTOCOL_TLS_PASSTHROUGH".to_string(),
                 ..Listener::default()
             },
         ],

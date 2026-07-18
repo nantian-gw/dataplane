@@ -12,11 +12,11 @@ fn apply_header_modifier_updates_request_headers() {
         &mut request,
         &HeaderModifier {
             set: vec![HeaderOperation {
-                name: "x-set".to_string().into(),
+                name: "x-set".to_string(),
                 value: "new".to_string(),
             }],
             add: vec![HeaderOperation {
-                name: "x-add".to_string().into(),
+                name: "x-add".to_string(),
                 value: "blue".to_string(),
             }],
             remove: vec!["x-remove".to_string()],

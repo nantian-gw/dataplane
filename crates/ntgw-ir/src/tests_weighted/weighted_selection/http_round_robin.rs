@@ -2,8 +2,8 @@
 fn selects_http_backend_refs_by_weighted_round_robin() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "weighted".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "weighted".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {

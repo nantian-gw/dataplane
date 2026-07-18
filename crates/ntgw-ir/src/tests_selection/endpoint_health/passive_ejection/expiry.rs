@@ -2,8 +2,8 @@
 fn expired_endpoint_ejection_reintroduces_endpoint_into_rotation() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "route".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "route".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {

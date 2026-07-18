@@ -1,7 +1,7 @@
 fn example_secret_material() -> SecretMaterial {
     SecretMaterial {
-        namespace: "default".to_string().into(),
-        name: "example-cert".to_string().into(),
+        namespace: "default".to_string(),
+        name: "example-cert".to_string(),
         cert_pem: VALID_SERVER_CERT_PEM.to_string(),
         key_pem: VALID_SERVER_KEY_PEM.to_string(),
     }

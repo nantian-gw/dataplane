@@ -35,8 +35,8 @@ fn backend_ref(namespace: &str, name: &str, port: u32) -> BackendRef {
 
 fn weighted_backend_ref(namespace: &str, name: &str, port: u32, weight: u32) -> BackendRef {
     BackendRef {
-        namespace: namespace.to_string().into(),
-        name: name.to_string().into(),
+        namespace: namespace.to_string(),
+        name: name.to_string(),
         port,
         weight,
         ..BackendRef::default()

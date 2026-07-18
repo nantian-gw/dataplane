@@ -2,8 +2,8 @@
 fn selects_http_backend_by_host_path_method_header_and_query() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "route".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "route".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -13,13 +13,13 @@ fn selects_http_backend_by_host_path_method_header_and_query() {
                     path_type: "PathPrefix".to_string(),
                     method: "GET".to_string(),
                     headers: vec![HeaderMatch {
-                        name: "x-env".to_string().into(),
+                        name: "x-env".to_string(),
                         value: "prod".to_string(),
                         match_type: "Exact".to_string(),
                         ..HeaderMatch::default()
                     }],
                     query_params: vec![QueryMatch {
-                        name: "debug".to_string().into(),
+                        name: "debug".to_string(),
                         value: "false".to_string(),
                         match_type: "Exact".to_string(),
                         ..QueryMatch::default()

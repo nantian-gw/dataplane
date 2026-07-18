@@ -3,10 +3,10 @@ fn excluded_mesh_port_fallback_ignores_non_mesh_listeners_when_checking_attached
     let snapshot = Snapshot {
         listeners: vec![
             Listener {
-                name: "default/gw/http".to_string().into(),
+                name: "default/gw/http".to_string(),
                 address: "0.0.0.0".to_string(),
                 port: 80,
-                protocol: "HTTP".to_string().into(),
+                protocol: "HTTP".to_string(),
                 attached_routes: vec!["default/gateway-route".to_string()],
                 ..Listener::default()
             },
@@ -28,12 +28,12 @@ fn excluded_mesh_port_fallback_ignores_non_mesh_listeners_when_checking_attached
             ),
         ],
         http_routes: vec![HttpRoute {
-            name: "mesh-split-v1".to_string().into(),
-            namespace: "gateway-conformance-mesh".to_string().into(),
+            name: "mesh-split-v1".to_string(),
+            namespace: "gateway-conformance-mesh".to_string(),
             hostnames: vec![],
             parent_refs: vec![ParentRef {
                 kind: "Service".to_string(),
-                name: "echo-v1".to_string().into(),
+                name: "echo-v1".to_string(),
                 port: 80,
                 ..ParentRef::default()
             }],
@@ -42,8 +42,8 @@ fn excluded_mesh_port_fallback_ignores_non_mesh_listeners_when_checking_attached
                 matches: vec![],
                 filters: vec![],
                 backend_refs: vec![BackendRef {
-                    namespace: "gateway-conformance-mesh".to_string().into(),
-                    name: "echo-v1".to_string().into(),
+                    namespace: "gateway-conformance-mesh".to_string(),
+                    name: "echo-v1".to_string(),
                     port: 80,
                     ..BackendRef::default()
                 }],

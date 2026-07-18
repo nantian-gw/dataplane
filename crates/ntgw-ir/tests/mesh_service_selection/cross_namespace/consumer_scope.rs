@@ -10,13 +10,13 @@ fn cross_namespace_mesh_route_only_matches_consumer_workload() {
             &["gateway-conformance-mesh-consumer/mesh-echo-add-header"],
         )],
         http_routes: vec![HttpRoute {
-            name: "mesh-echo-add-header".to_string().into(),
-            namespace: "gateway-conformance-mesh-consumer".to_string().into(),
+            name: "mesh-echo-add-header".to_string(),
+            namespace: "gateway-conformance-mesh-consumer".to_string(),
             hostnames: vec![],
             parent_refs: vec![ParentRef {
                 kind: "Service".to_string(),
-                namespace: "gateway-conformance-mesh".to_string().into(),
-                name: "echo-v1".to_string().into(),
+                namespace: "gateway-conformance-mesh".to_string(),
+                name: "echo-v1".to_string(),
                 ..ParentRef::default()
             }],
             rules: vec![HttpRule {
@@ -28,8 +28,8 @@ fn cross_namespace_mesh_route_only_matches_consumer_workload() {
                     ..Filter::default()
                 }],
                 backend_refs: vec![BackendRef {
-                    namespace: "gateway-conformance-mesh".to_string().into(),
-                    name: "echo-v1".to_string().into(),
+                    namespace: "gateway-conformance-mesh".to_string(),
+                    name: "echo-v1".to_string(),
                     port: 80,
                     ..BackendRef::default()
                 }],
@@ -56,13 +56,13 @@ fn cross_namespace_mesh_route_only_matches_consumer_workload() {
                 circuit_breaker: None,}],
         workloads: vec![
             Workload {
-                namespace: "gateway-conformance-mesh-consumer".to_string().into(),
-                name: "consumer".to_string().into(),
+                namespace: "gateway-conformance-mesh-consumer".to_string(),
+                name: "consumer".to_string(),
                 ip: "10.1.0.10".to_string(),
             },
             Workload {
-                namespace: "gateway-conformance-mesh".to_string().into(),
-                name: "producer".to_string().into(),
+                namespace: "gateway-conformance-mesh".to_string(),
+                name: "producer".to_string(),
                 ip: "10.1.0.20".to_string(),
             },
         ],

@@ -84,12 +84,12 @@ fn attached_mesh_route_without_match_does_not_fallback_to_service_backend() {
             &["default/query-param"],
         )],
         http_routes: vec![HttpRoute {
-            name: "query-param".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "query-param".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec![],
             parent_refs: vec![ParentRef {
                 kind: "Service".to_string(),
-                name: "echo".to_string().into(),
+                name: "echo".to_string(),
                 port: 80,
                 ..ParentRef::default()
             }],
@@ -97,7 +97,7 @@ fn attached_mesh_route_without_match_does_not_fallback_to_service_backend() {
                 name: String::new(),
                 matches: vec![ntgw_ir::HttpMatch {
                     query_params: vec![ntgw_ir::QueryMatch {
-                        name: "animal".to_string().into(),
+                        name: "animal".to_string(),
                         value: "whale".to_string(),
                         match_type: String::new(),
                         ..ntgw_ir::QueryMatch::default()
@@ -106,8 +106,8 @@ fn attached_mesh_route_without_match_does_not_fallback_to_service_backend() {
                 }],
                 filters: vec![],
                 backend_refs: vec![BackendRef {
-                    namespace: "default".to_string().into(),
-                    name: "echo".to_string().into(),
+                    namespace: "default".to_string(),
+                    name: "echo".to_string(),
                     port: 80,
                     ..BackendRef::default()
                 }],

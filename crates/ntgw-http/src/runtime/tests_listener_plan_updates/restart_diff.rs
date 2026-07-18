@@ -4,7 +4,7 @@ fn listener_updates_restart_only_changed_listener() {
         (
             "0.0.0.0:80".to_string(),
             PlannedListener {
-                name: "default/gw/http".to_string().into(),
+                name: "default/gw/http".to_string(),
                 bind: "0.0.0.0:80".to_string(),
                 protocol: ListenerProtocol::Plain,
             },
@@ -12,7 +12,7 @@ fn listener_updates_restart_only_changed_listener() {
         (
             "0.0.0.0:443".to_string(),
             PlannedListener {
-                name: "default/gw/https".to_string().into(),
+                name: "default/gw/https".to_string(),
                 bind: "0.0.0.0:443".to_string(),
                 protocol: ListenerProtocol::Tls(single_tls_material(
                     "default/example-cert",
@@ -26,12 +26,12 @@ fn listener_updates_restart_only_changed_listener() {
     let desired = ListenerPlan {
         listeners: vec![
             PlannedListener {
-                name: "default/gw/http".to_string().into(),
+                name: "default/gw/http".to_string(),
                 bind: "0.0.0.0:80".to_string(),
                 protocol: ListenerProtocol::Plain,
             },
             PlannedListener {
-                name: "default/gw/https".to_string().into(),
+                name: "default/gw/https".to_string(),
                 bind: "0.0.0.0:443".to_string(),
                 protocol: ListenerProtocol::Tls(single_tls_material(
                     "default/rotated-cert",
@@ -60,7 +60,7 @@ fn listener_updates_do_not_restart_when_only_listener_name_changes() {
         (
             "0.0.0.0:80".to_string(),
             PlannedListener {
-                name: "mesh/default/echo/80".to_string().into(),
+                name: "mesh/default/echo/80".to_string(),
                 bind: "0.0.0.0:80".to_string(),
                 protocol: ListenerProtocol::Plain,
             },
@@ -68,7 +68,7 @@ fn listener_updates_do_not_restart_when_only_listener_name_changes() {
         (
             "[::]:80".to_string(),
             PlannedListener {
-                name: "mesh/default/echo/80".to_string().into(),
+                name: "mesh/default/echo/80".to_string(),
                 bind: "[::]:80".to_string(),
                 protocol: ListenerProtocol::Plain,
             },
@@ -77,12 +77,12 @@ fn listener_updates_do_not_restart_when_only_listener_name_changes() {
     let desired = ListenerPlan {
         listeners: vec![
             PlannedListener {
-                name: "mesh/default/echo-v2/80".to_string().into(),
+                name: "mesh/default/echo-v2/80".to_string(),
                 bind: "0.0.0.0:80".to_string(),
                 protocol: ListenerProtocol::Plain,
             },
             PlannedListener {
-                name: "mesh/default/echo-v2/80".to_string().into(),
+                name: "mesh/default/echo-v2/80".to_string(),
                 bind: "[::]:80".to_string(),
                 protocol: ListenerProtocol::Plain,
             },
@@ -97,7 +97,7 @@ fn listener_updates_do_not_restart_when_only_listener_name_changes() {
 #[test]
 fn listener_updates_restart_finished_listener_without_touching_others() {
     let listener = PlannedListener {
-        name: "default/gw/http".to_string().into(),
+        name: "default/gw/http".to_string(),
         bind: "127.0.0.1:8080".to_string(),
         protocol: ListenerProtocol::Plain,
     };
@@ -121,7 +121,7 @@ fn listener_updates_restart_finished_listener_without_touching_others() {
 #[test]
 fn listener_updates_force_reload_restarts_active_listeners_even_when_plan_is_unchanged() {
     let listener = PlannedListener {
-        name: "default/gw/http".to_string().into(),
+        name: "default/gw/http".to_string(),
         bind: "127.0.0.1:8080".to_string(),
         protocol: ListenerProtocol::Plain,
     };
@@ -156,7 +156,7 @@ fn listener_replace_reports_retained_listeners_when_plan_is_unchanged() -> anyho
 
     let bind = format!("127.0.0.1:{}", free_tcp_port());
     let listener = PlannedListener {
-        name: "default/gw/http".to_string().into(),
+        name: "default/gw/http".to_string(),
         bind: bind.clone(),
         protocol: ListenerProtocol::Plain,
     };
@@ -213,7 +213,7 @@ fn listener_replace_retains_last_good_listener_when_new_listener_start_fails() -
     let old_bind = format!("127.0.0.1:{}", free_tcp_port());
     let new_bind = format!("127.0.0.1:{}", free_tcp_port());
     let old_listener = PlannedListener {
-        name: "default/gw/http".to_string().into(),
+        name: "default/gw/http".to_string(),
         bind: old_bind.clone(),
         protocol: ListenerProtocol::Plain,
     };
@@ -251,7 +251,7 @@ fn listener_replace_retains_last_good_listener_when_new_listener_start_fails() -
     let failed = listeners.replace(
         Some(ListenerPlan {
             listeners: vec![PlannedListener {
-                name: "default/gw/https".to_string().into(),
+                name: "default/gw/https".to_string(),
                 bind: new_bind,
                 protocol: ListenerProtocol::Tls(single_tls_material(
                     "default/example-cert",
@@ -323,7 +323,7 @@ async fn listener_replace_keeps_existing_http_connection_when_new_listener_start
     fs::create_dir_all(&asset_root)?;
 
     let old_listener = PlannedListener {
-        name: "default/gw/http".to_string().into(),
+        name: "default/gw/http".to_string(),
         bind: old_bind.clone(),
         protocol: ListenerProtocol::Plain,
     };
@@ -371,7 +371,7 @@ async fn listener_replace_keeps_existing_http_connection_when_new_listener_start
     let failed = listeners.replace(
         Some(ListenerPlan {
             listeners: vec![PlannedListener {
-                name: "default/gw/https".to_string().into(),
+                name: "default/gw/https".to_string(),
                 bind: new_bind,
                 protocol: ListenerProtocol::Tls(single_tls_material(
                     "default/example-cert",
