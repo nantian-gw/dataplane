@@ -7,9 +7,10 @@ fn gather_metric_value(registry: &Registry, name: &str, labels: &[(&str, &str)])
         if family.name() == name {
             for m in family.get_metric() {
                 if labels_match(m.get_label(), labels)
-                    && family.get_field_type() == prometheus::proto::MetricType::COUNTER {
-                        return m.get_counter().value();
-                    }
+                    && family.get_field_type() == prometheus::proto::MetricType::COUNTER
+                {
+                    return m.get_counter().value();
+                }
             }
         }
     }

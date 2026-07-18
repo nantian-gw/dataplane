@@ -872,9 +872,10 @@ mod tests {
     fn wait_for_log_contents(path: &Path) -> String {
         for _ in 0..20 {
             if let Ok(contents) = fs::read_to_string(path)
-                && !contents.trim().is_empty() {
-                    return contents;
-                }
+                && !contents.trim().is_empty()
+            {
+                return contents;
+            }
             thread::sleep(Duration::from_millis(20));
         }
 

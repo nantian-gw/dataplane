@@ -152,9 +152,10 @@ fn snapshot_with_circuit_breaker_syncs_per_backend_limit() {
     // Simulate what sync_per_backend_cb_limit does
     for backend in &snapshot.backends {
         if let Some(ref cb) = backend.circuit_breaker
-            && cb.max_inflight_requests > 0 {
-                controller.set_backend_limit(&backend.name, cb.max_inflight_requests as usize);
-            }
+            && cb.max_inflight_requests > 0
+        {
+            controller.set_backend_limit(&backend.name, cb.max_inflight_requests as usize);
+        }
     }
 
     // Limited backend: 3 permits should succeed, 4th should fail
@@ -205,9 +206,10 @@ fn proto_snapshot_with_cb_config_enforces_per_backend_limit() {
     // Simulate sync_per_backend_cb_limit: read CB config from IR → set on controller
     for backend in &snapshot.backends {
         if let Some(ref cb) = backend.circuit_breaker
-            && cb.max_inflight_requests > 0 {
-                controller.set_backend_limit(&backend.name, cb.max_inflight_requests as usize);
-            }
+            && cb.max_inflight_requests > 0
+        {
+            controller.set_backend_limit(&backend.name, cb.max_inflight_requests as usize);
+        }
     }
 
     // Verify per-backend limit (5) is enforced
