@@ -60,6 +60,15 @@ jobs:
           components: rustfmt
       - run: cargo fmt --all -- --check
 
+  bench:
+    name: Bench (ntgw-bench)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - name: Run ntgw-bench
+        run: cargo run -p ntgw-bench
+
   cargo-deny:
     name: cargo-deny
     runs-on: ubuntu-latest
