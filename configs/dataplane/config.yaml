@@ -1,135 +1,135 @@
-nodeId: "dp-local"
+node_id: "dp-local"
 cluster: "default"
-controlPlaneAddr: "http://127.0.0.1:18080"
-adminAddr: "127.0.0.1:19080"
+control_plane_addr: "http://127.0.0.1:18080"
+admin_addr: "127.0.0.1:19080"
 log:
   level: "info,nantian_core::connectors=off"
   format: "json"
-  addSource: false
-  includeTarget: false
-  includeThreadIds: false
-  includeThreadNames: false
-  nonBlocking: true
-  nonBlockingBufferedLines: 65536
-  dropWhenFull: true
-  openTelemetry:
+  add_source: false
+  include_target: false
+  include_thread_ids: false
+  include_thread_names: false
+  non_blocking: true
+  non_blocking_buffered_lines: 65536
+  drop_when_full: true
+  open_telemetry:
     enabled: false
     endpoint: ""
     protocol: "grpc"
-    timeoutMs: 3000
+    timeout_ms: 3000
     insecure: false
-    sampleRatio: 1.0
-    serviceName: "nantian-dataplane"
-    serviceNamespace: ""
-adminAuth:
-  bearerToken: ""
-  bearerTokenFile: ""
-accessLog:
+    sample_ratio: 1.0
+    service_name: "nantian-dataplane"
+    service_namespace: ""
+admin_auth:
+  bearer_token: ""
+  bearer_token_file: ""
+access_log:
   enabled: false
   path: "stdout"
   format: "%TIMESTAMP% %EVENT% %PROTOCOL% %LISTENER% %CLIENT_IP% %HOST% %METHOD% %PATH% %REQUEST_ID% %ROUTE_NAMESPACE% %ROUTE_NAME% %BACKEND% %STATUS% %LATENCY_MS% %BYTES_RECEIVED% %BYTES_SENT% %SNAPSHOT_VERSION% %RETRY_ATTEMPTS% %RESPONSE_FLAGS%"
   # text-mode example with mixed legacy and Nginx-style variables:
   # format: '$remote_addr $request_id "$request" $status $request_time "$http_user_agent" $ntgw_route_namespace/$ntgw_route_name'
   mode: "json"
-  sampleRate: 0.01
-  routeAnnotationPrefix: "gateway.nantian.dev/access-log-"
+  sample_rate: 0.01
+  route_annotation_prefix: "gateway.nantian.dev/access-log-"
 runtime:
-  httpListenAddr: "0.0.0.0:80"
-  enableIpv6: true
-  enableHttp3: false
-  tlsMinVersion: "1.2"
-  tlsMaxVersion: "1.3"
-  tlsAssetDir: ""
-runtimeTuning:
-  httpReloadRetryIntervalMs: 1000
-  streamReloadRetryIntervalMs: 1000
-  downstreamReadTimeoutMs: 60000
-  httpMaxConnectionAgeMs: 0
-  httpKeepaliveRequestLimit: 0
-  upstreamConnectionTimeoutMs: 5000
-  upstreamReadTimeoutMs: 30000
-  upstreamIdleTimeoutMs: 60000
-  httpCapacity:
-    workerThreads: 0
-    acceptConcurrency: 16
-    upstreamKeepalivePoolSize: 32768
-    reusePort: null
-  requestMirrorMaxConcurrency: 1024
-  udpResponseIdleTimeoutMs: 500
-  tcpProxyBufferBytes: 16384
-  tcpSessionIdleTimeoutMs: 0
-  tcpMaxConnectionAgeMs: 0
-  retryBudgetEnabled: true
-  retryBudgetRatioPercent: 20
-  retryBudgetBurst: 16
-  gracefulDrainPeriodMs: 0
-  activeHealthCheckEnabled: false
-  activeHealthCheckIntervalMs: 5000
-  activeHealthCheckTimeoutMs: 1000
-  activeHealthCheckUnhealthyThreshold: 2
-  downstreamTcpKeepalive:
+  http_listen_addr: "0.0.0.0:80"
+  enable_ipv6: true
+  enable_http3: false
+  tls_min_version: "1.2"
+  tls_max_version: "1.3"
+  tls_asset_dir: ""
+runtime_tuning:
+  http_reload_retry_interval_ms: 1000
+  stream_reload_retry_interval_ms: 1000
+  downstream_read_timeout_ms: 60000
+  http_max_connection_age_ms: 0
+  http_keepalive_request_limit: 0
+  upstream_connection_timeout_ms: 5000
+  upstream_read_timeout_ms: 30000
+  upstream_idle_timeout_ms: 60000
+  http_capacity:
+    worker_threads: 0
+    accept_concurrency: 16
+    upstream_keepalive_pool_size: 32768
+    reuse_port: null
+  request_mirror_max_concurrency: 1024
+  udp_response_idle_timeout_ms: 500
+  tcp_proxy_buffer_bytes: 16384
+  tcp_session_idle_timeout_ms: 0
+  tcp_max_connection_age_ms: 0
+  retry_budget_enabled: true
+  retry_budget_ratio_percent: 20
+  retry_budget_burst: 16
+  graceful_drain_period_ms: 0
+  active_health_check_enabled: false
+  active_health_check_interval_ms: 5000
+  active_health_check_timeout_ms: 1000
+  active_health_check_unhealthy_threshold: 2
+  downstream_tcp_keepalive:
     enabled: false
-    idleMs: 60000
-    intervalMs: 15000
-    probeCount: 4
-    userTimeoutMs: 0
-  upstreamTcpKeepalive:
+    idle_ms: 60000
+    interval_ms: 15000
+    probe_count: 4
+    user_timeout_ms: 0
+  upstream_tcp_keepalive:
     enabled: true
-    idleMs: 60000
-    intervalMs: 15000
-    probeCount: 4
-    userTimeoutMs: 0
-  streamUpstreamPoolSize: 128
-  streamUpstreamPoolIdleTimeoutMs: 30000
-  workStealing: true
-  downstreamTcpFastopen: null
-  downstreamDscp: null
-  upstreamTcpRecvBuf: 0
-  upstreamTcpFastOpen: true
-  upstreamDscp: null
-  httpCache:
+    idle_ms: 60000
+    interval_ms: 15000
+    probe_count: 4
+    user_timeout_ms: 0
+  stream_upstream_pool_size: 128
+  stream_upstream_pool_idle_timeout_ms: 30000
+  work_stealing: true
+  downstream_tcp_fastopen: null
+  downstream_dscp: null
+  upstream_tcp_recv_buf: 0
+  upstream_tcp_fast_open: true
+  upstream_dscp: null
+  http_cache:
     enabled: false
-    maxSizeMb: 256
-    maxEntrySizeMb: 16
-    defaultTtlSeconds: 60
-runtimeProtection:
-  httpGlobalInflightLimit: 16384
-  httpListenerInflightLimit: 8192
-  httpRouteInflightLimit: 4096
-  httpBackendCircuitBreakerMaxRequests: 4096
-  httpGlobalRateLimitRequestsPerSecond: 10000
-  httpGlobalRateLimitBurst: 20000
-  httpListenerRateLimitRequestsPerSecond: 5000
-  httpListenerRateLimitBurst: 10000
-  httpRouteRateLimitRequestsPerSecond: 2000
-  httpRouteRateLimitBurst: 4000
-  httpMaxRequestBodyBytes: 10485760
-  httpMaxRequestHeaderBytes: 65536
-  tcpGlobalConnectionLimit: 32768
-  tcpListenerConnectionLimit: 8192
-  udpGlobalDatagramLimit: 100000
-  udpListenerDatagramLimit: 50000
-sessionPersistence:
-  secretKey: ""
-  secretKeyFile: ""
+    max_size_mb: 256
+    max_entry_size_mb: 16
+    default_ttl_seconds: 60
+runtime_protection:
+  http_global_inflight_limit: 16384
+  http_listener_inflight_limit: 8192
+  http_route_inflight_limit: 4096
+  http_backend_circuit_breaker_max_requests: 4096
+  http_global_rate_limit_requests_per_second: 10000
+  http_global_rate_limit_burst: 20000
+  http_listener_rate_limit_requests_per_second: 5000
+  http_listener_rate_limit_burst: 10000
+  http_route_rate_limit_requests_per_second: 2000
+  http_route_rate_limit_burst: 4000
+  http_max_request_body_bytes: 10485760
+  http_max_request_header_bytes: 65536
+  tcp_global_connection_limit: 32768
+  tcp_listener_connection_limit: 8192
+  udp_global_datagram_limit: 100000
+  udp_listener_datagram_limit: 50000
+session_persistence:
+  secret_key: ""
+  secret_key_file: ""
   # sharedSecret: "your-shared-secret-here"
-xdsTls:
+xds_tls:
   enabled: false
-  caPath: ""
-  certPath: ""
-  keyPath: ""
-  domainName: ""
-xdsTransport:
-  connectTimeoutMs: 5000
-  keepaliveIntervalMs: 10000
-  keepaliveTimeoutMs: 5000
-  initialReconnectBackoffMs: 2000
-  maxReconnectBackoffMs: 30000
-  applyTimeoutMs: 3000
-  applyPollIntervalMs: 100
-  staleStreamTimeoutMs: 30000
-  snapshotFreshnessTimeoutMs: 90000
+  ca_path: ""
+  cert_path: ""
+  key_path: ""
+  domain_name: ""
+xds_transport:
+  connect_timeout_ms: 5000
+  keepalive_interval_ms: 10000
+  keepalive_timeout_ms: 5000
+  initial_reconnect_backoff_ms: 2000
+  max_reconnect_backoff_ms: 30000
+  apply_timeout_ms: 3000
+  apply_poll_interval_ms: 100
+  stale_stream_timeout_ms: 30000
+  snapshot_freshness_timeout_ms: 90000
 experimental:
-  enableExperimentalGateway: false
-  enableAiGateway: false
-  aiGatewayMaxRequestBodyBytes: 10485760
+  enable_experimental_gateway: false
+  enable_ai_gateway: false
+  ai_gateway_max_request_body_bytes: 10485760

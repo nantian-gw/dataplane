@@ -5,24 +5,24 @@ fn route_policy_full_round_trip() {
     let yaml = r#"
 timeout:
   request: 30000
-  backendRequest: 25000
+  backend_request: 25000
   connect: 5000
-  nextUpstream: 15000
-bodyLimit:
-  maxRequestBodyBytes: 1048576
-  requestBodyBufferBytes: 65536
-  maxRequestHeaderBytes: 16384
+  next_upstream: 15000
+body_limit:
+  max_request_body_bytes: 1048576
+  request_body_buffer_bytes: 65536
+  max_request_header_bytes: 16384
 proxy:
-  requestBuffering: true
-  responseBuffering: false
-  bufferSize: 4096
-  bufferCount: 4
+  request_buffering: true
+  response_buffering: false
+  buffer_size: 4096
+  buffer_count: 4
 connection:
-  keepaliveRequests: 100
-  keepaliveTime: 10000
-  keepaliveTimeout: 5000
-  upstreamKeepalivePoolSize: 10
-  upstreamKeepaliveIdle: 60000
+  keepalive_requests: 100
+  keepalive_time: 10000
+  keepalive_timeout: 5000
+  upstream_keepalive_pool_size: 10
+  upstream_keepalive_idle: 60000
 "#;
     let config: RoutePolicyConfig = serde_yaml::from_str(yaml).unwrap();
     assert!(config.timeout.is_some());

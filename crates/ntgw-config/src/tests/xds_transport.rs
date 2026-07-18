@@ -4,10 +4,10 @@ use super::*;
 fn parses_xds_transport_defaults_and_overrides() {
     let default_cfg: DataPlaneConfig = serde_yaml::from_str(
         r#"
-nodeId: dp
+node_id: dp
 cluster: kind
-controlPlaneAddr: http://127.0.0.1:18080
-adminAddr: 127.0.0.1:19080
+control_plane_addr: http://127.0.0.1:18080
+admin_addr: 127.0.0.1:19080
 "#,
     )
     .expect("default config should parse");
@@ -57,20 +57,20 @@ adminAddr: 127.0.0.1:19080
 
     let custom_cfg: DataPlaneConfig = serde_yaml::from_str(
         r#"
-nodeId: dp
+node_id: dp
 cluster: kind
-controlPlaneAddr: http://127.0.0.1:18080
-adminAddr: 127.0.0.1:19080
-xdsTransport:
-  connectTimeoutMs: 9000
-  keepaliveIntervalMs: 15000
-  keepaliveTimeoutMs: 4000
-  initialReconnectBackoffMs: 750
-  maxReconnectBackoffMs: 12000
-  applyTimeoutMs: 4500
-  applyPollIntervalMs: 40
-  staleStreamTimeoutMs: 45000
-  snapshotFreshnessTimeoutMs: 55000
+control_plane_addr: http://127.0.0.1:18080
+admin_addr: 127.0.0.1:19080
+xds_transport:
+  connect_timeout_ms: 9000
+  keepalive_interval_ms: 15000
+  keepalive_timeout_ms: 4000
+  initial_reconnect_backoff_ms: 750
+  max_reconnect_backoff_ms: 12000
+  apply_timeout_ms: 4500
+  apply_poll_interval_ms: 40
+  stale_stream_timeout_ms: 45000
+  snapshot_freshness_timeout_ms: 55000
 "#,
     )
     .expect("custom transport config should parse");

@@ -4,51 +4,51 @@ use super::*;
 fn parses_runtime_tuning_overrides() {
     let custom_cfg: DataPlaneConfig = serde_yaml::from_str(
         r#"
-nodeId: dp
+node_id: dp
 cluster: kind
-controlPlaneAddr: http://127.0.0.1:18080
-adminAddr: 127.0.0.1:19080
-runtimeTuning:
-  httpReloadRetryIntervalMs: 2500
-  streamReloadRetryIntervalMs: 1800
-  downstreamReadTimeoutMs: 250
-  httpMaxConnectionAgeMs: 3750
-  httpKeepaliveRequestLimit: 7
-  httpCapacity:
-    workerThreads: 4
-    acceptConcurrency: 3
-    upstreamKeepalivePoolSize: 1024
-    reusePort: false
-  requestMirrorMaxConcurrency: 16
-  udpResponseIdleTimeoutMs: 900
-  tcpProxyBufferBytes: 65536
-  tcpSessionIdleTimeoutMs: 4200
-  tcpMaxConnectionAgeMs: 12500
-  retryBudgetEnabled: false
-  retryBudgetRatioPercent: 35
-  retryBudgetBurst: 9
-  gracefulDrainPeriodMs: 4500
-  activeHealthCheckEnabled: false
-  activeHealthCheckIntervalMs: 8000
-  activeHealthCheckTimeoutMs: 1500
-  activeHealthCheckUnhealthyThreshold: 4
-  downstreamTcpKeepalive:
+control_plane_addr: http://127.0.0.1:18080
+admin_addr: 127.0.0.1:19080
+runtime_tuning:
+  http_reload_retry_interval_ms: 2500
+  stream_reload_retry_interval_ms: 1800
+  downstream_read_timeout_ms: 250
+  http_max_connection_age_ms: 3750
+  http_keepalive_request_limit: 7
+  http_capacity:
+    worker_threads: 4
+    accept_concurrency: 3
+    upstream_keepalive_pool_size: 1024
+    reuse_port: false
+  request_mirror_max_concurrency: 16
+  udp_response_idle_timeout_ms: 900
+  tcp_proxy_buffer_bytes: 65536
+  tcp_session_idle_timeout_ms: 4200
+  tcp_max_connection_age_ms: 12500
+  retry_budget_enabled: false
+  retry_budget_ratio_percent: 35
+  retry_budget_burst: 9
+  graceful_drain_period_ms: 4500
+  active_health_check_enabled: false
+  active_health_check_interval_ms: 8000
+  active_health_check_timeout_ms: 1500
+  active_health_check_unhealthy_threshold: 4
+  downstream_tcp_keepalive:
     enabled: true
-    idleMs: 61000
-    intervalMs: 14000
-    probeCount: 5
-    userTimeoutMs: 7000
-  upstreamTcpKeepalive:
+    idle_ms: 61000
+    interval_ms: 14000
+    probe_count: 5
+    user_timeout_ms: 7000
+  upstream_tcp_keepalive:
     enabled: true
-    idleMs: 45000
-    intervalMs: 11000
-    probeCount: 3
-    userTimeoutMs: 0
-  httpCache:
+    idle_ms: 45000
+    interval_ms: 11000
+    probe_count: 3
+    user_timeout_ms: 0
+  http_cache:
     enabled: true
-    maxSizeMb: 512
-    maxEntrySizeMb: 32
-    defaultTtlSeconds: 120
+    max_size_mb: 512
+    max_entry_size_mb: 32
+    default_ttl_seconds: 120
 "#,
     )
     .expect("custom runtime tuning config should parse");

@@ -3,10 +3,10 @@ use std::fs;
 use crate::DataPlaneConfig;
 
 const MINIMAL_CONFIG_YAML: &str = r#"
-nodeId: dp
+node_id: dp
 cluster: kind
-controlPlaneAddr: http://127.0.0.1:18080
-adminAddr: 127.0.0.1:19080
+control_plane_addr: http://127.0.0.1:18080
+admin_addr: 127.0.0.1:19080
 "#;
 
 #[test]
@@ -19,7 +19,7 @@ fn parse_yaml_parses_minimal_config() {
 
 #[test]
 fn parse_yaml_rejects_malformed_document() {
-    let err = DataPlaneConfig::parse_yaml("nodeId: [unterminated").unwrap_err();
+    let err = DataPlaneConfig::parse_yaml("node_id: [unterminated").unwrap_err();
     assert!(!format!("{err}").is_empty());
 }
 
@@ -47,7 +47,7 @@ fn load_reports_path_context_for_missing_file() {
 fn load_reports_path_context_for_malformed_file() {
     let dir = super::tempfile_dir();
     let path = dir.join("bad-config.yaml");
-    fs::write(&path, "nodeId: [unterminated").expect("malformed config should be written");
+    fs::write(&path, "node_id: [unterminated").expect("malformed config should be written");
 
     let err = DataPlaneConfig::load(&path).unwrap_err();
     let rendered = format!("{err:#}");
