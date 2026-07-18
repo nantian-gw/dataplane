@@ -2,8 +2,8 @@
 fn inherited_runtime_state_applies_updated_backend_weights() {
     let current = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "weighted".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "weighted".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -64,8 +64,8 @@ fn inherited_runtime_state_applies_updated_backend_weights() {
 
     let mut next = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "weighted".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "weighted".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {

@@ -49,11 +49,10 @@ fn temp_log_path(prefix: &str) -> PathBuf {
 
 async fn wait_for_log_contents(path: &Path, needle: &str) -> Result<String> {
     for _ in 0..100 {
-        if let Ok(contents) = fs::read_to_string(path) {
-            if contents.contains(needle) {
+        if let Ok(contents) = fs::read_to_string(path)
+            && contents.contains(needle) {
                 return Ok(contents);
             }
-        }
         tokio::time::sleep(Duration::from_millis(10)).await;
     }
 
@@ -87,11 +86,11 @@ fn cleanup_access_log(path: &Path) {
 
 fn test_listener(name: &str, port: u32, protocol: &str) -> Listener {
     Listener {
-        name: name.to_string().into(),
+        name: name.to_string(),
         address: "127.0.0.1".to_string(),
         addresses: vec!["127.0.0.1".to_string()],
         port,
-        protocol: protocol.to_string().into(),
+        protocol: protocol.to_string(),
         hostnames: Vec::new(),
         attached_routes: vec![format!("default/{}", route_name_for_listener(name))],
         tls: None,
@@ -118,16 +117,16 @@ fn test_snapshot(
     shared.store(Arc::new(Snapshot {
         listeners: vec![listener],
         stream_routes: vec![StreamRoute {
-            name: route_name.to_string().into(),
-            namespace: "default".to_string().into(),
+            name: route_name.to_string(),
+            namespace: "default".to_string(),
             kind: route_kind.to_string(),
             parent_refs: Vec::new(),
             rules: vec![StreamRule {
                 name: String::new(),
                 matches,
                 backend_refs: vec![BackendRef {
-                    namespace: "default".to_string().into(),
-                    name: "upstream".to_string().into(),
+                    namespace: "default".to_string(),
+                    name: "upstream".to_string(),
                     port: upstream_addr.port() as u32,
                     ..BackendRef::default()
                 }],

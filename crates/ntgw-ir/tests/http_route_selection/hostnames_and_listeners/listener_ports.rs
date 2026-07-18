@@ -3,11 +3,11 @@ fn selects_listener_attachments_by_request_port() {
     let snapshot = Snapshot {
         listeners: vec![
             Listener {
-                name: "default/gw/http-80".to_string().into(),
+                name: "default/gw/http-80".to_string(),
                 address: "0.0.0.0".to_string(),
                 addresses: vec!["0.0.0.0".to_string()],
                 port: 80,
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 hostnames: vec!["foo.com".to_string()],
                 attached_routes: vec!["default/backend-v1".to_string()],
                 tls: None,
@@ -15,11 +15,11 @@ fn selects_listener_attachments_by_request_port() {
                 metadata: BTreeMap::new(),
             },
             Listener {
-                name: "default/gw/http-8080".to_string().into(),
+                name: "default/gw/http-8080".to_string(),
                 address: "0.0.0.0".to_string(),
                 addresses: vec!["0.0.0.0".to_string()],
                 port: 8080,
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 hostnames: vec!["foo.com".to_string()],
                 attached_routes: vec!["default/backend-v2".to_string()],
                 tls: None,
@@ -29,8 +29,8 @@ fn selects_listener_attachments_by_request_port() {
         ],
         http_routes: vec![
             HttpRoute {
-                name: "backend-v1".to_string().into(),
-                namespace: "default".to_string().into(),
+                name: "backend-v1".to_string(),
+                namespace: "default".to_string(),
                 hostnames: vec!["foo.com".to_string()],
                 parent_refs: vec![],
                 rules: vec![path_rule("/", "default", "infra-backend-v1", 8080)],
@@ -38,8 +38,8 @@ fn selects_listener_attachments_by_request_port() {
             annotations: BTreeMap::new(),
             },
             HttpRoute {
-                name: "backend-v2".to_string().into(),
-                namespace: "default".to_string().into(),
+                name: "backend-v2".to_string(),
+                namespace: "default".to_string(),
                 hostnames: vec!["foo.com".to_string()],
                 parent_refs: vec![],
                 rules: vec![path_rule("/", "default", "infra-backend-v2", 8080)],

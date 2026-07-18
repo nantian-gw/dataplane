@@ -7,21 +7,21 @@ fn mirrored_http_snapshot(
     let shared = Snapshot::shared();
     shared.store(Arc::new(Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/http".to_string().into(),
+            name: "default/gw/http".to_string(),
             address: "127.0.0.1".to_string(),
             addresses: vec!["127.0.0.1".to_string()],
             port: listener_port as u32,
-            protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+            protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
             attached_routes: vec!["default/route".to_string()],
             ..Listener::default()
         }],
         http_routes: vec![HttpRoute {
-            name: "route".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "route".to_string(),
+            namespace: "default".to_string(),
             hostnames: Vec::new(),
             parent_refs: vec![ParentRef {
-                namespace: "default".to_string().into(),
-                name: "gw".to_string().into(),
+                namespace: "default".to_string(),
+                name: "gw".to_string(),
                 section_name: String::new(),
                 port: listener_port as u32,
                 ..ParentRef::default()
@@ -37,8 +37,8 @@ fn mirrored_http_snapshot(
                     filter_type: "RequestMirror".to_string(),
                     request_mirror: Some(ntgw_ir::RequestMirrorFilter {
                         backend_ref: BackendRef {
-                            namespace: "default".to_string().into(),
-                            name: "mirror".to_string().into(),
+                            namespace: "default".to_string(),
+                            name: "mirror".to_string(),
                             port: mirror_port,
                             ..BackendRef::default()
                         },
@@ -47,8 +47,8 @@ fn mirrored_http_snapshot(
                     ..Filter::default()
                 }],
                 backend_refs: vec![BackendRef {
-                    namespace: "default".to_string().into(),
-                    name: "primary".to_string().into(),
+                    namespace: "default".to_string(),
+                    name: "primary".to_string(),
                     port: primary_port,
                     ..BackendRef::default()
                 }],

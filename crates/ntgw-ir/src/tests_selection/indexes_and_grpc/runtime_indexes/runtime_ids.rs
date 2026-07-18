@@ -80,16 +80,16 @@ fn runtime_indexes_assign_stable_runtime_ids_across_snapshot_order_changes() {
 fn selected_stream_backend_runtime_ids_normalize_proto_route_kind() {
     let mut snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/tcp".to_string().into(),
+            name: "default/gw/tcp".to_string(),
             address: "0.0.0.0".to_string(),
             port: 9000,
-            protocol: "LISTENER_PROTOCOL_TCP".to_string().into(),
+            protocol: "LISTENER_PROTOCOL_TCP".to_string(),
             attached_routes: vec!["default/orders-tcp".to_string()],
             ..Listener::default()
         }],
         stream_routes: vec![StreamRoute {
-            name: "orders-tcp".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "orders-tcp".to_string(),
+            namespace: "default".to_string(),
             kind: "ROUTE_KIND_TCP".to_string(),
             rules: vec![StreamRule {
                 name: String::new(),
@@ -147,7 +147,7 @@ fn runtime_indexes_resolve_resource_refs_by_runtime_id() {
     assert_eq!(
         snapshot.runtime_resource_ref(listener_id),
         Some(RuntimeResourceRef::Listener {
-            name: "default/gw/http".to_string().into(),
+            name: "default/gw/http".to_string(),
         })
     );
 
@@ -157,8 +157,8 @@ fn runtime_indexes_resolve_resource_refs_by_runtime_id() {
     assert_eq!(
         snapshot.runtime_resource_ref(http_route_id),
         Some(RuntimeResourceRef::HttpRoute {
-            namespace: "default".to_string().into(),
-            name: "orders".to_string().into(),
+            namespace: "default".to_string(),
+            name: "orders".to_string(),
         })
     );
 
@@ -168,8 +168,8 @@ fn runtime_indexes_resolve_resource_refs_by_runtime_id() {
     assert_eq!(
         snapshot.runtime_resource_ref(http_rule_id),
         Some(RuntimeResourceRef::HttpRule {
-            namespace: "default".to_string().into(),
-            name: "orders".to_string().into(),
+            namespace: "default".to_string(),
+            name: "orders".to_string(),
             rule_index: 1,
         })
     );
@@ -180,8 +180,8 @@ fn runtime_indexes_resolve_resource_refs_by_runtime_id() {
     assert_eq!(
         snapshot.runtime_resource_ref(grpc_route_id),
         Some(RuntimeResourceRef::GrpcRoute {
-            namespace: "default".to_string().into(),
-            name: "orders-grpc".to_string().into(),
+            namespace: "default".to_string(),
+            name: "orders-grpc".to_string(),
         })
     );
     let grpc_rule_id = snapshot
@@ -190,8 +190,8 @@ fn runtime_indexes_resolve_resource_refs_by_runtime_id() {
     assert_eq!(
         snapshot.runtime_resource_ref(grpc_rule_id),
         Some(RuntimeResourceRef::GrpcRule {
-            namespace: "default".to_string().into(),
-            name: "orders-grpc".to_string().into(),
+            namespace: "default".to_string(),
+            name: "orders-grpc".to_string(),
             rule_index: 0,
         })
     );
@@ -203,8 +203,8 @@ fn runtime_indexes_resolve_resource_refs_by_runtime_id() {
         snapshot.runtime_resource_ref(stream_route_id),
         Some(RuntimeResourceRef::StreamRoute {
             kind: "TCPRoute".to_string(),
-            namespace: "default".to_string().into(),
-            name: "orders-tcp".to_string().into(),
+            namespace: "default".to_string(),
+            name: "orders-tcp".to_string(),
         })
     );
     let stream_rule_id = snapshot
@@ -214,8 +214,8 @@ fn runtime_indexes_resolve_resource_refs_by_runtime_id() {
         snapshot.runtime_resource_ref(stream_rule_id),
         Some(RuntimeResourceRef::StreamRule {
             kind: "TCPRoute".to_string(),
-            namespace: "default".to_string().into(),
-            name: "orders-tcp".to_string().into(),
+            namespace: "default".to_string(),
+            name: "orders-tcp".to_string(),
             rule_index: 0,
         })
     );
@@ -226,7 +226,7 @@ fn runtime_indexes_resolve_resource_refs_by_runtime_id() {
     assert_eq!(
         snapshot.runtime_resource_ref(backend_id),
         Some(RuntimeResourceRef::Backend {
-            name: "default/orders:8080".to_string().into(),
+            name: "default/orders:8080".to_string(),
         })
     );
 
@@ -251,18 +251,18 @@ fn runtime_indexes_resolve_resource_refs_by_runtime_id() {
 fn runtime_id_test_snapshot(reordered: bool) -> Snapshot {
     let mut listeners = vec![
         Listener {
-            name: "default/gw/http".to_string().into(),
+            name: "default/gw/http".to_string(),
             address: "0.0.0.0".to_string(),
             port: 80,
-            protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+            protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
             attached_routes: vec!["default/orders".to_string()],
             ..Listener::default()
         },
         Listener {
-            name: "default/gw/grpc".to_string().into(),
+            name: "default/gw/grpc".to_string(),
             address: "0.0.0.0".to_string(),
             port: 8080,
-            protocol: "LISTENER_PROTOCOL_GRPC".to_string().into(),
+            protocol: "LISTENER_PROTOCOL_GRPC".to_string(),
             attached_routes: vec!["default/orders-grpc".to_string()],
             ..Listener::default()
         },
@@ -316,8 +316,8 @@ fn runtime_id_test_snapshot(reordered: bool) -> Snapshot {
     Snapshot {
         listeners,
         http_routes: vec![HttpRoute {
-            name: "orders".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "orders".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["orders.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![
@@ -347,8 +347,8 @@ fn runtime_id_test_snapshot(reordered: bool) -> Snapshot {
             ..HttpRoute::default()
         }],
         grpc_routes: vec![GrpcRoute {
-            name: "orders-grpc".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "orders-grpc".to_string(),
+            namespace: "default".to_string(),
             parent_refs: vec![],
             rules: vec![GrpcRule {
                 name: String::new(),
@@ -358,8 +358,8 @@ fn runtime_id_test_snapshot(reordered: bool) -> Snapshot {
             ..GrpcRoute::default()
         }],
         stream_routes: vec![StreamRoute {
-            name: "orders-tcp".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "orders-tcp".to_string(),
+            namespace: "default".to_string(),
             kind: "TCPRoute".to_string(),
             rules: vec![StreamRule {
                 name: String::new(),

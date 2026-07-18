@@ -3,11 +3,11 @@ fn ignores_routes_not_attached_to_matching_listener_hostname() {
     let snapshot = Snapshot {
         listeners: vec![
             Listener {
-                name: "default/gw/specific".to_string().into(),
+                name: "default/gw/specific".to_string(),
                 address: "0.0.0.0".to_string(),
                 addresses: vec!["0.0.0.0".to_string()],
                 port: 80,
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 hostnames: vec!["very.specific.com".to_string()],
                 attached_routes: vec!["default/specific-route".to_string()],
                 tls: None,
@@ -15,11 +15,11 @@ fn ignores_routes_not_attached_to_matching_listener_hostname() {
                 metadata: BTreeMap::new(),
             },
             Listener {
-                name: "default/gw/wildcard".to_string().into(),
+                name: "default/gw/wildcard".to_string(),
                 address: "0.0.0.0".to_string(),
                 addresses: vec!["0.0.0.0".to_string()],
                 port: 80,
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 hostnames: vec!["*.wildcard.io".to_string()],
                 attached_routes: vec!["default/wildcard-route".to_string()],
                 tls: None,
@@ -29,8 +29,8 @@ fn ignores_routes_not_attached_to_matching_listener_hostname() {
         ],
         http_routes: vec![
             HttpRoute {
-                name: "specific-route".to_string().into(),
-                namespace: "default".to_string().into(),
+                name: "specific-route".to_string(),
+                namespace: "default".to_string(),
                 hostnames: vec!["very.specific.com".to_string()],
                 parent_refs: vec![],
                 rules: vec![path_rule("/s1", "default", "infra-backend-v1", 8080)],
@@ -38,8 +38,8 @@ fn ignores_routes_not_attached_to_matching_listener_hostname() {
             annotations: BTreeMap::new(),
             },
             HttpRoute {
-                name: "wildcard-route".to_string().into(),
-                namespace: "default".to_string().into(),
+                name: "wildcard-route".to_string(),
+                namespace: "default".to_string(),
                 hostnames: vec!["foo.wildcard.io".to_string()],
                 parent_refs: vec![],
                 rules: vec![path_rule("/s2", "default", "infra-backend-v2", 8080)],
@@ -47,8 +47,8 @@ fn ignores_routes_not_attached_to_matching_listener_hostname() {
             annotations: BTreeMap::new(),
             },
             HttpRoute {
-                name: "non-intersecting-route".to_string().into(),
-                namespace: "default".to_string().into(),
+                name: "non-intersecting-route".to_string(),
+                namespace: "default".to_string(),
                 hostnames: vec!["wildcard.io".to_string()],
                 parent_refs: vec![],
                 rules: vec![path_rule("/s2", "default", "infra-backend-v3", 8080)],

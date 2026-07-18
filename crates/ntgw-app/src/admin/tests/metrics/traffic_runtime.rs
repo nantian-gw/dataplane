@@ -19,7 +19,7 @@ fn render_metrics_exposes_traffic_counters() {
         .observe_tls_listener_reload_failure("v-test", "passthrough", "tcp bind conflict");
     state.traffic.observe(TrafficObservation {
         listener_name: "web".to_string(),
-        protocol: "HTTP".to_string().into(),
+        protocol: "HTTP".to_string(),
         route_namespace: "default".to_string(),
         route_name: "web".to_string(),
         route_kind: "Http".to_string(),
@@ -48,7 +48,7 @@ fn render_metrics_exposes_traffic_counters() {
         .observe_upstream_tls_handshake_failure(Some(13));
     state.traffic.observe(TrafficObservation {
         listener_name: "web".to_string(),
-        protocol: "HTTP".to_string().into(),
+        protocol: "HTTP".to_string(),
         route_namespace: "default".to_string(),
         route_name: "stream".to_string(),
         route_kind: "Http".to_string(),
@@ -405,7 +405,7 @@ fn render_metrics_exposes_traffic_counters() {
 fn render_metrics_describes_byte_counters_as_payload_bytes() {
     let state = test_state(None);
     state.traffic.observe(TrafficObservation {
-        protocol: "TCP".to_string().into(),
+        protocol: "TCP".to_string(),
         route_kind: "Tcp".to_string(),
         bytes_received: 42,
         bytes_sent: 128,

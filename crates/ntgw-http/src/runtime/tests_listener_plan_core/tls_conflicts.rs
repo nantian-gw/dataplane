@@ -3,10 +3,10 @@ fn skips_malformed_tls_secret_and_keeps_later_valid_listener_on_same_bind() {
     let snapshot = Snapshot {
         listeners: vec![
             Listener {
-                name: "default/gw/bad-https".to_string().into(),
+                name: "default/gw/bad-https".to_string(),
                 address: "0.0.0.0".to_string(),
                 port: 443,
-                protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
                 tls: Some(TlsConfig {
                     enabled: true,
                     passthrough: false,
@@ -19,10 +19,10 @@ fn skips_malformed_tls_secret_and_keeps_later_valid_listener_on_same_bind() {
                 ..Listener::default()
             },
             Listener {
-                name: "default/gw/good-https".to_string().into(),
+                name: "default/gw/good-https".to_string(),
                 address: "0.0.0.0".to_string(),
                 port: 443,
-                protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
                 tls: Some(TlsConfig {
                     enabled: true,
                     passthrough: false,
@@ -37,8 +37,8 @@ fn skips_malformed_tls_secret_and_keeps_later_valid_listener_on_same_bind() {
         ],
         secrets: vec![
             SecretMaterial {
-                namespace: "default".to_string().into(),
-                name: "bad-cert".to_string().into(),
+                namespace: "default".to_string(),
+                name: "bad-cert".to_string(),
                 cert_pem: "-----BEGIN CERTIFICATE-----\nmalformed\n-----END CERTIFICATE-----\n"
                     .to_string(),
                 key_pem: VALID_SERVER_KEY_PEM.to_string(),
@@ -62,17 +62,17 @@ fn skips_https_listener_when_tls_passthrough_uses_same_bind() {
     let snapshot = Snapshot {
         listeners: vec![
             Listener {
-                name: "default/gw/http".to_string().into(),
+                name: "default/gw/http".to_string(),
                 address: "0.0.0.0".to_string(),
                 port: 80,
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 ..Listener::default()
             },
             Listener {
-                name: "default/gw/https".to_string().into(),
+                name: "default/gw/https".to_string(),
                 address: "0.0.0.0".to_string(),
                 port: 443,
-                protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
                 tls: Some(TlsConfig {
                     enabled: true,
                     passthrough: false,
@@ -85,10 +85,10 @@ fn skips_https_listener_when_tls_passthrough_uses_same_bind() {
                 ..Listener::default()
             },
             Listener {
-                name: "default/gw/tls".to_string().into(),
+                name: "default/gw/tls".to_string(),
                 address: "0.0.0.0".to_string(),
                 port: 443,
-                protocol: "TLS".to_string().into(),
+                protocol: "TLS".to_string(),
                 tls: Some(TlsConfig {
                     enabled: true,
                     passthrough: true,
@@ -118,11 +118,11 @@ fn runtime_ignores_https_listener_bind_that_shared_tls_owns() {
     let snapshot = Snapshot {
         id: "v2".to_string(),
         listeners: vec![Listener {
-            name: "default/gw/https".to_string().into(),
+            name: "default/gw/https".to_string(),
             address: "127.0.0.1".to_string(),
             addresses: vec!["127.0.0.1".to_string()],
             port: 443,
-            protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
+            protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
             tls: Some(TlsConfig {
                 enabled: true,
                 passthrough: false,

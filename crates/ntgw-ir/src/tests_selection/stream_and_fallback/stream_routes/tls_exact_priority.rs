@@ -2,11 +2,11 @@
 fn prefers_exact_tls_sni_match_over_wildcard() {
     let snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/tls".to_string().into(),
+            name: "default/gw/tls".to_string(),
             address: "0.0.0.0".to_string(),
             addresses: vec!["0.0.0.0".to_string()],
             port: 443,
-            protocol: "LISTENER_PROTOCOL_TLS_PASSTHROUGH".to_string().into(),
+            protocol: "LISTENER_PROTOCOL_TLS_PASSTHROUGH".to_string(),
             hostnames: vec![],
             attached_routes: vec![
                 "default/wildcard-route".to_string(),
@@ -18,8 +18,8 @@ fn prefers_exact_tls_sni_match_over_wildcard() {
         }],
         stream_routes: vec![
             StreamRoute {
-                name: "wildcard-route".to_string().into(),
-                namespace: "default".to_string().into(),
+                name: "wildcard-route".to_string(),
+                namespace: "default".to_string(),
                 kind: "ROUTE_KIND_TLS".to_string(),
                 parent_refs: vec![],
                 rules: vec![StreamRule {
@@ -35,8 +35,8 @@ fn prefers_exact_tls_sni_match_over_wildcard() {
             annotations: BTreeMap::new(),
             },
             StreamRoute {
-                name: "exact-route".to_string().into(),
-                namespace: "default".to_string().into(),
+                name: "exact-route".to_string(),
+                namespace: "default".to_string(),
                 kind: "ROUTE_KIND_TLS".to_string(),
                 parent_refs: vec![],
                 rules: vec![StreamRule {

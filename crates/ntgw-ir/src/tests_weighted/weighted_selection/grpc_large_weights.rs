@@ -2,11 +2,11 @@
 fn spreads_large_weighted_grpc_backends_across_short_request_batches() {
     let snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "mesh/default/echo/26060".to_string().into(),
+            name: "mesh/default/echo/26060".to_string(),
             address: "0.0.0.0".to_string(),
             addresses: vec!["0.0.0.0".to_string()],
             port: 26060,
-            protocol: "LISTENER_PROTOCOL_GRPC".to_string().into(),
+            protocol: "LISTENER_PROTOCOL_GRPC".to_string(),
             hostnames: vec![],
             attached_routes: vec!["default/weighted".to_string()],
             tls: None,
@@ -14,8 +14,8 @@ fn spreads_large_weighted_grpc_backends_across_short_request_batches() {
             metadata: BTreeMap::new(),
         }],
         grpc_routes: vec![GrpcRoute {
-            name: "weighted".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "weighted".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec![],
             parent_refs: vec![],
             rules: vec![GrpcRule {

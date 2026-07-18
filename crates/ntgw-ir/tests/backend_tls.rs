@@ -10,7 +10,7 @@ use ntgw_proto::gateway::control::v1 as proto;
 fn decodes_listener_backend_tls_from_proto() {
     let snapshot = Snapshot::from(proto::ConfigSnapshot {
         listeners: vec![proto::Listener {
-            name: "default/gw/https".to_string().into(),
+            name: "default/gw/https".to_string(),
             address: "192.0.2.10".to_string(),
             addresses: vec!["192.0.2.10".to_string(), "gw.example.com".to_string()],
             backend_tls: Some(proto::BackendTlsConfig {
@@ -37,9 +37,9 @@ fn decodes_listener_backend_tls_from_proto() {
 fn select_http_backend_preserves_listener_backend_tls() {
     let snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/https".to_string().into(),
+            name: "default/gw/https".to_string(),
             port: 443,
-            protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
+            protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
             attached_routes: vec!["default/route".to_string()],
             backend_tls: Some(BackendTlsConfig {
                 client_certificate_ref: "default/client-cert".to_string(),
@@ -47,13 +47,13 @@ fn select_http_backend_preserves_listener_backend_tls() {
             ..Listener::default()
         }],
         http_routes: vec![HttpRoute {
-            name: "route".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "route".to_string(),
+            namespace: "default".to_string(),
             rules: vec![HttpRule {
                 name: String::new(),
                 backend_refs: vec![BackendRef {
-                    namespace: "default".to_string().into(),
-                    name: "echo".to_string().into(),
+                    namespace: "default".to_string(),
+                    name: "echo".to_string(),
                     port: 8443,
                     ..BackendRef::default()
                 }],

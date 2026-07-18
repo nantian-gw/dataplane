@@ -11,11 +11,11 @@ fn build_runtime_rejection_summary_value() -> serde_json::Value {
         id: "v1".to_string(),
         listeners: vec![
             Listener {
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 ..Listener::default()
             },
             Listener {
-                protocol: "LISTENER_PROTOCOL_TCP".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_TCP".to_string(),
                 ..Listener::default()
             },
         ],
@@ -59,13 +59,13 @@ fn build_named_listener_pending_summary_value() -> (serde_json::Value, NamedList
         id: "v1".to_string(),
         listeners: vec![
             Listener {
-                name: "web".to_string().into(),
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+                name: "web".to_string(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 ..Listener::default()
             },
             Listener {
-                name: "passthrough".to_string().into(),
-                protocol: "LISTENER_PROTOCOL_TCP".to_string().into(),
+                name: "passthrough".to_string(),
+                protocol: "LISTENER_PROTOCOL_TCP".to_string(),
                 ..Listener::default()
             },
         ],

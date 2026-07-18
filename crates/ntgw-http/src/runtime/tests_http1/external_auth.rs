@@ -48,21 +48,21 @@ fn external_auth_http_snapshot(
     let shared = Snapshot::shared();
     shared.store(Arc::new(Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/http".to_string().into(),
+            name: "default/gw/http".to_string(),
             address: "127.0.0.1".to_string(),
             addresses: vec!["127.0.0.1".to_string()],
             port: listener_port as u32,
-            protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+            protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
             attached_routes: vec!["default/route".to_string()],
             ..Listener::default()
         }],
         http_routes: vec![HttpRoute {
-            name: "route".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "route".to_string(),
+            namespace: "default".to_string(),
             hostnames: Vec::new(),
             parent_refs: vec![ParentRef {
-                namespace: "default".to_string().into(),
-                name: "gw".to_string().into(),
+                namespace: "default".to_string(),
+                name: "gw".to_string(),
                 section_name: String::new(),
                 port: listener_port as u32,
                 ..ParentRef::default()
@@ -77,10 +77,10 @@ fn external_auth_http_snapshot(
                 filters: vec![Filter {
                     filter_type: "ExternalAuth".to_string(),
                     external_auth: Some(ntgw_ir::ExternalAuthFilter {
-                        protocol: "HTTP".to_string().into(),
+                        protocol: "HTTP".to_string(),
                         backend_ref: BackendRef {
-                            namespace: "default".to_string().into(),
-                            name: "auth".to_string().into(),
+                            namespace: "default".to_string(),
+                            name: "auth".to_string(),
                             port: auth_port,
                             ..BackendRef::default()
                         },
@@ -101,8 +101,8 @@ fn external_auth_http_snapshot(
                     ..Filter::default()
                 }],
                 backend_refs: vec![BackendRef {
-                    namespace: "default".to_string().into(),
-                    name: "backend".to_string().into(),
+                    namespace: "default".to_string(),
+                    name: "backend".to_string(),
                     port: backend_port,
                     ..BackendRef::default()
                 }],
@@ -158,21 +158,21 @@ fn external_auth_grpc_snapshot(
     let shared = Snapshot::shared();
     shared.store(Arc::new(Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/http".to_string().into(),
+            name: "default/gw/http".to_string(),
             address: "127.0.0.1".to_string(),
             addresses: vec!["127.0.0.1".to_string()],
             port: listener_port as u32,
-            protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+            protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
             attached_routes: vec!["default/route".to_string()],
             ..Listener::default()
         }],
         http_routes: vec![HttpRoute {
-            name: "route".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "route".to_string(),
+            namespace: "default".to_string(),
             hostnames: Vec::new(),
             parent_refs: vec![ParentRef {
-                namespace: "default".to_string().into(),
-                name: "gw".to_string().into(),
+                namespace: "default".to_string(),
+                name: "gw".to_string(),
                 section_name: String::new(),
                 port: listener_port as u32,
                 ..ParentRef::default()
@@ -187,10 +187,10 @@ fn external_auth_grpc_snapshot(
                 filters: vec![Filter {
                     filter_type: "ExternalAuth".to_string(),
                     external_auth: Some(ntgw_ir::ExternalAuthFilter {
-                        protocol: "GRPC".to_string().into(),
+                        protocol: "GRPC".to_string(),
                         backend_ref: BackendRef {
-                            namespace: "default".to_string().into(),
-                            name: "auth".to_string().into(),
+                            namespace: "default".to_string(),
+                            name: "auth".to_string(),
                             port: auth_port,
                             ..BackendRef::default()
                         },
@@ -205,8 +205,8 @@ fn external_auth_grpc_snapshot(
                     ..Filter::default()
                 }],
                 backend_refs: vec![BackendRef {
-                    namespace: "default".to_string().into(),
-                    name: "app".to_string().into(),
+                    namespace: "default".to_string(),
+                    name: "app".to_string(),
                     port: backend_port,
                     ..BackendRef::default()
                 }],
@@ -1231,7 +1231,7 @@ fn external_auth_backend_tls_validation_in_snapshot() {
                 format!("default/auth:{auth_port}"),
                 ntgw_ir::BackendPolicy {
                     tls_validation: Some(BackendTlsValidation {
-                        hostname: "auth.default.svc.cluster.local".to_string().into(),
+                        hostname: "auth.default.svc.cluster.local".to_string(),
                         use_system_ca_certificates: true,
                         ca_pems: vec![],
                         subject_alt_names: vec![],
@@ -1270,7 +1270,7 @@ fn external_auth_with_backend_tls_and_session_persistence_combo_snapshot() {
             ntgw_ir::BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: format!("backend:8080").into(),
+                name: "backend:8080".to_string().into(),
                 namespace: "default".to_string().into(),
                 protocol: "HTTP".to_string().into(),
                 endpoints: vec![ntgw_ir::BackendEndpoint {
@@ -1284,7 +1284,7 @@ fn external_auth_with_backend_tls_and_session_persistence_combo_snapshot() {
             ntgw_ir::BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: format!("auth:8443").into(),
+                name: "auth:8443".to_string().into(),
                 namespace: "default".to_string().into(),
                 protocol: "HTTPS".to_string().into(),
                 endpoints: vec![ntgw_ir::BackendEndpoint {
@@ -1303,7 +1303,7 @@ fn external_auth_with_backend_tls_and_session_persistence_combo_snapshot() {
                 "default/backend:8080".to_string(),
                 BackendPolicy {
                     session_persistence: Some(SessionPersistence {
-                        session_name: "test-session".to_string().into(),
+                        session_name: "test-session".to_string(),
                         session_type: "Cookie".to_string(),
                         absolute_timeout: None,
                         idle_timeout: None,
@@ -1326,7 +1326,7 @@ fn external_auth_with_backend_tls_and_session_persistence_combo_snapshot() {
                 "default/auth:8443".to_string(),
                 BackendPolicy {
                     tls_validation: Some(BackendTlsValidation {
-                        hostname: "auth.default.svc.cluster.local".to_string().into(),
+                        hostname: "auth.default.svc.cluster.local".to_string(),
                         use_system_ca_certificates: true,
                         ca_pems: vec![],
                         subject_alt_names: vec![],

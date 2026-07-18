@@ -26,8 +26,8 @@ fn build_upstream_peer_reuses_client_certificate_cache_for_equivalent_snapshot_c
     let first_snapshot = Snapshot {
         id: "v-cache".to_string(),
         secrets: vec![ntgw_ir::SecretMaterial {
-            namespace: "default".to_string().into(),
-            name: "client-cert".to_string().into(),
+            namespace: "default".to_string(),
+            name: "client-cert".to_string(),
             cert_pem: TEST_CLIENT_CERT_PEM.to_string(),
             key_pem: TEST_CLIENT_KEY_PEM.to_string(),
         }],
@@ -36,8 +36,8 @@ fn build_upstream_peer_reuses_client_certificate_cache_for_equivalent_snapshot_c
     let second_snapshot = Snapshot {
         id: "v-cache".to_string(),
         secrets: vec![ntgw_ir::SecretMaterial {
-            namespace: "default".to_string().into(),
-            name: "client-cert".to_string().into(),
+            namespace: "default".to_string(),
+            name: "client-cert".to_string(),
             cert_pem: TEST_CLIENT_CERT_PEM.to_string(),
             key_pem: TEST_CLIENT_KEY_PEM.to_string(),
         }],
@@ -88,8 +88,8 @@ fn build_upstream_peer_reuses_client_certificate_cache_across_interleaved_snapsh
     let first_snapshot = Snapshot {
         id: "v-cache-1".to_string(),
         secrets: vec![ntgw_ir::SecretMaterial {
-            namespace: "default".to_string().into(),
-            name: "client-cert".to_string().into(),
+            namespace: "default".to_string(),
+            name: "client-cert".to_string(),
             cert_pem: TEST_CLIENT_CERT_PEM.to_string(),
             key_pem: TEST_CLIENT_KEY_PEM.to_string(),
         }],
@@ -98,8 +98,8 @@ fn build_upstream_peer_reuses_client_certificate_cache_across_interleaved_snapsh
     let interleaved_snapshot = Snapshot {
         id: "v-cache-2".to_string(),
         secrets: vec![ntgw_ir::SecretMaterial {
-            namespace: "default".to_string().into(),
-            name: "client-cert".to_string().into(),
+            namespace: "default".to_string(),
+            name: "client-cert".to_string(),
             cert_pem: TEST_SERVER_SAN_CERT_PEM.to_string(),
             key_pem: TEST_SERVER_SAN_KEY_PEM.to_string(),
         }],
@@ -108,8 +108,8 @@ fn build_upstream_peer_reuses_client_certificate_cache_across_interleaved_snapsh
     let second_snapshot = Snapshot {
         id: "v-cache-1".to_string(),
         secrets: vec![ntgw_ir::SecretMaterial {
-            namespace: "default".to_string().into(),
-            name: "client-cert".to_string().into(),
+            namespace: "default".to_string(),
+            name: "client-cert".to_string(),
             cert_pem: TEST_CLIENT_CERT_PEM.to_string(),
             key_pem: TEST_CLIENT_KEY_PEM.to_string(),
         }],

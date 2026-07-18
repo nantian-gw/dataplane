@@ -321,15 +321,15 @@ fn sample_fast_path_snapshot() -> Snapshot {
     Snapshot {
         id: "snapshot-1".to_string(),
         listeners: vec![Listener {
-            name: "default/gw/http".to_string().into(),
+            name: "default/gw/http".to_string(),
             port: 80,
-            protocol: "HTTP".to_string().into(),
+            protocol: "HTTP".to_string(),
             attached_routes: vec!["default/orders".to_string()],
             ..Listener::default()
         }],
         http_routes: vec![HttpRoute {
-            name: "orders".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "orders".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["example.com".to_string()],
             rules: vec![HttpRule {
                 matches: vec![HttpMatch {
@@ -339,8 +339,8 @@ fn sample_fast_path_snapshot() -> Snapshot {
                     ..HttpMatch::default()
                 }],
                 backend_refs: vec![BackendRef {
-                    namespace: "default".to_string().into(),
-                    name: "orders".to_string().into(),
+                    namespace: "default".to_string(),
+                    name: "orders".to_string(),
                     port: 8080,
                     weight: 1,
                     ..BackendRef::default()

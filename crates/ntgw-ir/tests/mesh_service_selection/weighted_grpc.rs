@@ -18,12 +18,12 @@ fn mesh_grpc_service_frontend_weighted_backends_keep_expected_distribution() {
             &["default/mesh-grpc-weighted-backends"],
         )],
         grpc_routes: vec![GrpcRoute {
-            name: "mesh-grpc-weighted-backends".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "mesh-grpc-weighted-backends".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec![],
             parent_refs: vec![ParentRef {
                 kind: "Service".to_string(),
-                name: "echo".to_string().into(),
+                name: "echo".to_string(),
                 port: 7070,
                 ..ParentRef::default()
             }],
@@ -33,15 +33,15 @@ fn mesh_grpc_service_frontend_weighted_backends_keep_expected_distribution() {
                 filters: vec![],
                 backend_refs: vec![
                     BackendRef {
-                        namespace: "default".to_string().into(),
-                        name: "echo-v1".to_string().into(),
+                        namespace: "default".to_string(),
+                        name: "echo-v1".to_string(),
                         port: 7070,
                         weight: 70,
                         ..BackendRef::default()
                     },
                     BackendRef {
-                        namespace: "default".to_string().into(),
-                        name: "echo-v2".to_string().into(),
+                        namespace: "default".to_string(),
+                        name: "echo-v2".to_string(),
                         port: 7070,
                         weight: 30,
                         ..BackendRef::default()

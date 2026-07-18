@@ -2,11 +2,11 @@
 fn rejects_tls_sni_outside_listener_hostname_even_when_route_hostname_matches() {
     let snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/tls".to_string().into(),
+            name: "default/gw/tls".to_string(),
             address: "0.0.0.0".to_string(),
             addresses: vec!["0.0.0.0".to_string()],
             port: 443,
-            protocol: "LISTENER_PROTOCOL_TLS_PASSTHROUGH".to_string().into(),
+            protocol: "LISTENER_PROTOCOL_TLS_PASSTHROUGH".to_string(),
             hostnames: vec!["*.example.com".to_string()],
             attached_routes: vec!["default/wildcard-route".to_string()],
             tls: None,
@@ -14,8 +14,8 @@ fn rejects_tls_sni_outside_listener_hostname_even_when_route_hostname_matches() 
             metadata: BTreeMap::new(),
         }],
         stream_routes: vec![StreamRoute {
-            name: "wildcard-route".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "wildcard-route".to_string(),
+            namespace: "default".to_string(),
             kind: "ROUTE_KIND_TLS".to_string(),
             parent_refs: vec![],
             rules: vec![StreamRule {

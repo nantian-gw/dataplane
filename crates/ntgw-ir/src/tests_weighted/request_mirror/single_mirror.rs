@@ -29,8 +29,8 @@ fn selects_request_mirror_backend_and_strips_mirror_filter() {
                     filter_type: "RequestMirror".to_string(),
                     request_mirror: Some(crate::RequestMirrorFilter {
                         backend_ref: BackendRef {
-                            namespace: "observability".to_string().into(),
-                            name: "shadow".to_string().into(),
+                            namespace: "observability".to_string(),
+                            name: "shadow".to_string(),
                             port: 8081,
                             ..BackendRef::default()
                         },

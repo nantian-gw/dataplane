@@ -2,8 +2,8 @@
 fn build_upstream_peer_uses_client_certificate_for_tls_backends() {
     let snapshot = Snapshot {
         secrets: vec![ntgw_ir::SecretMaterial {
-            namespace: "default".to_string().into(),
-            name: "client-cert".to_string().into(),
+            namespace: "default".to_string(),
+            name: "client-cert".to_string(),
             cert_pem: TEST_CLIENT_CERT_PEM.to_string(),
             key_pem: TEST_CLIENT_KEY_PEM.to_string(),
         }],

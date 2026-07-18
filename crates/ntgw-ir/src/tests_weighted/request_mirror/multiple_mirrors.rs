@@ -48,8 +48,8 @@ fn selects_all_request_mirrors_and_strips_mirror_filters() {
                 filter_type: "RequestMirror".to_string(),
                 request_mirror: Some(crate::RequestMirrorFilter {
                     backend_ref: BackendRef {
-                        namespace: "observability".to_string().into(),
-                        name: "shadow-a".to_string().into(),
+                        namespace: "observability".to_string(),
+                        name: "shadow-a".to_string(),
                         port: 8081,
                         ..BackendRef::default()
                     },
@@ -61,8 +61,8 @@ fn selects_all_request_mirrors_and_strips_mirror_filters() {
                 filter_type: "RequestMirror".to_string(),
                 request_mirror: Some(crate::RequestMirrorFilter {
                     backend_ref: BackendRef {
-                        namespace: "observability".to_string().into(),
-                        name: "shadow-b".to_string().into(),
+                        namespace: "observability".to_string(),
+                        name: "shadow-b".to_string(),
                         port: 8082,
                         ..BackendRef::default()
                     },
@@ -135,8 +135,8 @@ fn request_mirror_visitor_stops_after_first_selected_mirror() {
                 filter_type: "RequestMirror".to_string(),
                 request_mirror: Some(crate::RequestMirrorFilter {
                     backend_ref: BackendRef {
-                        namespace: "observability".to_string().into(),
-                        name: "shadow-a".to_string().into(),
+                        namespace: "observability".to_string(),
+                        name: "shadow-a".to_string(),
                         port: 8081,
                         ..BackendRef::default()
                     },
@@ -148,8 +148,8 @@ fn request_mirror_visitor_stops_after_first_selected_mirror() {
                 filter_type: "RequestMirror".to_string(),
                 request_mirror: Some(crate::RequestMirrorFilter {
                     backend_ref: BackendRef {
-                        namespace: "observability".to_string().into(),
-                        name: "shadow-b".to_string().into(),
+                        namespace: "observability".to_string(),
+                        name: "shadow-b".to_string(),
                         port: 8082,
                         ..BackendRef::default()
                     },

@@ -2,8 +2,8 @@
 fn inherited_runtime_state_keeps_weighted_selection_progress() {
     let current = Snapshot {
         grpc_routes: vec![GrpcRoute {
-            name: "grpc-route".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "grpc-route".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["echo.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![GrpcRule {

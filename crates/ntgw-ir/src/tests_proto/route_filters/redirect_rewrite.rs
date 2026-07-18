@@ -2,8 +2,8 @@
 fn decodes_redirect_and_rewrite_filters_from_proto() {
     let snapshot = Snapshot::from(proto::ConfigSnapshot {
         http_routes: vec![proto::HttpRoute {
-            name: "route".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "route".to_string(),
+            namespace: "default".to_string(),
             rules: vec![proto::HttpRule {
                 name: String::new(),
                 filters: vec![

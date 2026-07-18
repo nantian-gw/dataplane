@@ -5,11 +5,11 @@ fn tcproute_listener(
     attached_routes: Vec<&str>,
 ) -> Listener {
     Listener {
-        name: name.to_string().into(),
+        name: name.to_string(),
         address: "0.0.0.0".to_string(),
         addresses: vec!["0.0.0.0".to_string()],
         port,
-        protocol: protocol.to_string().into(),
+        protocol: protocol.to_string(),
         hostnames: vec![],
         attached_routes: attached_routes.into_iter().map(str::to_string).collect(),
         tls: None,
@@ -24,8 +24,8 @@ fn tcproute_route(
     backend_refs: Vec<BackendRef>,
 ) -> StreamRoute {
     StreamRoute {
-        name: name.to_string().into(),
-        namespace: "default".to_string().into(),
+        name: name.to_string(),
+        namespace: "default".to_string(),
         kind: "ROUTE_KIND_TCP".to_string(),
         parent_refs: vec![],
         rules: vec![StreamRule {

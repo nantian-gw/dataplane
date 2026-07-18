@@ -2,8 +2,8 @@
 fn does_not_select_grpc_backend_for_non_grpc_request_with_parseable_path() {
     let snapshot = Snapshot {
         grpc_routes: vec![GrpcRoute {
-            name: "grpc-catch-all".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "grpc-catch-all".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["grpc.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![GrpcRule {

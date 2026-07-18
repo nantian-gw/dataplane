@@ -16,14 +16,14 @@ fn runtime_indexes_accelerate_backend_secret_and_workload_lookups() {
         
                 circuit_breaker: None,}],
         secrets: vec![SecretMaterial {
-            namespace: "default".to_string().into(),
-            name: "client-cert".to_string().into(),
+            namespace: "default".to_string(),
+            name: "client-cert".to_string(),
             cert_pem: "cert".to_string(),
             key_pem: "key".to_string(),
         }],
         workloads: vec![Workload {
-            name: "dp-1".to_string().into(),
-            namespace: "tenant-a".to_string().into(),
+            name: "dp-1".to_string(),
+            namespace: "tenant-a".to_string(),
             ip: "10.1.2.3".to_string(),
         }],
         ..Snapshot::default()
@@ -49,8 +49,8 @@ fn runtime_indexes_accelerate_backend_secret_and_workload_lookups() {
 fn unbuilt_backend_index_does_not_override_slow_path_backend_lookup() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "orders-route".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "orders-route".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["orders.example.com".to_string()],
             rules: vec![HttpRule {
                 backend_refs: vec![backend_ref("default", "orders", 8080)],
@@ -114,8 +114,8 @@ fn unbuilt_backend_index_does_not_override_slow_path_backend_lookup() {
 fn runtime_indexes_precompute_backend_lookup_for_backend_refs() {
     let mut snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "orders-route".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "orders-route".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["orders.example.com".to_string()],
             rules: vec![HttpRule {
                 backend_refs: vec![backend_ref("default", "orders", 8080)],
@@ -202,8 +202,8 @@ fn backend_lookup_requires_an_exact_port_string_match() {
 fn backend_ref_lookup_requires_an_exact_port_string_match() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "orders-route".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "orders-route".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["orders.example.com".to_string()],
             rules: vec![HttpRule {
                 backend_refs: vec![backend_ref("default", "orders", 8080)],
@@ -246,14 +246,14 @@ fn unbuilt_secret_index_does_not_override_slow_path_secret_lookup() {
     let snapshot = Snapshot {
         secrets: vec![
             SecretMaterial {
-                namespace: "default".to_string().into(),
-                name: "client-cert".to_string().into(),
+                namespace: "default".to_string(),
+                name: "client-cert".to_string(),
                 cert_pem: "expected-cert".to_string(),
                 key_pem: "expected-key".to_string(),
             },
             SecretMaterial {
-                namespace: "default".to_string().into(),
-                name: "other-cert".to_string().into(),
+                namespace: "default".to_string(),
+                name: "other-cert".to_string(),
                 cert_pem: "stale-cert".to_string(),
                 key_pem: "stale-key".to_string(),
             },
@@ -278,8 +278,8 @@ fn unbuilt_secret_index_does_not_override_slow_path_secret_lookup() {
 fn unbuilt_workload_index_does_not_override_slow_path_source_namespace_lookup() {
     let snapshot = Snapshot {
         workloads: vec![Workload {
-            namespace: "tenant-a".to_string().into(),
-            name: "client".to_string().into(),
+            namespace: "tenant-a".to_string(),
+            name: "client".to_string(),
             ip: "10.1.2.3".to_string(),
         }],
         workload_namespace_index: std::collections::HashMap::from([(

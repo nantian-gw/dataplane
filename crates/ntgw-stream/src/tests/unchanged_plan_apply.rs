@@ -8,10 +8,10 @@ async fn run_marks_unchanged_stream_plan_as_applied_for_new_version() -> Result<
     let runtime_stats = RuntimeStats::shared();
     let overload = ntgw_observability::OverloadStats::shared();
     let listener = Listener {
-        name: "default/gw/tcp".to_string().into(),
+        name: "default/gw/tcp".to_string(),
         address: "127.0.0.1".to_string(),
         port: 0,
-        protocol: "LISTENER_PROTOCOL_TCP".to_string().into(),
+        protocol: "LISTENER_PROTOCOL_TCP".to_string(),
         attached_routes: vec!["default/route-a".to_string()],
         ..Listener::default()
     };

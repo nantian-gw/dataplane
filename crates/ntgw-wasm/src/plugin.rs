@@ -534,6 +534,15 @@ pub fn global_plugin_manager() -> Result<Arc<PluginManager>, WasmError> {
     }
 }
 
+impl Drop for PluginManager {
+    fn drop(&mut self) {
+        self.shutdown();
+        if let Some(handle) = self.epoch_handle.take() {
+            let _ = handle.join();
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -567,14 +576,5 @@ mod tests {
             )
             .expect_err("oversized module must be rejected");
         assert!(matches!(err, WasmError::LoadFailed { .. }));
-    }
-}
-
-impl Drop for PluginManager {
-    fn drop(&mut self) {
-        self.shutdown();
-        if let Some(handle) = self.epoch_handle.take() {
-            let _ = handle.join();
-        }
     }
 }

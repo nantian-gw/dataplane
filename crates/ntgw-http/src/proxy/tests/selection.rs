@@ -19,8 +19,8 @@ fn route_filters_have_request_mirror_detects_mirror_filters_only() {
         filter_type: "RequestMirror".to_string(),
         request_mirror: Some(RequestMirrorFilter {
             backend_ref: BackendRef {
-                namespace: "default".to_string().into(),
-                name: "mirror".to_string().into(),
+                namespace: "default".to_string(),
+                name: "mirror".to_string(),
                 port: 8080,
                 ..BackendRef::default()
             },

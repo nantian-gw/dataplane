@@ -3,7 +3,7 @@ fn traffic_stats_snapshot_uses_topology_ids() {
     let stats = SharedTrafficStats::shared();
     stats.observe(TrafficObservation {
         listener_name: "default/gw/http".to_string(),
-        protocol: "HTTP".to_string().into(),
+        protocol: "HTTP".to_string(),
         route_namespace: "default".to_string(),
         route_name: "web".to_string(),
         route_kind: "Http".to_string(),
@@ -85,7 +85,7 @@ fn borrowed_traffic_observation_matches_owned_observation() {
 
     owned_stats.observe(TrafficObservation {
         listener_name: "default/gw/http".to_string(),
-        protocol: "HTTP".to_string().into(),
+        protocol: "HTTP".to_string(),
         route_namespace: "default".to_string(),
         route_name: "web".to_string(),
         route_kind: "Http".to_string(),

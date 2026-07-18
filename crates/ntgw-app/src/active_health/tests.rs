@@ -83,10 +83,10 @@ async fn probe_target_once_reflects_tcp_connectivity() {
 
 #[test]
 fn apply_probe_results_updates_snapshot_runtime_health() {
-    let mut snapshot = Snapshot {
+    let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "route".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "route".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {
@@ -94,8 +94,8 @@ fn apply_probe_results_updates_snapshot_runtime_health() {
                 matches: vec![],
                 filters: vec![],
                 backend_refs: vec![BackendRef {
-                    namespace: "default".to_string().into(),
-                    name: "echo".to_string().into(),
+                    namespace: "default".to_string(),
+                    name: "echo".to_string(),
                     port: 8080,
                     ..BackendRef::default()
                 }],
@@ -138,7 +138,7 @@ fn apply_probe_results_updates_snapshot_runtime_health() {
     );
 
     apply_probe_results(
-        &mut snapshot,
+        &snapshot,
         &[ProbeResult {
             target: ProbeTarget {
                 backend_name: "default/echo:8080".to_string(),
@@ -154,7 +154,7 @@ fn apply_probe_results_updates_snapshot_runtime_health() {
     assert_eq!(selected.backend.address, "10.0.0.11");
 
     apply_probe_results(
-        &mut snapshot,
+        &snapshot,
         &[ProbeResult {
             target: ProbeTarget {
                 backend_name: "default/echo:8080".to_string(),

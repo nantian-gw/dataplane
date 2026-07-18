@@ -185,22 +185,22 @@ fn selected_backend_config_precomputes_peer_runtime_metadata() {
 fn selected_backend_config_precomputes_resource_runtime_ids() {
     let mut snapshot = Snapshot {
         listeners: vec![ntgw_ir::Listener {
-            name: "default/gw/http".to_string().into(),
+            name: "default/gw/http".to_string(),
             address: "0.0.0.0".to_string(),
             port: 80,
-            protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+            protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
             attached_routes: vec!["default/orders".to_string()],
             ..ntgw_ir::Listener::default()
         }],
         http_routes: vec![ntgw_ir::HttpRoute {
-            name: "orders".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "orders".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["orders.example.com".to_string()],
             rules: vec![ntgw_ir::HttpRule {
                 name: String::new(),
                 backend_refs: vec![ntgw_ir::BackendRef {
-                    namespace: "default".to_string().into(),
-                    name: "orders".to_string().into(),
+                    namespace: "default".to_string(),
+                    name: "orders".to_string(),
                     port: 8080,
                     ..ntgw_ir::BackendRef::default()
                 }],
@@ -263,22 +263,22 @@ fn selected_backend_config_cache_reuses_config_for_snapshot_runtime_ids() {
     let mut snapshot = Snapshot {
         id: "snapshot-one".to_string(),
         listeners: vec![ntgw_ir::Listener {
-            name: "default/gw/http".to_string().into(),
+            name: "default/gw/http".to_string(),
             address: "0.0.0.0".to_string(),
             port: 80,
-            protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+            protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
             attached_routes: vec!["default/orders".to_string()],
             ..ntgw_ir::Listener::default()
         }],
         http_routes: vec![ntgw_ir::HttpRoute {
-            name: "orders".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "orders".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["orders.example.com".to_string()],
             rules: vec![ntgw_ir::HttpRule {
                 name: String::new(),
                 backend_refs: vec![ntgw_ir::BackendRef {
-                    namespace: "default".to_string().into(),
-                    name: "orders".to_string().into(),
+                    namespace: "default".to_string(),
+                    name: "orders".to_string(),
                     port: 8080,
                     ..ntgw_ir::BackendRef::default()
                 }],
@@ -326,22 +326,22 @@ fn selected_backend_config_cached_for_fast_path_uses_compiled_runtime_ids() {
     let mut snapshot = Snapshot {
         id: "snapshot-fast".to_string(),
         listeners: vec![ntgw_ir::Listener {
-            name: "default/gw/http".to_string().into(),
+            name: "default/gw/http".to_string(),
             address: "0.0.0.0".to_string(),
             port: 80,
-            protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+            protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
             attached_routes: vec!["default/orders".to_string()],
             ..ntgw_ir::Listener::default()
         }],
         http_routes: vec![ntgw_ir::HttpRoute {
-            name: "orders".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "orders".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["orders.example.com".to_string()],
             rules: vec![ntgw_ir::HttpRule {
                 name: String::new(),
                 backend_refs: vec![ntgw_ir::BackendRef {
-                    namespace: "default".to_string().into(),
-                    name: "orders".to_string().into(),
+                    namespace: "default".to_string(),
+                    name: "orders".to_string(),
                     port: 8080,
                     ..ntgw_ir::BackendRef::default()
                 }],
@@ -389,22 +389,22 @@ fn selected_backend_config_cache_invalidates_when_snapshot_id_changes() {
     let mut snapshot = Snapshot {
         id: "snapshot-one".to_string(),
         listeners: vec![ntgw_ir::Listener {
-            name: "default/gw/http".to_string().into(),
+            name: "default/gw/http".to_string(),
             address: "0.0.0.0".to_string(),
             port: 80,
-            protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+            protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
             attached_routes: vec!["default/orders".to_string()],
             ..ntgw_ir::Listener::default()
         }],
         http_routes: vec![ntgw_ir::HttpRoute {
-            name: "orders".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "orders".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["orders.example.com".to_string()],
             rules: vec![ntgw_ir::HttpRule {
                 name: String::new(),
                 backend_refs: vec![ntgw_ir::BackendRef {
-                    namespace: "default".to_string().into(),
-                    name: "orders".to_string().into(),
+                    namespace: "default".to_string(),
+                    name: "orders".to_string(),
                     port: 8080,
                     ..ntgw_ir::BackendRef::default()
                 }],
@@ -528,8 +528,8 @@ fn selected_backend_config_precomputes_tls_validation_and_client_cert_handles() 
             },
         )]),
         secrets: vec![ntgw_ir::SecretMaterial {
-            namespace: "default".to_string().into(),
-            name: "client-cert".to_string().into(),
+            namespace: "default".to_string(),
+            name: "client-cert".to_string(),
             cert_pem: TEST_CLIENT_CERT_PEM.to_string(),
             key_pem: TEST_CLIENT_KEY_PEM.to_string(),
         }],
@@ -581,8 +581,8 @@ fn selected_backend_config_precomputes_tls_validation_and_client_cert_handles() 
 fn selected_backend_config_isolated_for_same_backend_across_route_overrides() {
     let snapshot = Snapshot {
         secrets: vec![ntgw_ir::SecretMaterial {
-            namespace: "default".to_string().into(),
-            name: "client-cert".to_string().into(),
+            namespace: "default".to_string(),
+            name: "client-cert".to_string(),
             cert_pem: TEST_CLIENT_CERT_PEM.to_string(),
             key_pem: TEST_CLIENT_KEY_PEM.to_string(),
         }],

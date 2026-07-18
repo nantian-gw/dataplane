@@ -32,8 +32,8 @@ fn does_not_fall_back_for_mesh_http_service_request_without_routes() {
                 circuit_breaker: None,},
         ],
         workloads: vec![Workload {
-            namespace: "default".to_string().into(),
-            name: "client".to_string().into(),
+            namespace: "default".to_string(),
+            name: "client".to_string(),
             ip: "10.1.2.4".to_string(),
         }],
         ..Snapshot::default()

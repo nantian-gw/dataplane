@@ -55,38 +55,38 @@ fn fixture_snapshot() -> Snapshot {
         id: "v-test".to_string(),
         listeners: vec![
             Listener {
-                name: "web".to_string().into(),
+                name: "web".to_string(),
                 address: "192.0.2.10".to_string(),
                 addresses: vec!["192.0.2.10".to_string(), "gw.example.com".to_string()],
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 hostnames: vec!["app.example.com".to_string()],
                 attached_routes: vec!["default/web".to_string()],
                 ..Listener::default()
             },
             Listener {
-                name: "passthrough".to_string().into(),
-                protocol: "LISTENER_PROTOCOL_TLS_PASSTHROUGH".to_string().into(),
+                name: "passthrough".to_string(),
+                protocol: "LISTENER_PROTOCOL_TLS_PASSTHROUGH".to_string(),
                 hostnames: vec!["secure.example.com".to_string()],
                 ..Listener::default()
             },
         ],
         http_routes: vec![ntgw_ir::HttpRoute {
-            name: "web".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "web".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["app.example.com".to_string()],
             rules: vec![HttpRule::default()],
             ..Default::default()
         }],
         grpc_routes: vec![GrpcRoute {
-            name: "grpc".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "grpc".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["grpc.example.com".to_string()],
             rules: vec![GrpcRule::default()],
             ..Default::default()
         }],
         stream_routes: vec![StreamRoute {
-            name: "passthrough".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "passthrough".to_string(),
+            namespace: "default".to_string(),
             kind: "ROUTE_KIND_TLS".to_string(),
             parent_refs: vec![],
             rules: vec![StreamRule {

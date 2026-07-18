@@ -31,10 +31,10 @@ async fn shared_tls_runtime_marks_version_applied_when_https_listener_has_no_bin
     snapshot.store(Arc::new(Snapshot {
         id: "v-missing-identity".to_string(),
         listeners: vec![Listener {
-            name: "default/gw/https".to_string().into(),
+            name: "default/gw/https".to_string(),
             address: "127.0.0.1".to_string(),
             port: free_tcp_port().into(),
-            protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
+            protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
             tls: Some(TlsConfig {
                 enabled: true,
                 passthrough: false,

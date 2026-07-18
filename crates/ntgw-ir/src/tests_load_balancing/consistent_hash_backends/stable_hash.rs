@@ -2,8 +2,8 @@
 fn consistent_hash_by_header_uses_stable_non_crypto_backend_hash() {
     let snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "hash".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "hash".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["api.example.com".to_string()],
             parent_refs: vec![],
             rules: vec![HttpRule {

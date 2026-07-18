@@ -2,15 +2,15 @@
 fn http_fast_path_marks_simple_http_route_eligible() {
     let mut snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/http".to_string().into(),
+            name: "default/gw/http".to_string(),
             port: 80,
-            protocol: "HTTP".to_string().into(),
+            protocol: "HTTP".to_string(),
             attached_routes: vec!["default/orders".to_string()],
             ..Listener::default()
         }],
         http_routes: vec![HttpRoute {
-            name: "orders".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "orders".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["example.com".to_string()],
             rules: vec![HttpRule {
                 name: String::new(),
@@ -54,27 +54,27 @@ fn http_fast_path_visits_candidate_listeners_without_index_vectors() {
     let mut snapshot = Snapshot {
         listeners: vec![
             Listener {
-                name: "default/gw/http-a".to_string().into(),
+                name: "default/gw/http-a".to_string(),
                 port: 80,
-                protocol: "HTTP".to_string().into(),
+                protocol: "HTTP".to_string(),
                 ..Listener::default()
             },
             Listener {
-                name: "default/gw/grpc".to_string().into(),
+                name: "default/gw/grpc".to_string(),
                 port: 80,
-                protocol: "GRPC".to_string().into(),
+                protocol: "GRPC".to_string(),
                 ..Listener::default()
             },
             Listener {
-                name: "default/gw/http-b".to_string().into(),
+                name: "default/gw/http-b".to_string(),
                 port: 80,
-                protocol: "HTTP".to_string().into(),
+                protocol: "HTTP".to_string(),
                 ..Listener::default()
             },
             Listener {
-                name: "default/gw/http-other-port".to_string().into(),
+                name: "default/gw/http-other-port".to_string(),
                 port: 8080,
-                protocol: "HTTP".to_string().into(),
+                protocol: "HTTP".to_string(),
                 ..Listener::default()
             },
         ],
@@ -107,13 +107,13 @@ fn http_fast_path_rejects_routes_that_need_headers_or_filters() {
     let mut snapshot = Snapshot {
         http_routes: vec![
             HttpRoute {
-                name: "header-route".to_string().into(),
-                namespace: "default".to_string().into(),
+                name: "header-route".to_string(),
+                namespace: "default".to_string(),
                 rules: vec![HttpRule {
                     name: String::new(),
                     matches: vec![HttpMatch {
                         headers: vec![HeaderMatch {
-                            name: "x-env".to_string().into(),
+                            name: "x-env".to_string(),
                             value: "prod".to_string(),
                             match_type: "Exact".to_string(),
                             ..HeaderMatch::default()
@@ -126,8 +126,8 @@ fn http_fast_path_rejects_routes_that_need_headers_or_filters() {
                 ..HttpRoute::default()
             },
             HttpRoute {
-                name: "filter-route".to_string().into(),
-                namespace: "default".to_string().into(),
+                name: "filter-route".to_string(),
+                namespace: "default".to_string(),
                 rules: vec![HttpRule {
                     name: String::new(),
                     filters: vec![Filter {
@@ -168,15 +168,15 @@ fn http_fast_path_rejects_routes_that_need_headers_or_filters() {
 fn http_fast_path_rejects_unresolved_backend_refs_at_compile_time() {
     let mut snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/http".to_string().into(),
+            name: "default/gw/http".to_string(),
             port: 80,
-            protocol: "HTTP".to_string().into(),
+            protocol: "HTTP".to_string(),
             attached_routes: vec!["default/orders".to_string()],
             ..Listener::default()
         }],
         http_routes: vec![HttpRoute {
-            name: "orders".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "orders".to_string(),
+            namespace: "default".to_string(),
             rules: vec![HttpRule {
                 name: String::new(),
                 backend_refs: vec![backend_ref("default", "missing", 8080)],
@@ -207,15 +207,15 @@ fn http_fast_path_rejects_unresolved_backend_refs_at_compile_time() {
 fn http_fast_path_selects_same_simple_backend_as_generic_http_selection() {
     let mut snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/http".to_string().into(),
+            name: "default/gw/http".to_string(),
             port: 80,
-            protocol: "HTTP".to_string().into(),
+            protocol: "HTTP".to_string(),
             attached_routes: vec!["default/orders".to_string()],
             ..Listener::default()
         }],
         http_routes: vec![HttpRoute {
-            name: "orders".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "orders".to_string(),
+            namespace: "default".to_string(),
             hostnames: vec!["example.com".to_string()],
             rules: vec![HttpRule {
                 name: String::new(),
@@ -289,8 +289,8 @@ fn http_fast_path_selects_same_simple_backend_as_generic_http_selection() {
 fn http_fast_path_does_not_select_grpc_requests() {
     let mut snapshot = Snapshot {
         http_routes: vec![HttpRoute {
-            name: "orders".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "orders".to_string(),
+            namespace: "default".to_string(),
             rules: vec![HttpRule {
                 name: String::new(),
                 backend_refs: vec![backend_ref("default", "orders", 8080)],
@@ -332,9 +332,9 @@ fn http_fast_path_falls_back_when_best_match_needs_listener_backend_tls() {
     let mut snapshot = Snapshot {
         listeners: vec![
             Listener {
-                name: "default/gw/tls-backend".to_string().into(),
+                name: "default/gw/tls-backend".to_string(),
                 port: 80,
-                protocol: "HTTP".to_string().into(),
+                protocol: "HTTP".to_string(),
                 attached_routes: vec!["default/orders".to_string()],
                 backend_tls: Some(crate::BackendTlsConfig {
                     client_certificate_ref: "default/client-cert".to_string(),
@@ -342,17 +342,17 @@ fn http_fast_path_falls_back_when_best_match_needs_listener_backend_tls() {
                 ..Listener::default()
             },
             Listener {
-                name: "default/gw/plain".to_string().into(),
+                name: "default/gw/plain".to_string(),
                 port: 80,
-                protocol: "HTTP".to_string().into(),
+                protocol: "HTTP".to_string(),
                 attached_routes: vec!["default/fallback".to_string()],
                 ..Listener::default()
             },
         ],
         http_routes: vec![
             HttpRoute {
-                name: "orders".to_string().into(),
-                namespace: "default".to_string().into(),
+                name: "orders".to_string(),
+                namespace: "default".to_string(),
                 rules: vec![HttpRule {
                     name: String::new(),
                     matches: vec![HttpMatch {
@@ -367,8 +367,8 @@ fn http_fast_path_falls_back_when_best_match_needs_listener_backend_tls() {
                 ..HttpRoute::default()
             },
             HttpRoute {
-                name: "fallback".to_string().into(),
-                namespace: "default".to_string().into(),
+                name: "fallback".to_string(),
+                namespace: "default".to_string(),
                 rules: vec![HttpRule {
                     name: String::new(),
                     matches: vec![HttpMatch {

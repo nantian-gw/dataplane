@@ -6,7 +6,7 @@ fn cleanup_unused_tls_assets_removes_temp_files_but_keeps_referenced_assets() {
         .join(super::listener_plan::unique_asset_dir_name());
     let plan = ListenerPlan {
         listeners: vec![PlannedListener {
-            name: "default/gw/https".to_string().into(),
+            name: "default/gw/https".to_string(),
             bind: "127.0.0.1:443".to_string(),
             protocol: ListenerProtocol::Tls(single_tls_material(
                 "default/example-cert",

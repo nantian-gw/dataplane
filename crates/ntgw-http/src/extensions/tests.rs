@@ -14,7 +14,7 @@ fn accepts_resolved_direct_response_extensions() {
                 body: "maintenance".to_string(),
                 content_type: "text/plain".to_string(),
                 headers: vec![HeaderOperation {
-                    name: "retry-after".to_string().into(),
+                    name: "retry-after".to_string(),
                     value: "60".to_string(),
                 }],
             }),

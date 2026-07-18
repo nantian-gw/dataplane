@@ -9,8 +9,8 @@ proptest! {
         let service = service_segments.join(".");
         let snapshot = Snapshot {
             grpc_routes: vec![GrpcRoute {
-                name: "generated-grpc".to_string().into(),
-                namespace: "default".to_string().into(),
+                name: "generated-grpc".to_string(),
+                namespace: "default".to_string(),
                 hostnames: vec!["grpc.example.com".to_string()],
                 parent_refs: vec![],
                 rules: vec![GrpcRule {

@@ -524,22 +524,22 @@ mod tests {
     fn observe_completed_request_emits_runtime_ids_in_access_log() {
         let mut snapshot = Snapshot {
             listeners: vec![Listener {
-                name: "default/gw/http".to_string().into(),
+                name: "default/gw/http".to_string(),
                 address: "0.0.0.0".to_string(),
                 port: 80,
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 attached_routes: vec!["default/orders".to_string()],
                 ..Listener::default()
             }],
             http_routes: vec![HttpRoute {
-                name: "orders".to_string().into(),
-                namespace: "default".to_string().into(),
+                name: "orders".to_string(),
+                namespace: "default".to_string(),
                 hostnames: vec!["orders.example.com".to_string()],
                 rules: vec![HttpRule {
                     name: String::new(),
                     backend_refs: vec![BackendRef {
-                        namespace: "default".to_string().into(),
-                        name: "orders".to_string().into(),
+                        namespace: "default".to_string(),
+                        name: "orders".to_string(),
                         port: 8080,
                         ..BackendRef::default()
                     }],
@@ -627,22 +627,22 @@ mod tests {
     fn observe_completed_request_records_runtime_ids_in_traffic_graph() {
         let mut snapshot = Snapshot {
             listeners: vec![Listener {
-                name: "default/gw/http".to_string().into(),
+                name: "default/gw/http".to_string(),
                 address: "0.0.0.0".to_string(),
                 port: 80,
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 attached_routes: vec!["default/orders".to_string()],
                 ..Listener::default()
             }],
             http_routes: vec![HttpRoute {
-                name: "orders".to_string().into(),
-                namespace: "default".to_string().into(),
+                name: "orders".to_string(),
+                namespace: "default".to_string(),
                 hostnames: vec!["orders.example.com".to_string()],
                 rules: vec![HttpRule {
                     name: String::new(),
                     backend_refs: vec![BackendRef {
-                        namespace: "default".to_string().into(),
-                        name: "orders".to_string().into(),
+                        namespace: "default".to_string(),
+                        name: "orders".to_string(),
                         port: 8080,
                         ..BackendRef::default()
                     }],
@@ -787,22 +787,22 @@ mod tests {
     fn access_log_sample_key_uses_runtime_ids_as_numeric_keys() {
         let mut snapshot = Snapshot {
             listeners: vec![Listener {
-                name: "default/gw/http".to_string().into(),
+                name: "default/gw/http".to_string(),
                 address: "0.0.0.0".to_string(),
                 port: 80,
-                protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 attached_routes: vec!["default/orders".to_string()],
                 ..Listener::default()
             }],
             http_routes: vec![HttpRoute {
-                name: "orders".to_string().into(),
-                namespace: "default".to_string().into(),
+                name: "orders".to_string(),
+                namespace: "default".to_string(),
                 hostnames: vec!["orders.example.com".to_string()],
                 rules: vec![HttpRule {
                     name: String::new(),
                     backend_refs: vec![BackendRef {
-                        namespace: "default".to_string().into(),
-                        name: "orders".to_string().into(),
+                        namespace: "default".to_string(),
+                        name: "orders".to_string(),
                         port: 8080,
                         ..BackendRef::default()
                     }],
@@ -871,11 +871,10 @@ mod tests {
 
     fn wait_for_log_contents(path: &Path) -> String {
         for _ in 0..20 {
-            if let Ok(contents) = fs::read_to_string(path) {
-                if !contents.trim().is_empty() {
+            if let Ok(contents) = fs::read_to_string(path)
+                && !contents.trim().is_empty() {
                     return contents;
                 }
-            }
             thread::sleep(Duration::from_millis(20));
         }
 

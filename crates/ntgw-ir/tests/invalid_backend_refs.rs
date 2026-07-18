@@ -16,11 +16,11 @@ mod unhealthy;
 
 fn listener(name: &str, attached_route: &str) -> Listener {
     Listener {
-        name: name.to_string().into(),
+        name: name.to_string(),
         address: "0.0.0.0".to_string(),
         addresses: vec!["0.0.0.0".to_string()],
         port: 80,
-        protocol: "LISTENER_PROTOCOL_HTTP".to_string().into(),
+        protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
         hostnames: vec![],
         attached_routes: vec![attached_route.to_string()],
         tls: None,

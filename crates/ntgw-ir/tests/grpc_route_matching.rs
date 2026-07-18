@@ -5,8 +5,8 @@ use ntgw_proto::gateway::control::v1 as proto;
 fn decodes_grpc_regex_match_type_from_proto() {
     let snapshot = Snapshot::from(proto::ConfigSnapshot {
         grpc_routes: vec![proto::GrpcRoute {
-            name: "grpc-route".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "grpc-route".to_string(),
+            namespace: "default".to_string(),
             rules: vec![proto::GrpcRule {
                 name: String::new(),
                 matches: vec![proto::GrpcMatch {

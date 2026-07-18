@@ -2,15 +2,15 @@
 fn stream_fast_path_precompiles_backend_refs_for_attached_routes() {
     let mut snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/tcp".to_string().into(),
+            name: "default/gw/tcp".to_string(),
             port: 9000,
-            protocol: "TCP".to_string().into(),
+            protocol: "TCP".to_string(),
             attached_routes: vec!["default/tcp-route".to_string()],
             ..Listener::default()
         }],
         stream_routes: vec![StreamRoute {
-            name: "tcp-route".to_string().into(),
-            namespace: "default".to_string().into(),
+            name: "tcp-route".to_string(),
+            namespace: "default".to_string(),
             kind: "ROUTE_KIND_TCP".to_string(),
             rules: vec![StreamRule {
                 matches: vec![StreamMatch {
@@ -58,9 +58,9 @@ fn stream_fast_path_precompiles_backend_refs_for_attached_routes() {
 fn stream_fast_path_skips_unavailable_compiled_backend_and_keeps_searching() {
     let mut snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/tcp".to_string().into(),
+            name: "default/gw/tcp".to_string(),
             port: 9000,
-            protocol: "TCP".to_string().into(),
+            protocol: "TCP".to_string(),
             attached_routes: vec![
                 "default/unavailable".to_string(),
                 "default/available".to_string(),
@@ -69,8 +69,8 @@ fn stream_fast_path_skips_unavailable_compiled_backend_and_keeps_searching() {
         }],
         stream_routes: vec![
             StreamRoute {
-                name: "unavailable".to_string().into(),
-                namespace: "default".to_string().into(),
+                name: "unavailable".to_string(),
+                namespace: "default".to_string(),
                 kind: "ROUTE_KIND_TCP".to_string(),
                 rules: vec![StreamRule {
                     matches: vec![StreamMatch {
@@ -83,8 +83,8 @@ fn stream_fast_path_skips_unavailable_compiled_backend_and_keeps_searching() {
                 ..StreamRoute::default()
             },
             StreamRoute {
-                name: "available".to_string().into(),
-                namespace: "default".to_string().into(),
+                name: "available".to_string(),
+                namespace: "default".to_string(),
                 kind: "ROUTE_KIND_TCP".to_string(),
                 rules: vec![StreamRule {
                     matches: vec![StreamMatch {
@@ -144,9 +144,9 @@ fn stream_fast_path_skips_unavailable_compiled_backend_and_keeps_searching() {
 fn stream_fast_path_falls_back_to_default_service_backend_when_no_route_matches() {
     let mut snapshot = Snapshot {
         listeners: vec![Listener {
-            name: "default/gw/tcp".to_string().into(),
+            name: "default/gw/tcp".to_string(),
             port: 9000,
-            protocol: "TCP".to_string().into(),
+            protocol: "TCP".to_string(),
             metadata: service_frontend_metadata("default", "orders", 8080),
             ..Listener::default()
         }],

@@ -21,11 +21,11 @@ proptest! {
                     filter_type: "RequestHeaderModifier".to_string(),
                     header_modifier: Some(HeaderModifier {
                         set: vec![HeaderOperation {
-                            name: "x-set".to_string().into(),
+                            name: "x-set".to_string(),
                             value: set_value.clone(),
                         }],
                         add: vec![HeaderOperation {
-                            name: "x-add".to_string().into(),
+                            name: "x-add".to_string(),
                             value: add_value.clone(),
                         }],
                         remove: vec!["x-remove".to_string()],

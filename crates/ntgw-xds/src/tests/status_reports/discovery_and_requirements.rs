@@ -44,15 +44,15 @@ fn snapshot_apply_requirements_match_listener_protocols() {
     let snapshot = Snapshot {
         listeners: vec![
             Listener {
-                protocol: "LISTENER_PROTOCOL_HTTPS".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_HTTPS".to_string(),
                 ..Listener::default()
             },
             Listener {
-                protocol: "LISTENER_PROTOCOL_TLS_PASSTHROUGH".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_TLS_PASSTHROUGH".to_string(),
                 ..Listener::default()
             },
             Listener {
-                protocol: "LISTENER_PROTOCOL_TCP".to_string().into(),
+                protocol: "LISTENER_PROTOCOL_TCP".to_string(),
                 ..Listener::default()
             },
         ],

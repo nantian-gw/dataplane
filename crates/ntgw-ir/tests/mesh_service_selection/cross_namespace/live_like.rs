@@ -45,13 +45,13 @@ fn live_like_cross_namespace_mesh_route_matches_consumer_on_service_frontend() {
             ),
         ],
         http_routes: vec![HttpRoute {
-            name: "mesh-consumer-route".to_string().into(),
-            namespace: "nantian-mesh-consumer-validation".to_string().into(),
+            name: "mesh-consumer-route".to_string(),
+            namespace: "nantian-mesh-consumer-validation".to_string(),
             hostnames: vec![],
             parent_refs: vec![ParentRef {
                 kind: "Service".to_string(),
-                namespace: "nantian-mesh-validation".to_string().into(),
-                name: "echo-v1".to_string().into(),
+                namespace: "nantian-mesh-validation".to_string(),
+                name: "echo-v1".to_string(),
                 ..ParentRef::default()
             }],
             rules: vec![HttpRule {
@@ -67,8 +67,8 @@ fn live_like_cross_namespace_mesh_route_matches_consumer_on_service_frontend() {
                     ..Filter::default()
                 }],
                 backend_refs: vec![BackendRef {
-                    namespace: "nantian-mesh-validation".to_string().into(),
-                    name: "echo-v1".to_string().into(),
+                    namespace: "nantian-mesh-validation".to_string(),
+                    name: "echo-v1".to_string(),
                     port: 80,
                     ..BackendRef::default()
                 }],
@@ -125,13 +125,13 @@ fn live_like_cross_namespace_mesh_route_matches_consumer_on_service_frontend() {
         ],
         workloads: vec![
             Workload {
-                namespace: "nantian-mesh-consumer-validation".to_string().into(),
-                name: "consumer".to_string().into(),
+                namespace: "nantian-mesh-consumer-validation".to_string(),
+                name: "consumer".to_string(),
                 ip: "10.244.0.158".to_string(),
             },
             Workload {
-                namespace: "nantian-mesh-validation".to_string().into(),
-                name: "producer".to_string().into(),
+                namespace: "nantian-mesh-validation".to_string(),
+                name: "producer".to_string(),
                 ip: "10.244.0.157".to_string(),
             },
         ],

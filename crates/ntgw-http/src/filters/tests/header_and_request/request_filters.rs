@@ -12,7 +12,7 @@ fn apply_request_filters_rewrites_path_and_host_in_order() {
                 filter_type: "RequestHeaderModifier".to_string(),
                 header_modifier: Some(HeaderModifier {
                     set: vec![HeaderOperation {
-                        name: "host".to_string().into(),
+                        name: "host".to_string(),
                         value: "pre.example.com".to_string(),
                     }],
                     ..HeaderModifier::default()

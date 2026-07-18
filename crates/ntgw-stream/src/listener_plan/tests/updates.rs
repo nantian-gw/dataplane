@@ -6,7 +6,7 @@ fn listener_updates_restart_only_changed_listener() {
         (
             "default/gw/tcp".to_string(),
             PlannedListener {
-                name: "default/gw/tcp".to_string().into(),
+                name: "default/gw/tcp".to_string(),
                 bind: "127.0.0.1:9000".to_string(),
                 protocol: StreamProtocol::Tcp,
             },
@@ -14,7 +14,7 @@ fn listener_updates_restart_only_changed_listener() {
         (
             "default/gw/udp".to_string(),
             PlannedListener {
-                name: "default/gw/udp".to_string().into(),
+                name: "default/gw/udp".to_string(),
                 bind: "127.0.0.1:5353".to_string(),
                 protocol: StreamProtocol::Udp,
             },
@@ -23,12 +23,12 @@ fn listener_updates_restart_only_changed_listener() {
     let desired = ListenerPlan {
         listeners: vec![
             PlannedListener {
-                name: "default/gw/tcp".to_string().into(),
+                name: "default/gw/tcp".to_string(),
                 bind: "127.0.0.1:9000".to_string(),
                 protocol: StreamProtocol::Tcp,
             },
             PlannedListener {
-                name: "default/gw/udp".to_string().into(),
+                name: "default/gw/udp".to_string(),
                 bind: "127.0.0.1:5454".to_string(),
                 protocol: StreamProtocol::Udp,
             },
@@ -41,7 +41,7 @@ fn listener_updates_restart_only_changed_listener() {
         updates,
         ListenerUpdatePlan {
             start: vec![PlannedListener {
-                name: "default/gw/udp".to_string().into(),
+                name: "default/gw/udp".to_string(),
                 bind: "127.0.0.1:5454".to_string(),
                 protocol: StreamProtocol::Udp,
             }],
@@ -53,7 +53,7 @@ fn listener_updates_restart_only_changed_listener() {
 #[test]
 fn listener_updates_restart_finished_listener_without_touching_others() {
     let listener = PlannedListener {
-        name: "default/gw/tcp".to_string().into(),
+        name: "default/gw/tcp".to_string(),
         bind: "127.0.0.1:9000".to_string(),
         protocol: StreamProtocol::Tcp,
     };
@@ -77,7 +77,7 @@ fn listener_updates_restart_finished_listener_without_touching_others() {
 #[test]
 fn listener_updates_force_reload_restarts_running_listener_without_topology_change() {
     let listener = PlannedListener {
-        name: "default/gw/tcp".to_string().into(),
+        name: "default/gw/tcp".to_string(),
         bind: "127.0.0.1:9000".to_string(),
         protocol: StreamProtocol::Tcp,
     };
