@@ -162,7 +162,14 @@ Use two distinct suffixes for configuration structs depending on where they are 
 
 ## Config Naming Convention Gap
 
-**Status**: Audited 2026-07-14. No renaming has been performed yet.
+**Status**: Steps 1-5 completed (2026-07-18). Step 6 (remove camelCase support) deferred to future release.
+
+- Step 1 ✅: Added `#[serde(alias)]` to 21 structs (132 aliases)
+- Step 2 ✅: Rewrote `configs/dataplane/*.yaml` with snake_case keys
+- Step 3 ✅: Updated inline YAML in test fixtures
+- Step 4 ✅: Added regex-based camelCase detection + warning in `DataPlaneConfig::parse_yaml()`
+- Step 5 ✅: Updated Helm chart `values.yaml` + `_helpers.tpl` to emit snake_case
+- Step 6: Remove `#[serde(rename_all = "camelCase")]` from all 21 structs (deferred — 1-2 releases)
 
 ### Scope
 

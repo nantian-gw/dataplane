@@ -682,7 +682,9 @@ impl AIGatewayFilter {
             let (response_body, response_status) =
                 upstream_call(&ctx.request, &ctx.raw_request).await?;
 
-            let result = self.post_process(ctx, &response_body, response_status).await;
+            let result = self
+                .post_process(ctx, &response_body, response_status)
+                .await;
 
             // If post_process succeeds or the error is not a backend-type error,
             // return the result immediately (no fallback for non-backend errors).
@@ -692,17 +694,9 @@ impl AIGatewayFilter {
 
             let is_timeout = response_status == 504 || response_status == 408;
 
-            let next = self
-                .fallback
-                .as_ref()
-                .and_then(|fb| {
-                    fb.resolve_fallback(
-                        &original_model,
-                        Some(response_status),
-                        is_timeout,
-                        attempt,
-                    )
-                });
+            let next = self.fallback.as_ref().and_then(|fb| {
+                fb.resolve_fallback(&original_model, Some(response_status), is_timeout, attempt)
+            });
 
             let next_model = match next {
                 Some(m) => m,
@@ -717,8 +711,11 @@ impl AIGatewayFilter {
                 }
             };
 
-            self.metrics
-                .record_fallback(&original_model, next_model, &format!("status_{response_status}"));
+            self.metrics.record_fallback(
+                &original_model,
+                next_model,
+                &format!("status_{response_status}"),
+            );
             tracing::debug!(
                 from = %original_model,
                 to = %next_model,
