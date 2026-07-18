@@ -18,7 +18,7 @@ use pingora::{
 };
 use pingora_cache::NoCacheReason;
 use pingora_cache::cache_control::CacheControl;
-use tracing::error;
+use tracing::{debug_span, error};
 
 pub(crate) use self::backend::UpstreamTuningOptions;
 use crate::cache::CacheManager;
@@ -544,6 +544,13 @@ impl ProxyHttp for GatewayProxy {
     where
         Self::CTX: Send + Sync,
     {
+        let endpoint_addr = format!("{}", _peer);
+        let _connect_span = debug_span!(
+            "backend_connect",
+            backend_name = %ctx.backend,
+            endpoint_addr = %endpoint_addr,
+        );
+        let _guard = _connect_span.enter();
         validate_backend_tls_subject_alt_name_result(_peer, _digest)?;
         record_upstream_connection(ctx, reused);
         Ok(())

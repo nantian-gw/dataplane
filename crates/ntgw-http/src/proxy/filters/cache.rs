@@ -1,5 +1,6 @@
 use pingora::prelude::Session;
 use pingora_cache::HitStatus;
+use tracing::debug_span;
 
 use crate::cache::CacheManager;
 
@@ -72,9 +73,12 @@ pub(super) async fn try_cache_hit(
         .generate_key(route_namespace, route_name, host, path);
     http_cache.set_cache_key(key);
 
+    let lookup_span = debug_span!("http_cache_lookup", hit = tracing::field::Empty);
+    let _guard = lookup_span.enter();
     let lookup_result = http_cache.cache_lookup().await.unwrap_or(None);
     match lookup_result {
         Some((meta, hit_handler)) => {
+            lookup_span.record("hit", true);
             let cached_header = meta.response_header_copy();
             http_cache.cache_found(meta, hit_handler, HitStatus::Fresh);
 
@@ -116,6 +120,7 @@ pub(super) async fn try_cache_hit(
             Ok(true)
         }
         None => {
+            lookup_span.record("hit", false);
             http_cache.cache_miss();
             ctx.http_cache.0 = Some(http_cache);
             Ok(false)

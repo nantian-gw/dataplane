@@ -2,7 +2,7 @@ use std::{net::SocketAddr, sync::Arc, time::Instant};
 
 use anyhow::{Result, anyhow};
 use tokio::{net::UdpSocket, sync::watch, time::Duration};
-use tracing::{debug, info, warn};
+use tracing::{info_span, debug, info, warn};
 
 use ntgw_ir::SharedSnapshot;
 use ntgw_observability::{
@@ -62,6 +62,8 @@ pub async fn run_with_socket(
             }
             recv = socket.recv_from(&mut buf) => {
                 let (size, client_addr) = recv?;
+                let span = info_span!("udp_connection", %listener_name);
+                let _guard = span.enter();
                 let permit = match admission.try_acquire(listener_name.as_ref()) {
                     Ok(permit) => permit,
                     Err(rejection) => {

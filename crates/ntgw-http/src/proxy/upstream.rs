@@ -5,7 +5,7 @@ use pingora::{
     Error, ErrorType,
     prelude::{HttpPeer, Session},
 };
-use tracing::instrument;
+use tracing::{debug_span, instrument};
 
 use super::*;
 
@@ -39,6 +39,11 @@ pub(crate) async fn do_upstream_peer(
     session: &mut Session,
     ctx: &mut RequestContext,
 ) -> pingora::Result<Box<HttpPeer>> {
+    let _retry_span = if ctx.retry_attempts > 0 {
+        Some(debug_span!("http_retry", attempt = ctx.retry_attempts))
+    } else {
+        None
+    };
     if let Some(backoff) = retry_backoff(ctx) {
         tokio::time::sleep(backoff).await;
     }
