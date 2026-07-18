@@ -115,6 +115,11 @@ pub struct ConfigSnapshot {
     /// uses this to enable/disable behavior flags atomically.
     #[prost(string, tag="11")]
     pub compatibility_profile: ::prost::alloc::string::String,
+    /// W3C TraceContext traceparent header value. The control plane injects
+    /// its current trace context so the data plane can create child spans
+    /// linked to the snapshot generation trace.
+    #[prost(string, tag="20")]
+    pub traceparent: ::prost::alloc::string::String,
 }
 /// Listener describes a port binding on the data plane. Each listener
 /// has a protocol, optional TLS settings, and references to route rules

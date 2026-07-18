@@ -11,7 +11,10 @@ use tokio::{
 };
 use tokio_stream::wrappers::ReceiverStream;
 use tonic::transport::{Channel, Endpoint};
-use tracing::{info, warn};
+use tracing::{debug, info, warn};
+
+use opentelemetry::propagation::{Extractor, TextMapPropagator};
+use opentelemetry_sdk::propagation::TraceContextPropagator;
 
 use crate::features::{preflight_required_features, supported_features};
 use ntgw_ir::{SharedSnapshot, SharedSnapshotSignal, Snapshot};
@@ -96,6 +99,24 @@ pub struct ControlPlaneRunArgs {
     pub runtime: SharedRuntimeStats,
     pub stats: SharedClientStats,
     pub shutdown: watch::Receiver<bool>,
+}
+
+/// Minimal [Extractor] adapter that presents a single traceparent header value
+/// to the W3C [TraceContextPropagator] for cross-component trace linking.
+struct TraceparentCarrier<'a>(&'a str);
+
+impl<'a> Extractor for TraceparentCarrier<'a> {
+    fn get(&self, key: &str) -> Option<&str> {
+        if key.eq_ignore_ascii_case("traceparent") {
+            Some(self.0)
+        } else {
+            None
+        }
+    }
+
+    fn keys(&self) -> Vec<&str> {
+        vec!["traceparent"]
+    }
 }
 
 pub struct ControlPlaneClient {
@@ -219,6 +240,14 @@ impl ControlPlaneClient {
                 };
                 stats.observe_control_plane_contact();
                 if let Some(config) = message.snapshot {
+                    if !config.traceparent.is_empty() {
+                        let propagator = TraceContextPropagator::new();
+                        let _parent_cx = propagator.extract(&TraceparentCarrier(&config.traceparent));
+                        debug!(
+                            traceparent = %config.traceparent,
+                            "received snapshot with trace context"
+                        );
+                    }
                     let next_version =
                         snapshot_version_from_response(message.version.as_str(), &config);
                     let version = if should_apply_snapshot(

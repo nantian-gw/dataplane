@@ -2342,6 +2342,8 @@ dependencies = [
  "ntgw-ir",
  "ntgw-observability",
  "ntgw-proto",
+ "opentelemetry",
+ "opentelemetry_sdk",
  "rustls",
  "serde",
  "tokio",
