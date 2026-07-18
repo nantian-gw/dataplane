@@ -65,7 +65,7 @@ jobs:
       - name: Smoke test (catch glibc mismatch)
         run: |
           TAG=$(echo "${{ steps.meta.outputs.tags }}" | head -1)
-          docker run --rm "$TAG" /usr/local/bin/ntgw-app --help
+          docker run --rm "$TAG" --help
 
   manifest:
     name: Create multi-arch manifest
