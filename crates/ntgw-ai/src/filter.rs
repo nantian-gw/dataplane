@@ -21,6 +21,7 @@ use crate::pii::PIIMasker;
 use crate::prompt_guard::{PromptGuardFilter, message_text};
 use crate::prompt_template::PromptInjector;
 use crate::ratelimit::{RateLimitResult, TokenRateLimiter};
+use crate::semantic_cache::{SemanticCache, build_cache_key};
 use crate::token::TokenCounter;
 use crate::wasm_filter::WasmPluginFilter;
 
@@ -57,6 +58,7 @@ pub struct AIGatewayFilter {
     pub ab_experiment_id: Option<String>,
     pub wasm_filter: Option<Arc<WasmPluginFilter>>,
     pub ai_sandbox: Option<Arc<AISandbox>>,
+    pub semantic_cache: Option<Arc<SemanticCache>>,
 }
 
 /// Builder for `AIGatewayFilter`.
@@ -80,6 +82,7 @@ pub struct AIGatewayFilterBuilder {
     ab_experiment_id: Option<String>,
     wasm_filter: Option<Arc<WasmPluginFilter>>,
     ai_sandbox: Option<Arc<AISandbox>>,
+    semantic_cache: Option<Arc<SemanticCache>>,
 }
 
 impl AIGatewayFilterBuilder {
@@ -104,6 +107,7 @@ impl AIGatewayFilterBuilder {
             ab_experiment_id: None,
             wasm_filter: None,
             ai_sandbox: None,
+            semantic_cache: None,
         }
     }
 
@@ -175,6 +179,10 @@ impl AIGatewayFilterBuilder {
         self.ai_sandbox = Some(v);
         self
     }
+    pub fn semantic_cache(mut self, v: Arc<SemanticCache>) -> Self {
+        self.semantic_cache = Some(v);
+        self
+    }
 
     pub fn build(self) -> AIGatewayFilter {
         AIGatewayFilter {
@@ -197,6 +205,7 @@ impl AIGatewayFilterBuilder {
             ab_experiment_id: self.ab_experiment_id,
             wasm_filter: self.wasm_filter,
             ai_sandbox: self.ai_sandbox,
+            semantic_cache: self.semantic_cache,
         }
     }
 }
@@ -427,12 +436,26 @@ impl AIGatewayFilter {
             }
         }
 
+        // 4. Semantic cache lookup
+        let cache_key = if let Some(ref cache) = self.semantic_cache {
+            if let Some(cached_response) = cache.lookup(&request) {
+                self.metrics.record_cache_hit(&request.model);
+                return Err(AIError::CacheHit {
+                    response: Box::new(cached_response),
+                });
+            }
+            self.metrics.record_cache_miss(&request.model);
+            Some(build_cache_key(&request))
+        } else {
+            None
+        };
+
         Ok(AIContext {
             format: fmt.to_string(),
             request,
             start_time: Instant::now(),
             raw_request: masked_body,
-            cache_key: None,
+            cache_key,
             complexity,
         })
     }
@@ -508,6 +531,11 @@ impl AIGatewayFilter {
             // Parse as AIResponse
             let response = adapter.parse_response(response_body)?;
             let usage = response.usage.clone();
+
+            if let (Some(cache), Some(_)) = (&self.semantic_cache, &ctx.cache_key) {
+                cache.store(&ctx.request, &response);
+            }
+
             let serialized = adapter.serialize_response(&response)?;
             (usage, serialized)
         };
@@ -612,6 +640,104 @@ impl AIGatewayFilter {
         };
 
         Ok(output_body)
+    }
+
+    /// Resolve the next fallback model in the chain. Returns `Some(&str)` if
+    /// a fallback should be attempted, or `None` if the chain is exhausted or
+    /// the current status/timeout does not trigger any fallback.
+    pub fn resolve_fallback(
+        &self,
+        model: &str,
+        status_code: u16,
+        is_timeout: bool,
+        attempt: u32,
+    ) -> Option<&str> {
+        self.fallback
+            .as_ref()?
+            .resolve_fallback(model, Some(status_code), is_timeout, attempt)
+    }
+
+    /// Process an AI request end-to-end with automatic model fallback.
+    ///
+    /// On upstream failures (non-2xx status or timeout), this method iterates
+    /// through the fallback chain and retries with the next model. The caller
+    /// provides `upstream_call`, which is invoked for each attempt with the
+    /// (possibly modified) [`AIRequest`] and the raw request body.
+    pub async fn process_with_fallback<F, Fut>(
+        &self,
+        path: &str,
+        body: &[u8],
+        api_key: Option<&str>,
+        upstream_call: F,
+    ) -> Result<Vec<u8>, AIError>
+    where
+        F: Fn(&AIRequest, &[u8]) -> Fut,
+        Fut: std::future::Future<Output = Result<(Vec<u8>, u16), AIError>>,
+    {
+        let mut ctx = self.pre_process(path, body, api_key).await?;
+        let original_model = ctx.request.model.clone();
+        let mut attempt: u32 = 0;
+
+        loop {
+            let (response_body, response_status) =
+                upstream_call(&ctx.request, &ctx.raw_request).await?;
+
+            let result = self.post_process(ctx, &response_body, response_status).await;
+
+            // If post_process succeeds or the error is not a backend-type error,
+            // return the result immediately (no fallback for non-backend errors).
+            if result.is_ok() || !self.should_attempt_fallback(response_status) {
+                return result;
+            }
+
+            let is_timeout = response_status == 504 || response_status == 408;
+
+            let next = self
+                .fallback
+                .as_ref()
+                .and_then(|fb| {
+                    fb.resolve_fallback(
+                        &original_model,
+                        Some(response_status),
+                        is_timeout,
+                        attempt,
+                    )
+                });
+
+            let next_model = match next {
+                Some(m) => m,
+                None => {
+                    return Err(AIError::FallbackExhausted {
+                        model: original_model,
+                        reason: format!(
+                            "all fallbacks exhausted after {} attempt(s), last status={}",
+                            attempt, response_status
+                        ),
+                    });
+                }
+            };
+
+            self.metrics
+                .record_fallback(&original_model, next_model, &format!("status_{response_status}"));
+            tracing::debug!(
+                from = %original_model,
+                to = %next_model,
+                attempt,
+                status = response_status,
+                "model fallback triggered"
+            );
+
+            // Rebuild context for the next attempt with fallback model
+            let mut new_ctx = self.pre_process(path, body, api_key).await?;
+            new_ctx.request.model = next_model.to_string();
+            ctx = new_ctx;
+            attempt += 1;
+        }
+    }
+
+    /// Check whether a status code warrants attempting a model fallback.
+    fn should_attempt_fallback(&self, status: u16) -> bool {
+        status >= 500 || status == 429
     }
 }
 
