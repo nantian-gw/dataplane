@@ -106,7 +106,7 @@ mod server;
 pub use self::capacity::HttpCapacityOptions;
 pub use self::options::{ReloadableRuntimeConfig, RuntimeOptions};
 pub use self::spawn::spawn;
-pub(super) use self::spawn::{observe_reload_stage_elapsed, tls_asset_root};
+pub(super) use self::spawn::observe_reload_stage_elapsed;
 pub(super) use self::plan::{
     ListenerPlan, ListenerProtocol, PlannedListener, TlsIdentity,
     TlsMaterial,
@@ -115,8 +115,7 @@ pub(super) use self::plan::{
 pub(super) use self::plan::{build_listener_plan, build_listener_plan_with_bind_checker};
 #[cfg(test)]
 pub(super) use self::plan::build_listener_plan_with_bind_checker_for_runtime;
-pub(super) use self::plan::active_listener_binds_for_plan_build;
-pub(super) use self::updates::{ListenerUpdatePlan, listener_updates, listener_updates_with_force_reload};
+pub(super) use self::updates::{listener_updates, listener_updates_with_force_reload};
 #[cfg(test)]
 use self::listener_plan::materialize_tls_assets;
 #[cfg(test)]
@@ -126,9 +125,8 @@ use self::listener_plan::{
     cleanup_unused_tls_assets_in_dir,
     listener_bind_addrs, materialize_runtime_plan, materialize_tls_assets_in_dir,
     ordered_tls_identity_candidates, referenced_tls_asset_prefixes, tcp_socket_options_for_bind,
-    unique_asset_dir_name,
 };
-use self::listener_set::{ActiveServer, ListenerReplaceContext, ListenerSet};
+use self::listener_set::{ActiveServer};
 pub use self::server::{AcceptedHttpApp, build_http_app, process_accepted_stream};
 #[cfg(test)]
 use self::server::{

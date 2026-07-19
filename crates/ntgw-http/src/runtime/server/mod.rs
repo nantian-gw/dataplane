@@ -12,7 +12,6 @@ mod tls;
 mod filters;
 mod langfuse;
 mod service;
-pub(super) use service::plain_http_server_options;
 
 use super::capacity::{effective_http_capacity, server_conf_for_capacity};
 

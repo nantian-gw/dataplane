@@ -1,6 +1,7 @@
 use std::{collections::BTreeMap, sync::Arc};
 
 use crate::proxy::UpstreamTuningOptions;
+use crate::proxy::initial_request::fast_path_request_features_are_safe;
 use ntgw_ir::{
     BackendCluster, BackendEndpoint, BackendRef, CompiledSelectedHttpBackend, HttpMatch, HttpRoute,
     HttpRule, Listener, RouteKind, SelectedBackendRuntimeIds, Snapshot,
@@ -11,8 +12,7 @@ use super::super::selection::SelectedBackendConfigCache;
 use super::super::{
     RequestContext, SelectedBackendConfig, UpstreamPeerAddress, access_log_route_annotations,
     build_upstream_peer_for_fast_path, cache_fast_selected_backend_state,
-    fast_path_request_features_are_safe, fast_path_request_from_header,
-    prepare_initial_request_state,
+    fast_path_request_from_header, prepare_initial_request_state,
 };
 
 #[test]

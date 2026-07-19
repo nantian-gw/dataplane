@@ -1,4 +1,3 @@
-use super::*;
 use std::sync::Arc;
 
 pub(super) fn build_langfuse_client() -> Option<Arc<ntgw_ai::observability::langfuse::LangfuseClient>> {

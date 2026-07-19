@@ -1,7 +1,7 @@
 use super::*;
 use std::sync::Arc;
 
-use pingora::{server::configuration::ServerConf, tls::ssl::SslSessionCacheMode};
+use pingora::tls::ssl::SslSessionCacheMode;
 
 use crate::proxy::DownstreamTlsInfo;
 
