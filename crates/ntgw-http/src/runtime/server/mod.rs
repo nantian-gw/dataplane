@@ -8,12 +8,15 @@ use pingora::{
 use crate::cache::CacheManager;
 use crate::proxy::UpstreamTuningOptions;
 
-mod tls;
 mod filters;
 mod langfuse;
 mod service;
+mod tls;
 
 use super::capacity::{effective_http_capacity, server_conf_for_capacity};
+
+#[cfg(test)]
+pub(super) use service::plain_http_server_options;
 
 #[cfg(test)]
 pub(super) fn start_server(

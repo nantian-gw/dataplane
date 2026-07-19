@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
-pub(super) fn build_langfuse_client() -> Option<Arc<ntgw_ai::observability::langfuse::LangfuseClient>> {
+pub(super) fn build_langfuse_client()
+-> Option<Arc<ntgw_ai::observability::langfuse::LangfuseClient>> {
     use ntgw_ai::observability::langfuse::LangfuseClient;
 
     let public_key = std::env::var("LANGFUSE_PUBLIC_KEY").unwrap_or_default();

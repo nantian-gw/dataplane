@@ -79,7 +79,16 @@ use self::external_auth::{
     ExternalAuthDecision, apply_external_auth_response_headers, external_auth_filter,
     run_external_auth,
 };
+use self::initial_request::{
+    InitialFastPathSelection, prepare_initial_request_state, route_filters_have_request_mirror,
+    unmatched_traffic_topology,
+};
 use self::logging::observe_completed_request;
+use self::mirror_select::{
+    remove_downstream_close_connection_token, request_for_response_filters,
+    select_backend_with_transport_retry_exclusions, select_request_mirrors_for_http_route,
+    select_request_mirrors_for_selected_backend,
+};
 pub(crate) use self::request::{
     RequestView, build_request_meta_from_header_with_port, capture_request_context_from_view,
     fast_path_request_from_header, start_request_span_from_header,
@@ -108,15 +117,6 @@ use self::retry::{
     request_is_retry_replayable, response_is_retryable, retry_backoff, retry_status_error,
     selected_retry_policy, should_suppress_proxy_error_log, try_prepare_retry,
     try_prepare_transport_retry,
-};
-use self::initial_request::{
-    InitialFastPathSelection, prepare_initial_request_state,
-    route_filters_have_request_mirror, unmatched_traffic_topology,
-};
-use self::mirror_select::{
-    remove_downstream_close_connection_token, request_for_response_filters,
-    select_backend_with_transport_retry_exclusions, select_request_mirrors_for_http_route,
-    select_request_mirrors_for_selected_backend,
 };
 use self::selection::{
     SelectedBackendConfigCache, selected_backend_config_cached,
@@ -409,12 +409,7 @@ impl ProxyHttp for GatewayProxy {
 
         handle_mirror_completion(&mut ctx.request_mirrors).await;
 
-        handle_http_cache_response(
-            &self.cache,
-            upstream_response,
-            ctx,
-        )
-        .await;
+        handle_http_cache_response(&self.cache, upstream_response, ctx).await;
 
         record_request_span(ctx);
 

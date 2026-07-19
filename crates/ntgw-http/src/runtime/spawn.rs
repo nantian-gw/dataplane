@@ -16,9 +16,7 @@ use super::http3_available;
 use super::listener_plan::unique_asset_dir_name;
 use super::listener_set::{ListenerReplaceContext, ListenerSet};
 use super::options::{ReloadableRuntimeConfig, RuntimeOptions};
-use super::plan::{
-    active_listener_binds_for_plan_build, build_listener_plan_for_runtime,
-};
+use super::plan::{active_listener_binds_for_plan_build, build_listener_plan_for_runtime};
 
 pub(crate) fn observe_reload_stage_elapsed(
     stage_recorder: Option<&dyn ntgw_observability::ApplyStageRecorder>,

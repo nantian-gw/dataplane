@@ -2185,9 +2185,11 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "pingora",
+ "regex",
  "serde",
  "serde_yaml",
  "sha2",
+ "tracing",
 ]
 
 [[package]]

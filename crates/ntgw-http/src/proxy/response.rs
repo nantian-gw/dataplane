@@ -50,11 +50,9 @@ pub(crate) async fn handle_http_cache_response(
                 .as_ref()
                 .and_then(|h| h.get("authorization"))
                 .is_some();
-            if let Some(meta) = cache.is_response_cacheable(
-                upstream_response,
-                cache_control.as_ref(),
-                has_auth,
-            ) {
+            if let Some(meta) =
+                cache.is_response_cacheable(upstream_response, cache_control.as_ref(), has_auth)
+            {
                 http_cache.set_cache_meta(meta);
                 if http_cache.set_miss_handler().await.is_err() {
                     http_cache.disable(NoCacheReason::StorageError);

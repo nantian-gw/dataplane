@@ -6,7 +6,7 @@ fn runtime_tls_asset_root_uses_configured_directory() {
     };
 
     assert_eq!(
-        super::tls_asset_root(&runtime),
+        super::spawn::tls_asset_root(&runtime),
         PathBuf::from("/var/lib/nantian-gw/tls-assets")
     );
 }

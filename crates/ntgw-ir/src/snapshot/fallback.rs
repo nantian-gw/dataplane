@@ -156,10 +156,7 @@ impl Snapshot {
         })
     }
 
-    pub(crate) fn default_stream_backend(
-        &self,
-        listener: &Listener,
-    ) -> Option<SelectedBackend> {
+    pub(crate) fn default_stream_backend(&self, listener: &Listener) -> Option<SelectedBackend> {
         let frontend = self.service_frontend_for_listener(listener)?;
         let route_kind = route_kind_for_listener(&listener.protocol)?;
         let backend =
