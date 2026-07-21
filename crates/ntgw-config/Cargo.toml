@@ -7,7 +7,6 @@ license.workspace = true
 [dependencies]
 anyhow.workspace = true
 pingora.workspace = true
-regex = "1"
 serde.workspace = true
 serde_yaml.workspace = true
 sha2.workspace = true
