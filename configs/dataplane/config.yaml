@@ -112,7 +112,7 @@ runtime_protection:
 session_persistence:
   secret_key: ""
   secret_key_file: ""
-  # sharedSecret: "your-shared-secret-here"
+  # shared_secret: "your-shared-secret-here"
 xds_tls:
   enabled: false
   ca_path: ""
