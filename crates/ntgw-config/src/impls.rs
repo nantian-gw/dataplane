@@ -2,9 +2,7 @@ use std::{fs, path::Path, time::Duration};
 
 use anyhow::{Context, Result};
 use pingora::protocols::l4::ext::TcpKeepalive;
-use regex::Regex;
 use sha2::{Digest, Sha256};
-use std::sync::atomic::{AtomicBool, Ordering};
 
 use crate::defaults::*;
 
@@ -27,37 +25,6 @@ use super::{
     },
 };
 
-static CAMEL_CASE_WARNED: AtomicBool = AtomicBool::new(false);
-
-/// Detects camelCase YAML keys in raw config and logs a one-time deprecation warning.
-/// A camelCase key is a YAML key containing a lowercase letter followed by an uppercase
-/// letter (e.g. "controlPlaneAddr", "nonBlocking").
-fn warn_camel_case_keys(raw: &str) {
-    if CAMEL_CASE_WARNED.swap(true, Ordering::Relaxed) {
-        return;
-    }
-
-    let re = match Regex::new(r"(?m)^\s*([a-z]+[A-Z][a-zA-Z0-9]*)\s*:") {
-        Ok(re) => re,
-        Err(_) => return, // regex compile failure is not a config error
-    };
-
-    let keys: Vec<&str> = re
-        .captures_iter(raw)
-        .filter_map(|cap| cap.get(1))
-        .map(|m| m.as_str())
-        .collect();
-
-    if !keys.is_empty() {
-        tracing::warn!(
-            camel_case_keys = ?keys,
-            "deprecated camelCase YAML keys detected; \
-             migrate to snake_case. camelCase support will be removed \
-             in a future release. See dataplane AGENTS.md for migration guide."
-        );
-    }
-}
-
 impl DataPlaneConfig {
     pub fn load(path: impl AsRef<Path>) -> Result<Self> {
         let path = path.as_ref();
@@ -75,7 +42,6 @@ impl DataPlaneConfig {
     /// swapped in one place (e.g. when the deprecated `serde_yaml` is dropped
     /// upstream). Callers should add file/source context to the returned error.
     pub(crate) fn parse_yaml(raw: &str) -> Result<Self> {
-        warn_camel_case_keys(raw);
         Ok(serde_yaml::from_str(raw)?)
     }
 
