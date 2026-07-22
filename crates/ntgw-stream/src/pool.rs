@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use std::sync::OnceLock;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 
@@ -15,7 +16,7 @@ type PoolKey = (String, u16);
 /// Snapshot of cumulative connection pool counters at a point in time.
 #[derive(Debug, Clone, Copy, Default)]
 #[allow(dead_code)]
-pub(crate) struct PoolCountersSnapshot {
+pub struct PoolCountersSnapshot {
     /// Connections currently held by callers (not in idle pool).
     pub active_connections: u64,
     /// Connections currently sitting idle in the pool.
@@ -24,6 +25,8 @@ pub(crate) struct PoolCountersSnapshot {
     pub connection_hits: u64,
     /// Cumulative number of new connections created (pool misses).
     pub connection_misses: u64,
+    /// Peak active connections observed since the pool was created.
+    pub peak_active_connections: u64,
 }
 
 pub(crate) struct TcpConnectionPool {
@@ -35,6 +38,7 @@ pub(crate) struct TcpConnectionPool {
     idle_connections: AtomicU64,
     connection_hits: AtomicU64,
     connection_misses: AtomicU64,
+    peak_active_connections: AtomicU64,
 }
 
 struct IdleConnection {
@@ -53,6 +57,7 @@ impl TcpConnectionPool {
             idle_connections: AtomicU64::new(0),
             connection_hits: AtomicU64::new(0),
             connection_misses: AtomicU64::new(0),
+            peak_active_connections: AtomicU64::new(0),
         }
     }
 
@@ -118,10 +123,18 @@ impl TcpConnectionPool {
         }
 
         debug!(backend = ?key, "pool miss");
+        let idle_now = self.idle_connections.load(Ordering::Relaxed);
+        if idle_now == 0 {
+            debug!(backend = ?key, "pool exhausted: all idle connections used");
+        }
         self.connection_misses.fetch_add(1, Ordering::Relaxed);
         let conn = TcpStream::connect((key.0.as_str(), port)).await;
         if conn.is_ok() {
             self.active_connections.fetch_add(1, Ordering::Relaxed);
+            self.peak_active_connections.fetch_max(
+                self.active_connections.load(Ordering::Relaxed),
+                Ordering::Relaxed,
+            );
         }
         (conn, StreamPoolCounters { hits: 0, misses: 1 })
     }
@@ -221,12 +234,25 @@ impl TcpConnectionPool {
     }
 
     #[allow(dead_code)]
+    pub(crate) fn warn_if_undersized(&self) {
+        let peak = self.peak_active_connections.load(Ordering::Relaxed);
+        if peak > self.max_idle_per_backend as u64 {
+            warn!(
+                peak_active = peak,
+                max_idle = self.max_idle_per_backend,
+                "pool may be undersized: peak active connections exceeds max_idle"
+            );
+        }
+    }
+
+    #[allow(dead_code)]
     pub(crate) fn counter_snapshot(&self) -> PoolCountersSnapshot {
         PoolCountersSnapshot {
             active_connections: self.active_connections.load(Ordering::Relaxed),
             idle_connections: self.idle_connections.load(Ordering::Relaxed),
             connection_hits: self.connection_hits.load(Ordering::Relaxed),
             connection_misses: self.connection_misses.load(Ordering::Relaxed),
+            peak_active_connections: self.peak_active_connections.load(Ordering::Relaxed),
         }
     }
 
@@ -235,6 +261,16 @@ impl TcpConnectionPool {
         let key = (addr.to_string(), port);
         self.idle.get(&key).map_or(0, |e| e.len())
     }
+}
+
+static GLOBAL_POOL: OnceLock<Arc<TcpConnectionPool>> = OnceLock::new();
+
+pub(crate) fn register_global_pool(pool: Arc<TcpConnectionPool>) {
+    let _ = GLOBAL_POOL.set(pool);
+}
+
+pub fn global_pool_snapshot() -> Option<PoolCountersSnapshot> {
+    GLOBAL_POOL.get().map(|pool| pool.counter_snapshot())
 }
 
 #[cfg(test)]

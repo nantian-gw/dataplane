@@ -3,7 +3,7 @@
 mod access_log;
 pub mod bench;
 mod listener_plan;
-pub(crate) mod pool;
+pub mod pool;
 mod sni;
 mod tcp;
 #[cfg(test)]
@@ -104,6 +104,7 @@ pub async fn run(
         current.runtime.stream_upstream_pool_size,
         current.runtime.stream_upstream_pool_idle_timeout,
     ));
+    pool::register_global_pool(pool.clone());
     let mut force_reload = true;
 
     loop {
