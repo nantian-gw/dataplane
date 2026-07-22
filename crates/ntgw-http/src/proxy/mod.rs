@@ -50,12 +50,9 @@ mod responses;
 mod retry;
 mod selection;
 mod upstream;
+mod upstream_tls;
 
-use self::backend::{
-    build_upstream_peer_for_fast_path, build_upstream_peer_with_cached_config,
-    error_for_backend_selection, validate_backend_tls_subject_alt_name_result,
-};
-pub(crate) use self::cache::BackendTlsValidationCacheKey;
+use self::backend::error_for_backend_selection;
 use self::cache::SessionResolutionCache;
 pub use self::context::RequestContext;
 #[cfg(test)]
@@ -121,6 +118,11 @@ use self::retry::{
 use self::selection::{
     SelectedBackendConfigCache, selected_backend_config_cached,
     selected_backend_config_cached_for_fast_path, selected_backend_from_http_route,
+};
+pub(crate) use self::upstream_tls::BackendTlsValidationCacheKey;
+use self::upstream_tls::{
+    build_upstream_peer_for_fast_path, build_upstream_peer_with_cached_config,
+    validate_backend_tls_subject_alt_name_result,
 };
 
 const DEFAULT_HTTP_ROUTE_RETRIES: u32 = 1;

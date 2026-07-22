@@ -16,6 +16,9 @@ use super::{
     tls_passthrough_binds,
 };
 
+mod tls_types;
+pub(crate) use self::tls_types::{TlsIdentity, TlsMaterial};
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct ListenerPlan {
     pub(crate) listeners: Vec<PlannedListener>,
@@ -32,23 +35,6 @@ pub(crate) struct PlannedListener {
 pub(crate) enum ListenerProtocol {
     Plain,
     Tls(TlsMaterial),
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct TlsMaterial {
-    pub(crate) identities: Vec<TlsIdentity>,
-    pub(crate) min_version: String,
-    pub(crate) max_version: String,
-    pub(crate) client_ca_bundle_pem: Option<String>,
-    pub(crate) frontend_validation_mode: Option<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct TlsIdentity {
-    pub(crate) secret_ref: String,
-    pub(crate) cert_pem: String,
-    pub(crate) key_pem: String,
-    pub(crate) match_names: Vec<String>,
 }
 
 #[derive(Debug, Default, PartialEq, Eq)]
