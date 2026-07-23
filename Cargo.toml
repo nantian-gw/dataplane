@@ -59,7 +59,7 @@ stats_alloc = "0.1.10"
 subtle = "2.6.1"
 tokio = { version = "1.52.3", features = ["rt-multi-thread", "net", "signal", "sync", "time", "macros", "io-util"] }
 tokio-stream = "0.1.17"
-tonic = { version = "0.14.1", features = ["transport", "tls-native-roots", "tls-ring"] }
+tonic = { version = "0.14.1", features = ["transport", "tls-native-roots", "tls-ring", "gzip"] }
 tonic-build = "0.14.1"
 tower = { version = "0.5.2", features = ["util"] }
 tracing = "0.1.41"
