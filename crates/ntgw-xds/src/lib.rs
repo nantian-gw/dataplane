@@ -133,7 +133,8 @@ impl ControlPlaneClient {
             .connect_timeout(options.transport.connect_timeout)
             .http2_keep_alive_interval(options.transport.keepalive_interval)
             .keep_alive_timeout(options.transport.keepalive_timeout)
-            .keep_alive_while_idle(true);
+            .keep_alive_while_idle(true)
+            .accept_compressed(tonic::codec::CompressionEncoding::Gzip);
         if let Some(tls) = options.tls.as_ref() {
             endpoint = endpoint.tls_config(build_client_tls_config(tls)?)?;
         }
