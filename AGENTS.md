@@ -130,9 +130,10 @@ Buf to verify checked-in BSR-generated control-plane Rust code.
 
 ```toml
 [profile.release]
-lto = "thin"
+lto = "fat"
 codegen-units = 1
 panic = "abort"
+strip = "symbols"
 ```
 
 ## Naming Conventions
