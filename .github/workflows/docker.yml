@@ -71,7 +71,7 @@ jobs:
         if: github.event_name == 'push'
         uses: anchore/scan-action@b70e3dd11868f2baf8ba22cb1adcf5267618e415
         with:
-          image: ghcr.io/${{ github.repository }}:sha-${{ github.sha::7 }}-${{ matrix.arch }}
+          image: ghcr.io/${{ github.repository }}:sha-${{ github.sha }}-${{ matrix.arch }}
           fail-build: false
           severity-cutoff: critical
 
