@@ -114,6 +114,7 @@ pub async fn run(
 
         if force_reload {
             current = config.borrow_and_update().clone();
+            pool.set_max_idle_per_backend(current.runtime.stream_upstream_pool_size);
         }
 
         let (desired, version) = {

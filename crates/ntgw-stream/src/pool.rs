@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use std::sync::OnceLock;
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use std::time::{Duration, Instant};
 
 use dashmap::DashMap;
@@ -31,7 +31,7 @@ pub struct PoolCountersSnapshot {
 
 pub(crate) struct TcpConnectionPool {
     idle: Arc<DashMap<PoolKey, Vec<IdleConnection>>>,
-    pub(super) max_idle_per_backend: usize,
+    pub(super) max_idle_per_backend: AtomicUsize,
     idle_timeout: Duration,
     /// Cumulative pool-level counters (best-effort, relaxed ordering).
     active_connections: AtomicU64,
@@ -51,7 +51,7 @@ impl TcpConnectionPool {
         let max_idle_per_backend = max_idle_per_backend.clamp(0, MAX_CONNECTION_COUNT);
         Self {
             idle: Arc::new(DashMap::new()),
-            max_idle_per_backend,
+            max_idle_per_backend: AtomicUsize::new(max_idle_per_backend),
             idle_timeout,
             active_connections: AtomicU64::new(0),
             idle_connections: AtomicU64::new(0),
@@ -62,7 +62,15 @@ impl TcpConnectionPool {
     }
 
     pub(crate) fn is_enabled(&self) -> bool {
-        self.max_idle_per_backend > 0
+        self.max_idle_per_backend.load(Ordering::Relaxed) > 0
+    }
+
+    pub(crate) fn set_max_idle_per_backend(&self, size: usize) {
+        let clamped = size.clamp(0, MAX_CONNECTION_COUNT);
+        let old = self.max_idle_per_backend.swap(clamped, Ordering::Relaxed);
+        if old != clamped {
+            debug!(old, new = clamped, "pool max_idle_per_backend updated");
+        }
     }
 
     pub(crate) async fn get_connection(
@@ -148,7 +156,7 @@ impl TcpConnectionPool {
         let key = (addr, port);
         let mut entry = self.idle.entry(key).or_default();
 
-        if entry.len() >= self.max_idle_per_backend {
+        if entry.len() >= self.max_idle_per_backend.load(Ordering::Relaxed) {
             debug!(
                 backend.addr = backend_addr,
                 backend.port = port,
@@ -184,7 +192,9 @@ impl TcpConnectionPool {
 
         let available = {
             let entry = self.idle.entry(key.clone()).or_default();
-            self.max_idle_per_backend.saturating_sub(entry.len())
+            self.max_idle_per_backend
+                .load(Ordering::Relaxed)
+                .saturating_sub(entry.len())
         };
 
         let effective = count.min(available);
@@ -236,11 +246,11 @@ impl TcpConnectionPool {
     #[allow(dead_code)]
     pub(crate) fn warn_if_undersized(&self) {
         let peak = self.peak_active_connections.load(Ordering::Relaxed);
-        if peak > self.max_idle_per_backend as u64 {
+        let max_idle = self.max_idle_per_backend.load(Ordering::Relaxed) as u64;
+        if peak > max_idle {
             warn!(
                 peak_active = peak,
-                max_idle = self.max_idle_per_backend,
-                "pool may be undersized: peak active connections exceeds max_idle"
+                max_idle, "pool may be undersized: peak active connections exceeds max_idle"
             );
         }
     }
@@ -411,5 +421,49 @@ mod tests {
             let _ = snap;
         });
         handle.await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn dynamic_resize_respects_new_limit() {
+        let (ip, port) = echo_server().await;
+        let pool = TcpConnectionPool::new(5, Duration::from_secs(30));
+
+        let (conn1, _) = pool.get_connection(ip.clone(), port).await;
+        assert!(conn1.is_ok());
+
+        pool.return_connection(ip.clone(), port, conn1.unwrap());
+        assert_eq!(
+            pool.idle_count(&ip, port),
+            1,
+            "pool should have 1 idle after first return"
+        );
+
+        pool.set_max_idle_per_backend(0);
+        assert!(!pool.is_enabled(), "pool should be disabled when size is 0");
+
+        let (conn2, _) = pool.get_connection(ip.clone(), port).await;
+        assert!(conn2.is_ok());
+
+        pool.return_connection(ip.clone(), port, conn2.unwrap());
+        assert_eq!(
+            pool.idle_count(&ip, port),
+            1,
+            "disabled pool drops returned connections, idle stays at 1"
+        );
+
+        pool.set_max_idle_per_backend(1);
+        assert!(
+            pool.is_enabled(),
+            "pool should be enabled after increasing size"
+        );
+
+        let (conn3, _) = pool.get_connection(ip.clone(), port).await;
+        assert!(conn3.is_ok());
+        pool.return_connection(ip.clone(), port, conn3.unwrap());
+        assert_eq!(
+            pool.idle_count(&ip, port),
+            1,
+            "pool respects new limit of 1"
+        );
     }
 }
