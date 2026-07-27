@@ -23,6 +23,7 @@ use ntgw_proto::gateway::control::v1::{
     ConfigSnapshot, configuration_discovery_service_client::ConfigurationDiscoveryServiceClient,
 };
 
+mod delta;
 pub mod bench;
 mod features;
 mod reconnect;
