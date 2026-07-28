@@ -2345,6 +2345,8 @@ dependencies = [
  "ntgw-proto",
  "opentelemetry",
  "opentelemetry_sdk",
+ "prost",
+ "prost-types",
  "rustls",
  "serde",
  "tokio",
