@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
 use std::collections::HashMap;
 
 use anyhow::{Context, Result};
@@ -8,7 +10,7 @@ use tonic::transport::Channel;
 use tracing::{debug, info, warn};
 
 use ntgw_proto::gateway::control::v1::{
-    ConfigSnapshot, DeltaDiscoveryRequest, DeltaDiscoveryResponse, DiscoveryResultStatus,
+    ConfigSnapshot, DeltaDiscoveryRequest, DiscoveryResultStatus,
     delta_discovery_service_client::DeltaDiscoveryServiceClient,
 };
 
