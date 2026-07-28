@@ -159,13 +159,16 @@ Use two distinct suffixes for configuration structs depending on where they are 
 - **prometheus 0.13** is pinned (not workspace-managed) in `ntgw-http` and `ntgw-ai`. Upstream `pingora-core 0.8.0` pulls `prometheus 0.13.x` → `protobuf 2.x`. Tracked as `RUSTSEC-2024-0437` in `deny.toml` — the dataplane only exports Prometheus text format, no attacker-supplied protobuf parsing.
 - **camelCase YAML convention gap (P1)** — Dataplane config structs use `#[serde(rename_all = "camelCase")]`, meaning YAML keys are camelCase while Rust fields are snake_case. This is non-idiomatic for YAML configs (industry standard is snake_case). See [Config Naming Convention Gap](#config-naming-convention-gap) below for full audit and migration plan.
 - **Session persistence secret (P2)** — The default config (`SessionPersistenceConfig`) has empty `secret_key` and `secret_key_file` fields. Without configuring a shared secret, the dataplane auto-generates a key at startup and logs: `"session persistence using auto-generated key; configure sharedSecret or sharedSecretFile for multi-replica deployments"`. Impact: (1) single-instance restarts lose all active sessions, and (2) replicas cannot share session state. For multi-replica deployments, this is a **required** configuration item. The Helm chart provides `sessionPersistence.existingSecret` and `sessionPersistence.sharedSecret` in `values.yaml` to wire a pre-shared key.
-- **Large files (P2)** — 4 files exceed the 250 LOC soft cap after progressive splitting (2026-07-19).
-  Remaining oversize files (pre-approved as "split to the point of diminishing returns"):
-  - `ntgw-ir/src/snapshot/mod.rs` (492 LOC) — core `select_*` routing methods; tightly coupled
-  - `ntgw-ir/src/snapshot/backend_resolution.rs` (1063 LOC) — pending future split
-  - `ntgw-http/src/proxy/mod.rs` (729 LOC) — `ProxyHttp` trait implementation; lifecycle hooks form a single integrated unit
-  - `ntgw-http/src/runtime/plan.rs` (309 LOC) — listener plan builder pipeline
-  Previously split: `proxy/filters.rs`, `snapshot.rs`, `runtime.rs`, `server.rs`, `proxy.rs` (15 new sub-files total).
+- **Large files (P2)** — 250 LOC soft cap is aspirational. After progressive splitting (2026-07-27), the following remain above 500 LOC as "split to the point of diminishing returns":
+  - `ntgw-ir/src/lib.rs` (1103 LOC) — public type definitions; splitting would break workspace-wide API
+  - `ntgw-ir/src/snapshot/backend_resolution/mod.rs` (854 LOC) — already modularized; mod.rs re-exports
+  - `ntgw-http/src/proxy/filters/mod.rs` (838 LOC) — `do_request_filter` pipeline; tightly cohesive
+  - `ntgw-http/src/proxy/mod.rs` (726 LOC) — `ProxyHttp` trait impl; lifecycle hooks form single unit
+  - `ntgw-http/src/proxy/logging/mod.rs` (664 LOC) — bulk is `#[cfg(test)]` module
+  - `ntgw-http/src/proxy/context.rs` (637 LOC) — request context lifecycle
+  - `ntgw-ai/src/observability/langfuse.rs` (839 LOC) — single-concern Langfuse integration
+  - `ntgw-stream/src/tcp.rs` (632 LOC) — TCP proxy handling
+  Previously split (2026-07-27): `proxy/request.rs` (859→9 files), `proxy/logging.rs` (884→5 files).
 
 ## Config Naming Convention Gap
 
