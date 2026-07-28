@@ -3,8 +3,8 @@ use std::collections::BTreeMap;
 use pingora::http::RequestHeader;
 
 use super::extract::{
-    grpc_content_type_headers, request_content_length_from_header, request_header_bytes_from_header,
-    request_host_value, request_id_from_header, request_headers,
+    grpc_content_type_headers, request_content_length_from_header,
+    request_header_bytes_from_header, request_headers, request_host_value, request_id_from_header,
 };
 
 pub(crate) struct RequestView<'a> {

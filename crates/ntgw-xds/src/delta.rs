@@ -2,16 +2,14 @@ use std::collections::HashMap;
 
 use anyhow::{Context, Result};
 use prost::Message;
-use tokio::sync::{watch, mpsc};
+use tokio::sync::{mpsc, watch};
 use tokio_stream::wrappers::ReceiverStream;
 use tonic::transport::Channel;
 use tracing::{debug, info, warn};
 
 use ntgw_proto::gateway::control::v1::{
-    ConfigSnapshot,
+    ConfigSnapshot, DeltaDiscoveryRequest, DeltaDiscoveryResponse, DiscoveryResultStatus,
     delta_discovery_service_client::DeltaDiscoveryServiceClient,
-    DeltaDiscoveryRequest, DeltaDiscoveryResponse,
-    DiscoveryResultStatus,
 };
 
 use crate::features::supported_features;
@@ -43,7 +41,9 @@ pub async fn delta_connect_loop(
         resource_names_subscribe: subs.clone(),
         supported_features: supported.clone(),
         ..Default::default()
-    }).await.context("send initial delta request")?;
+    })
+    .await
+    .context("send initial delta request")?;
 
     let response = client
         .delta_stream_configuration(ReceiverStream::new(rx))
@@ -51,7 +51,10 @@ pub async fn delta_connect_loop(
         .context("open delta stream")?;
 
     let mut stream = response.into_inner();
-    info!("delta xDS stream established, subscribing to {} types", SUBSCRIPTIONS.len());
+    info!(
+        "delta xDS stream established, subscribing to {} types",
+        SUBSCRIPTIONS.len()
+    );
 
     let mut cached = ConfigSnapshot::default();
     let mut seen_types: HashMap<String, bool> = HashMap::with_capacity(SUBSCRIPTION_COUNT);
@@ -105,27 +108,43 @@ pub async fn delta_connect_loop(
                 result_status: DiscoveryResultStatus::Ack as i32,
                 supported_features: supported.clone(),
                 ..Default::default()
-            }).await.context("send delta ack")?;
+            })
+            .await
+            .context("send delta ack")?;
         }
     }
 }
 
 fn clear_type(snap: &mut ConfigSnapshot, type_url: &str) {
-    if type_url.contains("Listener") { snap.listeners.clear(); }
-    else if type_url.contains("HttpRoute") { snap.http_routes.clear(); }
-    else if type_url.contains("GrpcRoute") { snap.grpc_routes.clear(); }
-    else if type_url.contains("StreamRoute") { snap.stream_routes.clear(); }
-    else if type_url.contains("BackendCluster") { snap.backends.clear(); }
-    else if type_url.contains("SecretMaterial") { snap.secrets.clear(); }
+    if type_url.contains("Listener") {
+        snap.listeners.clear();
+    } else if type_url.contains("HttpRoute") {
+        snap.http_routes.clear();
+    } else if type_url.contains("GrpcRoute") {
+        snap.grpc_routes.clear();
+    } else if type_url.contains("StreamRoute") {
+        snap.stream_routes.clear();
+    } else if type_url.contains("BackendCluster") {
+        snap.backends.clear();
+    } else if type_url.contains("SecretMaterial") {
+        snap.secrets.clear();
+    }
 }
 
 fn remove_resource(snap: &mut ConfigSnapshot, type_url: &str, name: &str) {
-    if type_url.contains("Listener") { snap.listeners.retain(|l| l.name != name); }
-    else if type_url.contains("HttpRoute") { snap.http_routes.retain(|r| r.name != name); }
-    else if type_url.contains("GrpcRoute") { snap.grpc_routes.retain(|r| r.name != name); }
-    else if type_url.contains("StreamRoute") { snap.stream_routes.retain(|r| r.name != name); }
-    else if type_url.contains("BackendCluster") { snap.backends.retain(|b| b.name != name); }
-    else if type_url.contains("SecretMaterial") { snap.secrets.retain(|s| s.name != name); }
+    if type_url.contains("Listener") {
+        snap.listeners.retain(|l| l.name != name);
+    } else if type_url.contains("HttpRoute") {
+        snap.http_routes.retain(|r| r.name != name);
+    } else if type_url.contains("GrpcRoute") {
+        snap.grpc_routes.retain(|r| r.name != name);
+    } else if type_url.contains("StreamRoute") {
+        snap.stream_routes.retain(|r| r.name != name);
+    } else if type_url.contains("BackendCluster") {
+        snap.backends.retain(|b| b.name != name);
+    } else if type_url.contains("SecretMaterial") {
+        snap.secrets.retain(|s| s.name != name);
+    }
 }
 
 fn upsert_resource(
@@ -135,7 +154,7 @@ fn upsert_resource(
     resource: &ntgw_proto::gateway::control::v1::Resource,
 ) -> Result<()> {
     use ntgw_proto::gateway::control::v1::{
-        Listener, HttpRoute, GrpcRoute, StreamRoute, BackendCluster, SecretMaterial,
+        BackendCluster, GrpcRoute, HttpRoute, Listener, SecretMaterial, StreamRoute,
     };
 
     let Some(any) = resource.resource.as_ref() else {
@@ -145,22 +164,28 @@ fn upsert_resource(
 
     if type_url.contains("Listener") {
         snap.listeners.retain(|l| l.name != name);
-        snap.listeners.push(Listener::decode(bytes).context("decode Listener")?);
+        snap.listeners
+            .push(Listener::decode(bytes).context("decode Listener")?);
     } else if type_url.contains("HttpRoute") {
         snap.http_routes.retain(|rt| rt.name != name);
-        snap.http_routes.push(HttpRoute::decode(bytes).context("decode HttpRoute")?);
+        snap.http_routes
+            .push(HttpRoute::decode(bytes).context("decode HttpRoute")?);
     } else if type_url.contains("GrpcRoute") {
         snap.grpc_routes.retain(|rt| rt.name != name);
-        snap.grpc_routes.push(GrpcRoute::decode(bytes).context("decode GrpcRoute")?);
+        snap.grpc_routes
+            .push(GrpcRoute::decode(bytes).context("decode GrpcRoute")?);
     } else if type_url.contains("StreamRoute") {
         snap.stream_routes.retain(|rt| rt.name != name);
-        snap.stream_routes.push(StreamRoute::decode(bytes).context("decode StreamRoute")?);
+        snap.stream_routes
+            .push(StreamRoute::decode(bytes).context("decode StreamRoute")?);
     } else if type_url.contains("BackendCluster") {
         snap.backends.retain(|b| b.name != name);
-        snap.backends.push(BackendCluster::decode(bytes).context("decode BackendCluster")?);
+        snap.backends
+            .push(BackendCluster::decode(bytes).context("decode BackendCluster")?);
     } else if type_url.contains("SecretMaterial") {
         snap.secrets.retain(|s| s.name != name);
-        snap.secrets.push(SecretMaterial::decode(bytes).context("decode SecretMaterial")?);
+        snap.secrets
+            .push(SecretMaterial::decode(bytes).context("decode SecretMaterial")?);
     } else {
         warn!("unknown delta type_url: {}", type_url);
     }

@@ -1,7 +1,7 @@
-mod types;
+mod completion;
 mod helpers;
 mod route_labels;
-mod completion;
+mod types;
 
 pub(crate) use completion::observe_completed_request;
 
@@ -10,13 +10,13 @@ pub(crate) use completion::observe_completed_request;
 #[allow(unused_imports)]
 pub(crate) use super::request::access_log_route_annotations;
 #[allow(unused_imports)]
-pub(crate) use types::RequestRouteLabels;
+pub(crate) use completion::access_log_sample_key;
 #[allow(unused_imports)]
 pub(crate) use helpers::{build_request_line, extract_request_header};
 #[allow(unused_imports)]
 pub(crate) use route_labels::request_route_labels;
 #[allow(unused_imports)]
-pub(crate) use completion::access_log_sample_key;
+pub(crate) use types::RequestRouteLabels;
 
 #[cfg(test)]
 mod tests {
@@ -35,7 +35,7 @@ mod tests {
         HttpRule, Listener, RequestMeta, RouteKind, SelectedBackend, SelectedBackendRuntimeIds,
         Snapshot,
     };
-    use ntgw_observability::{shutdown_access_log_writer, AccessLogOptions, SharedTrafficStats};
+    use ntgw_observability::{AccessLogOptions, SharedTrafficStats, shutdown_access_log_writer};
 
     use super::super::context::RequestContext;
     use super::*;

@@ -26,11 +26,10 @@ pub(crate) use self::meta::{
     fast_path_request_from_header,
 };
 pub(crate) use self::tracing::{
-    inject_request_span_context, record_request_span, server_port,
-    start_request_span_from_header, start_request_span_from_header_if_enabled,
-    start_request_span_if_enabled,
+    inject_request_span_context, record_request_span, server_port, start_request_span_from_header,
+    start_request_span_from_header_if_enabled, start_request_span_if_enabled,
 };
-pub(crate) use self::view::{request_header_bytes_for_limit, RequestView};
+pub(crate) use self::view::{RequestView, request_header_bytes_for_limit};
 
 // Re-export items only used by test code.
 #[cfg(test)]
@@ -39,12 +38,14 @@ pub(crate) use self::cache::{
     cache_access_log_request_headers_if_needed,
 };
 #[cfg(test)]
-pub(crate) use self::context::{capture_request_context_from_view_for_features, effective_http_protocol};
+pub(crate) use self::context::{
+    capture_request_context_from_view_for_features, effective_http_protocol,
+};
 #[cfg(test)]
 pub(crate) use self::extract::{normalize_ip, request_id_from_headers};
 #[cfg(test)]
-pub(crate) use self::meta::build_selection_request_meta_from_header_with_port;
-#[cfg(test)]
 pub(crate) use self::meta::build_request_meta_from_header;
+#[cfg(test)]
+pub(crate) use self::meta::build_selection_request_meta_from_header_with_port;
 #[cfg(test)]
 pub(crate) use self::tracing::start_request_span;

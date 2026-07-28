@@ -43,7 +43,10 @@ pub(crate) fn start_request_span_from_header_if_enabled(
     }
 }
 
-fn start_request_span_with_extractor(ctx: &mut RequestContext, extractor: &dyn opentelemetry::propagation::Extractor) {
+fn start_request_span_with_extractor(
+    ctx: &mut RequestContext,
+    extractor: &dyn opentelemetry::propagation::Extractor,
+) {
     let span = tracing::info_span!(
         "gateway.request",
         otel.kind = "server",

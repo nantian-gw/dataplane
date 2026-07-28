@@ -1,7 +1,4 @@
-use std::{
-    collections::BTreeMap,
-    net::IpAddr,
-};
+use std::{collections::BTreeMap, net::IpAddr};
 
 use http::header::CONTENT_TYPE;
 use pingora::http::RequestHeader;
