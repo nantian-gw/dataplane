@@ -45,9 +45,9 @@ jobs:
         uses: github/codeql-action/init@8aad20d150bbac5944a9f9d289da16a4b0d87c1e
         with:
           languages: rust
-          build-mode: manual
+          build-mode: none
 
-      - name: Build
+      - name: Build for CodeQL
         run: cargo build --workspace
 
       - name: Perform CodeQL Analysis
