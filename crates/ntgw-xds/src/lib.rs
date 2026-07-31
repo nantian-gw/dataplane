@@ -1,10 +1,11 @@
 #![forbid(unsafe_code)]
 
+mod error;
+
 use std::sync::Arc;
 use std::time::Duration;
 use std::time::Instant;
 
-use anyhow::Result;
 use tokio::{
     sync::{mpsc, watch},
     time::sleep,
@@ -63,6 +64,7 @@ fn preflight_rejection_keeps_last_good_snapshot() {
     tests::run_exact_preflight_rejection_keeps_last_good_snapshot();
 }
 
+pub use error::XdsError;
 pub use reconnect::ReconnectBackoff;
 pub(crate) use reconnect::{
     log_duplicate_snapshot_skipped, log_heartbeat_report_failure, log_stream_failure_retry,
@@ -89,7 +91,7 @@ const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(10);
 
 struct StreamRunResult {
     established: bool,
-    result: Result<()>,
+    result: Result<(), XdsError>,
 }
 
 #[derive(Clone)]
@@ -123,7 +125,7 @@ impl<'a> Extractor for TraceparentCarrier<'a> {
 
 pub async fn connect_delta_channel(
     options: ConnectOptions,
-) -> Result<DeltaDiscoveryServiceClient<Channel>> {
+) -> Result<DeltaDiscoveryServiceClient<Channel>, XdsError> {
     tls::ensure_rustls_provider();
     let endpoint = normalize_endpoint(&options.endpoint, options.tls.is_some())?;
     let mut endpoint = Endpoint::from_shared(endpoint)?;
@@ -144,7 +146,7 @@ pub struct ControlPlaneClient {
 }
 
 impl ControlPlaneClient {
-    pub async fn connect(options: ConnectOptions) -> Result<Self> {
+    pub async fn connect(options: ConnectOptions) -> Result<Self, XdsError> {
         tls::ensure_rustls_provider();
         let endpoint = normalize_endpoint(&options.endpoint, options.tls.is_some())?;
         let mut endpoint = Endpoint::from_shared(endpoint)?;
@@ -163,7 +165,7 @@ impl ControlPlaneClient {
         })
     }
 
-    pub async fn run(mut self, mut args: ControlPlaneRunArgs) -> Result<()> {
+    pub async fn run(mut self, mut args: ControlPlaneRunArgs) -> Result<(), XdsError> {
         let mut reconnect_backoff = ReconnectBackoff::new(&self.transport);
         loop {
             if *args.shutdown.borrow() {
@@ -385,7 +387,7 @@ impl ControlPlaneClient {
                             .await?;
                         version
                     };
-                    let _ = version;
+                    tracing::debug!(%version, "xDS snapshot version assigned");
                 }
             }
             Ok(())
@@ -393,7 +395,9 @@ impl ControlPlaneClient {
         .await;
         stats.observe_stream_disconnected();
         heartbeat.abort();
-        let _ = heartbeat.await;
+        if let Err(e) = heartbeat.await {
+            tracing::debug!(error = %e, "xDS heartbeat task error");
+        }
 
         StreamRunResult {
             established: true,

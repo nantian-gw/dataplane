@@ -48,7 +48,7 @@ async fn returns_error_when_no_stream_route_matches() -> Result<()> {
         .expect_err("handle_connection should fail without a matching route");
     assert_eq!(
         err.to_string(),
-        "no stream route matched listener default/gw/tcp"
+        "stream dispatch error: no stream route matched listener default/gw/tcp"
     );
     Ok(())
 }

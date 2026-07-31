@@ -6,6 +6,7 @@ license.workspace = true
 
 [dependencies]
 anyhow.workspace = true
+thiserror.workspace = true
 async-trait.workspace = true
 parking_lot.workspace = true
 tokio.workspace = true

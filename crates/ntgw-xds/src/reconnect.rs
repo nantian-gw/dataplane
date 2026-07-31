@@ -3,6 +3,7 @@ use std::time::Duration;
 use tracing::{debug, warn};
 
 use crate::TransportOptions;
+use crate::error::XdsError;
 
 #[derive(Debug, Clone)]
 pub struct ReconnectBackoff {
@@ -49,7 +50,7 @@ pub(crate) fn log_duplicate_snapshot_skipped(version: &str) {
     debug!(version = %version, "skipped duplicate snapshot");
 }
 
-pub(crate) fn log_stream_failure_retry(error: &anyhow::Error, delay: Duration) {
+pub(crate) fn log_stream_failure_retry(error: &XdsError, delay: Duration) {
     if is_expected_stream_reconnect_error(error) {
         debug!(
             error = %error,
@@ -97,11 +98,23 @@ fn duration_millis(duration: Duration) -> u64 {
     duration.as_millis().try_into().unwrap_or(u64::MAX)
 }
 
-fn is_expected_stream_reconnect_error(error: &anyhow::Error) -> bool {
-    error
-        .downcast_ref::<tonic::Status>()
-        .is_some_and(is_expected_heartbeat_error)
+fn is_expected_stream_reconnect_error(error: &XdsError) -> bool {
+    is_source_expected_heartbeat_error(error)
         || looks_like_expected_transport_close(error.to_string().as_str())
+}
+
+fn is_source_expected_heartbeat_error(err: &(dyn std::error::Error + 'static)) -> bool {
+    if let Some(status) = err.downcast_ref::<tonic::Status>() {
+        return is_expected_heartbeat_error(status);
+    }
+    let mut source = err.source();
+    while let Some(src) = source {
+        if let Some(status) = src.downcast_ref::<tonic::Status>() {
+            return is_expected_heartbeat_error(status);
+        }
+        source = src.source();
+    }
+    false
 }
 
 fn is_expected_heartbeat_error(error: &tonic::Status) -> bool {

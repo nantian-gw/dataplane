@@ -2,6 +2,7 @@
 
 mod access_log;
 pub mod bench;
+mod error;
 mod listener_plan;
 pub mod pool;
 mod sni;
@@ -11,10 +12,11 @@ mod tests;
 mod traffic;
 mod udp;
 
+pub use error::StreamError;
+
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 use std::sync::Arc;
 
-use anyhow::Result;
 use tokio::{
     sync::watch,
     task::JoinHandle,
@@ -96,7 +98,7 @@ pub async fn run(
     udp_sessions: SharedUdpSessionStats,
     overload: SharedOverloadStats,
     mut shutdown: watch::Receiver<bool>,
-) -> Result<()> {
+) -> Result<(), StreamError> {
     let mut active = ListenerSet::default();
     let mut subscription = updates.subscribe();
     let mut current = config.borrow().clone();
@@ -366,7 +368,7 @@ async fn spawn_listener_task(
     tcp_session_idle_timeout: Option<Duration>,
     tcp_max_connection_age: Option<Duration>,
     pool: Arc<TcpConnectionPool>,
-) -> Result<ListenerTask> {
+) -> Result<ListenerTask, StreamError> {
     let protocol = listener.protocol;
     let task_listener = listener.clone();
     let (shutdown, receiver) = watch::channel(false);

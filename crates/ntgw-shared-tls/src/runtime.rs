@@ -31,6 +31,7 @@ use tracing::{error, info, warn};
 
 use crate::{
     RuntimeOptions,
+    SharedTlsError,
     dispatch::{proxy_passthrough, proxy_terminated_stream},
     listener_plan::{ListenerPlan, PlannedSharedTlsBind, build_listener_plan},
     preface::peek_client_hello,

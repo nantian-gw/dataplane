@@ -11,7 +11,7 @@ pub async fn run(
     retry_budget: Arc<RwLock<RetryBudgetController>>,
     stage_recorder: Option<SharedApplyStageRecorder>,
     mut shutdown: watch::Receiver<bool>,
-) -> Result<()> {
+) -> Result<(), SharedTlsError> {
     let mut active = SharedTlsBindSet::default();
     let mut subscription = updates.subscribe();
     let mut current = config.borrow().clone();

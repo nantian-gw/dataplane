@@ -2,7 +2,8 @@ use std::borrow::Cow;
 use std::io;
 use std::sync::Arc;
 
-use anyhow::{Result, anyhow};
+use anyhow::anyhow;
+use anyhow::Result as AnyhowResult;
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::tcp::OwnedReadHalf,
@@ -20,6 +21,7 @@ use ntgw_observability::{
 };
 
 use crate::{
+    StreamError,
     access_log::stream_access_log_state,
     normalize_tcp_proxy_buffer_bytes,
     pool::TcpConnectionPool,
@@ -31,8 +33,8 @@ const TLS_PREFACE_LIMIT: usize = 4096;
 const TLS_PREFACE_READ_TIMEOUT: Duration = Duration::from_secs(1);
 const TLS_PREFACE_READ_CHUNK: usize = 1024;
 
-pub async fn bind(bind_addr: &str) -> Result<TcpListener> {
-    TcpListener::bind(bind_addr).await.map_err(Into::into)
+pub async fn bind(bind_addr: &str) -> Result<TcpListener, StreamError> {
+    TcpListener::bind(bind_addr).await.map_err(StreamError::TcpConnection)
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -50,7 +52,7 @@ pub async fn run_with_listener(
     idle_timeout: Option<Duration>,
     max_connection_age: Option<Duration>,
     pool: Arc<TcpConnectionPool>,
-) -> Result<()> {
+) -> Result<(), StreamError> {
     info!(
         listener = %listener_name,
         bind = %bind_addr,
@@ -76,7 +78,9 @@ pub async fn run_with_listener(
                                     "stream tcp connection rejected due to overload"
                                 );
                                 let mut downstream = downstream;
-                                let _ = downstream.shutdown().await;
+                                if let Err(e) = downstream.shutdown().await {
+                                    tracing::debug!(error = %e, "tcp shutdown");
+                                }
                                 continue;
                             }
                         };
@@ -121,7 +125,7 @@ async fn handle_connection(
     idle_timeout: Option<Duration>,
     max_connection_age: Option<Duration>,
     pool: Arc<TcpConnectionPool>,
-) -> Result<()> {
+) -> Result<(), StreamError> {
     let span = info_span!(
         "tcp_connection",
         %listener_name,
@@ -143,7 +147,7 @@ async fn handle_connection(
         let current = snapshot.load();
         let selected = current
             .select_stream_backend(&listener_name, server_name.as_deref())
-            .ok_or_else(|| anyhow!("no stream route matched listener {listener_name}"))?;
+            .ok_or_else(|| StreamError::Dispatch(anyhow!("no stream route matched listener {listener_name}")))?;
         let runtime_ids = current.selected_backend_runtime_ids(&selected);
         let access_log_state = stream_access_log_state(&access_log, &selected, current.id.as_str());
         (access_log_state, selected, runtime_ids)
@@ -442,7 +446,9 @@ async fn proxy_stream_connection(
                 if let Err(err) = upstream_write.write_all(&downstream_buf[..read]).await {
                     if is_tcp_connection_closed(&err) {
                         outcome.response_flags = "UC";
-                        let _ = downstream_write.shutdown().await;
+                        if let Err(e) = downstream_write.shutdown().await {
+                            tracing::debug!(error = %e, "tcp shutdown");
+                        }
                         should_break = true;
                     } else {
                         outcome.response_flags = "UE";
@@ -456,7 +462,9 @@ async fn proxy_stream_connection(
                 if let Err(err) = downstream_write.write_all(&upstream_buf[..read]).await {
                     if is_tcp_connection_closed(&err) {
                         outcome.response_flags = "DC";
-                        let _ = upstream_write.shutdown().await;
+                        if let Err(e) = upstream_write.shutdown().await {
+                            tracing::debug!(error = %e, "tcp shutdown");
+                        }
                         should_break = true;
                     } else {
                         outcome.response_flags = "DE";
@@ -468,32 +476,48 @@ async fn proxy_stream_connection(
             }
             ProxyEvent::DownstreamClosed => {
                 downstream_open = false;
-                let _ = upstream_write.shutdown().await;
+                if let Err(e) = upstream_write.shutdown().await {
+                    tracing::debug!(error = %e, "tcp shutdown");
+                }
             }
             ProxyEvent::UpstreamClosed => {
                 upstream_open = false;
-                let _ = downstream_write.shutdown().await;
+                if let Err(e) = downstream_write.shutdown().await {
+                    tracing::debug!(error = %e, "tcp shutdown");
+                }
             }
             ProxyEvent::DownstreamReset => {
                 outcome.response_flags = "DC";
-                let _ = upstream_write.shutdown().await;
+                if let Err(e) = upstream_write.shutdown().await {
+                    tracing::debug!(error = %e, "tcp shutdown");
+                }
                 should_break = true;
             }
             ProxyEvent::UpstreamReset => {
                 outcome.response_flags = "UC";
-                let _ = downstream_write.shutdown().await;
+                if let Err(e) = downstream_write.shutdown().await {
+                    tracing::debug!(error = %e, "tcp shutdown");
+                }
                 should_break = true;
             }
             ProxyEvent::IdleTimeout => {
                 outcome.response_flags = "IT";
-                let _ = downstream_write.shutdown().await;
-                let _ = upstream_write.shutdown().await;
+                if let Err(e) = downstream_write.shutdown().await {
+                    tracing::debug!(error = %e, "tcp shutdown");
+                }
+                if let Err(e) = upstream_write.shutdown().await {
+                    tracing::debug!(error = %e, "tcp shutdown");
+                }
                 should_break = true;
             }
             ProxyEvent::MaxConnectionAgeReached => {
                 outcome.response_flags = "MC";
-                let _ = downstream_write.shutdown().await;
-                let _ = upstream_write.shutdown().await;
+                if let Err(e) = downstream_write.shutdown().await {
+                    tracing::debug!(error = %e, "tcp shutdown");
+                }
+                if let Err(e) = upstream_write.shutdown().await {
+                    tracing::debug!(error = %e, "tcp shutdown");
+                }
                 should_break = true;
             }
         }
@@ -529,7 +553,7 @@ async fn next_proxy_event(
     upstream_open: bool,
     idle_timeout: Option<Duration>,
     max_age_deadline: Option<TokioInstant>,
-) -> Result<ProxyEvent> {
+) -> AnyhowResult<ProxyEvent> {
     let next_read = async {
         tokio::select! {
             read = downstream.read(downstream_buf), if downstream_open => {
@@ -591,7 +615,7 @@ fn is_tcp_connection_closed(err: &io::Error) -> bool {
     )
 }
 
-async fn read_preface(stream: &mut TcpStream) -> Result<Vec<u8>> {
+async fn read_preface(stream: &mut TcpStream) -> Result<Vec<u8>, StreamError> {
     let mut buf = Vec::with_capacity(TLS_PREFACE_READ_CHUNK);
 
     loop {
@@ -603,7 +627,7 @@ async fn read_preface(stream: &mut TcpStream) -> Result<Vec<u8>> {
         let read = match timeout(TLS_PREFACE_READ_TIMEOUT, stream.read(&mut chunk)).await {
             Ok(Ok(read)) => read,
             Ok(Err(err)) => return Err(err.into()),
-            Err(_) => return Err(anyhow!("timed out reading client preface")),
+            Err(_) => return Err(StreamError::Dispatch(anyhow!("timed out reading client preface"))),
         };
         if read == 0 {
             break;
@@ -620,7 +644,7 @@ async fn read_preface(stream: &mut TcpStream) -> Result<Vec<u8>> {
     }
 
     if buf.is_empty() {
-        return Err(anyhow!("connection closed before client preface"));
+        return Err(StreamError::Dispatch(anyhow!("connection closed before client preface")));
     }
 
     Ok(buf)

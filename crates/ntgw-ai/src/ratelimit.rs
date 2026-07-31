@@ -44,8 +44,6 @@ struct SlidingWindow {
     minute_limit: u64,
     hour_limit: u64,
     minute_req_limit: u64,
-    #[allow(dead_code)]
-    burst_factor: f64,
 }
 
 impl SlidingWindow {
@@ -61,7 +59,6 @@ impl SlidingWindow {
             minute_limit: (config.tokens_per_minute as f64 * burst) as u64,
             hour_limit: (config.tokens_per_hour as f64 * burst) as u64,
             minute_req_limit: (config.requests_per_minute as f64 * burst) as u64,
-            burst_factor: burst,
         }
     }
 

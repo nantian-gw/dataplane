@@ -18,7 +18,7 @@ pub(crate) async fn handle_connection(
     http_app: AcceptedHttpApp,
     shutdown: watch::Receiver<bool>,
     _config: ConnectionConfig,
-) -> Result<()> {
+) -> Result<(), SharedTlsError> {
     let downstream_socket_digest = socket_digest_from_tcp_stream(&downstream);
     let mut downstream = L4Stream::from(downstream);
     downstream.set_socket_digest(downstream_socket_digest);
@@ -55,20 +55,20 @@ pub(crate) async fn handle_connection(
     let terminate = bind
         .terminate
         .as_ref()
-        .ok_or_else(|| anyhow!("no terminate surface for bind {}", bind.bind))?;
+        .ok_or_else(|| SharedTlsError::Bind(anyhow!("no terminate surface for bind {}", bind.bind)))?;
     if bind.passthrough.is_some() && !terminate_match.as_ref().is_some_and(|item| item.has_route) {
-        return Err(anyhow!(
+        return Err(SharedTlsError::Handshake(anyhow!(
             "no shared tls listener route matched SNI {} on bind {}",
             server_name.unwrap_or_default(),
             bind.bind
-        ));
+        )));
     }
     if bind.passthrough.is_none() && terminate_match.is_none() {
-        return Err(anyhow!(
+        return Err(SharedTlsError::Handshake(anyhow!(
             "no terminate listener matched SNI {} on bind {}",
             server_name.unwrap_or_default(),
             bind.bind
-        ));
+        )));
     }
     let tls_stream = terminate_tls(downstream, terminate).await?;
     if let Some(listener_match) = terminate_match.as_ref()
@@ -85,7 +85,9 @@ pub(crate) async fn handle_connection(
             )
             .await;
         }
-    process_accepted_stream(http_app, Box::new(tls_stream), shutdown).await
+    process_accepted_stream(http_app, Box::new(tls_stream), shutdown)
+        .await
+        .map_err(Into::into)
 }
 
 #[cfg(unix)]
@@ -277,7 +279,7 @@ async fn spawn_bind_task(
     snapshot: SharedSnapshot,
     http_app: AcceptedHttpApp,
     shutdown: watch::Receiver<bool>,
-) -> Result<SharedTlsBindTask> {
+) -> Result<SharedTlsBindTask, SharedTlsError> {
     let listener = bind_tcp_listener(&bind.bind).await?;
     let bind_addr = bind.bind.clone();
     let bind_plan = bind.clone();
@@ -328,11 +330,11 @@ async fn spawn_bind_task(
     })
 }
 
-async fn bind_tcp_listener(bind: &str) -> Result<TcpListener> {
+async fn bind_tcp_listener(bind: &str) -> Result<TcpListener, SharedTlsError> {
     if !bind.starts_with('[') {
-        return TcpListener::bind(bind)
+        return Ok(TcpListener::bind(bind)
             .await
-            .with_context(|| format!("bind shared tls listener {bind}"));
+            .with_context(|| format!("bind shared tls listener {bind}"))?);
     }
 
     let addr: SocketAddr = bind
@@ -356,6 +358,7 @@ async fn bind_tcp_listener(bind: &str) -> Result<TcpListener> {
         .with_context(|| format!("set shared tls listener {bind} nonblocking"))?;
     TcpListener::from_std(std_listener)
         .with_context(|| format!("adopt shared tls listener {bind} into tokio"))
+        .map_err(Into::into)
 }
 
 async fn stop_bind_task(bind: &str, task: SharedTlsBindTask) {
@@ -368,7 +371,7 @@ async fn stop_bind_task(bind: &str, task: SharedTlsBindTask) {
 fn desired_listener_plan(
     snapshot: &Snapshot,
     runtime: &RuntimeOptions,
-) -> Result<Option<ListenerPlan>> {
+) -> Result<Option<ListenerPlan>, SharedTlsError> {
     if !snapshot.listeners.iter().any(shared_tls_listener_protocol) {
         return Ok(None);
     }

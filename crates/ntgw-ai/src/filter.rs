@@ -245,8 +245,9 @@ impl AIGatewayFilter {
                 }
             }
         }
+        let text_lower = text.to_lowercase();
         for keyword in &guard.keywords {
-            if text.to_lowercase().contains(&keyword.to_lowercase()) {
+            if text_lower.contains(&keyword.to_lowercase()) {
                 let reason = format!("blocked_keyword: {keyword}");
                 tracing::warn!(reason = %reason, matched = %keyword, %model, "prompt guard blocked request");
                 self.metrics.record_prompt_guard_block(&reason, model);
@@ -283,8 +284,9 @@ impl AIGatewayFilter {
                     .record_content_safety_violation(category, model, "flag");
             }
         }
+        let text_lower_safety = text.to_lowercase();
         for (category, keyword) in &safety.keywords {
-            if text.to_lowercase().contains(&keyword.to_lowercase()) {
+            if text_lower_safety.contains(&keyword.to_lowercase()) {
                 if safety.block_mode {
                     self.metrics
                         .record_content_safety_violation(category, model, "block");

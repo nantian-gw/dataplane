@@ -1,10 +1,9 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-use anyhow::{Context, Result, anyhow};
+use crate::{RuntimeOptions, SharedTlsError};
+use anyhow::Context;
 use ntgw_ir::{Listener, SecretMaterial, Snapshot};
 use pingora::tls::{nid::Nid, x509::X509};
-
-use crate::RuntimeOptions;
 
 const LISTENER_ADDRESSES_METADATA_KEY: &str = "nantian.dev/listener-addresses";
 
@@ -44,7 +43,7 @@ pub(crate) struct SharedTlsIdentity {
 pub(crate) fn build_listener_plan(
     snapshot: &Snapshot,
     runtime: &RuntimeOptions,
-) -> Result<ListenerPlan> {
+) -> Result<ListenerPlan, SharedTlsError> {
     let mut binds = BTreeMap::new();
 
     for listener in &snapshot.listeners {
@@ -129,7 +128,7 @@ fn merge_frontend_validation(
     requested_mode: Option<String>,
     requested_client_ca_bundle_pem: Option<String>,
     bind: &str,
-) -> Result<()> {
+) -> Result<(), SharedTlsError> {
     let requested_has_validation =
         requested_mode.is_some() || requested_client_ca_bundle_pem.is_some();
     if !requested_has_validation {
@@ -150,9 +149,9 @@ fn merge_frontend_validation(
         return Ok(());
     }
 
-    Err(anyhow!(
+    Err(SharedTlsError::IdentityConfig(anyhow::anyhow!(
         "frontend validation conflict on shared tls bind {bind}"
-    ))
+    )))
 }
 
 fn listener_bind_addrs(listener: &Listener, runtime: &RuntimeOptions) -> Vec<String> {
@@ -290,7 +289,7 @@ fn frontend_validation_bundle(listener: &Listener) -> Option<String> {
 fn resolve_tls_identities(
     listener: &Listener,
     snapshot: &Snapshot,
-) -> Result<Vec<SharedTlsIdentity>> {
+) -> Result<Vec<SharedTlsIdentity>, SharedTlsError> {
     let Some(tls) = listener.tls.as_ref() else {
         return Ok(Vec::new());
     };
@@ -311,11 +310,13 @@ fn resolve_tls_identities(
     Ok(identities)
 }
 
-fn build_tls_identity(secret_ref: &str, secret: &SecretMaterial) -> Result<SharedTlsIdentity> {
+fn build_tls_identity(secret_ref: &str, secret: &SecretMaterial) -> Result<SharedTlsIdentity, SharedTlsError> {
     let certs =
         X509::stack_from_pem(secret.cert_pem.as_bytes()).context("parse certificate PEM")?;
     let Some(leaf) = certs.first() else {
-        return Err(anyhow!("no certificates found in PEM"));
+        return Err(SharedTlsError::Certificate(anyhow::anyhow!(
+            "no certificates found in PEM"
+        )));
     };
     pingora::tls::pkey::PKey::private_key_from_pem(secret.key_pem.as_bytes())
         .context("parse private key PEM")?;

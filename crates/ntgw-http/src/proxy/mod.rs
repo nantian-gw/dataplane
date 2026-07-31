@@ -16,7 +16,7 @@ use pingora::{
     proxy::{FailToProxy, ProxyHttp, Session},
 };
 use pingora_cache::NoCacheReason;
-use tracing::{debug_span, error};
+use tracing::{debug_span, error, instrument};
 
 pub(crate) use self::backend::UpstreamTuningOptions;
 use crate::cache::CacheManager;
@@ -244,6 +244,11 @@ impl ProxyHttp for GatewayProxy {
         Ok(())
     }
 
+    #[instrument(skip_all, fields(
+        listener = %self.listener_name_hint.as_deref().unwrap_or("unknown"),
+        http.method = %session.req_header().method,
+        http.uri = %session.req_header().uri,
+    ))]
     async fn request_filter(
         &self,
         session: &mut Session,
@@ -326,6 +331,7 @@ impl ProxyHttp for GatewayProxy {
         Ok(())
     }
 
+    #[instrument(skip_all)]
     async fn upstream_request_filter(
         &self,
         _session: &mut Session,
@@ -348,6 +354,7 @@ impl ProxyHttp for GatewayProxy {
         Ok(())
     }
 
+    #[instrument(skip_all)]
     async fn response_filter(
         &self,
         session: &mut Session,
@@ -462,6 +469,7 @@ impl ProxyHttp for GatewayProxy {
         Ok(None)
     }
 
+    #[instrument(skip_all)]
     async fn logging(&self, session: &mut Session, _e: Option<&pingora::Error>, ctx: &mut Self::CTX)
     where
         Self::CTX: Send + Sync,
@@ -520,6 +528,7 @@ impl ProxyHttp for GatewayProxy {
         observe_completed_request(&self.access_log, &self.traffic, ctx, latency_ms, bytes_sent);
     }
 
+    #[instrument(skip_all)]
     async fn fail_to_proxy(
         &self,
         session: &mut Session,

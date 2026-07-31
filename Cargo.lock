@@ -2296,6 +2296,7 @@ dependencies = [
  "pingora",
  "proptest",
  "socket2",
+ "thiserror 2.0.19",
  "tokio",
  "tracing",
 ]
@@ -2310,6 +2311,7 @@ dependencies = [
  "ntgw-observability",
  "proptest",
  "serde",
+ "thiserror 2.0.19",
  "tokio",
  "tracing",
 ]
@@ -2340,6 +2342,7 @@ name = "ntgw-xds"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "http",
  "ntgw-ir",
  "ntgw-observability",
  "ntgw-proto",
@@ -2349,6 +2352,7 @@ dependencies = [
  "prost-types",
  "rustls",
  "serde",
+ "thiserror 2.0.19",
  "tokio",
  "tokio-stream",
  "tonic",

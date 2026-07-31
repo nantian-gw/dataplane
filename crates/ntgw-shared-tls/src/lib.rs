@@ -1,6 +1,7 @@
 #![forbid(unsafe_code)]
 
 mod dispatch;
+mod error;
 mod listener_plan;
 mod preface;
 mod runtime;
@@ -8,6 +9,7 @@ mod runtime;
 #[cfg(test)]
 mod tests;
 
+pub use error::SharedTlsError;
 pub use runtime::{ReloadableRuntimeConfig, run};
 
 #[derive(Debug, Clone)]

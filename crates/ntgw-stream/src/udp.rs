@@ -1,6 +1,6 @@
 use std::{net::SocketAddr, sync::Arc, time::Instant};
 
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow};
 use tokio::{net::UdpSocket, sync::watch, time::Duration};
 use tracing::{debug, info, info_span, warn};
 
@@ -12,7 +12,7 @@ use ntgw_observability::{
 
 #[cfg(test)]
 use crate::ephemeral_bind_addr;
-use crate::{access_log::stream_access_log_state, socket_addr};
+use crate::{StreamError, access_log::stream_access_log_state, socket_addr};
 
 mod dispatcher;
 mod session;
@@ -30,8 +30,8 @@ pub(crate) use self::{
     session::{UDP_SESSION_SHARDS, UdpSessionKey, udp_session_shard_index},
 };
 
-pub async fn bind(bind_addr: &str) -> Result<UdpSocket> {
-    UdpSocket::bind(bind_addr).await.map_err(Into::into)
+pub async fn bind(bind_addr: &str) -> Result<UdpSocket, StreamError> {
+    UdpSocket::bind(bind_addr).await.map_err(StreamError::UdpConnection)
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -46,7 +46,7 @@ pub async fn run_with_socket(
     admission: UdpAdmissionController,
     udp_sessions: SharedUdpSessionStats,
     udp_response_idle_timeout: Duration,
-) -> Result<()> {
+) -> Result<(), StreamError> {
     let listener_name = Arc::<str>::from(listener_name);
     let mut buf = vec![0; 65_535];
     let sessions = UdpSessionRegistry::with_stats(udp_sessions);
@@ -108,7 +108,7 @@ fn build_udp_session_task(
     access_log: &AccessLogOptions,
     traffic: SharedTrafficStats,
     permit: UdpAdmissionPermit,
-) -> Result<UdpSessionTask> {
+) -> Result<UdpSessionTask, StreamError> {
     let current = snapshot.load();
     let selected = current
         .select_stream_backend(listener_name.as_ref(), None)
@@ -143,13 +143,13 @@ async fn proxy_datagram(
     access_log: AccessLogOptions,
     traffic: SharedTrafficStats,
     udp_response_idle_timeout: Duration,
-) -> Result<()> {
+) -> std::result::Result<(), StreamError> {
     let started_at = Instant::now();
     let (access_log_state, selected, runtime_ids) = {
         let current = snapshot.load();
         let selected = current
             .select_stream_backend(&listener_name, None)
-            .ok_or_else(|| anyhow!("no stream route matched listener {listener_name}"))?;
+        .ok_or_else(|| StreamError::Dispatch(anyhow!("no stream route matched listener {listener_name}")))?;
         let runtime_ids = current.selected_backend_runtime_ids(&selected);
         let access_log_state = stream_access_log_state(&access_log, &selected, current.id.as_str());
         (access_log_state, selected, runtime_ids)

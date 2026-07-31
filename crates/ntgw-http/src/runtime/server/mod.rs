@@ -201,7 +201,9 @@ pub async fn process_accepted_stream(
     stream: Stream,
     shutdown: watch::Receiver<bool>,
 ) -> Result<()> {
-    let _ = ServerApp::process_new(&app.inner, stream, &shutdown).await;
+    if ServerApp::process_new(&app.inner, stream, &shutdown).await.is_none() {
+        tracing::debug!("HTTP connection spawn failed");
+    }
     Ok(())
 }
 

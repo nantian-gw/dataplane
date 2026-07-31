@@ -1,4 +1,9 @@
-use anyhow::{Context, Result, anyhow};
+use crate::{
+    SharedTlsError,
+    listener_plan::{SharedTlsIdentity, TerminateSurface},
+};
+use anyhow::Context;
+use anyhow::anyhow;
 use async_trait::async_trait;
 use ntgw_http::DownstreamTlsInfo;
 use pingora::{
@@ -17,21 +22,19 @@ use pingora::{
 use std::{any::Any, sync::Arc};
 use tracing::warn;
 
-use crate::listener_plan::{SharedTlsIdentity, TerminateSurface};
-
 const SHARED_TLS_ALPN_H2_H1: &[u8] = b"\x02h2\x08http/1.1";
 
 pub(super) async fn terminate_tls(
     downstream: L4Stream,
     terminate: &TerminateSurface,
-) -> Result<pingora::protocols::tls::SslStream<L4Stream>> {
+) -> Result<pingora::protocols::tls::SslStream<L4Stream>, SharedTlsError> {
     let acceptor = build_tls_acceptor(terminate)?;
     let callbacks: pingora::listeners::TlsAcceptCallbacks =
         Box::new(DynamicTlsCertificates::new(terminate.identities.clone()));
     Ok(handshake_with_callback(&acceptor, downstream, &callbacks).await?)
 }
 
-fn build_tls_acceptor(terminate: &TerminateSurface) -> Result<SslAcceptor> {
+fn build_tls_acceptor(terminate: &TerminateSurface) -> Result<SslAcceptor, SharedTlsError> {
     let mut builder = SslAcceptor::mozilla_intermediate_v5(SslMethod::tls())
         .context("build shared tls acceptor")?;
     configure_alpn(&mut builder);
@@ -49,7 +52,7 @@ fn configure_alpn(builder: &mut SslAcceptorBuilder) {
 fn configure_frontend_client_validation(
     builder: &mut SslAcceptorBuilder,
     terminate: &TerminateSurface,
-) -> Result<()> {
+) -> Result<(), SharedTlsError> {
     let Some(client_ca_bundle_pem) = terminate.client_ca_bundle_pem.as_deref() else {
         return Ok(());
     };
@@ -57,9 +60,9 @@ fn configure_frontend_client_validation(
     let ca_certs = X509::stack_from_pem(client_ca_bundle_pem.as_bytes())
         .context("parse frontend client CA bundle")?;
     if ca_certs.is_empty() {
-        return Err(anyhow!(
+        return Err(SharedTlsError::Certificate(anyhow!(
             "frontend client CA bundle did not contain certificates"
-        ));
+        )));
     }
 
     for cert in ca_certs {
@@ -131,11 +134,11 @@ impl TlsAccept for DynamicTlsCertificates {
     }
 }
 
-fn apply_dynamic_tls_identity(ssl: &mut SslRef, identity: &SharedTlsIdentity) -> Result<()> {
+fn apply_dynamic_tls_identity(ssl: &mut SslRef, identity: &SharedTlsIdentity) -> Result<(), SharedTlsError> {
     let certs =
         X509::stack_from_pem(identity.cert_pem.as_bytes()).context("parse certificate PEM")?;
     let Some(leaf) = certs.first() else {
-        return Err(anyhow!("no certificates found in PEM"));
+        return Err(SharedTlsError::Certificate(anyhow!("no certificates found in PEM")));
     };
     let key =
         PKey::private_key_from_pem(identity.key_pem.as_bytes()).context("parse private key PEM")?;

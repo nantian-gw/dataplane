@@ -1,6 +1,7 @@
 use std::{future::Future, time::Duration};
 
-use anyhow::{Result, anyhow};
+use crate::error::XdsError;
+use anyhow::anyhow;
 use tokio::{task::JoinHandle, time::MissedTickBehavior};
 use tonic::transport::Channel;
 
@@ -54,14 +55,14 @@ pub(super) fn spawn_status_heartbeat(
 pub(crate) async fn wait_for_stream_message<F, T>(
     future: F,
     stale_stream_timeout: Duration,
-) -> Result<Option<T>>
+) -> Result<Option<T>, XdsError>
 where
     F: Future<Output = std::result::Result<Option<T>, tonic::Status>>,
 {
     match tokio::time::timeout(stale_stream_timeout, future).await {
         Ok(result) => Ok(result?),
-        Err(_) => Err(anyhow!(
+        Err(_) => Err(XdsError::StreamError(anyhow!(
             "stale xds stream: no control-plane message received for {stale_stream_timeout:?}"
-        )),
+        ))),
     }
 }

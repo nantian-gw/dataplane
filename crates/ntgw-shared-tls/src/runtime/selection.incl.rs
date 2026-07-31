@@ -34,7 +34,7 @@ fn build_runtime_http_app(
     circuit_breaker: Arc<RwLock<HttpCircuitBreakerController>>,
     rate_limit: Arc<RwLock<HttpRateLimitController>>,
     retry_budget: Arc<RwLock<RetryBudgetController>>,
-) -> Result<AcceptedHttpApp> {
+) -> Result<AcceptedHttpApp, SharedTlsError> {
     let http_config = config.http.clone();
     let circuit_breaker = circuit_breaker
         .read()
@@ -57,6 +57,7 @@ fn build_runtime_http_app(
         retry_budget,
         None,
     )
+    .map_err(Into::into)
 }
 
 #[derive(Clone, Copy, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]

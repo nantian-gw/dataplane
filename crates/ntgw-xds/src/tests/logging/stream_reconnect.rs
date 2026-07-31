@@ -1,3 +1,5 @@
+use super::super::XdsError;
+
 #[test]
 fn expected_stream_reconnect_error_stays_quiet_at_info() {
     let writer = SharedTestWriter::default();
@@ -11,9 +13,9 @@ fn expected_stream_reconnect_error_stays_quiet_at_info() {
 
     tracing::subscriber::with_default(subscriber, || {
         super::super::log_stream_failure_retry(
-            &anyhow::anyhow!(
+            &XdsError::StreamError(anyhow::anyhow!(
                 "status: Unknown, message: \"h2 protocol error: error reading a body from connection\""
-            ),
+            )),
             Duration::from_millis(1500),
         );
     });
@@ -37,9 +39,9 @@ fn expected_stream_reconnect_error_logs_at_debug() {
 
     tracing::subscriber::with_default(subscriber, || {
         super::super::log_stream_failure_retry(
-            &anyhow::anyhow!(
+            &XdsError::StreamError(anyhow::anyhow!(
                 "status: Unknown, message: \"h2 protocol error: error reading a body from connection\""
-            ),
+            )),
             Duration::from_millis(1500),
         );
     });
@@ -66,7 +68,7 @@ fn unexpected_stream_error_logs_at_warn() {
 
     tracing::subscriber::with_default(subscriber, || {
         super::super::log_stream_failure_retry(
-            &anyhow::anyhow!("stale xds stream: no control-plane message received for 30s"),
+            &XdsError::StreamError(anyhow::anyhow!("stale xds stream: no control-plane message received for 30s")),
             Duration::from_millis(1500),
         );
     });

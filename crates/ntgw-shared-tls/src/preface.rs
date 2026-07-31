@@ -1,4 +1,4 @@
-use anyhow::{Result, anyhow};
+use crate::SharedTlsError;
 use pingora::{protocols::Peek, protocols::l4::stream::Stream as L4Stream};
 use tokio::time::{Duration, timeout};
 
@@ -10,22 +10,28 @@ pub(crate) struct ClientHelloInfo {
     pub(crate) server_name: Option<String>,
 }
 
-pub(crate) async fn peek_client_hello(stream: &mut L4Stream) -> Result<ClientHelloInfo> {
+pub(crate) async fn peek_client_hello(stream: &mut L4Stream) -> Result<ClientHelloInfo, SharedTlsError> {
     let mut header = [0; 5];
     let peeked = timeout(TLS_PREFACE_READ_TIMEOUT, stream.try_peek(&mut header)).await??;
     if !peeked {
-        return Err(anyhow!("stream does not support preread peeking"));
+        return Err(SharedTlsError::Handshake(anyhow::anyhow!(
+            "stream does not support preread peeking"
+        )));
     }
 
-    let record_len = tls_record_len(&header).ok_or_else(|| anyhow!("invalid tls record header"))?;
+    let record_len = tls_record_len(&header).ok_or_else(|| SharedTlsError::Handshake(anyhow::anyhow!("invalid tls record header")))?;
     if record_len > TLS_PREFACE_LIMIT {
-        return Err(anyhow!("tls client hello exceeds preread limit"));
+        return Err(SharedTlsError::Handshake(anyhow::anyhow!(
+            "tls client hello exceeds preread limit"
+        )));
     }
 
     let mut preface = vec![0; record_len];
     let peeked = timeout(TLS_PREFACE_READ_TIMEOUT, stream.try_peek(&mut preface)).await??;
     if !peeked {
-        return Err(anyhow!("stream does not support preread peeking"));
+        return Err(SharedTlsError::Handshake(anyhow::anyhow!(
+            "stream does not support preread peeking"
+        )));
     }
 
     Ok(ClientHelloInfo {

@@ -23,7 +23,7 @@ async fn returns_error_when_no_udp_route_matches() -> Result<()> {
 
     assert_eq!(
         err.to_string(),
-        "no stream route matched listener default/gw/udp"
+        "stream dispatch error: no stream route matched listener default/gw/udp"
     );
     Ok(())
 }
