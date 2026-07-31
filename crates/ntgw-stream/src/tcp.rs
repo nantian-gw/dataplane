@@ -2,8 +2,8 @@ use std::borrow::Cow;
 use std::io;
 use std::sync::Arc;
 
-use anyhow::anyhow;
 use anyhow::Result as AnyhowResult;
+use anyhow::anyhow;
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::tcp::OwnedReadHalf,
@@ -34,7 +34,9 @@ const TLS_PREFACE_READ_TIMEOUT: Duration = Duration::from_secs(1);
 const TLS_PREFACE_READ_CHUNK: usize = 1024;
 
 pub async fn bind(bind_addr: &str) -> Result<TcpListener, StreamError> {
-    TcpListener::bind(bind_addr).await.map_err(StreamError::TcpConnection)
+    TcpListener::bind(bind_addr)
+        .await
+        .map_err(StreamError::TcpConnection)
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -147,7 +149,9 @@ async fn handle_connection(
         let current = snapshot.load();
         let selected = current
             .select_stream_backend(&listener_name, server_name.as_deref())
-            .ok_or_else(|| StreamError::Dispatch(anyhow!("no stream route matched listener {listener_name}")))?;
+            .ok_or_else(|| {
+                StreamError::Dispatch(anyhow!("no stream route matched listener {listener_name}"))
+            })?;
         let runtime_ids = current.selected_backend_runtime_ids(&selected);
         let access_log_state = stream_access_log_state(&access_log, &selected, current.id.as_str());
         (access_log_state, selected, runtime_ids)
@@ -627,7 +631,11 @@ async fn read_preface(stream: &mut TcpStream) -> Result<Vec<u8>, StreamError> {
         let read = match timeout(TLS_PREFACE_READ_TIMEOUT, stream.read(&mut chunk)).await {
             Ok(Ok(read)) => read,
             Ok(Err(err)) => return Err(err.into()),
-            Err(_) => return Err(StreamError::Dispatch(anyhow!("timed out reading client preface"))),
+            Err(_) => {
+                return Err(StreamError::Dispatch(anyhow!(
+                    "timed out reading client preface"
+                )));
+            }
         };
         if read == 0 {
             break;
@@ -644,7 +652,9 @@ async fn read_preface(stream: &mut TcpStream) -> Result<Vec<u8>, StreamError> {
     }
 
     if buf.is_empty() {
-        return Err(StreamError::Dispatch(anyhow!("connection closed before client preface")));
+        return Err(StreamError::Dispatch(anyhow!(
+            "connection closed before client preface"
+        )));
     }
 
     Ok(buf)

@@ -70,7 +70,10 @@ async fn errors_when_connection_closes_before_preface() -> Result<()> {
         .await
         .expect("server task should join")
         .expect_err("read_preface should fail on empty connection");
-    assert_eq!(err.to_string(), "stream dispatch error: connection closed before client preface");
+    assert_eq!(
+        err.to_string(),
+        "stream dispatch error: connection closed before client preface"
+    );
     Ok(())
 }
 
@@ -91,6 +94,9 @@ async fn errors_when_preface_read_times_out() -> Result<()> {
         .expect("preface read should respect its configured timeout")
         .expect("server task should join")
         .expect_err("read_preface should fail when no preface bytes arrive");
-    assert_eq!(err.to_string(), "stream dispatch error: timed out reading client preface");
+    assert_eq!(
+        err.to_string(),
+        "stream dispatch error: timed out reading client preface"
+    );
     Ok(())
 }

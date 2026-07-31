@@ -1,5 +1,5 @@
-use anyhow::anyhow;
 use crate::SharedTlsError;
+use anyhow::anyhow;
 use ntgw_ir::{SharedSnapshot, TlsRouteMode};
 use pingora::protocols::l4::stream::Stream as L4Stream;
 use tokio::{
@@ -17,7 +17,11 @@ pub(crate) async fn proxy_passthrough(
         let current = snapshot.load();
         current
             .select_tls_stream_backend(listener_name, server_name, TlsRouteMode::Passthrough)
-            .ok_or_else(|| SharedTlsError::Certificate(anyhow!("no tls passthrough route matched listener {listener_name}")))?
+            .ok_or_else(|| {
+                SharedTlsError::Certificate(anyhow!(
+                    "no tls passthrough route matched listener {listener_name}"
+                ))
+            })?
     };
     let upstream_addr = format!("{}:{}", selected.backend.address, selected.backend.port);
     let mut upstream = TcpStream::connect(&upstream_addr).await?;
@@ -40,7 +44,11 @@ where
         let current = snapshot.load();
         current
             .select_tls_stream_backend(listener_name, server_name, TlsRouteMode::Terminate)
-            .ok_or_else(|| SharedTlsError::Certificate(anyhow!("no terminated tls route matched listener {listener_name}")))?
+            .ok_or_else(|| {
+                SharedTlsError::Certificate(anyhow!(
+                    "no terminated tls route matched listener {listener_name}"
+                ))
+            })?
     };
     let upstream_addr = format!("{}:{}", selected.backend.address, selected.backend.port);
     let mut upstream = TcpStream::connect(&upstream_addr).await?;

@@ -134,11 +134,16 @@ impl TlsAccept for DynamicTlsCertificates {
     }
 }
 
-fn apply_dynamic_tls_identity(ssl: &mut SslRef, identity: &SharedTlsIdentity) -> Result<(), SharedTlsError> {
+fn apply_dynamic_tls_identity(
+    ssl: &mut SslRef,
+    identity: &SharedTlsIdentity,
+) -> Result<(), SharedTlsError> {
     let certs =
         X509::stack_from_pem(identity.cert_pem.as_bytes()).context("parse certificate PEM")?;
     let Some(leaf) = certs.first() else {
-        return Err(SharedTlsError::Certificate(anyhow!("no certificates found in PEM")));
+        return Err(SharedTlsError::Certificate(anyhow!(
+            "no certificates found in PEM"
+        )));
     };
     let key =
         PKey::private_key_from_pem(identity.key_pem.as_bytes()).context("parse private key PEM")?;

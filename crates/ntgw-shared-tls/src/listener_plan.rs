@@ -310,7 +310,10 @@ fn resolve_tls_identities(
     Ok(identities)
 }
 
-fn build_tls_identity(secret_ref: &str, secret: &SecretMaterial) -> Result<SharedTlsIdentity, SharedTlsError> {
+fn build_tls_identity(
+    secret_ref: &str,
+    secret: &SecretMaterial,
+) -> Result<SharedTlsIdentity, SharedTlsError> {
     let certs =
         X509::stack_from_pem(secret.cert_pem.as_bytes()).context("parse certificate PEM")?;
     let Some(leaf) = certs.first() else {

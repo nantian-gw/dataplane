@@ -10,7 +10,9 @@ pub(crate) struct ClientHelloInfo {
     pub(crate) server_name: Option<String>,
 }
 
-pub(crate) async fn peek_client_hello(stream: &mut L4Stream) -> Result<ClientHelloInfo, SharedTlsError> {
+pub(crate) async fn peek_client_hello(
+    stream: &mut L4Stream,
+) -> Result<ClientHelloInfo, SharedTlsError> {
     let mut header = [0; 5];
     let peeked = timeout(TLS_PREFACE_READ_TIMEOUT, stream.try_peek(&mut header)).await??;
     if !peeked {
@@ -19,7 +21,8 @@ pub(crate) async fn peek_client_hello(stream: &mut L4Stream) -> Result<ClientHel
         )));
     }
 
-    let record_len = tls_record_len(&header).ok_or_else(|| SharedTlsError::Handshake(anyhow::anyhow!("invalid tls record header")))?;
+    let record_len = tls_record_len(&header)
+        .ok_or_else(|| SharedTlsError::Handshake(anyhow::anyhow!("invalid tls record header")))?;
     if record_len > TLS_PREFACE_LIMIT {
         return Err(SharedTlsError::Handshake(anyhow::anyhow!(
             "tls client hello exceeds preread limit"

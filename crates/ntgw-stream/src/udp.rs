@@ -1,6 +1,6 @@
 use std::{net::SocketAddr, sync::Arc, time::Instant};
 
-use anyhow::{anyhow};
+use anyhow::anyhow;
 use tokio::{net::UdpSocket, sync::watch, time::Duration};
 use tracing::{debug, info, info_span, warn};
 
@@ -31,7 +31,9 @@ pub(crate) use self::{
 };
 
 pub async fn bind(bind_addr: &str) -> Result<UdpSocket, StreamError> {
-    UdpSocket::bind(bind_addr).await.map_err(StreamError::UdpConnection)
+    UdpSocket::bind(bind_addr)
+        .await
+        .map_err(StreamError::UdpConnection)
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -149,7 +151,9 @@ async fn proxy_datagram(
         let current = snapshot.load();
         let selected = current
             .select_stream_backend(&listener_name, None)
-        .ok_or_else(|| StreamError::Dispatch(anyhow!("no stream route matched listener {listener_name}")))?;
+            .ok_or_else(|| {
+                StreamError::Dispatch(anyhow!("no stream route matched listener {listener_name}"))
+            })?;
         let runtime_ids = current.selected_backend_runtime_ids(&selected);
         let access_log_state = stream_access_log_state(&access_log, &selected, current.id.as_str());
         (access_log_state, selected, runtime_ids)
