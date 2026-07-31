@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-#![allow(unused_imports)]
 use std::collections::HashMap;
 
 use anyhow::{Context, Result};

@@ -21,10 +21,11 @@ use ntgw_ir::{SharedSnapshot, SharedSnapshotSignal, Snapshot};
 use ntgw_observability::SharedRuntimeStats;
 use ntgw_proto::gateway::control::v1::{
     ConfigSnapshot, configuration_discovery_service_client::ConfigurationDiscoveryServiceClient,
+    delta_discovery_service_client::DeltaDiscoveryServiceClient,
 };
 
 pub mod bench;
-mod delta;
+pub mod delta;
 mod features;
 mod reconnect;
 mod stats;
@@ -118,6 +119,23 @@ impl<'a> Extractor for TraceparentCarrier<'a> {
     fn keys(&self) -> Vec<&str> {
         vec!["traceparent"]
     }
+}
+
+pub async fn connect_delta_channel(
+    options: ConnectOptions,
+) -> Result<DeltaDiscoveryServiceClient<Channel>> {
+    tls::ensure_rustls_provider();
+    let endpoint = normalize_endpoint(&options.endpoint, options.tls.is_some())?;
+    let mut endpoint = Endpoint::from_shared(endpoint)?;
+    endpoint = endpoint
+        .connect_timeout(options.transport.connect_timeout)
+        .http2_keep_alive_interval(options.transport.keepalive_interval)
+        .keep_alive_timeout(options.transport.keepalive_timeout)
+        .keep_alive_while_idle(true);
+    if let Some(tls) = options.tls.as_ref() {
+        endpoint = endpoint.tls_config(build_client_tls_config(tls)?)?;
+    }
+    Ok(DeltaDiscoveryServiceClient::new(endpoint.connect().await?))
 }
 
 pub struct ControlPlaneClient {

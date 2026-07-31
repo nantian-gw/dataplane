@@ -30,6 +30,7 @@ fn test_config() -> DataPlaneConfig {
         runtime_protection: RuntimeProtectionConfig::default(),
         runtime_tuning: RuntimeTuningConfig::default(),
         experimental: ExperimentalConfig::default(),
+        xds_protocol: "sotw".to_string(),
     }
 }
 

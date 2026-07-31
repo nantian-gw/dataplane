@@ -32,6 +32,8 @@ pub struct DataPlaneConfig {
     pub xds_tls: XdsTlsConfig,
     #[serde(default)]
     pub xds_transport: XdsTransportConfig,
+    #[serde(default = "default_xds_protocol")]
+    pub xds_protocol: String,
     #[serde(default)]
     pub runtime_protection: RuntimeProtectionConfig,
     #[serde(default)]

@@ -233,6 +233,7 @@ pub(crate) fn to_xds_runtime_config(cfg: &DataPlaneConfig) -> XdsRuntimeConfig {
         },
         node_id: cfg.node_id.clone(),
         cluster: cfg.cluster.clone(),
+        xds_protocol: cfg.xds_protocol.clone(),
     }
 }
 
