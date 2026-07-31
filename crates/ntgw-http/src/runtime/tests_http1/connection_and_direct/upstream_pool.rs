@@ -137,6 +137,9 @@ async fn downstream_connection_close_does_not_disable_upstream_pool_reuse() {
         let first = read_http_response(&mut first_client).await?;
         assert!(first.starts_with("HTTP/1.1 200"));
         assert!(first.ends_with("\r\n\r\none"));
+        // Allow the upstream pool to process the first connection close and release the
+        // connection back to the pool before the second request.
+        tokio::time::sleep(Duration::from_millis(100)).await;
 
         let mut second_client = TcpStream::connect(("127.0.0.1", gateway_port)).await?;
         second_client
