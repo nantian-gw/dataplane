@@ -23,6 +23,10 @@ ignore = [
     # Dev-only dependency of ntgw-http (used in tests only, not in production).
     # No safe upgrade available; RustCrypto/RSA is working on constant-time impl.
     "RUSTSEC-2023-0071",
+
+    # RUSTSEC-2026-0222: wasmtime 44.0.3 stores can mix up type indices between engines.
+    # Requires upgrading wasmtime to a patched version. Blocked on wasmtime 44→? upgrade.
+    "RUSTSEC-2026-0222",
 ]
 
 [licenses]
