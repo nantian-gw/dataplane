@@ -12,6 +12,7 @@ prost-types.workspace = true
 regex.workspace = true
 serde.workspace = true
 tokio.workspace = true
+tracing.workspace = true
 ntgw-config = { path = "../ntgw-config" }
 ntgw-proto.workspace = true
 

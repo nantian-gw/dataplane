@@ -2245,6 +2245,7 @@ dependencies = [
  "regex",
  "serde",
  "tokio",
+ "tracing",
 ]
 
 [[package]]
