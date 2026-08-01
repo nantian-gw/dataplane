@@ -46,7 +46,9 @@ exceptions = []
 [bans]
 multiple-versions = "warn"
 deny = []
-skip = []
+skip = [
+    { name = "thiserror", version = "=1" },
+]
 skip-tree = []
 
 [sources]
