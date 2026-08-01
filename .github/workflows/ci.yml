@@ -16,7 +16,7 @@ jobs:
   runtime-unwrap-guardrail:
     name: Runtime unwrap guardrail
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
       - run: python3 scripts/test-audit-runtime-unwraps.py
@@ -57,7 +57,7 @@ jobs:
   fmt:
     name: Rustfmt
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
       - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
