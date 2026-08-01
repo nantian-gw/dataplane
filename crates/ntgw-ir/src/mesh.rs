@@ -94,7 +94,19 @@ pub fn route_accepts_service_frontend(
         }
 
         matched_parent = true;
-        if parent_namespace == route_namespace || source_namespace == Some(route_namespace) {
+        if parent_namespace == route_namespace {
+            return true;
+        }
+        if source_namespace == Some(route_namespace) {
+            return true;
+        }
+        if source_namespace.is_none() {
+            tracing::debug!(
+                route_ns = %route_namespace,
+                frontend_ns = %frontend.namespace,
+                frontend_name = %frontend.name,
+                "mesh route accepted despite unknown source namespace"
+            );
             return true;
         }
     }
