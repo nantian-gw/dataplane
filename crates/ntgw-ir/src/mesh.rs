@@ -99,5 +99,16 @@ pub fn route_accepts_service_frontend(
         }
     }
 
-    !matched_parent
+    if !matched_parent {
+        return true;
+    }
+
+    tracing::debug!(
+        source_ns = ?source_namespace,
+        route_ns = %route_namespace,
+        frontend_ns = %frontend.namespace,
+        frontend_name = %frontend.name,
+        "mesh route rejected: namespace mismatch"
+    );
+    false
 }
