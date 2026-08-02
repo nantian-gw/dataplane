@@ -56,11 +56,14 @@ jobs:
           context: /tmp/docker-build
           file: /tmp/docker-build/dataplane/Dockerfile
           push: ${{ github.ref == 'refs/heads/main' }}
+          # On pull_request the image is not pushed to GHCR, so load it into
+          # the runner's daemon to make the smoke test below able to run it.
+          load: ${{ github.event_name == 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             DATAPLANE_CARGO_FEATURES=allocator-jemalloc
-          cache-from: type=gha,scope=build-${{ matrix.arch }}
+          cache-from: type=gha,scope=build-${{ matrix.arch }},ignore-error=true
           cache-to: type=gha,mode=max,scope=build-${{ matrix.arch }},ignore-error=true
 
       - name: Smoke test (catch glibc mismatch)
