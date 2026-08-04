@@ -115,7 +115,7 @@ pub fn route_accepts_service_frontend(
         return true;
     }
 
-    tracing::debug!(
+	tracing::warn!(
         source_ns = ?source_namespace,
         route_ns = %route_namespace,
         frontend_ns = %frontend.namespace,
