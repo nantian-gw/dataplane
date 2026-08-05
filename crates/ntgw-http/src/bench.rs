@@ -585,7 +585,7 @@ use std::hash::{Hash, Hasher};
 
 use ntgw_ir::{BackendSubjectAltName, BackendTlsValidation};
 
-use crate::proxy::BackendTlsValidationCacheKey;
+use crate::proxy::cache::BackendTlsValidationCacheKey;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct TlsCacheKeyBenchConfig {

@@ -17,4 +17,5 @@ ntgw-config = { path = "../ntgw-config" }
 ntgw-proto.workspace = true
 
 [dev-dependencies]
+serde_json.workspace = true
 proptest.workspace = true

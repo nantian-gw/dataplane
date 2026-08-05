@@ -37,7 +37,7 @@ use ntgw_observability::{
 };
 
 mod backend;
-mod cache;
+pub(crate) mod cache;
 mod context;
 mod downstream_tls;
 mod external_auth;
