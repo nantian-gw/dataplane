@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/rust-1.96.0-orange.svg)](rust-toolchain.toml)
 
-Rust workspace providing the high-performance HTTP and stream proxy runtime for Nantian Gateway.
+High-performance Rust proxy for Nantian Gateway — HTTP, gRPC, TCP, UDP, TLS, **and AI gateway** all in one binary.
 
 ## Architecture
 
