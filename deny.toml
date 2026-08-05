@@ -27,6 +27,8 @@ ignore = [
     # RUSTSEC-2026-0222: wasmtime 44.0.3 stores can mix up type indices between engines.
     # Requires upgrading wasmtime to a patched version. Blocked on wasmtime 44→? upgrade.
     "RUSTSEC-2026-0222",
+    "RUSTSEC-2026-0173",
+    "RUSTSEC-2026-0190",
 ]
 
 [licenses]

@@ -1,5 +1,6 @@
 use std::{
     boxed::Box,
+    collections::HashMap,
     sync::Arc,
     time::{Duration, Instant, SystemTime},
 };
@@ -16,12 +17,13 @@ use pingora::{
     proxy::{FailToProxy, ProxyHttp, Session},
 };
 use pingora_cache::NoCacheReason;
-use tracing::{debug_span, error, instrument};
+use pingora_cache::cache_control::CacheControl;
+use tracing::error;
 
 pub(crate) use self::backend::UpstreamTuningOptions;
 use crate::cache::CacheManager;
 use crate::filters::{apply_request_filters, apply_response_filters, ensure_supported_filters};
-use crate::mirror::{forward_body_chunk, is_mirror_subrequest};
+use crate::mirror::{forward_body_chunk, is_mirror_subrequest, wait_for_request_mirrors};
 use crate::session::{SessionManager, SessionPersistenceOptions};
 use ntgw_ir::{
     BackendPolicy, BackendSelectionError, Filter, FrontendClientCertificateRequirement,
@@ -41,18 +43,17 @@ mod downstream_tls;
 mod external_auth;
 mod filters;
 mod guards;
-mod initial_request;
 mod logging;
-mod mirror_select;
 mod request;
-mod response;
 mod responses;
 mod retry;
 mod selection;
 mod upstream;
-mod upstream_tls;
 
-use self::backend::error_for_backend_selection;
+use self::backend::{
+    build_upstream_peer_for_fast_path, build_upstream_peer_with_cached_config,
+    error_for_backend_selection, validate_backend_tls_subject_alt_name_result,
+};
 use self::cache::SessionResolutionCache;
 pub use self::context::RequestContext;
 #[cfg(test)]
@@ -76,16 +77,7 @@ use self::external_auth::{
     ExternalAuthDecision, apply_external_auth_response_headers, external_auth_filter,
     run_external_auth,
 };
-use self::initial_request::{
-    InitialFastPathSelection, prepare_initial_request_state, route_filters_have_request_mirror,
-    unmatched_traffic_topology,
-};
 use self::logging::observe_completed_request;
-use self::mirror_select::{
-    remove_downstream_close_connection_token, request_for_response_filters,
-    select_backend_with_transport_retry_exclusions, select_request_mirrors_for_http_route,
-    select_request_mirrors_for_selected_backend,
-};
 pub(crate) use self::request::{
     RequestView, build_request_meta_from_header_with_port, capture_request_context_from_view,
     fast_path_request_from_header, start_request_span_from_header,
@@ -101,10 +93,6 @@ use self::request::{
     request_header_bytes_for_limit, response_filters_need_request_headers, server_port,
     start_request_span_if_enabled,
 };
-use self::response::{
-    handle_http_cache_response, handle_mirror_completion, handle_session_persistence_response,
-    handle_wasm_post_process_response,
-};
 use self::responses::{
     request_is_grpc, write_direct_response, write_grpc_no_route_response,
     write_http_no_route_response, write_response_header_with_access_log_capture,
@@ -119,15 +107,248 @@ use self::selection::{
     SelectedBackendConfigCache, selected_backend_config_cached,
     selected_backend_config_cached_for_fast_path, selected_backend_from_http_route,
 };
-pub(crate) use self::upstream_tls::BackendTlsValidationCacheKey;
-use self::upstream_tls::{
-    build_upstream_peer_for_fast_path, build_upstream_peer_with_cached_config,
-    validate_backend_tls_subject_alt_name_result,
-};
 
 const DEFAULT_HTTP_ROUTE_RETRIES: u32 = 1;
 const DEFAULT_TRANSPORT_CONNECT_RETRIES: u32 = 1;
 const DEFAULT_MAX_H2_UPSTREAM_STREAMS: usize = 128;
+const TRANSPORT_RETRY_ENDPOINT_SELECTION_ATTEMPTS: usize = 8;
+
+pub(crate) fn route_filters_have_request_mirror(filters: &[Filter]) -> bool {
+    filters.iter().any(|filter| filter.request_mirror.is_some())
+}
+
+pub(crate) fn unmatched_traffic_topology(listener_name: &str) -> Arc<TrafficTopology> {
+    Arc::new(TrafficTopology::unmatched(listener_name))
+}
+
+pub(crate) fn fast_path_request_features_are_safe(
+    request_tracing_enabled: bool,
+    request_headers_required: bool,
+    request_source_ip_required: bool,
+) -> bool {
+    !request_tracing_enabled && !request_headers_required && !request_source_ip_required
+}
+
+#[allow(private_interfaces)]
+pub(crate) struct InitialFastPathSelection {
+    pub(super) selected: ntgw_ir::CompiledSelectedHttpBackend,
+    config: Arc<SelectedBackendConfig>,
+    pub(super) frontend_client_certificate_requirement: FrontendClientCertificateRequirement,
+}
+
+#[allow(private_interfaces)]
+pub(crate) struct InitialRequestState {
+    pub(super) request_header_bytes: usize,
+    pub(super) misdirected_request: bool,
+    pub(super) request_source_ip: Option<String>,
+    pub(super) fast_path_selected: Option<InitialFastPathSelection>,
+}
+
+#[allow(clippy::too_many_arguments)]
+#[allow(private_interfaces)]
+pub(crate) fn prepare_initial_request_state(
+    current: &Snapshot,
+    selected_backend_config_cache: &SelectedBackendConfigCache,
+    ctx: &mut RequestContext,
+    request_header: &RequestHeader,
+    request_server_port: u32,
+    request_source_ip: Option<String>,
+    downstream_tls_server_name: Option<&str>,
+    request_tracing_enabled: bool,
+    access_log_enabled: bool,
+    max_request_body_bytes: usize,
+    max_request_header_bytes: usize,
+) -> pingora::Result<InitialRequestState> {
+    let request_context_needs_source_ip = access_log_enabled || request_tracing_enabled;
+    let request_context_needs_observability_fields = access_log_enabled || request_tracing_enabled;
+    let request_view = RequestView::from_header_with_port(request_header, request_server_port);
+    capture_request_context_from_view_for_limits(
+        ctx,
+        &request_view,
+        request_context_needs_source_ip
+            .then_some(request_source_ip.as_deref())
+            .flatten(),
+        request_context_needs_observability_fields,
+        max_request_body_bytes > 0,
+    );
+    start_request_span_from_header_if_enabled(ctx, request_header, request_tracing_enabled);
+    let request_header_bytes =
+        request_header_bytes_for_limit(&request_view, max_request_header_bytes);
+    let misdirected_request = https_request_is_misdirected_in_snapshot(
+        current,
+        &request_view,
+        downstream_tls_server_name,
+    );
+
+    let fast_path_selected = if !misdirected_request
+        && fast_path_request_features_are_safe(
+            request_tracing_enabled,
+            current.request_materialization.requires_full_headers(),
+            current.request_materialization.source_ip,
+        ) {
+        cache_snapshot_version_if_observed(
+            ctx,
+            current.id.as_str(),
+            access_log_enabled,
+            request_tracing_enabled,
+        );
+        record_request_span(ctx);
+        current
+            .select_http_fast_path(fast_path_request_from_header(
+                request_header,
+                request_server_port,
+            ))
+            .map(|selected| {
+                let config = selected_backend_config_cached_for_fast_path(
+                    selected_backend_config_cache,
+                    current,
+                    &selected,
+                )?;
+                let frontend_client_certificate_requirement = current
+                    .frontend_client_certificate_requirement(selected.listener_name.as_str());
+                Ok::<_, Box<Error>>(InitialFastPathSelection {
+                    selected,
+                    config,
+                    frontend_client_certificate_requirement,
+                })
+            })
+            .transpose()?
+    } else {
+        None
+    };
+
+    Ok(InitialRequestState {
+        request_header_bytes,
+        misdirected_request,
+        request_source_ip,
+        fast_path_selected,
+    })
+}
+
+pub(crate) fn select_request_mirrors_for_selected_backend(
+    snapshot: &Snapshot,
+    selected: &SelectedBackend,
+) -> Vec<SelectedBackend> {
+    if !route_filters_have_request_mirror(&selected.filters) {
+        return Vec::new();
+    }
+
+    snapshot.select_request_mirrors(&RequestMirrorContext {
+        route_policy: None,
+        route_kind: selected.route_kind,
+        route_name: selected.route_name.clone(),
+        route_namespace: selected.route_namespace.clone(),
+        rule_index: selected.rule_index,
+        filters: selected.filters.clone(),
+        matched_http_path: selected.matched_http_path.clone(),
+        timeouts: selected.timeouts.clone(),
+        backend_tls: selected.backend_tls.clone(),
+    })
+}
+
+pub(crate) fn select_request_mirrors_for_http_route(
+    snapshot: &Snapshot,
+    route: &SelectedHttpRoute,
+) -> Vec<SelectedBackend> {
+    if route.backend.is_none()
+        || route.backend_name.is_none()
+        || !route_filters_have_request_mirror(&route.filters)
+    {
+        return Vec::new();
+    }
+
+    snapshot.select_request_mirrors(&RequestMirrorContext {
+        route_policy: None,
+        route_kind: RouteKind::Http,
+        route_name: route.route_name.clone(),
+        route_namespace: route.route_namespace.clone(),
+        rule_index: route.rule_index,
+        filters: route.filters.clone(),
+        matched_http_path: Some(route.matched_http_path.clone()),
+        timeouts: route.timeouts.clone(),
+        backend_tls: route.backend_tls.clone(),
+    })
+}
+
+pub(crate) fn select_backend_with_transport_retry_exclusions<F>(
+    current: &Snapshot,
+    request: &RequestMeta,
+    session_resolver: &F,
+    ctx: &RequestContext,
+) -> Option<SelectedBackend>
+where
+    F: Fn(&SessionPersistence) -> Option<PersistentSessionTarget>,
+{
+    if ctx.transport_retry_excluded_endpoints.is_empty() {
+        return current.select_backend_with_session_resolver(request, session_resolver);
+    }
+
+    let attempts = TRANSPORT_RETRY_ENDPOINT_SELECTION_ATTEMPTS.max(
+        ctx.transport_retry_excluded_endpoints
+            .len()
+            .saturating_add(1),
+    );
+    let mut last_resort = None;
+    for _ in 0..attempts {
+        let selected = current.select_backend_with_session_resolver(request, session_resolver)?;
+        if !selected_backend_is_transport_retry_excluded(ctx, &selected) {
+            return Some(selected);
+        }
+        if last_resort.is_none() {
+            last_resort = Some(selected);
+        }
+    }
+
+    last_resort
+}
+
+pub(crate) fn remove_downstream_close_connection_token(
+    upstream_request: &mut RequestHeader,
+) -> pingora::Result<()> {
+    if !upstream_request
+        .headers
+        .get_all(http::header::CONNECTION)
+        .iter()
+        .filter_map(|value| value.to_str().ok())
+        .flat_map(|value| value.split(','))
+        .map(str::trim)
+        .any(|token| token.eq_ignore_ascii_case("close"))
+    {
+        return Ok(());
+    }
+
+    let retained: Vec<&str> = upstream_request
+        .headers
+        .get_all(http::header::CONNECTION)
+        .iter()
+        .filter_map(|value| value.to_str().ok())
+        .flat_map(|value| value.split(','))
+        .map(str::trim)
+        .filter(|token| !token.is_empty())
+        .filter(|token| !token.eq_ignore_ascii_case("close"))
+        .collect();
+    let retained = (!retained.is_empty()).then(|| retained.join(", "));
+    upstream_request.remove_header(&http::header::CONNECTION);
+    if let Some(retained) = retained {
+        upstream_request.insert_header(http::header::CONNECTION, retained)?;
+    }
+
+    Ok(())
+}
+
+pub(crate) fn request_for_response_filters<'a>(
+    session: &Session,
+    request: &'a RequestMeta,
+    full_request: &'a mut Option<RequestMeta>,
+    request_headers_complete: bool,
+    filters: &[Filter],
+) -> &'a RequestMeta {
+    if request_headers_complete || !response_filters_need_request_headers(filters) {
+        return request;
+    }
+
+    full_request.get_or_insert_with(|| build_request_meta(session))
+}
 
 #[derive(Clone)]
 pub struct GatewayProxy {
@@ -244,11 +465,6 @@ impl ProxyHttp for GatewayProxy {
         Ok(())
     }
 
-    #[instrument(skip_all, fields(
-        listener = %self.listener_name_hint.as_deref().unwrap_or("unknown"),
-        http.method = %session.req_header().method,
-        http.uri = %session.req_header().uri,
-    ))]
     async fn request_filter(
         &self,
         session: &mut Session,
@@ -319,19 +535,11 @@ impl ProxyHttp for GatewayProxy {
     where
         Self::CTX: Send + Sync,
     {
-        let endpoint_addr = format!("{}", _peer);
-        let _connect_span = debug_span!(
-            "backend_connect",
-            backend_name = %ctx.backend,
-            endpoint_addr = %endpoint_addr,
-        );
-        let _guard = _connect_span.enter();
         validate_backend_tls_subject_alt_name_result(_peer, _digest)?;
         record_upstream_connection(ctx, reused);
         Ok(())
     }
 
-    #[instrument(skip_all)]
     async fn upstream_request_filter(
         &self,
         _session: &mut Session,
@@ -354,7 +562,6 @@ impl ProxyHttp for GatewayProxy {
         Ok(())
     }
 
-    #[instrument(skip_all)]
     async fn response_filter(
         &self,
         session: &mut Session,
@@ -407,7 +614,16 @@ impl ProxyHttp for GatewayProxy {
         // AI Gateway post-processing — deferred to response_body_filter
         // where the actual response body is available.
 
-        handle_session_persistence_response(&self.session_manager, upstream_response, ctx)?;
+        if let Some(selected) = ctx.selected_backend.as_ref()
+            && let Some(policy) = selected.session_persistence.as_ref()
+        {
+            self.session_manager.write_response_session(
+                upstream_response,
+                policy,
+                selected,
+                ctx.resolved_session.as_ref(),
+            )?;
+        }
         let route_access_log_annotations = access_log_route_annotations(ctx).clone();
         cache_access_log_sent_response_headers_if_needed(
             ctx,
@@ -416,13 +632,55 @@ impl ProxyHttp for GatewayProxy {
             &route_access_log_annotations,
         );
 
-        handle_mirror_completion(&mut ctx.request_mirrors).await;
+        if !ctx.request_mirrors.is_empty() {
+            wait_for_request_mirrors(&mut ctx.request_mirrors).await;
+        }
 
-        handle_http_cache_response(&self.cache, upstream_response, ctx).await;
+        if let Some(http_cache) = ctx.http_cache.0.as_mut() {
+            let status = upstream_response.status.as_u16();
+            if status < 500 && (status < 300 || status == 404) {
+                let cache_control = CacheControl::from_resp_headers(upstream_response);
+                let has_auth = ctx
+                    .request_headers
+                    .as_ref()
+                    .and_then(|h| h.get("authorization"))
+                    .is_some();
+                if let Some(meta) = self.cache.is_response_cacheable(
+                    upstream_response,
+                    cache_control.as_ref(),
+                    has_auth,
+                ) {
+                    http_cache.set_cache_meta(meta);
+                    if http_cache.set_miss_handler().await.is_err() {
+                        http_cache.disable(NoCacheReason::StorageError);
+                        ctx.http_cache = context::CacheState::default();
+                    }
+                } else {
+                    http_cache.disable(NoCacheReason::OriginNotCache);
+                    ctx.http_cache = context::CacheState::default();
+                }
+            } else {
+                http_cache.disable(NoCacheReason::OriginNotCache);
+                ctx.http_cache = context::CacheState::default();
+            }
+        }
 
         record_request_span(ctx);
 
-        handle_wasm_post_process_response(&self.wasm_filter, ctx).await;
+        if let Some(ref wasm) = self.wasm_filter {
+            let request_headers: HashMap<String, String> = ctx
+                .request_headers
+                .as_ref()
+                .map(|h| h.iter().map(|(k, v)| (k.clone(), v.join(","))).collect())
+                .unwrap_or_default();
+            if let Err(e) = wasm.post_process(request_headers, vec![]).await {
+                tracing::warn!(
+                    target: "wasm_filter",
+                    error = %e,
+                    "wasm post_process failed, continuing"
+                );
+            }
+        }
 
         Ok(())
     }
@@ -469,7 +727,6 @@ impl ProxyHttp for GatewayProxy {
         Ok(None)
     }
 
-    #[instrument(skip_all)]
     async fn logging(&self, session: &mut Session, _e: Option<&pingora::Error>, ctx: &mut Self::CTX)
     where
         Self::CTX: Send + Sync,
@@ -528,7 +785,6 @@ impl ProxyHttp for GatewayProxy {
         observe_completed_request(&self.access_log, &self.traffic, ctx, latency_ms, bytes_sent);
     }
 
-    #[instrument(skip_all)]
     async fn fail_to_proxy(
         &self,
         session: &mut Session,

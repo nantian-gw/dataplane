@@ -5,7 +5,6 @@ use pingora::{
     Error, ErrorType,
     prelude::{HttpPeer, Session},
 };
-use tracing::{debug_span, instrument};
 
 use super::*;
 
@@ -33,17 +32,11 @@ fn apply_route_policy_to_peer(peer: &mut HttpPeer, ctx: &RequestContext) {
     }
 }
 
-#[instrument(skip_all)]
 pub(crate) async fn do_upstream_peer(
     proxy: &GatewayProxy,
     session: &mut Session,
     ctx: &mut RequestContext,
 ) -> pingora::Result<Box<HttpPeer>> {
-    let _retry_span = if ctx.retry_attempts > 0 {
-        Some(debug_span!("http_retry", attempt = ctx.retry_attempts))
-    } else {
-        None
-    };
     if let Some(backoff) = retry_backoff(ctx) {
         tokio::time::sleep(backoff).await;
     }
@@ -85,7 +78,7 @@ pub(crate) async fn do_upstream_peer(
                 sync_per_backend_cb_limit(&snap, proxy, &fast.selected.backend_name);
                 proxy
                     .circuit_breaker
-                    .try_acquire_backend(fast.selected.backend_name.as_ref())
+                    .try_acquire_backend(fast.selected.backend_name.as_str())
                     .map_err(|_| {
                         Error::new(ErrorType::new("CircuitBreakerOpen")).more_context(format!(
                             "backend circuit breaker rejected request for {}",
