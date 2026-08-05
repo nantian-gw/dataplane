@@ -74,7 +74,7 @@ pub fn build_route_selection_fixture(config: SnapshotBenchConfig) -> RouteSelect
                         routes_per_listener,
                     );
                     snapshot.backends.push(BackendCluster {
-                        name: format!("{backend_name}:{port}").into(),
+                        name: format!("{backend_name}:{port}"),
                         namespace: "default".into(),
                         protocol: "HTTP".into(),
                         wasm_plugin: None,
@@ -147,7 +147,7 @@ pub fn build_route_selection_fixture(config: SnapshotBenchConfig) -> RouteSelect
                         routes_per_listener,
                     );
                     snapshot.backends.push(BackendCluster {
-                        name: format!("{backend_name}:{port}").into(),
+                        name: format!("{backend_name}:{port}"),
                         namespace: "default".into(),
                         protocol: "HTTP".into(),
                         wasm_plugin: None,
@@ -219,7 +219,7 @@ pub fn build_route_selection_fixture(config: SnapshotBenchConfig) -> RouteSelect
                         routes_per_listener,
                     );
                     snapshot.backends.push(BackendCluster {
-                        name: format!("{backend_name}:{port}").into(),
+                        name: format!("{backend_name}:{port}"),
                         namespace: "default".into(),
                         protocol: "TCP".into(),
                         wasm_plugin: None,

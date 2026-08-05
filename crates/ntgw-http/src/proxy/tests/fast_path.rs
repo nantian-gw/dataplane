@@ -1,7 +1,7 @@
 use std::{collections::BTreeMap, sync::Arc};
 
 use crate::proxy::UpstreamTuningOptions;
-use crate::proxy::initial_request::fast_path_request_features_are_safe;
+use crate::proxy::fast_path_request_features_are_safe;
 use ntgw_ir::{
     BackendCluster, BackendEndpoint, BackendRef, CompiledSelectedHttpBackend, HttpMatch, HttpRoute,
     HttpRule, Listener, RouteKind, SelectedBackendRuntimeIds, Snapshot,
