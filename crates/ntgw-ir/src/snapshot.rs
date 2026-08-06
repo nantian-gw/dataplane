@@ -134,18 +134,22 @@ impl Snapshot {
         self.runtime_ids.selected_backend(self, selected)
     }
 
+#[must_use]
     pub fn runtime_resource_ref(&self, runtime_id: RuntimeId) -> Option<RuntimeResourceRef> {
         self.runtime_ids.resource_ref(runtime_id)
     }
 
+#[must_use]
     pub fn listener_runtime_id(&self, listener_name: &str) -> Option<RuntimeId> {
         self.runtime_ids.listener(listener_name)
     }
 
+#[must_use]
     pub fn http_route_runtime_id(&self, namespace: &str, name: &str) -> Option<RuntimeId> {
         self.runtime_ids.http_route(namespace, name)
     }
 
+#[must_use]
     pub fn grpc_route_runtime_id(&self, namespace: &str, name: &str) -> Option<RuntimeId> {
         self.runtime_ids.grpc_route(namespace, name)
     }
@@ -188,6 +192,7 @@ impl Snapshot {
             .stream_rule(kind, namespace, name, rule_index)
     }
 
+#[must_use]
     pub fn backend_runtime_id(&self, backend_name: &str) -> Option<RuntimeId> {
         self.runtime_ids.backend(backend_name)
     }
@@ -218,15 +223,18 @@ impl Snapshot {
         }
     }
 
+#[must_use]
     pub fn backend_policy(&self, backend_name: &str) -> Option<&BackendPolicy> {
         self.backend_policies.get(backend_name)
     }
 
+#[must_use]
     pub fn backend_protocol(&self, backend_name: &str) -> Option<&str> {
         self.backend_cluster_by_name(backend_name)
             .map(|cluster| cluster.protocol.as_str())
     }
 
+#[must_use]
     pub fn secret_material(&self, namespace: &str, name: &str) -> Option<&SecretMaterial> {
         if self.runtime_indexes_ready {
             let secret_name = format!("{namespace}/{name}");
@@ -244,6 +252,7 @@ impl Snapshot {
             .find(|secret| secret.namespace == namespace && secret.name == name)
     }
 
+#[must_use]
     pub fn select_backend(&self, request: &RequestMeta) -> Option<SelectedBackend> {
         self.select_backend_with_session_resolver(request, |_| None)
     }
@@ -289,6 +298,7 @@ impl Snapshot {
             })
     }
 
+#[must_use]
     pub fn select_http_backend(&self, request: &RequestMeta) -> Option<SelectedBackend> {
         self.select_http_backend_with_session_resolver(request, |_| None)
     }
@@ -305,6 +315,7 @@ impl Snapshot {
             .and_then(SelectedHttpRoute::into_backend)
     }
 
+#[must_use]
     pub fn select_http_route(&self, request: &RequestMeta) -> Option<SelectedHttpRoute> {
         self.select_http_route_with_session_resolver(request, |_| None)
     }
@@ -327,6 +338,7 @@ impl Snapshot {
         self.http_fast_path.select(self, request)
     }
 
+#[must_use]
     pub fn select_grpc_backend(&self, request: &RequestMeta) -> Option<SelectedBackend> {
         self.select_grpc_backend_with_session_resolver(request, |_| None)
     }
@@ -734,6 +746,7 @@ impl Snapshot {
         true
     }
 
+#[must_use]
     pub fn select_request_mirror(&self, context: &RequestMirrorContext) -> Option<SelectedBackend> {
         let mut selected = None;
         self.visit_request_mirrors(context, |mirror| {

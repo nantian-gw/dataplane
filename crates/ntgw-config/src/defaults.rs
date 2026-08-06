@@ -285,27 +285,27 @@ pub(crate) fn default_xds_protocol() -> String {
     "sotw".to_string()
 }
 
-#[allow(dead_code)]
+#[expect(dead_code, reason = "reserved for future route config")]
 pub(crate) fn default_route_max_request_body_bytes() -> usize {
     10 * 1024 * 1024
 }
 
-#[allow(dead_code)]
+#[expect(dead_code, reason = "reserved for future route config")]
 pub(crate) fn default_route_request_body_buffer_bytes() -> usize {
     128 * 1024
 }
 
-#[allow(dead_code)]
+#[expect(dead_code, reason = "reserved for future route config")]
 pub(crate) fn default_route_max_request_header_bytes() -> usize {
     65_536
 }
 
-#[allow(dead_code)]
+#[expect(dead_code, reason = "reserved for future route config")]
 pub(crate) fn default_route_upstream_connect_timeout_ms() -> u64 {
     5_000
 }
 
-#[allow(dead_code)]
+#[expect(dead_code, reason = "reserved for future route config")]
 pub(crate) fn default_route_upstream_read_timeout_ms() -> u64 {
     15_000
 }

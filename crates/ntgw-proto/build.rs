@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     if std::env::var_os("PROTOC").is_none() {
+    // Safety: build.rs runs single-threaded during compilation; std::env::set_var is safe in this context.
         unsafe { std::env::set_var("PROTOC", protoc_bin_vendored::protoc_bin_path()?) };
     }
 

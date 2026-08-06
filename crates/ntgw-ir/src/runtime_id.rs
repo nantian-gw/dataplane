@@ -16,6 +16,7 @@ impl RuntimeId {
         self.0
     }
 
+#[must_use]
     pub fn parse_hex(value: &str) -> Option<Self> {
         let value = value.trim();
         if value.len() != 16 || !value.bytes().all(|byte| byte.is_ascii_hexdigit()) {
@@ -100,34 +101,40 @@ pub struct SelectedBackendRuntimeIds {
 }
 
 impl RuntimeIdIndex {
+#[must_use]
     pub fn listener(&self, listener_name: &str) -> Option<RuntimeId> {
         self.listeners.get(listener_name).copied()
     }
 
+#[must_use]
     pub fn http_route(&self, namespace: &str, name: &str) -> Option<RuntimeId> {
         self.http_routes
             .get(&namespaced_key(namespace, name))
             .copied()
     }
 
+#[must_use]
     pub fn grpc_route(&self, namespace: &str, name: &str) -> Option<RuntimeId> {
         self.grpc_routes
             .get(&namespaced_key(namespace, name))
             .copied()
     }
 
+#[must_use]
     pub fn stream_route(&self, kind: &str, namespace: &str, name: &str) -> Option<RuntimeId> {
         self.stream_routes
             .get(&stream_route_key(kind, namespace, name))
             .copied()
     }
 
+#[must_use]
     pub fn http_rule(&self, namespace: &str, name: &str, rule_index: usize) -> Option<RuntimeId> {
         self.http_rules
             .get(&rule_key(&namespaced_key(namespace, name), rule_index))
             .copied()
     }
 
+#[must_use]
     pub fn grpc_rule(&self, namespace: &str, name: &str, rule_index: usize) -> Option<RuntimeId> {
         self.grpc_rules
             .get(&rule_key(&namespaced_key(namespace, name), rule_index))
@@ -149,16 +156,19 @@ impl RuntimeIdIndex {
             .copied()
     }
 
+#[must_use]
     pub fn backend(&self, backend_name: &str) -> Option<RuntimeId> {
         self.backends.get(backend_name).copied()
     }
 
+#[must_use]
     pub fn endpoint(&self, backend_name: &str, endpoint: &BackendEndpoint) -> Option<RuntimeId> {
         self.endpoints
             .get(&EndpointRuntimeKey::new(backend_name, endpoint))
             .copied()
     }
 
+#[must_use]
     pub fn resource_ref(&self, runtime_id: RuntimeId) -> Option<RuntimeResourceRef> {
         self.resource_refs.get(&runtime_id).cloned()
     }

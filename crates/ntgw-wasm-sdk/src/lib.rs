@@ -1,3 +1,4 @@
+#![deny(unsafe_code)]
 //! Upstream Gateway Wasm Plugin SDK
 //!
 //! This SDK provides the host function bindings and macros needed

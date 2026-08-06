@@ -39,8 +39,6 @@ struct JwksResponse {
 struct JwkKey {
     kid: String,
     kty: String,
-    #[allow(dead_code)]
-    alg: Option<String>,
     n: String,
     e: String,
 }

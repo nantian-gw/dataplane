@@ -14,7 +14,6 @@ use crate::error::WasmError;
 /// operation-specific function (`tokenize` or `embed`).
 pub struct AISandbox {
     engine: Engine,
-    #[allow(dead_code)]
     linker: Linker<PluginContext>,
     modules: HashMap<String, Module>,
 }

@@ -236,10 +236,56 @@ fn spawn_access_log_writer(path: &str) -> Result<AccessLogWriter> {
     }
 }
 
+pub(super) struct NullSink;
+
+impl std::io::Write for NullSink {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        Ok(buf.len())
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
+}
+
+pub(super) enum LogTarget {
+    File(std::fs::File),
+    Stdout(std::io::Stdout),
+    Stderr(std::io::Stderr),
+    #[expect(dead_code, reason = "reserved for future use")]
+    Null(NullSink),
+    #[cfg(test)]
+    Custom(Box<dyn Write + Send>),
+}
+
+impl std::io::Write for LogTarget {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        match self {
+            LogTarget::File(f) => f.write(buf),
+            LogTarget::Stdout(s) => s.write(buf),
+            LogTarget::Stderr(s) => s.write(buf),
+            LogTarget::Null(_) => Ok(buf.len()),
+            #[cfg(test)]
+            LogTarget::Custom(w) => w.write(buf),
+        }
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        match self {
+            LogTarget::File(f) => f.flush(),
+            LogTarget::Stdout(s) => s.flush(),
+            LogTarget::Stderr(s) => s.flush(),
+            LogTarget::Null(_) => Ok(()),
+            #[cfg(test)]
+            LogTarget::Custom(w) => w.flush(),
+        }
+    }
+}
+
 #[cfg(test)]
 pub(super) fn spawn_access_log_writer_for_test(
     path: &str,
-    writer: Box<dyn Write + Send>,
+    writer: LogTarget,
     capacity: usize,
 ) -> Result<AccessLogWriter> {
     let (tx, rx) = mpsc::sync_channel(capacity);
@@ -264,7 +310,7 @@ pub(super) fn spawn_access_log_writer_for_test(
 
 fn run_access_log_worker(
     worker_path: String,
-    mut writer: BufWriter<Box<dyn Write + Send>>,
+    mut writer: BufWriter<LogTarget>,
     rx: Receiver<AccessLogCommand>,
     worker_stats: Arc<AccessLogWriterStats>,
 ) {
@@ -325,7 +371,7 @@ fn run_access_log_worker(
 }
 
 fn flush_access_log_writer(
-    writer: &mut BufWriter<Box<dyn Write + Send>>,
+    writer: &mut BufWriter<LogTarget>,
     worker_stats: &AccessLogWriterStats,
 ) {
     let started = Instant::now();
@@ -351,17 +397,17 @@ fn sanitize_worker_name(path: &str) -> String {
     }
 }
 
-fn create_access_log_target(path: &str) -> Result<BufWriter<Box<dyn Write + Send>>> {
-    let writer: Box<dyn Write + Send> = match path {
-        "stdout" => Box::new(io::stdout()),
-        "stderr" => Box::new(io::stderr()),
-        _ => Box::new(OpenOptions::new().create(true).append(true).open(path)?),
+fn create_access_log_target(path: &str) -> Result<BufWriter<LogTarget>> {
+    let writer = match path {
+        "stdout" => LogTarget::Stdout(io::stdout()),
+        "stderr" => LogTarget::Stderr(io::stderr()),
+        _ => LogTarget::File(OpenOptions::new().create(true).append(true).open(path)?),
     };
     Ok(BufWriter::with_capacity(ACCESS_LOG_BUFFER_CAPACITY, writer))
 }
 
 fn write_access_log_line(
-    writer: &mut BufWriter<Box<dyn Write + Send>>,
+    writer: &mut BufWriter<LogTarget>,
     line: &str,
 ) -> io::Result<()> {
     writer.write_all(line.as_bytes())?;
@@ -370,7 +416,7 @@ fn write_access_log_line(
 
 fn recover_access_log_target(
     path: &str,
-    writer: &mut BufWriter<Box<dyn Write + Send>>,
+    writer: &mut BufWriter<LogTarget>,
     line: &str,
 ) -> Result<()> {
     if matches!(path, "stdout" | "stderr") {

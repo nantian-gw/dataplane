@@ -1,3 +1,4 @@
+#![allow(unsafe_code)]
 use crate::types::LogLevel;
 
 /// Host function: log a message

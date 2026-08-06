@@ -144,7 +144,7 @@ impl PIIMasker {
     /// start the longer one comes first so that downstream deduplication can
     /// prefer the more specific hit.
     pub fn detect(&self, text: &str) -> Vec<PIIMatch> {
-        let mut matches = Vec::new();
+        let mut matches = Vec::with_capacity(self.patterns.len());
         for (entity_type, pattern) in &self.patterns {
             for cap in pattern.find_iter(text) {
                 matches.push(PIIMatch {
@@ -209,11 +209,6 @@ impl PIIMasker {
         Ok(masked.into_owned().into_bytes())
     }
 
-    /// Return the compiled pattern count (useful for diagnostics).
-    #[allow(dead_code)]
-    pub fn pattern_count(&self) -> usize {
-        self.patterns.len()
-    }
 }
 
 #[cfg(test)]

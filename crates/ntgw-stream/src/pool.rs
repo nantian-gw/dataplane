@@ -15,7 +15,6 @@ type PoolKey = (String, u16);
 
 /// Snapshot of cumulative connection pool counters at a point in time.
 #[derive(Debug, Clone, Copy, Default)]
-#[allow(dead_code)]
 pub struct PoolCountersSnapshot {
     /// Connections currently held by callers (not in idle pool).
     pub active_connections: u64,
@@ -243,19 +242,7 @@ impl TcpConnectionPool {
         debug!(count, "pool drained");
     }
 
-    #[allow(dead_code)]
-    pub(crate) fn warn_if_undersized(&self) {
-        let peak = self.peak_active_connections.load(Ordering::Relaxed);
-        let max_idle = self.max_idle_per_backend.load(Ordering::Relaxed) as u64;
-        if peak > max_idle {
-            warn!(
-                peak_active = peak,
-                max_idle, "pool may be undersized: peak active connections exceeds max_idle"
-            );
-        }
-    }
 
-    #[allow(dead_code)]
     pub(crate) fn counter_snapshot(&self) -> PoolCountersSnapshot {
         PoolCountersSnapshot {
             active_connections: self.active_connections.load(Ordering::Relaxed),
@@ -279,6 +266,7 @@ pub(crate) fn register_global_pool(pool: Arc<TcpConnectionPool>) {
     let _ = GLOBAL_POOL.set(pool);
 }
 
+#[must_use]
 pub fn global_pool_snapshot() -> Option<PoolCountersSnapshot> {
     GLOBAL_POOL.get().map(|pool| pool.counter_snapshot())
 }

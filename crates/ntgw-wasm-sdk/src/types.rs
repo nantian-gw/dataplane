@@ -1,3 +1,4 @@
+#![allow(unsafe_code)]
 use crate::host_get_header;
 use crate::host_log;
 use crate::host_set_header;

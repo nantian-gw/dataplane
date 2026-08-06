@@ -32,6 +32,7 @@ pub struct ServiceFrontendRef {
     pub port: u32,
 }
 
+#[must_use]
 pub fn service_frontend(listener: &Listener) -> Option<ServiceFrontendRef> {
     if listener
         .metadata

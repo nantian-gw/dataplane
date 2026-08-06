@@ -299,7 +299,7 @@ pub(crate) async fn do_request_filter(
                 request_headers_complete,
                 &selected.filters,
             );
-            cache_request_headers_if_needed(ctx, &response_request.headers, &selected.filters);
+            cache_request_headers_if_needed(ctx, session);
             super::request::cache_access_log_request_headers_from_header_if_needed(
                 ctx,
                 session.req_header(),
@@ -328,7 +328,7 @@ pub(crate) async fn do_request_filter(
             request_headers_complete,
             &selected.filters,
         );
-        cache_request_headers_if_needed(ctx, &filter_request.headers, &selected.filters);
+        cache_request_headers_if_needed(ctx, session);
         super::request::cache_access_log_request_headers_from_header_if_needed(
             ctx,
             session.req_header(),
@@ -398,7 +398,7 @@ pub(crate) async fn do_request_filter(
                 request_headers_complete,
                 &selected.filters,
             );
-            cache_request_headers_if_needed(ctx, &filter_request.headers, &selected.filters);
+            cache_request_headers_if_needed(ctx, session);
             super::request::cache_access_log_request_headers_from_header_if_needed(
                 ctx,
                 session.req_header(),
@@ -468,28 +468,59 @@ pub(crate) async fn do_request_filter(
         if request_is_grpc(&request) {
             ctx.status = write_grpc_no_route_response(session).await?;
         } else {
-            let route_access_log_annotations =
-                super::request::access_log_route_annotations(ctx).clone();
-            ctx.status = write_http_no_route_response(
-                session,
-                ctx,
-                &proxy.access_log,
-                &route_access_log_annotations,
-            )
-            .await?;
+            ctx.status = {
+                let body = Bytes::from_static(b"route not found");
+                let mut response = ResponseHeader::build(404, None)?;
+                response.insert_header("content-length", body.len().to_string())?;
+                if let Some(requirements) = access_log_response_requirements(
+                    &proxy.access_log,
+                    access_log_route_annotations(ctx),
+                ) && !requirements.sent_response_headers.is_empty() {
+                    cache_access_log_response_headers(
+                        &mut ctx.access_log_sent_response_headers,
+                        &response,
+                        &requirements.sent_response_headers,
+                    );
+                }
+                session.write_response_header(Box::new(response), false).await?;
+                session.write_response_body(Some(body), true).await?;
+                404
+            };
         }
         record_request_span(ctx);
         return Ok(true);
     };
 
-    cache_selected_http_route_context(ctx, &proxy.access_log, &route);
-    let access_log_route_annotations = super::request::access_log_route_annotations(ctx).clone();
-    super::request::cache_access_log_connection_fields_if_needed(
-        session,
-        ctx,
-        &proxy.access_log,
-        &access_log_route_annotations,
-    );
+        // Cache connection fields (avoiding borrow conflict)
+        if let Some(requirements) = access_log_response_requirements(
+            &proxy.access_log,
+            access_log_route_annotations(ctx),
+        ) {
+            let downstream_tls_present = session
+                .as_downstream()
+                .digest()
+                .and_then(|digest| digest.ssl_digest.as_ref())
+                .is_some();
+            let client_remote_port = session
+                .client_addr()
+                .and_then(|addr| addr.as_inet().map(|inet| inet.port()));
+            let digest_peer_remote_port = session
+                .as_downstream()
+                .digest()
+                .and_then(|digest| digest.socket_digest.as_ref())
+                .and_then(|socket| socket.peer_addr())
+                .and_then(|addr| addr.as_inet().map(|inet| inet.port()));
+            if requirements.needs_scheme {
+                ctx.access_log_scheme = if downstream_tls_present {
+                    "https".to_string()
+                } else {
+                    "http".to_string()
+                };
+            }
+            if requirements.needs_remote_port {
+                ctx.access_log_remote_port = client_remote_port.or(digest_peer_remote_port);
+            }
+        }
 
     if frontend_client_certificate_requirement.closes_connection_without_valid_client_certificate(
         downstream_tls_client_certificate_present(session),
@@ -523,7 +554,7 @@ pub(crate) async fn do_request_filter(
         request_headers_complete,
         &route.filters,
     );
-    cache_request_headers_if_needed(ctx, &filter_request.headers, &route.filters);
+    cache_request_headers_if_needed(ctx, session);
     super::request::cache_access_log_request_headers_from_header_if_needed(
         ctx,
         session.req_header(),

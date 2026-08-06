@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
+use std::sync::Arc;
 
-use ntgw_ir::Filter;
 use ntgw_observability::{
     AccessLogMode, AccessLogOptions, AccessLogTemplateRequirements,
     access_log_template_requirements, resolve_access_log_options,
@@ -8,17 +8,16 @@ use ntgw_observability::{
 use pingora::http::ResponseHeader;
 use pingora::prelude::Session;
 
-use super::context::response_filter_request_headers;
-use super::context::response_filters_need_request_headers;
+use super::extract::request_headers;
 use crate::proxy::RequestContext;
 
 pub(crate) fn cache_request_headers_if_needed(
     ctx: &mut RequestContext,
-    request_headers: &BTreeMap<String, Vec<String>>,
-    filters: &[Filter],
-) {
-    if ctx.request_headers.is_none() && response_filters_need_request_headers(filters) {
-        ctx.request_headers = Some(response_filter_request_headers(request_headers));
+    session: &Session,
+    ) {
+    if ctx.request_headers.is_none() {
+        let headers = request_headers(session.req_header());
+        ctx.request_headers = Some(headers);
     }
 }
 
@@ -40,7 +39,7 @@ pub(crate) fn cache_access_log_request_headers_if_needed(
             .and_then(|values| values.first())
         {
             ctx.access_log_request_headers
-                .insert(header_name.clone(), value.clone());
+                .insert(Arc::from(header_name.as_str()), value.clone());
         }
     }
 }
@@ -64,23 +63,22 @@ pub(crate) fn cache_access_log_request_headers_from_header_if_needed(
             .and_then(|value| value.to_str().ok())
         {
             ctx.access_log_request_headers
-                .insert(header_name, value.to_string());
+                .insert(Arc::from(header_name), value.to_string());
         }
     }
 }
 
 pub(crate) fn cache_request_headers_for_filters_and_access_log(
     ctx: &mut RequestContext,
-    request_headers: &BTreeMap<String, Vec<String>>,
-    filters: &[Filter],
+    session: &Session,
     access_log: &AccessLogOptions,
     route_annotations: &BTreeMap<String, String>,
 ) {
-    cache_request_headers_if_needed(ctx, request_headers, filters);
-    cache_access_log_request_headers_if_needed(ctx, request_headers, access_log, route_annotations);
+    cache_request_headers_if_needed(ctx, session);
+    let headers = request_headers(session.req_header());
+    cache_access_log_request_headers_if_needed(ctx, &headers, access_log, route_annotations);
 }
 
-#[allow(dead_code)]
 pub(crate) fn cache_access_log_connection_fields_if_needed(
     session: &Session,
     ctx: &mut RequestContext,
@@ -133,7 +131,6 @@ pub(crate) fn cache_access_log_connection_fields_from_sources_if_needed(
     }
 }
 
-#[allow(dead_code)]
 pub(crate) fn cache_access_log_sent_response_headers_if_needed(
     ctx: &mut RequestContext,
     response: &ResponseHeader,
@@ -154,6 +151,7 @@ pub(crate) fn cache_access_log_sent_response_headers_if_needed(
     );
 }
 
+#[allow(dead_code)]
 pub(crate) fn cache_access_log_sent_response_headers_from_written_response_if_needed(
     ctx: &mut RequestContext,
     written_response: Option<&ResponseHeader>,
@@ -242,8 +240,7 @@ fn access_log_request_header_requirements(
     (!requirements.request_headers.is_empty()).then_some(requirements.request_headers)
 }
 
-#[allow(dead_code)]
-fn access_log_response_requirements(
+pub(crate) fn access_log_response_requirements(
     access_log: &AccessLogOptions,
     route_annotations: &BTreeMap<String, String>,
 ) -> Option<AccessLogTemplateRequirements> {
@@ -255,9 +252,8 @@ fn access_log_response_requirements(
     Some(access_log_template_requirements(&resolved.format))
 }
 
-#[allow(dead_code)]
-fn cache_access_log_response_headers(
-    target: &mut BTreeMap<String, String>,
+pub(crate) fn cache_access_log_response_headers(
+    target: &mut BTreeMap<Arc<str>, String>,
     response: &ResponseHeader,
     required_headers: &BTreeSet<String>,
 ) {
@@ -269,7 +265,7 @@ fn cache_access_log_response_headers(
             .get(header_name.as_str())
             .and_then(|value| value.to_str().ok())
         {
-            target.insert(header_name.clone(), value.to_string());
+            target.insert(Arc::from(header_name.as_str()), value.to_string());
         }
     }
 }
