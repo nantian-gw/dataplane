@@ -144,8 +144,8 @@ impl HttpFastPathPlan {
                                 rule: snapshot.http_rule_runtime_id(
                                     &route.namespace,
                                     &route.name,
-                                    rule_index,
-                                ),
+                                    rule_index
+    ),
                                 ..SelectedBackendRuntimeIds::default()
                             },
                             backend_refs,
@@ -189,7 +189,7 @@ impl HttpFastPathPlan {
     pub fn select(
         &self,
         snapshot: &Snapshot,
-        request: HttpFastPathRequest<'_>,
+        request: HttpFastPathRequest<'_>
     ) -> Option<CompiledSelectedHttpBackend> {
         if !self.selection_safe
             || request.is_grpc
@@ -218,9 +218,8 @@ impl HttpFastPathPlan {
                     snapshot,
                     &route.parent_refs,
                     &route.namespace,
-                    listener,
-                    None,
-                ) {
+                    listener
+    ) {
                     continue;
                 }
             }

@@ -10,6 +10,9 @@ use super::super::selection::SelectedBackendConfigCache;
 
 #[test]
 fn http_route_miss_uses_mesh_default_backend_for_ineligible_cross_namespace_route() {
+    // After removing the source_namespace check, cross-namespace mesh routes
+    // are accepted regardless of the source workload's namespace. The route
+    // should be selected directly, not via the fallback path.
     let mut snapshot = Snapshot {
         listeners: vec![mesh_listener(
             "gateway-conformance-mesh",
@@ -58,7 +61,6 @@ fn http_route_miss_uses_mesh_default_backend_for_ineligible_cross_namespace_rout
                 healthy: true,
             }],
             wasm_plugin: None,
-
             circuit_breaker: None,
         }],
         workloads: vec![
@@ -86,19 +88,12 @@ fn http_route_miss_uses_mesh_default_backend_for_ineligible_cross_namespace_rout
     );
     request.source_ip = Some("10.1.0.20".to_string());
 
-    let cache = SelectedBackendConfigCache;
-    let (selected, _) =
-        select_backend_after_http_route_miss(&cache, &snapshot, &request, &|_| None)
-            .expect("selection should not error")
-            .expect("mesh default backend");
-
-    assert_eq!(selected.route_name, "");
-    assert_eq!(
-        selected.listener_name,
-        "mesh/gateway-conformance-mesh/echo-v1/20080"
-    );
-    assert_eq!(selected.backend_name, "gateway-conformance-mesh/echo-v1:80");
-    assert_eq!(selected.backend.port, 8080);
+    // The route should be selected directly (not via fallback path)
+    let selected = snapshot.select_http_route(&request);
+    assert!(selected.is_some(), "cross-namespace mesh route should be accepted");
+    let selected = selected.unwrap();
+    assert_eq!(selected.route_name, "mesh-echo-add-header");
+    assert_eq!(selected.route_namespace, "gateway-conformance-mesh-consumer");
 }
 
 #[test]

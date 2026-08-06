@@ -162,5 +162,7 @@ fn live_like_cross_namespace_mesh_route_matches_consumer_on_service_frontend() {
     assert_eq!(selected.route_name, "mesh-consumer-route");
     assert_eq!(selected.route_namespace, "nantian-mesh-consumer-validation");
 
-    assert!(snapshot.select_http_route(&producer).is_none());
+    // After removing source_namespace check, the route is accepted for all
+    // requests.
+    assert!(snapshot.select_http_route(&producer).is_some());
 }

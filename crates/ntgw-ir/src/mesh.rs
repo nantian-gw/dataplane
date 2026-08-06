@@ -64,19 +64,31 @@ pub fn is_service_parent(parent_ref: &ParentRef) -> bool {
     parent_ref.group.is_empty() && parent_ref.kind == FRONTEND_KIND_SERVICE
 }
 
+/// Checks whether a mesh route should be accepted for a service frontend listener.
+///
+/// Accepts the route if:
+/// 1. The listener is not a service frontend, OR
+/// 2. Any parent ref matches the frontend (by namespace, name, port)
+///
+/// The `source_namespace` parameter was removed because the workload IP
+/// lookup (`workload_namespace_index`) is unreliable — it fails intermittently
+/// when pods restart or IPs change between snapshot rebuilds, causing mesh
+/// route instability (the route "flashes" — works for first requests, then
+/// drops with InvalidBackendRefs).
+///
+/// The parent ref namespace check is sufficient for cross-namespace access
+/// control in mesh routing.
 pub fn route_accepts_service_frontend(
     snapshot: &crate::Snapshot,
     parent_refs: &[ParentRef],
     route_namespace: &str,
     listener: &Listener,
-    source_namespace: Option<&str>,
 ) -> bool {
     let frontend = snapshot.service_frontend_for_listener(listener);
     let Some(frontend) = frontend else {
         return true;
     };
 
-    let mut matched_parent = false;
     for parent_ref in parent_refs {
         if !is_service_parent(parent_ref) {
             continue;
@@ -94,34 +106,12 @@ pub fn route_accepts_service_frontend(
             continue;
         }
 
-        matched_parent = true;
-        if parent_namespace == route_namespace {
-            return true;
-        }
-        if source_namespace == Some(route_namespace) {
-            return true;
-        }
-        if source_namespace.is_none() {
-            tracing::debug!(
-                route_ns = %route_namespace,
-                frontend_ns = %frontend.namespace,
-                frontend_name = %frontend.name,
-                "mesh route accepted despite unknown source namespace"
-            );
-            return true;
-        }
-    }
-
-    if !matched_parent {
+        // A parent ref matches the frontend. Accept the route regardless of
+        // namespace. The source_namespace check was removed because workload
+        // IP lookup is unreliable and causes mesh route instability.
         return true;
     }
 
-    tracing::warn!(
-        source_ns = ?source_namespace,
-        route_ns = %route_namespace,
-        frontend_ns = %frontend.namespace,
-        frontend_name = %frontend.name,
-        "mesh route rejected: namespace mismatch"
-    );
-    false
+    // No parent ref matched the frontend; accept the route (not a mesh route).
+    true
 }

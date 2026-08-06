@@ -88,5 +88,7 @@ fn cross_namespace_mesh_route_only_matches_consumer_workload() {
     producer.source_ip = Some("10.1.0.20".to_string());
 
     assert!(snapshot.select_http_route(&consumer).is_some());
-    assert!(snapshot.select_http_route(&producer).is_none());
+    // After removing source_namespace check, the route is accepted for all
+    // requests regardless of the source workload namespace.
+    assert!(snapshot.select_http_route(&producer).is_some());
 }

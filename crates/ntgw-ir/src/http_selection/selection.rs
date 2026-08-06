@@ -28,14 +28,13 @@ pub(super) fn select_http_route(
         snapshot,
         request.host.as_deref(),
         request.port,
-        ListenerKind::Http,
+        ListenerKind::Http
     );
     if listeners.enforce_attachments && listeners.listeners.is_empty() {
         return None;
     }
 
     let mut best: Option<HttpCandidate<'_>> = None;
-    let source_namespace = snapshot.source_namespace(request);
     visit_http_route_candidates(snapshot, request.host.as_deref(), |route| {
         let listener_match =
             route_listener_match(snapshot, &listeners, &route.namespace, &route.name);
@@ -47,9 +46,8 @@ pub(super) fn select_http_route(
                 snapshot,
                 &route.parent_refs,
                 &route.namespace,
-                listener_match.listener,
-                source_namespace,
-            )
+                listener_match.listener
+    )
         {
             return true;
         }
@@ -66,8 +64,8 @@ pub(super) fn select_http_route(
                 &rule.backend_refs,
                 rule.session_persistence.as_ref(),
                 request,
-                session_resolver,
-            );
+                session_resolver
+    );
             if resolution.selected.is_none()
                 && resolution.error.is_none()
                 && !has_non_backend_http_filter(&rule.filters)
@@ -167,14 +165,13 @@ pub(super) fn select_grpc_backend(
         snapshot,
         request.host.as_deref(),
         request.port,
-        ListenerKind::Grpc,
+        ListenerKind::Grpc
     );
     if listeners.enforce_attachments && listeners.listeners.is_empty() {
         return None;
     }
 
     let mut best: Option<GrpcCandidate<'_>> = None;
-    let source_namespace = snapshot.source_namespace(request);
     visit_grpc_route_candidates(snapshot, request.host.as_deref(), |route| {
         let listener_match =
             route_listener_match(snapshot, &listeners, &route.namespace, &route.name);
@@ -186,9 +183,8 @@ pub(super) fn select_grpc_backend(
                 snapshot,
                 &route.parent_refs,
                 &route.namespace,
-                listener_match.listener,
-                source_namespace,
-            )
+                listener_match.listener
+    )
         {
             return true;
         }
@@ -205,8 +201,8 @@ pub(super) fn select_grpc_backend(
                 &rule.backend_refs,
                 rule.session_persistence.as_ref(),
                 request,
-                session_resolver,
-            );
+                session_resolver
+    );
             let Some(selected_backend) = resolution.selected else {
                 continue;
             };
