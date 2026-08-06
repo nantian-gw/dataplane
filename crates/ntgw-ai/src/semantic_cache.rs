@@ -153,6 +153,7 @@ impl SemanticCache {
 
     /// Try to find a cached response. Returns `None` if cache is disabled,
     /// no entry exists, or the entry is expired.
+#[must_use]
     pub fn lookup(&self, request: &AIRequest) -> Option<AIResponse> {
         if !self.config.enabled {
             return None;
@@ -166,18 +167,17 @@ impl SemanticCache {
         None
     }
 
-    /// Store a response in the cache.
-    pub fn store(&self, request: &AIRequest, response: &AIResponse) {
+    /// Store a response in the cache with a pre-computed key.
+    pub fn store(&self, key: &str, response: &AIResponse) {
         if !self.config.enabled {
             return;
         }
-        let key = build_cache_key(request);
         let entry = CachedResponse {
             response: response.clone(),
             stored_at: Instant::now(),
             ttl: self.config.ttl,
         };
-        self.backend.store(&key, &entry, self.config.ttl);
+        self.backend.store(key, &entry, self.config.ttl);
     }
 }
 

@@ -61,6 +61,7 @@ impl PromptInjector {
         self.templates.insert(template.name.clone(), template);
     }
 
+#[must_use]
     pub fn template(&self, name: &str) -> Option<&PromptTemplate> {
         self.templates.get(name)
     }

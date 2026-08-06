@@ -53,7 +53,8 @@ fn test_cache_hit() {
     let req = make_request("What is Rust?");
     let resp = make_response("1", "Rust is a systems programming language.");
 
-    cache.store(&req, &resp);
+    let key = build_cache_key(&req);
+    cache.store(&key, &resp);
     let result = cache.lookup(&req);
     assert!(result.is_some());
     assert_eq!(result.unwrap().id, "1");
@@ -77,7 +78,8 @@ fn test_cache_disabled() {
     let req = make_request("What is Rust?");
     let resp = make_response("1", "Rust is a systems language.");
 
-    cache.store(&req, &resp);
+    let key = build_cache_key(&req);
+    cache.store(&key, &resp);
     assert!(cache.lookup(&req).is_none());
 }
 
@@ -88,6 +90,7 @@ fn test_different_requests_different_keys() {
     let req2 = make_request("What is Python?");
     let resp = make_response("1", "A language.");
 
-    cache.store(&req1, &resp);
+    let key = build_cache_key(&req1);
+    cache.store(&key, &resp);
     assert!(cache.lookup(&req2).is_none());
 }

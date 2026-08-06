@@ -138,6 +138,7 @@ impl AITracer {
     }
 
     /// Get a baggage value from the current OpenTelemetry context.
+#[must_use]
     pub fn get_baggage(&self, key: &str) -> Option<String> {
         Context::current().baggage().get(key).map(|v| v.to_string())
     }

@@ -42,6 +42,7 @@ impl AdapterRegistry {
         self.adapters.insert(name.into(), adapter);
     }
 
+#[must_use]
     pub fn get(&self, name: &str) -> Option<&dyn FormatAdapter> {
         self.adapters.get(name).map(|a| a.as_ref())
     }
@@ -57,6 +58,7 @@ impl Default for AdapterRegistry {
     }
 }
 
+#[must_use]
 pub fn detect_format(path: &str) -> Option<&'static str> {
     if path.contains("/v1/chat/completions")
         || path.contains("/v1/completions")

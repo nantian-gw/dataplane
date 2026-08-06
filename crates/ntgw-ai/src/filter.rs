@@ -465,6 +465,7 @@ impl AIGatewayFilter {
     /// Resolve a gateway API key to a backend credential via the configured
     /// `ApiKeyManager`. Returns `None` if no key manager is configured or if
     /// no matching credential exists.
+#[must_use]
     pub fn resolve_api_key(&self, gateway_key: &str) -> Option<crate::keyring::BackendCredential> {
         self.key_manager
             .as_ref()
@@ -534,8 +535,8 @@ impl AIGatewayFilter {
             let response = adapter.parse_response(response_body)?;
             let usage = response.usage.clone();
 
-            if let (Some(cache), Some(_)) = (&self.semantic_cache, &ctx.cache_key) {
-                cache.store(&ctx.request, &response);
+            if let (Some(cache), Some(cache_key)) = (&self.semantic_cache, &ctx.cache_key) {
+                cache.store(cache_key, &response);
             }
 
             let serialized = adapter.serialize_response(&response)?;
@@ -552,6 +553,11 @@ impl AIGatewayFilter {
                 let cost = tracker.record(&model, usage);
                 self.metrics.record_cost(&model, cost);
             }
+
+            // Record first-token latency and tokens per request
+            self.metrics.record_first_token_latency(&model, "", duration.as_secs_f64());
+            self.metrics
+                .record_tokens_per_request(&model, "", usage.total_tokens as f64);
         }
 
         // Record rate limit token usage (post-response)
@@ -570,10 +576,12 @@ impl AIGatewayFilter {
         self.metrics
             .record_request(&model, &format, status_str, duration.as_secs_f64());
 
-        // Record format error if applicable (error status)
+        // Record format error and backend error if applicable (error status)
         if response_status >= 400 {
             self.metrics
                 .record_format_error(&format, &format!("http_{response_status}"));
+            self.metrics
+                .record_backend_error(&model, &response_status.to_string());
         }
 
         // Langfuse ingestion

@@ -60,10 +60,12 @@ impl ModelRouter {
         }
     }
 
+#[must_use]
     pub fn route(&self, complexity: Complexity) -> Option<&ModelRoute> {
         self.routes.get(&complexity).and_then(|v| v.first())
     }
 
+#[must_use]
     pub fn classify_and_route(&self, request: &AIRequest) -> Option<&ModelRoute> {
         let complexity = self.classify(request);
         self.route(complexity)

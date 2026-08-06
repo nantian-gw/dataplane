@@ -31,6 +31,7 @@ impl ApiKeyManager {
 
     /// Look up best backend key for a gateway key + provider combination.
     /// Returns the credential with lowest priority (preferred).
+#[must_use]
     pub fn resolve(&self, gateway_key: &str) -> Option<BackendCredential> {
         let keys = self.keys.read();
         let creds = keys.get(gateway_key)?;

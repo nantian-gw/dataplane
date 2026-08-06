@@ -124,6 +124,7 @@ impl TenantManager {
     /// Resolve an API key to its owning `Tenant`.
     ///
     /// Returns `None` if the key is unknown.
+#[must_use]
     pub fn resolve(&self, api_key: &str) -> Option<&Tenant> {
         let tid = self.api_key_index.get(api_key)?;
         self.tenants.get(tid)

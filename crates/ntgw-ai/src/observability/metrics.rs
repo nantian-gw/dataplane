@@ -41,7 +41,6 @@ pub struct AIMetrics {
     pub content_safety_violations_total: IntCounterVec,
     /// PII entities detected/masked. Labels: `entity_type` (email, phone, etc.)
     pub pii_detected_total: IntCounterVec,
-
     /// Tenant access denied. Labels: `reason` (`unknown_key`|`quota_exceeded`|`model_not_allowed`).
     pub tenant_denied_total: IntCounterVec,
     /// A/B test variant selections. Labels: `experiment`, `variant`.
@@ -80,7 +79,7 @@ impl AIMetrics {
         Ok(Self {
             tokens_total: register_int_counter_vec_with_registry!(
                 Opts::new(
-                    "ai_tokens_total",
+                    "nantian_gw_ai_tokens_total",
                     "Total token counts broken down by model and direction (prompt/completion)."
                 ),
                 &["model", "direction"],
@@ -89,7 +88,7 @@ impl AIMetrics {
 
             requests_total: register_int_counter_vec_with_registry!(
                 Opts::new(
-                    "ai_requests_total",
+                    "nantian_gw_ai_requests_total",
                     "Total AI request counts broken down by model, format, and status."
                 ),
                 &["model", "format", "status"],
@@ -98,7 +97,7 @@ impl AIMetrics {
 
             stream_events_total: register_int_counter_vec_with_registry!(
                 Opts::new(
-                    "ai_stream_events_total",
+                    "nantian_gw_ai_stream_events_total",
                     "Total stream event counts broken down by model and event type."
                 ),
                 &["model", "event_type"],
@@ -107,7 +106,7 @@ impl AIMetrics {
 
             backend_errors_total: register_int_counter_vec_with_registry!(
                 Opts::new(
-                    "ai_backend_errors_total",
+                    "nantian_gw_ai_backend_errors_total",
                     "Total backend (LLM provider) errors broken down by model and status code."
                 ),
                 &["model", "status_code"],
@@ -116,7 +115,7 @@ impl AIMetrics {
 
             format_errors_total: register_int_counter_vec_with_registry!(
                 Opts::new(
-                    "ai_format_errors_total",
+                    "nantian_gw_ai_format_errors_total",
                     "Total format-related errors broken down by format and reason."
                 ),
                 &["format", "reason"],
@@ -125,7 +124,7 @@ impl AIMetrics {
 
             langfuse_ingestions: register_int_counter_vec_with_registry!(
                 Opts::new(
-                    "ai_langfuse_ingestions_total",
+                    "nantian_gw_ai_langfuse_ingestions_total",
                     "Total Langfuse ingestion counts broken down by ingestion type."
                 ),
                 &["ingestion_type"],
@@ -134,7 +133,7 @@ impl AIMetrics {
 
             token_rate_limit_hits_total: register_int_counter_vec_with_registry!(
                 Opts::new(
-                    "ai_token_rate_limit_hits_total",
+                    "nantian_gw_ai_token_rate_limit_hits_total",
                     "Total rate limit hits broken down by model and scope (api_key/model/user)."
                 ),
                 &["model", "scope"],
@@ -143,7 +142,7 @@ impl AIMetrics {
 
             prompt_guard_blocks_total: register_int_counter_vec_with_registry!(
                 Opts::new(
-                    "ai_prompt_guard_blocks_total",
+                    "nantian_gw_ai_prompt_guard_blocks_total",
                     "Total prompt guard blocks broken down by reason and model."
                 ),
                 &["reason", "model"],
@@ -152,7 +151,7 @@ impl AIMetrics {
 
             cache_hits_total: register_int_counter_vec_with_registry!(
                 Opts::new(
-                    "ai_cache_hits_total",
+                    "nantian_gw_ai_cache_hits_total",
                     "Total semantic cache hits broken down by model."
                 ),
                 &["model"],
@@ -161,7 +160,7 @@ impl AIMetrics {
 
             cache_misses_total: register_int_counter_vec_with_registry!(
                 Opts::new(
-                    "ai_cache_misses_total",
+                    "nantian_gw_ai_cache_misses_total",
                     "Total semantic cache misses broken down by model."
                 ),
                 &["model"],
@@ -170,7 +169,7 @@ impl AIMetrics {
 
             fallback_total: register_int_counter_vec_with_registry!(
                 Opts::new(
-                    "ai_fallback_total",
+                    "nantian_gw_ai_fallback_total",
                     "Total model fallback invocations broken down by from/tomodel and reason."
                 ),
                 &["from_model", "to_model", "reason"],
@@ -179,7 +178,7 @@ impl AIMetrics {
 
             cost_dollars_total: register_int_counter_vec_with_registry!(
                 Opts::new(
-                    "ntgw_ai_cost_dollars_total",
+                    "nantian_gw_ai_cost_dollars_total",
                     "Cumulative AI cost in micro-dollars (divide by 1_000_000 for dollars). Labels: model."
                 ),
                 &["model"],
@@ -188,7 +187,7 @@ impl AIMetrics {
 
             cost_per_request_dollars: register_int_counter_vec_with_registry!(
                 Opts::new(
-                    "ntgw_ai_cost_per_request_dollars",
+                    "nantian_gw_ai_cost_per_request_dollars",
                     "Per-request AI cost in micro-dollars (divide by 1_000_000 for dollars). Labels: model."
                 ),
                 &["model"],
@@ -197,7 +196,7 @@ impl AIMetrics {
 
             content_safety_violations_total: register_int_counter_vec_with_registry!(
                 Opts::new(
-                    "ai_content_safety_violations_total",
+                    "nantian_gw_ai_content_safety_violations_total",
                     "Total content safety violations broken down by category, model, and verdict."
                 ),
                 &["category", "model", "verdict"],
@@ -206,7 +205,7 @@ impl AIMetrics {
 
             pii_detected_total: register_int_counter_vec_with_registry!(
                 Opts::new(
-                    "ai_pii_detected_total",
+                    "nantian_gw_ai_pii_detected_total",
                     "Total PII entities detected and masked broken down by entity type."
                 ),
                 &["entity_type"],
@@ -215,7 +214,7 @@ impl AIMetrics {
 
             tenant_denied_total: register_int_counter_vec_with_registry!(
                 Opts::new(
-                    "ai_tenant_denied_total",
+                    "nantian_gw_ai_tenant_denied_total",
                     "Total tenant access denials broken down by reason (unknown_key, quota_exceeded, model_not_allowed)."
                 ),
                 &["reason"],
@@ -224,7 +223,7 @@ impl AIMetrics {
 
             ab_test_requests: register_int_counter_vec_with_registry!(
                 Opts::new(
-                    "ai_ab_test_requests_total",
+                    "nantian_gw_ai_ab_test_requests_total",
                     "Total A/B test variant selections broken down by experiment and variant."
                 ),
                 &["experiment", "variant"],
@@ -233,7 +232,7 @@ impl AIMetrics {
 
             otel_spans_exported: register_int_counter_with_registry!(
                 Opts::new(
-                    "ai_otel_spans_exported_total",
+                    "nantian_gw_ai_otel_spans_exported_total",
                     "Total number of OpenTelemetry spans successfully exported."
                 ),
                 registry
@@ -241,7 +240,7 @@ impl AIMetrics {
 
             otel_export_errors: register_int_counter_with_registry!(
                 Opts::new(
-                    "ai_otel_export_errors_total",
+                    "nantian_gw_ai_otel_export_errors_total",
                     "Total number of OpenTelemetry export errors."
                 ),
                 registry
@@ -249,7 +248,7 @@ impl AIMetrics {
 
             langfuse_errors: register_int_counter_with_registry!(
                 Opts::new(
-                    "ai_langfuse_errors_total",
+                    "nantian_gw_ai_langfuse_errors_total",
                     "Total number of Langfuse ingestion errors."
                 ),
                 registry
@@ -257,7 +256,7 @@ impl AIMetrics {
 
             request_duration: register_histogram_vec_with_registry!(
                 HistogramOpts::new(
-                    "ai_request_duration_seconds",
+                    "nantian_gw_ai_request_duration_seconds",
                     "AI request duration in seconds."
                 )
                 .buckets(DURATION_BUCKETS.to_vec()),
@@ -267,7 +266,7 @@ impl AIMetrics {
 
             first_token_latency: register_histogram_vec_with_registry!(
                 HistogramOpts::new(
-                    "ai_first_token_latency_seconds",
+                    "nantian_gw_ai_first_token_latency_seconds",
                     "Time-to-first-token latency in seconds."
                 )
                 .buckets(FIRST_TOKEN_BUCKETS.to_vec()),
@@ -276,7 +275,7 @@ impl AIMetrics {
             )?,
 
             tokens_per_request: register_histogram_vec_with_registry!(
-                HistogramOpts::new("ai_tokens_per_request", "Total tokens per request.")
+                HistogramOpts::new("nantian_gw_ai_tokens_per_request", "Total tokens per request.")
                     .buckets(TOKENS_PER_REQUEST_BUCKETS.to_vec()),
                 &["model", "provider"],
                 registry
@@ -308,6 +307,20 @@ impl AIMetrics {
         self.request_duration
             .with_label_values(&[model, ""])
             .observe(duration_secs);
+    }
+
+    /// Record first-token latency for a request.
+    pub fn record_first_token_latency(&self, model: &str, provider: &str, latency_secs: f64) {
+        self.first_token_latency
+            .with_label_values(&[model, provider])
+            .observe(latency_secs);
+    }
+
+    /// Record tokens per request.
+    pub fn record_tokens_per_request(&self, model: &str, provider: &str, tokens: f64) {
+        self.tokens_per_request
+            .with_label_values(&[model, provider])
+            .observe(tokens);
     }
 
     /// Record a single stream event.

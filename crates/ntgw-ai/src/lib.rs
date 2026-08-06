@@ -17,5 +17,4 @@ pub mod prompt_template;
 pub mod ratelimit;
 pub mod semantic_cache;
 pub mod token;
-pub mod types;
 pub mod wasm_filter;

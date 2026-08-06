@@ -53,12 +53,12 @@ fn test_token_metrics_emission() {
 
     let prompt_val = gather_metric_value(
         &registry,
-        "ai_tokens_total",
+        "nantian_gw_ai_tokens_total",
         &[("model", "gpt-4"), ("direction", "prompt")],
     );
     let completion_val = gather_metric_value(
         &registry,
-        "ai_tokens_total",
+        "nantian_gw_ai_tokens_total",
         &[("model", "gpt-4"), ("direction", "completion")],
     );
 
@@ -75,7 +75,7 @@ fn test_request_duration_histogram() {
 
     let count = gather_histogram_count(
         &registry,
-        "ai_request_duration_seconds",
+        "nantian_gw_ai_request_duration_seconds",
         &[("model", "claude-3"), ("provider", "")],
     );
     assert_eq!(count, 1, "duration histogram should have 1 observation");
@@ -92,12 +92,12 @@ fn test_format_error_counter() {
 
     let openai_val = gather_metric_value(
         &registry,
-        "ai_format_errors_total",
+        "nantian_gw_ai_format_errors_total",
         &[("format", "openai"), ("reason", "parse_error")],
     );
     let anthropic_val = gather_metric_value(
         &registry,
-        "ai_format_errors_total",
+        "nantian_gw_ai_format_errors_total",
         &[("format", "anthropic"), ("reason", "unsupported_field")],
     );
 
@@ -120,17 +120,17 @@ fn test_stream_event_counters() {
 
     let content_val = gather_metric_value(
         &registry,
-        "ai_stream_events_total",
+        "nantian_gw_ai_stream_events_total",
         &[("model", "gpt-4"), ("event_type", "content")],
     );
     let done_val = gather_metric_value(
         &registry,
-        "ai_stream_events_total",
+        "nantian_gw_ai_stream_events_total",
         &[("model", "gpt-4"), ("event_type", "done")],
     );
     let error_val = gather_metric_value(
         &registry,
-        "ai_stream_events_total",
+        "nantian_gw_ai_stream_events_total",
         &[("model", "gpt-4"), ("event_type", "error")],
     );
 
@@ -150,12 +150,12 @@ fn test_backend_error_counter() {
 
     let v503 = gather_metric_value(
         &registry,
-        "ai_backend_errors_total",
+        "nantian_gw_ai_backend_errors_total",
         &[("model", "gpt-4"), ("status_code", "503")],
     );
     let v429 = gather_metric_value(
         &registry,
-        "ai_backend_errors_total",
+        "nantian_gw_ai_backend_errors_total",
         &[("model", "gpt-4"), ("status_code", "429")],
     );
 
@@ -183,12 +183,12 @@ fn test_langfuse_counter() {
 
     let trace_val = gather_metric_value(
         &registry,
-        "ai_langfuse_ingestions_total",
+        "nantian_gw_ai_langfuse_ingestions_total",
         &[("ingestion_type", "trace")],
     );
     let gen_val = gather_metric_value(
         &registry,
-        "ai_langfuse_ingestions_total",
+        "nantian_gw_ai_langfuse_ingestions_total",
         &[("ingestion_type", "generation")],
     );
 

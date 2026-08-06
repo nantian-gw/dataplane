@@ -161,7 +161,7 @@ async fn test_metrics_emission() {
 
     let request_count = gather_metric_value(
         &registry,
-        "ai_requests_total",
+        "nantian_gw_ai_requests_total",
         &[
             ("model", "gpt-4o"),
             ("format", "openai"),
@@ -176,7 +176,7 @@ async fn test_metrics_emission() {
 
     let prompt_tokens = gather_metric_value(
         &registry,
-        "ai_tokens_total",
+        "nantian_gw_ai_tokens_total",
         &[("model", "gpt-4o"), ("direction", "prompt")],
     );
     assert!(
@@ -262,7 +262,7 @@ async fn test_builder_constructs_filter_with_required_dependencies() {
 
     let request_count = gather_metric_value(
         &registry,
-        "ai_requests_total",
+        "nantian_gw_ai_requests_total",
         &[
             ("model", "gpt-4o"),
             ("format", "openai"),
