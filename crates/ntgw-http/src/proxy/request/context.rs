@@ -1,4 +1,3 @@
-use std::collections::BTreeMap;
 
 use ntgw_ir::Filter;
 
@@ -91,26 +90,6 @@ pub(crate) fn response_filters_need_request_headers(filters: &[Filter]) -> bool 
     filters.iter().any(|filter| filter.filter_type == "CORS")
 }
 
-pub(crate) fn response_filter_request_headers(
-    request_headers: &BTreeMap<String, Vec<String>>,
-) -> BTreeMap<String, Vec<String>> {
-    const CORS_REQUEST_HEADER_NAMES: [&str; 6] = [
-        "origin",
-        "access-control-request-method",
-        "access-control-request-headers",
-        "cookie",
-        "authorization",
-        "proxy-authorization",
-    ];
-
-    let mut filtered = BTreeMap::new();
-    for name in CORS_REQUEST_HEADER_NAMES {
-        if let Some(values) = request_headers.get(name) {
-            filtered.insert(name.to_string(), values.clone());
-        }
-    }
-    filtered
-}
 
 pub(crate) fn assign_string(target: &mut String, value: &str) {
     target.clear();

@@ -23,7 +23,7 @@ impl<'a> RequestView<'a> {
             self.port,
             self.path_and_query(),
             self.method(),
-            request_headers(self.req),
+            BTreeMap::new(),
         )
     }
 
@@ -38,17 +38,13 @@ impl<'a> RequestView<'a> {
     }
 
     pub(crate) fn selection_meta(&self, materialize_headers: bool) -> ntgw_ir::RequestMeta {
+        let mut meta = self.materialize();
         if materialize_headers {
-            return self.materialize();
+            meta.headers = request_headers(self.req);
+        } else {
+            meta.headers = grpc_content_type_headers(self.req);
         }
-
-        ntgw_ir::RequestMeta::with_port(
-            self.raw_host().map(ToOwned::to_owned),
-            self.port,
-            self.path_and_query(),
-            self.method(),
-            grpc_content_type_headers(self.req),
-        )
+        meta
     }
 
     pub(crate) fn raw_host(&self) -> Option<&'a str> {

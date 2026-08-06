@@ -14,14 +14,11 @@ fn build_request_meta_uses_uri_authority_for_http2_requests() {
     assert_eq!(meta.port, 80);
     assert_eq!(meta.path, "/svc.Method/Echo");
     assert_eq!(meta.method, "POST");
-    assert_eq!(
-        meta.headers.get("content-type"),
-        Some(&vec!["application/grpc".to_string()])
-    );
+    assert!(meta.headers.is_empty());
 }
 
 #[test]
-fn build_request_meta_preserves_grpc_metadata_and_timeout_headers() {
+fn build_request_meta_skips_headers_by_default() {
     let mut req =
         RequestHeader::build("POST", b"/helloworld.Greeter/SayHello", None).expect("request");
     req.set_uri(
@@ -44,23 +41,7 @@ fn build_request_meta_preserves_grpc_metadata_and_timeout_headers() {
 
     assert_eq!(meta.host.as_deref(), Some("grpc.example.com"));
     assert_eq!(meta.path, "/helloworld.Greeter/SayHello");
-    assert_eq!(
-        meta.headers.get("content-type"),
-        Some(&vec!["application/grpc+proto".to_string()])
-    );
-    assert_eq!(meta.headers.get("te"), Some(&vec!["trailers".to_string()]));
-    assert_eq!(
-        meta.headers.get("grpc-timeout"),
-        Some(&vec!["150m".to_string()])
-    );
-    assert_eq!(
-        meta.headers.get("x-tenant"),
-        Some(&vec!["blue".to_string(), "green".to_string()])
-    );
-    assert_eq!(
-        request_id_from_headers(&meta.headers),
-        "trace-token".to_string()
-    );
+    assert!(meta.headers.is_empty(), "headers are lazy by default");
 }
 
 #[test]

@@ -126,7 +126,7 @@ pub(crate) fn request_for_response_filters<'a>(
         return request;
     }
 
-    full_request.get_or_insert_with(|| build_request_meta(session))
+    full_request.get_or_insert_with(|| build_request_meta_with_headers(session))
 }
 
 /// Returns true if the filter list contains a CORS filter that needs access to

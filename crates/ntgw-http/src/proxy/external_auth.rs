@@ -321,7 +321,7 @@ async fn read_auth_response(stream: &mut TcpStream) -> pingora::Result<AuthRespo
         .and_then(|line| line.split_whitespace().nth(1))
         .and_then(|status| status.parse::<u16>().ok())
         .ok_or_else(|| pingora::Error::new(pingora::ErrorType::HTTPStatus(502)))?;
-    let mut response_headers = Vec::new();
+    let mut response_headers = Vec::with_capacity(lines.clone().count());
     let mut content_length = 0;
     for line in lines {
         let Some((name, value)) = line.split_once(':') else {

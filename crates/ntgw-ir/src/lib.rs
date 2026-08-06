@@ -319,10 +319,11 @@ impl HostnameRouteIndex {
         let mut next = first_index_after(&self.catch_all, last);
 
         if let Some(host) = request_host {
-            if let Some(indices) = self.exact.get(host) {
+            let host = host.to_ascii_lowercase();
+            if let Some(indices) = self.exact.get(&host) {
                 next = min_candidate_index(next, first_index_after(indices, last));
             }
-            for suffix in wildcard_hostname_suffixes(host) {
+            for suffix in wildcard_hostname_suffixes(&host) {
                 if let Some(indices) = self.wildcard_suffix.get(suffix) {
                     next = min_candidate_index(next, first_index_after(indices, last));
                 }

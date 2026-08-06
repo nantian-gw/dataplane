@@ -208,7 +208,7 @@ where
         }
 
         for hostname in hostnames {
-            let normalized = normalize_host_ref(hostname).to_string();
+            let normalized = normalize_host_ref(hostname).to_ascii_lowercase();
             if let Some(suffix) = normalized.strip_prefix("*.") {
                 index
                     .wildcard_suffix

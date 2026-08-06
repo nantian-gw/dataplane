@@ -53,11 +53,11 @@ fn slow_access_log_sink_drops_without_blocking_callers() {
     let write_calls = Arc::new(AtomicU64::new(0));
     let writer = spawn_access_log_writer_for_test(
         "slow-sink",
-        Box::new(BlockingWriter {
+        LogTarget::Custom(Box::new(BlockingWriter {
             first_write_started: write_started_tx,
             release_first_write: release_write_rx,
             write_calls: Arc::clone(&write_calls),
-        }),
+        })),
         1,
     )
     .expect("slow sink writer");
@@ -94,9 +94,9 @@ fn access_log_worker_flushes_buffer_on_flush_command_not_each_line() {
     let flush_calls = Arc::new(AtomicU64::new(0));
     let writer = spawn_access_log_writer_for_test(
         "batched-sink",
-        Box::new(FlushCountingWriter {
+        LogTarget::Custom(Box::new(FlushCountingWriter {
             flush_calls: Arc::clone(&flush_calls),
-        }),
+        })),
         8,
     )
     .expect("batched sink writer");

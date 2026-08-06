@@ -136,8 +136,7 @@ pub(crate) async fn do_upstream_peer(
         ensure_supported_filters(&selected.filters)?;
         super::request::cache_request_headers_for_filters_and_access_log(
             ctx,
-            &request.headers,
-            &selected.filters,
+            session,
             &proxy.access_log,
             &selected.route_annotations,
         );

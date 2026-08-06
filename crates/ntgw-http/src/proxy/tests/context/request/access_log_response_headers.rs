@@ -38,11 +38,11 @@ fn cache_access_log_response_headers_only_captures_named_headers() {
 
     assert_eq!(
         ctx.access_log_sent_response_headers,
-        BTreeMap::from([("content-type".to_string(), "application/json".to_string())])
+        BTreeMap::from([(Arc::from("content-type"), "application/json".to_string())])
     );
     assert_eq!(
         ctx.access_log_upstream_response_headers,
-        BTreeMap::from([("server".to_string(), "orders-upstream".to_string())])
+        BTreeMap::from([(Arc::from("server"), "orders-upstream".to_string())])
     );
 }
 
@@ -157,8 +157,8 @@ fn cache_access_log_connection_fields_leaves_remote_port_empty_without_inet_sour
 fn cache_access_log_sent_response_headers_fallback_overwrites_with_written_response() {
     let mut ctx = RequestContext {
         access_log_sent_response_headers: BTreeMap::from([
-            ("content-length".to_string(), "99".to_string()),
-            ("server".to_string(), "stale-provisional".to_string()),
+            (Arc::from("content-length"), "99".to_string()),
+            (Arc::from("server"), "stale-provisional".to_string()),
         ]),
         ..RequestContext::default()
     };
@@ -184,8 +184,8 @@ fn cache_access_log_sent_response_headers_fallback_overwrites_with_written_respo
     assert_eq!(
         ctx.access_log_sent_response_headers,
         BTreeMap::from([
-            ("cache-control".to_string(), "private, no-store".to_string()),
-            ("server".to_string(), "pingora".to_string()),
+            (Arc::from("cache-control"), "private, no-store".to_string()),
+            (Arc::from("server"), "pingora".to_string()),
         ])
     );
 }

@@ -13,6 +13,13 @@ pub(crate) fn build_request_meta(session: &Session) -> ntgw_ir::RequestMeta {
     meta
 }
 
+pub(crate) fn build_request_meta_with_headers(session: &Session) -> ntgw_ir::RequestMeta {
+    let mut meta = build_request_meta(session);
+    let req = session.req_header();
+    meta.headers = super::extract::request_headers(req);
+    meta
+}
+
 #[cfg(test)]
 pub(crate) fn build_request_meta_from_header(req: &RequestHeader) -> ntgw_ir::RequestMeta {
     build_request_meta_from_header_with_port(req, 0)

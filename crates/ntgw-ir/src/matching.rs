@@ -215,15 +215,12 @@ fn matches_values(
 pub(crate) fn hostname_matches(pattern: &str, host: &str) -> bool {
     let pattern = normalize_host_ref(pattern);
     if let Some(suffix) = pattern.strip_prefix("*.") {
-        return host != suffix
-            && host.ends_with(suffix)
-            && host
-                .as_bytes()
-                .get(host.len().saturating_sub(suffix.len() + 1))
-                .is_some_and(|item| *item == b'.');
+        host.len() > suffix.len()
+            && host.as_bytes()[host.len() - suffix.len() - 1] == b'.'
+            && host[host.len() - suffix.len()..].eq_ignore_ascii_case(suffix)
+    } else {
+        pattern.eq_ignore_ascii_case(host)
     }
-
-    pattern == host
 }
 
 fn normalize_host(host: String) -> String {
@@ -415,4 +412,31 @@ fn split_path_and_query(raw: &str) -> (String, BTreeMap<String, Vec<String>>) {
     }
 
     (path, query_params)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn hostname_matches_is_case_insensitive() {
+        // Exact match
+        assert!(hostname_matches("example.com", "example.com"));
+        assert!(hostname_matches("example.com", "Example.com"));
+        assert!(hostname_matches("Example.com", "example.com"));
+        assert!(hostname_matches("EXAMPLE.COM", "example.com"));
+
+        // Wildcard match
+        assert!(hostname_matches("*.example.com", "foo.example.com"));
+        assert!(hostname_matches("*.example.com", "Foo.Example.com"));
+        assert!(hostname_matches("*.Example.com", "foo.example.com"));
+
+        // Wildcard should NOT match the base domain
+        assert!(!hostname_matches("*.example.com", "example.com"));
+        assert!(!hostname_matches("*.example.com", "Example.com"));
+
+        // Non-matching
+        assert!(!hostname_matches("example.com", "other.com"));
+        assert!(!hostname_matches("*.example.com", "foo.other.com"));
+    }
 }

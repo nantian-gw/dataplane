@@ -84,18 +84,18 @@ pub(crate) use self::request::{
     start_request_span_from_header_if_enabled,
 };
 use self::request::{
-    access_log_route_annotations, build_request_meta, build_selection_request_meta,
-    cache_access_log_sent_response_headers_from_written_response_if_needed,
-    cache_access_log_sent_response_headers_if_needed,
-    cache_access_log_upstream_response_headers_if_needed, cache_request_headers_if_needed,
+    access_log_response_requirements, access_log_route_annotations, build_request_meta,
+    build_request_meta_with_headers, build_selection_request_meta,
+    cache_access_log_response_headers,
+    cache_request_headers_if_needed,
     capture_request_context, capture_request_context_from_view_for_limits, client_ip,
-    inject_request_span_context, record_access_log_upstream_status_if_needed, record_request_span,
+    inject_request_span_context, record_request_span,
     request_header_bytes_for_limit, response_filters_need_request_headers, server_port,
     start_request_span_if_enabled,
 };
 use self::responses::{
     request_is_grpc, write_direct_response, write_grpc_no_route_response,
-    write_http_no_route_response, write_response_header_with_access_log_capture,
+    write_response_header_with_access_log_capture,
 };
 use self::retry::{
     is_downstream_connection_closed, proxy_error_code, proxy_error_flag_for,
@@ -347,7 +347,7 @@ pub(crate) fn request_for_response_filters<'a>(
         return request;
     }
 
-    full_request.get_or_insert_with(|| build_request_meta(session))
+    full_request.get_or_insert_with(|| build_request_meta_with_headers(session))
 }
 
 #[derive(Clone)]
@@ -574,19 +574,24 @@ impl ProxyHttp for GatewayProxy {
         if let Some(ct) = upstream_response.headers.get("content-type") {
             ctx.response_content_type = ct.to_str().unwrap_or("-").to_string();
         }
-        let route_access_log_annotations = access_log_route_annotations(ctx).clone();
-        record_access_log_upstream_status_if_needed(
-            ctx,
-            upstream_response.status.as_u16(),
+        // Record upstream status (avoiding borrow conflict with access_log_route_annotations)
+        if let Some(requirements) = access_log_response_requirements(
             &self.access_log,
-            &route_access_log_annotations,
-        );
-        cache_access_log_upstream_response_headers_if_needed(
-            ctx,
-            upstream_response,
+            access_log_route_annotations(ctx),
+        ) && requirements.needs_upstream_status {
+            ctx.access_log_upstream_statuses.push(upstream_response.status.as_u16());
+        }
+        // Cache upstream response headers
+        if let Some(requirements) = access_log_response_requirements(
             &self.access_log,
-            &route_access_log_annotations,
-        );
+            access_log_route_annotations(ctx),
+        ) && !requirements.upstream_response_headers.is_empty() {
+            cache_access_log_response_headers(
+                &mut ctx.access_log_upstream_response_headers,
+                upstream_response,
+                &requirements.upstream_response_headers,
+            );
+        }
         let status = upstream_response.status.as_u16();
         if status >= 500 {
             observe_selected_backend_failure(&self.snapshot, ctx);
@@ -624,13 +629,17 @@ impl ProxyHttp for GatewayProxy {
                 ctx.resolved_session.as_ref(),
             )?;
         }
-        let route_access_log_annotations = access_log_route_annotations(ctx).clone();
-        cache_access_log_sent_response_headers_if_needed(
-            ctx,
-            upstream_response,
+        // Cache sent response headers (avoiding borrow conflict)
+        if let Some(requirements) = access_log_response_requirements(
             &self.access_log,
-            &route_access_log_annotations,
-        );
+            access_log_route_annotations(ctx),
+        ) && !requirements.sent_response_headers.is_empty() {
+            cache_access_log_response_headers(
+                &mut ctx.access_log_sent_response_headers,
+                upstream_response,
+                &requirements.sent_response_headers,
+            );
+        }
 
         if !ctx.request_mirrors.is_empty() {
             wait_for_request_mirrors(&mut ctx.request_mirrors).await;
@@ -736,13 +745,19 @@ impl ProxyHttp for GatewayProxy {
             .map(|resp| resp.status.as_u16())
             .unwrap_or(ctx.status);
 
-        let route_access_log_annotations = access_log_route_annotations(ctx).clone();
-        cache_access_log_sent_response_headers_from_written_response_if_needed(
-            ctx,
-            session.response_written(),
+        // Cache sent response headers from written response (avoiding borrow conflict)
+        if let Some(requirements) = access_log_response_requirements(
             &self.access_log,
-            &route_access_log_annotations,
-        );
+            access_log_route_annotations(ctx),
+        ) && !requirements.sent_response_headers.is_empty()
+            && let Some(response) = session.response_written()
+        {
+            cache_access_log_response_headers(
+                &mut ctx.access_log_sent_response_headers,
+                response,
+                &requirements.sent_response_headers,
+            );
+        }
 
         if let Some(http_cache) = ctx.http_cache.0.as_mut()
             && let Some(miss_handler) = http_cache.miss_handler()

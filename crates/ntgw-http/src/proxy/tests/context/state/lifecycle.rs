@@ -92,11 +92,11 @@ fn clear_completed_request_context_clears_request_buffers() {
         response_flags: "UF".to_string(),
         route_annotations: BTreeMap::from([("team".to_string(), "edge".to_string())]),
         access_log_sent_response_headers: BTreeMap::from([(
-            "content-type".to_string(),
+            Arc::from("content-type"),
             "application/json".to_string(),
         )]),
         access_log_upstream_response_headers: BTreeMap::from([(
-            "server".to_string(),
+            Arc::from("server"),
             "orders-upstream".to_string(),
         )]),
         access_log_upstream_statuses: vec![502, 200],

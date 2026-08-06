@@ -162,7 +162,7 @@ mod tests {
             http_version: "HTTP/2".to_string(),
             upstream_addr: "10.0.0.10:8080".to_string(),
             access_log_request_headers: BTreeMap::from([(
-                "user-agent".to_string(),
+                Arc::from("user-agent"),
                 "curl/8.7.1".to_string(),
             )]),
             ..RequestContext::default()
@@ -214,11 +214,11 @@ mod tests {
             access_log_scheme: "https".to_string(),
             access_log_remote_port: Some(54432),
             access_log_sent_response_headers: BTreeMap::from([(
-                "content-type".to_string(),
+                Arc::from("content-type"),
                 "application/json".to_string(),
             )]),
             access_log_upstream_response_headers: BTreeMap::from([(
-                "server".to_string(),
+                Arc::from("server"),
                 "orders-upstream".to_string(),
             )]),
             access_log_upstream_statuses: vec![502, 200],

@@ -64,6 +64,7 @@ pub(crate) async fn write_direct_response(
     Ok(status)
 }
 
+#[allow(dead_code)]
 pub(crate) async fn write_http_no_route_response(
     session: &mut Session,
     ctx: &mut RequestContext,

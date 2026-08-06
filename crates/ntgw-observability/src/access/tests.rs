@@ -17,7 +17,7 @@ use super::{
         AccessLogPlaceholder, AccessLogTemplatePart, parse_access_log_template,
         render_access_log_template,
     },
-    writer::{AccessLogWriter, queue_access_log_line, spawn_access_log_writer_for_test},
+    writer::{AccessLogWriter, queue_access_log_line, spawn_access_log_writer_for_test, LogTarget},
 };
 
 include!("tests/rendering.rs");
