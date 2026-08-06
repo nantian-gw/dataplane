@@ -10,5 +10,5 @@ allocator-mimalloc = ["dep:mimalloc"]
 allocator-jemalloc = ["dep:tikv-jemallocator"]
 
 [dependencies]
-mimalloc = { version = "0.1.52", optional = true }
-tikv-jemallocator = { version = "0.6.1", optional = true }
+mimalloc = { workspace = true, optional = true }
+tikv-jemallocator = { workspace = true, optional = true }

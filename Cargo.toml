@@ -85,6 +85,19 @@ ntgw-wasm-sdk = { version = "0.1.0", path = "crates/ntgw-wasm-sdk" }
 ntgw-xds = { version = "0.1.0", path = "crates/ntgw-xds" }
 ntgw-ai = { version = "0.1.0", path = "crates/ntgw-ai" }
 
+prometheus = "0.14"
+rand = "0.8"
+uuid = { version = "1", features = ["v4"] }
+tempfile = "3"
+wat = "1"
+tonic-prost = "0.14.1"
+tonic-prost-build = "0.14.1"
+protoc-bin-vendored = "3.2.0"
+mimalloc = "0.1.52"
+tikv-jemallocator = "0.6.1"
+h2 = "0.4.14"
+rsa = "0.9"
+
 [profile.release]
 lto = "fat"
 codegen-units = 1

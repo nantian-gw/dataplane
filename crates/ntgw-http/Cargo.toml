@@ -29,15 +29,15 @@ ntgw-observability.workspace = true
 ntgw-proto.workspace = true
 ntgw-ai.workspace = true
 ntgw-wasm.workspace = true
-prometheus = "0.14"
+prometheus.workspace = true
 tonic.workspace = true
 reqwest.workspace = true
 jsonwebtoken.workspace = true
 
 [dev-dependencies]
-h2 = "0.4.14"
+h2.workspace = true
 proptest.workspace = true
 tracing-subscriber.workspace = true
-rsa = "0.9"
-rand = "0.8"
+rsa.workspace = true
+rand.workspace = true
 axum.workspace = true

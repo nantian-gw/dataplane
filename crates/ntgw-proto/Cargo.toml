@@ -8,8 +8,8 @@ license.workspace = true
 prost.workspace = true
 prost-types.workspace = true
 tonic.workspace = true
-tonic-prost = "0.14.1"
+tonic-prost.workspace = true
 
 [build-dependencies]
-protoc-bin-vendored = "3.2.0"
-tonic-prost-build = "0.14.1"
+protoc-bin-vendored.workspace = true
+tonic-prost-build.workspace = true

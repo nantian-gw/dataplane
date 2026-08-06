@@ -160,14 +160,14 @@ Use two distinct suffixes for configuration structs depending on where they are 
 - **camelCase YAML convention gap (P1)** — Dataplane config structs use `#[serde(rename_all = "camelCase")]`, meaning YAML keys are camelCase while Rust fields are snake_case. This is non-idiomatic for YAML configs (industry standard is snake_case). See [Config Naming Convention Gap](#config-naming-convention-gap) below for full audit and migration plan.
 - **Session persistence secret (P2)** — The default config (`SessionPersistenceConfig`) has empty `secret_key` and `secret_key_file` fields. Without configuring a shared secret, the dataplane auto-generates a key at startup and logs: `"session persistence using auto-generated key; configure sharedSecret or sharedSecretFile for multi-replica deployments"`. Impact: (1) single-instance restarts lose all active sessions, and (2) replicas cannot share session state. For multi-replica deployments, this is a **required** configuration item. The Helm chart provides `sessionPersistence.existingSecret` and `sessionPersistence.sharedSecret` in `values.yaml` to wire a pre-shared key.
 - **Large files (P2)** — 250 LOC soft cap is aspirational. After progressive splitting (2026-07-27), the following remain above 500 LOC as "split to the point of diminishing returns":
-  - `ntgw-ir/src/lib.rs` (1103 LOC) — public type definitions; splitting would break workspace-wide API
+  - `ntgw-ir/src/lib.rs` (984 LOC) — public type definitions; splitting would break workspace-wide API
   - `ntgw-ir/src/snapshot/backend_resolution/mod.rs` (854 LOC) — already modularized; mod.rs re-exports
   - `ntgw-http/src/proxy/filters/mod.rs` (838 LOC) — `do_request_filter` pipeline; tightly cohesive
-  - `ntgw-http/src/proxy/mod.rs` (726 LOC) — `ProxyHttp` trait impl; lifecycle hooks form single unit
+  - `ntgw-http/src/proxy/mod.rs` (991 LOC) — `ProxyHttp` trait impl; lifecycle hooks form single unit
   - `ntgw-http/src/proxy/logging/mod.rs` (664 LOC) — bulk is `#[cfg(test)]` module
-  - `ntgw-http/src/proxy/context.rs` (637 LOC) — request context lifecycle
-  - `ntgw-ai/src/observability/langfuse.rs` (839 LOC) — single-concern Langfuse integration
-  - `ntgw-stream/src/tcp.rs` (632 LOC) — TCP proxy handling
+  - `ntgw-http/src/proxy/context.rs` (636 LOC) — request context lifecycle
+  - `ntgw-ai/src/observability/langfuse.rs` (836 LOC) — single-concern Langfuse integration
+  - `ntgw-stream/src/tcp.rs` (664 LOC) — TCP proxy handling
   Previously split (2026-07-27): `proxy/request.rs` (859→9 files), `proxy/logging.rs` (884→5 files).
 
 ## Config Naming Convention Gap
