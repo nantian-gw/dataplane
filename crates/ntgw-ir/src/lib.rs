@@ -18,6 +18,7 @@ mod tests;
 mod timeouts;
 
 use std::{
+    borrow::Cow,
     collections::{BTreeMap, HashMap, HashSet, hash_map::Entry},
     sync::{
         Arc,
@@ -319,11 +320,18 @@ impl HostnameRouteIndex {
         let mut next = first_index_after(&self.catch_all, last);
 
         if let Some(host) = request_host {
-            let host = host.to_ascii_lowercase();
-            if let Some(indices) = self.exact.get(&host) {
+            // Avoid allocation on the hot path: most hostnames are already
+            // lowercase. Only call to_ascii_lowercase() when there are uppercase
+            // characters (rare in practice).
+            let host_ref: Cow<'_, str> = if host.bytes().any(|b| b.is_ascii_uppercase()) {
+                Cow::Owned(host.to_ascii_lowercase())
+            } else {
+                Cow::Borrowed(host)
+            };
+            if let Some(indices) = self.exact.get(host_ref.as_ref()) {
                 next = min_candidate_index(next, first_index_after(indices, last));
             }
-            for suffix in wildcard_hostname_suffixes(&host) {
+            for suffix in wildcard_hostname_suffixes(host_ref.as_ref()) {
                 if let Some(indices) = self.wildcard_suffix.get(suffix) {
                     next = min_candidate_index(next, first_index_after(indices, last));
                 }
