@@ -19,6 +19,7 @@ struct GrpcCandidate<'a> {
     score: GrpcCandidateScore,
 }
 
+#[tracing::instrument(skip(snapshot, request, session_resolver))]
 pub(super) fn select_http_route(
     snapshot: &Snapshot,
     request: &RequestMeta,
@@ -100,6 +101,11 @@ pub(super) fn select_http_route(
     });
 
     best.map(|candidate| {
+        tracing::trace!(
+            route_name = %candidate.route.name,
+            route_namespace = %candidate.route.namespace,
+            "http route matched"
+        );
         let mut filters = candidate.rule.filters.clone();
         if let Some(selected_backend) = candidate.resolution.selected.as_ref() {
             filters.extend(selected_backend.filters.clone());

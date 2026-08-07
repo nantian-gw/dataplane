@@ -11,7 +11,7 @@ use tokio::{
     sync::watch,
     time::{Duration, Instant as TokioInstant, timeout},
 };
-use tracing::{debug, field, info, info_span, warn};
+use tracing::{debug, info, warn, Span};
 
 use ntgw_ir::{SelectedBackend, SelectedBackendRuntimeIds, SharedSnapshot};
 use ntgw_observability::{
@@ -114,7 +114,11 @@ pub async fn run_with_listener(
                 }
     }
 }
-
+#[tracing::instrument(skip(snapshot, downstream, access_log, traffic, pool), fields(
+    listener.name = %listener_name,
+    route.name = tracing::field::Empty,
+    backend.name = tracing::field::Empty,
+))]
 #[allow(clippy::too_many_arguments)]
 async fn handle_connection(
     snapshot: SharedSnapshot,
@@ -128,13 +132,6 @@ async fn handle_connection(
     max_connection_age: Option<Duration>,
     pool: Arc<TcpConnectionPool>,
 ) -> Result<(), StreamError> {
-    let span = info_span!(
-        "tcp_connection",
-        %listener_name,
-        route.name = field::Empty,
-        backend.name = field::Empty,
-    );
-    let _enter = span.enter();
 
     let started_at = std::time::Instant::now();
     let mut preface = Vec::new();
@@ -156,8 +153,8 @@ async fn handle_connection(
         let access_log_state = stream_access_log_state(&access_log, &selected, current.id.as_str());
         (access_log_state, selected, runtime_ids)
     };
-    span.record("route.name", selected.route_name.as_str());
-    span.record("backend.name", selected.backend_name.as_str());
+    Span::current().record("route.name", selected.route_name.as_str());
+    Span::current().record("backend.name", selected.backend_name.as_str());
     let client_addr = access_log_state
         .as_ref()
         .and_then(|_| downstream.peer_addr().ok());

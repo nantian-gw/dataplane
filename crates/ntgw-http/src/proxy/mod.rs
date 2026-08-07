@@ -562,6 +562,7 @@ impl ProxyHttp for GatewayProxy {
         Ok(())
     }
 
+    #[tracing::instrument(skip(self, session, upstream_response, ctx))]
     async fn response_filter(
         &self,
         session: &mut Session,
@@ -593,6 +594,10 @@ impl ProxyHttp for GatewayProxy {
             );
         }
         let status = upstream_response.status.as_u16();
+        tracing::trace!(
+            status = %upstream_response.status.as_u16(),
+            "upstream response received"
+        );
         if status >= 500 {
             observe_selected_backend_failure(&self.snapshot, ctx);
         } else {
@@ -736,6 +741,7 @@ impl ProxyHttp for GatewayProxy {
         Ok(None)
     }
 
+    #[tracing::instrument(skip(self, session, ctx))]
     async fn logging(&self, session: &mut Session, _e: Option<&pingora::Error>, ctx: &mut Self::CTX)
     where
         Self::CTX: Send + Sync,

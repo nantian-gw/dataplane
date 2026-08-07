@@ -8,7 +8,6 @@ use ntgw_ir::SessionPersistence;
 use ntgw_wasm::WasmError;
 use pingora::prelude::Session;
 use std::collections::HashMap;
-use tracing::info_span;
 
 use super::*;
 
@@ -17,19 +16,17 @@ use crate::filters::{
     apply_response_filters, build_cors_preflight_response, ensure_supported_filters,
 };
 use crate::mirror::{selected_backend_from_subrequest, spawn_request_mirrors};
+#[tracing::instrument(skip(proxy, session, ctx), fields(
+    listener.name = %proxy.listener_name_hint.as_deref().unwrap_or("unknown"),
+    http.method = %session.req_header().method,
+    http.uri = %session.req_header().uri.path(),
+))]
 pub(crate) async fn do_request_filter(
     proxy: &GatewayProxy,
     session: &mut Session,
     ctx: &mut RequestContext,
 ) -> pingora::Result<bool> {
     reset_request_context(ctx, proxy.access_log.enabled);
-    let span = info_span!(
-        "http_request_filter",
-        listener.name = %proxy.listener_name_hint.as_deref().unwrap_or("unknown"),
-        http.method = %session.req_header().method,
-        http.uri = %session.req_header().uri.path(),
-    );
-    let _enter = span.enter();
     let request_has_body = !session.as_downstream_mut().is_body_empty();
     // Access log: capture HTTP version, query string, connection ID
     if proxy.access_log.enabled {
@@ -155,6 +152,11 @@ pub(crate) async fn do_request_filter(
             proxy.selected_display_fields_needed(ctx),
         );
         cache_fast_path_access_log_fields(proxy, session, ctx);
+        tracing::trace!(
+            route_name = %ctx.route_name,
+            route_namespace = %ctx.route_namespace,
+            "route selected"
+        );
         ctx.selected_backend_config = Some(config);
         record_request_span(ctx);
         let fast_host = ctx.host.clone();

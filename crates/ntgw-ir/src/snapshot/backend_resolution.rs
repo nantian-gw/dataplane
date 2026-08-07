@@ -140,12 +140,20 @@ impl Snapshot {
 
             seen_weight += compiled.weight as u64;
             if target < seen_weight {
-                return self.select_compiled_http_fast_endpoint(
+                let selected = self.select_compiled_http_fast_endpoint(
                     compiled,
                     cluster,
                     availability,
                     now,
                 );
+                if let Some(ref selected) = selected {
+                    tracing::debug!(
+                        backend_name = %selected.backend_name,
+                        endpoint_count = %availability.count,
+                        "backend selected via fast path"
+                    );
+                }
+                return selected;
             }
         }
 
