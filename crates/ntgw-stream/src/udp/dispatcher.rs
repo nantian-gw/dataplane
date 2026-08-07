@@ -5,7 +5,7 @@ use std::{
     time::Duration,
 };
 
-use anyhow::{Result, anyhow};
+use crate::StreamError;
 use tokio::{net::UdpSocket, sync::mpsc};
 use tracing::warn;
 
@@ -65,12 +65,12 @@ impl UdpDatagramDispatcher {
         }
     }
 
-    pub(super) async fn dispatch(&self, task: UdpSessionTask) -> Result<()> {
+    pub(super) async fn dispatch(&self, task: UdpSessionTask) -> std::result::Result<(), StreamError> {
         let worker = self.worker_index_for_task(&task);
         self.workers[worker]
             .send(task)
             .await
-            .map_err(|_| anyhow!("udp dispatcher stopped"))
+            .map_err(|_| StreamError::Dispatch("udp dispatcher stopped".to_string()))
     }
 
     fn worker_index_for_task(&self, task: &UdpSessionTask) -> usize {

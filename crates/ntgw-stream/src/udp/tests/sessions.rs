@@ -138,7 +138,7 @@ async fn session_registry_does_not_hold_map_lock_while_initializing_socket() -> 
                     let _ = release_rx.await;
                     let upstream = UdpSocket::bind("127.0.0.1:0").await?;
                     upstream.connect("127.0.0.1:41001").await?;
-                    Ok::<UdpSocket, anyhow::Error>(upstream)
+                    Ok::<UdpSocket, std::io::Error>(upstream)
                 },
             )
             .await
@@ -155,7 +155,7 @@ async fn session_registry_does_not_hold_map_lock_while_initializing_socket() -> 
             || async move {
                 let upstream = UdpSocket::bind("127.0.0.1:0").await?;
                 upstream.connect("127.0.0.1:41002").await?;
-                Ok::<UdpSocket, anyhow::Error>(upstream)
+                Ok::<UdpSocket, std::io::Error>(upstream)
             },
         ),
     )
@@ -294,7 +294,7 @@ async fn session_registry_tracks_queue_drops_and_idle_evictions() -> Result<()> 
                     let _ = release_rx.await;
                     let upstream = UdpSocket::bind("127.0.0.1:0").await?;
                     upstream.connect(upstream_addr).await?;
-                    Ok::<UdpSocket, anyhow::Error>(upstream)
+                    Ok::<UdpSocket, std::io::Error>(upstream)
                 },
             )
             .await

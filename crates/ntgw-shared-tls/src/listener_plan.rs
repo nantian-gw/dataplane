@@ -1,7 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::{RuntimeOptions, SharedTlsError};
-use anyhow::Context;
 use ntgw_ir::{Listener, SecretMaterial, Snapshot};
 use pingora::tls::{nid::Nid, x509::X509};
 
@@ -149,7 +148,7 @@ fn merge_frontend_validation(
         return Ok(());
     }
 
-    Err(SharedTlsError::IdentityConfig(anyhow::anyhow!(
+    Err(SharedTlsError::IdentityConfig(format!(
         "frontend validation conflict on shared tls bind {bind}"
     )))
 }
@@ -315,14 +314,15 @@ fn build_tls_identity(
     secret: &SecretMaterial,
 ) -> Result<SharedTlsIdentity, SharedTlsError> {
     let certs =
-        X509::stack_from_pem(secret.cert_pem.as_bytes()).context("parse certificate PEM")?;
+        X509::stack_from_pem(secret.cert_pem.as_bytes())
+            .map_err(|e| SharedTlsError::Certificate(format!("parse certificate PEM: {e}")))?;
     let Some(leaf) = certs.first() else {
-        return Err(SharedTlsError::Certificate(anyhow::anyhow!(
-            "no certificates found in PEM"
-        )));
+        return Err(SharedTlsError::Certificate(
+            "no certificates found in PEM".to_string(),
+        ));
     };
-    pingora::tls::pkey::PKey::private_key_from_pem(secret.key_pem.as_bytes())
-        .context("parse private key PEM")?;
+        pingora::tls::pkey::PKey::private_key_from_pem(secret.key_pem.as_bytes())
+            .map_err(|e| SharedTlsError::Certificate(format!("parse private key PEM: {e}")))?;
 
     Ok(SharedTlsIdentity {
         secret_ref: secret_ref.to_string(),

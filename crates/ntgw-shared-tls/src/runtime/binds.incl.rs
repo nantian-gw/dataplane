@@ -55,16 +55,16 @@ pub(crate) async fn handle_connection(
     let terminate = bind
         .terminate
         .as_ref()
-        .ok_or_else(|| SharedTlsError::Bind(anyhow!("no terminate surface for bind {}", bind.bind)))?;
+        .ok_or_else(|| SharedTlsError::Bind(format!("no terminate surface for bind {}", bind.bind)))?;
     if bind.passthrough.is_some() && !terminate_match.as_ref().is_some_and(|item| item.has_route) {
-        return Err(SharedTlsError::Handshake(anyhow!(
+        return Err(SharedTlsError::Handshake(format!(
             "no shared tls listener route matched SNI {} on bind {}",
             server_name.unwrap_or_default(),
             bind.bind
         )));
     }
     if bind.passthrough.is_none() && terminate_match.is_none() {
-        return Err(SharedTlsError::Handshake(anyhow!(
+        return Err(SharedTlsError::Handshake(format!(
             "no terminate listener matched SNI {} on bind {}",
             server_name.unwrap_or_default(),
             bind.bind
@@ -87,7 +87,7 @@ pub(crate) async fn handle_connection(
         }
     process_accepted_stream(http_app, Box::new(tls_stream), shutdown)
         .await
-        .map_err(Into::into)
+        .map_err(|e| SharedTlsError::Handshake(format!("process accepted stream: {e}")))
 }
 
 #[cfg(unix)]
@@ -332,33 +332,32 @@ async fn spawn_bind_task(
 
 async fn bind_tcp_listener(bind: &str) -> Result<TcpListener, SharedTlsError> {
     if !bind.starts_with('[') {
-        return Ok(TcpListener::bind(bind)
+        return TcpListener::bind(bind)
             .await
-            .with_context(|| format!("bind shared tls listener {bind}"))?);
+            .map_err(|e| SharedTlsError::Bind(format!("bind shared tls listener {bind}: {e}")));
     }
 
     let addr: SocketAddr = bind
         .parse()
-        .with_context(|| format!("parse shared tls listener address {bind}"))?;
+        .map_err(|e| SharedTlsError::Bind(format!("parse shared tls listener address {bind}: {e}")))?;
     let socket = Socket::new(Domain::IPV6, Type::STREAM, Some(Protocol::TCP))
-        .with_context(|| format!("create shared tls listener socket {bind}"))?;
+        .map_err(|e| SharedTlsError::Bind(format!("create shared tls listener socket {bind}: {e}")))?;
     socket
         .set_only_v6(true)
-        .with_context(|| format!("mark shared tls listener {bind} as ipv6-only"))?;
+        .map_err(|e| SharedTlsError::Bind(format!("mark shared tls listener {bind} as ipv6-only: {e}")))?;
     socket
         .bind(&addr.into())
-        .with_context(|| format!("bind shared tls listener {bind}"))?;
+        .map_err(|e| SharedTlsError::Bind(format!("bind shared tls listener {bind}: {e}")))?;
     socket
         .listen(1024)
-        .with_context(|| format!("listen shared tls listener {bind}"))?;
+        .map_err(|e| SharedTlsError::Bind(format!("listen shared tls listener {bind}: {e}")))?;
 
     let std_listener: std::net::TcpListener = socket.into();
     std_listener
         .set_nonblocking(true)
-        .with_context(|| format!("set shared tls listener {bind} nonblocking"))?;
+        .map_err(|e| SharedTlsError::Bind(format!("set shared tls listener {bind} nonblocking: {e}")))?;
     TcpListener::from_std(std_listener)
-        .with_context(|| format!("adopt shared tls listener {bind} into tokio"))
-        .map_err(Into::into)
+        .map_err(|e| SharedTlsError::Bind(format!("adopt shared tls listener {bind} into tokio: {e}")))
 }
 
 async fn stop_bind_task(bind: &str, task: SharedTlsBindTask) {

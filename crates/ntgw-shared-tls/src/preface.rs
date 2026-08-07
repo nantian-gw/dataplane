@@ -16,25 +16,25 @@ pub(crate) async fn peek_client_hello(
     let mut header = [0; 5];
     let peeked = timeout(TLS_PREFACE_READ_TIMEOUT, stream.try_peek(&mut header)).await??;
     if !peeked {
-        return Err(SharedTlsError::Handshake(anyhow::anyhow!(
-            "stream does not support preread peeking"
-        )));
+        return Err(SharedTlsError::Handshake(
+            "stream does not support preread peeking".to_string(),
+        ));
     }
 
     let record_len = tls_record_len(&header)
-        .ok_or_else(|| SharedTlsError::Handshake(anyhow::anyhow!("invalid tls record header")))?;
+        .ok_or_else(|| SharedTlsError::Handshake("invalid tls record header".to_string()))?;
     if record_len > TLS_PREFACE_LIMIT {
-        return Err(SharedTlsError::Handshake(anyhow::anyhow!(
-            "tls client hello exceeds preread limit"
-        )));
+        return Err(SharedTlsError::Handshake(
+            "tls client hello exceeds preread limit".to_string(),
+        ));
     }
 
     let mut preface = vec![0; record_len];
     let peeked = timeout(TLS_PREFACE_READ_TIMEOUT, stream.try_peek(&mut preface)).await??;
     if !peeked {
-        return Err(SharedTlsError::Handshake(anyhow::anyhow!(
-            "stream does not support preread peeking"
-        )));
+        return Err(SharedTlsError::Handshake(
+            "stream does not support preread peeking".to_string(),
+        ));
     }
 
     Ok(ClientHelloInfo {

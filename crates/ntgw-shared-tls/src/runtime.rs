@@ -9,7 +9,6 @@ use std::{
     time::Instant,
 };
 
-use anyhow::{Context, Result, anyhow};
 use ntgw_http::{AcceptedHttpApp, build_http_app, process_accepted_stream};
 use ntgw_ir::{Listener, SharedSnapshot, SharedSnapshotSignal, Snapshot, TlsRouteMode};
 use ntgw_observability::{

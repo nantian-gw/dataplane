@@ -1,5 +1,4 @@
 use crate::SharedTlsError;
-use anyhow::anyhow;
 use ntgw_ir::{SharedSnapshot, TlsRouteMode};
 use pingora::protocols::l4::stream::Stream as L4Stream;
 use tokio::{
@@ -18,7 +17,7 @@ pub(crate) async fn proxy_passthrough(
         current
             .select_tls_stream_backend(listener_name, server_name, TlsRouteMode::Passthrough)
             .ok_or_else(|| {
-                SharedTlsError::Certificate(anyhow!(
+                SharedTlsError::Certificate(format!(
                     "no tls passthrough route matched listener {listener_name}"
                 ))
             })?
@@ -45,7 +44,7 @@ where
         current
             .select_tls_stream_backend(listener_name, server_name, TlsRouteMode::Terminate)
             .ok_or_else(|| {
-                SharedTlsError::Certificate(anyhow!(
+                SharedTlsError::Certificate(format!(
                     "no terminated tls route matched listener {listener_name}"
                 ))
             })?

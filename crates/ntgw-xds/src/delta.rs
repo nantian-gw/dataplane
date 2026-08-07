@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use anyhow::{Context, Result};
+use crate::error::XdsError;
 use prost::Message;
 use tokio::sync::{mpsc, watch};
 use tokio_stream::wrappers::ReceiverStream;
@@ -30,7 +30,7 @@ pub async fn delta_connect_loop(
     mut shutdown: watch::Receiver<bool>,
     mut client: DeltaDiscoveryServiceClient<Channel>,
     on_snapshot: impl Fn(ConfigSnapshot),
-) -> Result<()> {
+) -> std::result::Result<(), XdsError> {
     let (tx, rx) = mpsc::channel(8);
     let supported = supported_features();
     let subs: Vec<String> = SUBSCRIPTIONS.iter().map(|s| s.to_string()).collect();
@@ -43,19 +43,19 @@ pub async fn delta_connect_loop(
         ..Default::default()
     })
     .await
-    .context("send initial delta request")?;
+    .map_err(|e| XdsError::ChannelSend(format!("send initial delta request: {e}")))?;
 
     let response = client
         .delta_stream_configuration(ReceiverStream::new(rx))
         .await
-        .context("open delta stream")?;
+        .map_err(|e| XdsError::StreamError(format!("open delta stream: {e}")))?;
 
-    let mut stream = response.into_inner();
     info!(
         "delta xDS stream established, subscribing to {} types",
         SUBSCRIPTIONS.len()
     );
 
+    let mut stream = response.into_inner();
     let mut cached = ConfigSnapshot::default();
     let mut seen_types: HashMap<String, bool> = HashMap::with_capacity(SUBSCRIPTION_COUNT);
     let mut version = String::new();
@@ -67,7 +67,7 @@ pub async fn delta_connect_loop(
             result = stream.message() => match result {
                 Ok(Some(m)) => m,
                 Ok(None) => return Ok(()),
-                Err(e) => return Err(e.into()),
+                Err(e) => return Err(XdsError::StreamError(format!("delta stream message: {e}"))),
             },
         };
 
@@ -110,7 +110,7 @@ pub async fn delta_connect_loop(
                 ..Default::default()
             })
             .await
-            .context("send delta ack")?;
+            .map_err(|e| XdsError::ChannelSend(format!("send delta ack: {e}")))?;
         }
     }
 }
@@ -152,7 +152,7 @@ fn upsert_resource(
     type_url: &str,
     name: &str,
     resource: &ntgw_proto::gateway::control::v1::Resource,
-) -> Result<()> {
+) -> std::result::Result<(), String> {
     use ntgw_proto::gateway::control::v1::{
         BackendCluster, GrpcRoute, HttpRoute, Listener, SecretMaterial, StreamRoute,
     };
@@ -165,27 +165,27 @@ fn upsert_resource(
     if type_url.contains("Listener") {
         snap.listeners.retain(|l| l.name != name);
         snap.listeners
-            .push(Listener::decode(bytes).context("decode Listener")?);
+            .push(Listener::decode(bytes).map_err(|e| format!("decode Listener: {e}"))?);
     } else if type_url.contains("HttpRoute") {
         snap.http_routes.retain(|rt| rt.name != name);
         snap.http_routes
-            .push(HttpRoute::decode(bytes).context("decode HttpRoute")?);
+            .push(HttpRoute::decode(bytes).map_err(|e| format!("decode HttpRoute: {e}"))?);
     } else if type_url.contains("GrpcRoute") {
         snap.grpc_routes.retain(|rt| rt.name != name);
         snap.grpc_routes
-            .push(GrpcRoute::decode(bytes).context("decode GrpcRoute")?);
+            .push(GrpcRoute::decode(bytes).map_err(|e| format!("decode GrpcRoute: {e}"))?);
     } else if type_url.contains("StreamRoute") {
         snap.stream_routes.retain(|rt| rt.name != name);
         snap.stream_routes
-            .push(StreamRoute::decode(bytes).context("decode StreamRoute")?);
+            .push(StreamRoute::decode(bytes).map_err(|e| format!("decode StreamRoute: {e}"))?);
     } else if type_url.contains("BackendCluster") {
         snap.backends.retain(|b| b.name != name);
         snap.backends
-            .push(BackendCluster::decode(bytes).context("decode BackendCluster")?);
+            .push(BackendCluster::decode(bytes).map_err(|e| format!("decode BackendCluster: {e}"))?);
     } else if type_url.contains("SecretMaterial") {
         snap.secrets.retain(|s| s.name != name);
         snap.secrets
-            .push(SecretMaterial::decode(bytes).context("decode SecretMaterial")?);
+            .push(SecretMaterial::decode(bytes).map_err(|e| format!("decode SecretMaterial: {e}"))?);
     } else {
         warn!("unknown delta type_url: {}", type_url);
     }

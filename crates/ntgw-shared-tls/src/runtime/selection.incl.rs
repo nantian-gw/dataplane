@@ -57,7 +57,7 @@ fn build_runtime_http_app(
         retry_budget,
         None,
     )
-    .map_err(Into::into)
+    .map_err(|e| SharedTlsError::Handshake(format!("build http app: {e}")))
 }
 
 #[derive(Clone, Copy, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]

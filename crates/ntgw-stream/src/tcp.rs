@@ -2,8 +2,6 @@ use std::borrow::Cow;
 use std::io;
 use std::sync::Arc;
 
-use anyhow::Result as AnyhowResult;
-use anyhow::anyhow;
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::tcp::OwnedReadHalf,
@@ -147,7 +145,7 @@ async fn handle_connection(
         let selected = current
             .select_stream_backend(&listener_name, server_name.as_deref())
             .ok_or_else(|| {
-                StreamError::Dispatch(anyhow!("no stream route matched listener {listener_name}"))
+                StreamError::Dispatch(format!("no stream route matched listener {listener_name}"))
             })?;
         let runtime_ids = current.selected_backend_runtime_ids(&selected);
         let access_log_state = stream_access_log_state(&access_log, &selected, current.id.as_str());
@@ -379,7 +377,7 @@ struct TcpProxyOutcome {
 
 #[derive(Debug)]
 struct TcpProxyResult {
-    result: anyhow::Result<TcpProxyOutcome>,
+    result: std::result::Result<TcpProxyOutcome, io::Error>,
     upstream_read: tokio::net::tcp::OwnedReadHalf,
     upstream_write: tokio::net::tcp::OwnedWriteHalf,
     bytes_received: u64,
@@ -414,7 +412,7 @@ async fn proxy_stream_connection(
     let mut upstream_buf = vec![0; buffer_bytes];
     let mut outcome = TcpProxyOutcome::default();
     let max_age_deadline = max_connection_age.map(|age| TokioInstant::now() + age);
-    let mut proxy_error: Option<anyhow::Error> = None;
+    let mut proxy_error: Option<io::Error> = None;
 
     loop {
         if !downstream_open && !upstream_open {
@@ -453,7 +451,7 @@ async fn proxy_stream_connection(
                         should_break = true;
                     } else {
                         outcome.response_flags = "UE";
-                        proxy_error = Some(err.into());
+                        proxy_error = Some(err);
                         should_break = true;
                     }
                 }
@@ -469,7 +467,7 @@ async fn proxy_stream_connection(
                         should_break = true;
                     } else {
                         outcome.response_flags = "DE";
-                        proxy_error = Some(err.into());
+                        proxy_error = Some(err);
                         should_break = true;
                     }
                 }
@@ -554,7 +552,7 @@ async fn next_proxy_event(
     upstream_open: bool,
     idle_timeout: Option<Duration>,
     max_age_deadline: Option<TokioInstant>,
-) -> AnyhowResult<ProxyEvent> {
+) -> std::result::Result<ProxyEvent, io::Error> {
     let next_read = async {
         tokio::select! {
             read = downstream.read(downstream_buf), if downstream_open => {
@@ -562,7 +560,7 @@ async fn next_proxy_event(
                     Ok(0) => Ok(ProxyEvent::DownstreamClosed),
                     Ok(read) => Ok(ProxyEvent::DownstreamRead(read)),
                     Err(err) if is_tcp_connection_closed(&err) => Ok(ProxyEvent::DownstreamReset),
-                    Err(err) => Err(err.into()),
+                    Err(err) => Err(err),
                 }
             }
             read = upstream.read(upstream_buf), if upstream_open => {
@@ -570,7 +568,7 @@ async fn next_proxy_event(
                     Ok(0) => Ok(ProxyEvent::UpstreamClosed),
                     Ok(read) => Ok(ProxyEvent::UpstreamRead(read)),
                     Err(err) if is_tcp_connection_closed(&err) => Ok(ProxyEvent::UpstreamReset),
-                    Err(err) => Err(err.into()),
+                    Err(err) => Err(err),
                 }
             }
             else => unreachable!("next_proxy_event requires an open tcp half"),
@@ -629,9 +627,9 @@ async fn read_preface(stream: &mut TcpStream) -> Result<Vec<u8>, StreamError> {
             Ok(Ok(read)) => read,
             Ok(Err(err)) => return Err(err.into()),
             Err(_) => {
-                return Err(StreamError::Dispatch(anyhow!(
-                    "timed out reading client preface"
-                )));
+                return Err(StreamError::Dispatch(
+                    "timed out reading client preface".to_string(),
+                ));
             }
         };
         if read == 0 {
@@ -649,9 +647,9 @@ async fn read_preface(stream: &mut TcpStream) -> Result<Vec<u8>, StreamError> {
     }
 
     if buf.is_empty() {
-        return Err(StreamError::Dispatch(anyhow!(
-            "connection closed before client preface"
-        )));
+        return Err(StreamError::Dispatch(
+            "connection closed before client preface".to_string(),
+        ));
     }
 
     Ok(buf)

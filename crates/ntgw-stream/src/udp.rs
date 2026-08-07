@@ -1,6 +1,5 @@
 use std::{net::SocketAddr, sync::Arc, time::Instant};
 
-use anyhow::anyhow;
 use tokio::{net::UdpSocket, sync::watch, time::Duration};
 use tracing::{debug, info, info_span, warn};
 
@@ -114,7 +113,7 @@ fn build_udp_session_task(
     let current = snapshot.load();
     let selected = current
         .select_stream_backend(listener_name.as_ref(), None)
-        .ok_or_else(|| anyhow!("no stream route matched listener {listener_name}"))?;
+        .ok_or_else(|| StreamError::Dispatch(format!("no stream route matched listener {listener_name}")))?;
     let runtime_ids = current.selected_backend_runtime_ids(&selected);
     let access_log_state = stream_access_log_state(access_log, &selected, current.id.as_str());
     let access_log = access_log_state.as_ref().map(|_| access_log.clone());
@@ -152,7 +151,7 @@ async fn proxy_datagram(
         let selected = current
             .select_stream_backend(&listener_name, None)
             .ok_or_else(|| {
-                StreamError::Dispatch(anyhow!("no stream route matched listener {listener_name}"))
+                StreamError::Dispatch(format!("no stream route matched listener {listener_name}"))
             })?;
         let runtime_ids = current.selected_backend_runtime_ids(&selected);
         let access_log_state = stream_access_log_state(&access_log, &selected, current.id.as_str());

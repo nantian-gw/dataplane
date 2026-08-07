@@ -1,6 +1,6 @@
 use std::{fs, sync::OnceLock, time::Duration};
 
-use anyhow::{Result, anyhow};
+use crate::error::XdsError;
 use rustls::crypto::{CryptoProvider, ring};
 use tonic::transport::{Certificate, ClientTlsConfig, Identity};
 
@@ -34,10 +34,10 @@ pub struct ClientTlsOptions {
     pub domain_name: String,
 }
 
-pub fn normalize_endpoint(raw: &str, tls_enabled: bool) -> Result<String> {
+pub fn normalize_endpoint(raw: &str, tls_enabled: bool) -> std::result::Result<String, XdsError> {
     let endpoint = raw.trim();
     if endpoint.is_empty() {
-        return Err(anyhow!("xds endpoint is required"));
+        return Err(XdsError::TlsConfig("xds endpoint is required".to_string()));
     }
 
     if let Some(stripped) = endpoint.strip_prefix("http://") {
@@ -68,14 +68,14 @@ pub(crate) fn ensure_rustls_provider() {
     });
 }
 
-pub fn build_client_tls_config(opts: &ClientTlsOptions) -> Result<ClientTlsConfig> {
+pub fn build_client_tls_config(opts: &ClientTlsOptions) -> std::result::Result<ClientTlsConfig, XdsError> {
     let mut tls = ClientTlsConfig::new();
 
     if let Some(domain_name) = trim_non_empty(&opts.domain_name) {
         tls = tls.domain_name(domain_name);
     }
     if let Some(ca_path) = trim_non_empty(&opts.ca_path) {
-        let pem = fs::read(ca_path)?;
+        let pem = fs::read(ca_path).map_err(|e| XdsError::TlsConfig(format!("read ca cert: {e}")))?;
         tls = tls.ca_certificate(Certificate::from_pem(pem));
     }
 
@@ -83,13 +83,13 @@ pub fn build_client_tls_config(opts: &ClientTlsOptions) -> Result<ClientTlsConfi
     let key_path = trim_non_empty(&opts.key_path);
     match (cert_path, key_path) {
         (Some(cert_path), Some(key_path)) => {
-            let cert_pem = fs::read(cert_path)?;
-            let key_pem = fs::read(key_path)?;
+            let cert_pem = fs::read(cert_path).map_err(|e| XdsError::TlsConfig(format!("read xds cert: {e}")))?;
+            let key_pem = fs::read(key_path).map_err(|e| XdsError::TlsConfig(format!("read xds key: {e}")))?;
             tls = tls.identity(Identity::from_pem(cert_pem, key_pem));
         }
         (None, None) => {}
         _ => {
-            return Err(anyhow!("xds tls requires both cert_path and key_path"));
+            return Err(XdsError::TlsConfig("xds tls requires both cert_path and key_path".to_string()));
         }
     }
 

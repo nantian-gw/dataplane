@@ -3,44 +3,39 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 pub enum XdsError {
     #[error("xDS connection failed: {0}")]
-    ConnectionFailed(#[source] anyhow::Error),
+    ConnectionFailed(String),
 
     #[error("xDS stream error: {0}")]
-    StreamError(#[source] anyhow::Error),
+    StreamError(String),
 
     #[error("xDS TLS configuration error: {0}")]
-    TlsConfig(#[source] anyhow::Error),
+    TlsConfig(String),
 
     #[error("xDS channel send error: {0}")]
-    ChannelSend(#[source] anyhow::Error),
+    ChannelSend(String),
 }
 
 impl From<tonic::transport::Error> for XdsError {
     fn from(err: tonic::transport::Error) -> Self {
-        XdsError::ConnectionFailed(anyhow::Error::from(err))
+        XdsError::ConnectionFailed(err.to_string())
     }
 }
 
-impl From<anyhow::Error> for XdsError {
-    fn from(err: anyhow::Error) -> Self {
-        XdsError::StreamError(err)
-    }
-}
 
 impl From<http::uri::InvalidUri> for XdsError {
     fn from(err: http::uri::InvalidUri) -> Self {
-        XdsError::ConnectionFailed(anyhow::Error::from(err))
+        XdsError::ConnectionFailed(err.to_string())
     }
 }
 
 impl From<tonic::Status> for XdsError {
     fn from(err: tonic::Status) -> Self {
-        XdsError::StreamError(err.into())
+        XdsError::StreamError(err.to_string())
     }
 }
 
 impl<T> From<tokio::sync::mpsc::error::SendError<T>> for XdsError {
     fn from(err: tokio::sync::mpsc::error::SendError<T>) -> Self {
-        XdsError::ChannelSend(anyhow::anyhow!("{err}"))
+        XdsError::ChannelSend(err.to_string())
     }
 }

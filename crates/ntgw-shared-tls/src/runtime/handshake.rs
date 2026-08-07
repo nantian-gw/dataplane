@@ -2,8 +2,6 @@ use crate::{
     SharedTlsError,
     listener_plan::{SharedTlsIdentity, TerminateSurface},
 };
-use anyhow::Context;
-use anyhow::anyhow;
 use async_trait::async_trait;
 use ntgw_http::DownstreamTlsInfo;
 use pingora::{
@@ -36,7 +34,7 @@ pub(super) async fn terminate_tls(
 
 fn build_tls_acceptor(terminate: &TerminateSurface) -> Result<SslAcceptor, SharedTlsError> {
     let mut builder = SslAcceptor::mozilla_intermediate_v5(SslMethod::tls())
-        .context("build shared tls acceptor")?;
+        .map_err(|e| SharedTlsError::Certificate(format!("build shared tls acceptor: {e}")))?;
     configure_alpn(&mut builder);
     builder.set_session_cache_mode(SslSessionCacheMode::SERVER);
     configure_frontend_client_validation(&mut builder, terminate)?;
@@ -58,18 +56,18 @@ fn configure_frontend_client_validation(
     };
 
     let ca_certs = X509::stack_from_pem(client_ca_bundle_pem.as_bytes())
-        .context("parse frontend client CA bundle")?;
+        .map_err(|e| SharedTlsError::Certificate(format!("parse frontend client CA bundle: {e}")))?;
     if ca_certs.is_empty() {
-        return Err(SharedTlsError::Certificate(anyhow!(
-            "frontend client CA bundle did not contain certificates"
-        )));
+        return Err(SharedTlsError::Certificate(
+            "frontend client CA bundle did not contain certificates".to_string(),
+        ));
     }
 
     for cert in ca_certs {
         builder
             .cert_store_mut()
             .add_cert(cert)
-            .context("add frontend client CA to trust store")?;
+            .map_err(|e| SharedTlsError::Certificate(format!("add frontend client CA to trust store: {e}")))?;
     }
 
     if matches!(
@@ -82,7 +80,7 @@ fn configure_frontend_client_validation(
     }
     builder
         .set_session_id_context(b"ntgw-shared-tls")
-        .context("set shared TLS session id context")?;
+        .map_err(|e| SharedTlsError::Certificate(format!("set shared TLS session id context: {e}")))?;
     Ok(())
 }
 
@@ -139,20 +137,22 @@ fn apply_dynamic_tls_identity(
     identity: &SharedTlsIdentity,
 ) -> Result<(), SharedTlsError> {
     let certs =
-        X509::stack_from_pem(identity.cert_pem.as_bytes()).context("parse certificate PEM")?;
+        X509::stack_from_pem(identity.cert_pem.as_bytes())
+            .map_err(|e| SharedTlsError::Certificate(format!("parse certificate PEM: {e}")))?;
     let Some(leaf) = certs.first() else {
-        return Err(SharedTlsError::Certificate(anyhow!(
-            "no certificates found in PEM"
-        )));
+        return Err(SharedTlsError::Certificate(
+            "no certificates found in PEM".to_string(),
+        ));
     };
     let key =
-        PKey::private_key_from_pem(identity.key_pem.as_bytes()).context("parse private key PEM")?;
+            PKey::private_key_from_pem(identity.key_pem.as_bytes())
+                .map_err(|e| SharedTlsError::Certificate(format!("parse private key PEM: {e}")))?;
 
-    ext::ssl_use_certificate(ssl, leaf).context("load leaf certificate")?;
+        ext::ssl_use_certificate(ssl, leaf).map_err(|e| SharedTlsError::Certificate(format!("load leaf certificate: {e}")))?;
     for cert in certs.iter().skip(1) {
-        ext::ssl_add_chain_cert(ssl, cert).context("load certificate chain")?;
+            ext::ssl_add_chain_cert(ssl, cert).map_err(|e| SharedTlsError::Certificate(format!("load certificate chain: {e}")))?;
     }
-    ext::ssl_use_private_key(ssl, &key).context("load private key")?;
+        ext::ssl_use_private_key(ssl, &key).map_err(|e| SharedTlsError::Certificate(format!("load private key: {e}")))?;
     Ok(())
 }
 

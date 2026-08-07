@@ -9,10 +9,10 @@ pub enum StreamError {
     UdpConnection(#[source] std::io::Error),
 
     #[error("stream dispatch error: {0}")]
-    Dispatch(#[source] anyhow::Error),
+    Dispatch(String),
 
     #[error("stream listener error: {0}")]
-    Listener(#[source] anyhow::Error),
+    Listener(String),
 }
 
 impl From<std::io::Error> for StreamError {
@@ -21,14 +21,9 @@ impl From<std::io::Error> for StreamError {
     }
 }
 
-impl From<anyhow::Error> for StreamError {
-    fn from(err: anyhow::Error) -> Self {
-        StreamError::Dispatch(err)
-    }
-}
 
 impl From<std::net::AddrParseError> for StreamError {
     fn from(err: std::net::AddrParseError) -> Self {
-        StreamError::Dispatch(anyhow::Error::from(err))
+        StreamError::Dispatch(err.to_string())
     }
 }

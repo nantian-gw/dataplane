@@ -6,7 +6,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use anyhow::Result;
+use std::io;
 use tokio::{
     net::UdpSocket,
     sync::{
@@ -160,7 +160,7 @@ impl UdpSessionRegistry {
         downstream: Arc<UdpSocket>,
         mut task: UdpSessionTask,
         udp_response_idle_timeout: Duration,
-    ) -> Result<()> {
+    ) -> std::result::Result<(), io::Error> {
         let key = task.session_key();
         loop {
             let sender = self
@@ -193,12 +193,12 @@ impl UdpSessionRegistry {
         upstream_host: &str,
         downstream: Arc<UdpSocket>,
         udp_response_idle_timeout: Duration,
-    ) -> Result<mpsc::Sender<QueuedUdpSessionTask>> {
+    ) -> std::result::Result<mpsc::Sender<QueuedUdpSessionTask>, io::Error> {
         let upstream_addr = key.upstream_addr;
         self.ensure_sender_with_factory(key, downstream, udp_response_idle_timeout, || async move {
             let upstream = UdpSocket::bind(ephemeral_bind_addr(upstream_host)).await?;
             upstream.connect(upstream_addr).await?;
-            Ok::<UdpSocket, anyhow::Error>(upstream)
+            Ok::<UdpSocket, io::Error>(upstream)
         })
         .await
     }
@@ -209,10 +209,10 @@ impl UdpSessionRegistry {
         downstream: Arc<UdpSocket>,
         udp_response_idle_timeout: Duration,
         create_upstream: F,
-    ) -> Result<mpsc::Sender<QueuedUdpSessionTask>>
+    ) -> std::result::Result<mpsc::Sender<QueuedUdpSessionTask>, io::Error>
     where
         F: FnOnce() -> Fut,
-        Fut: std::future::Future<Output = Result<UdpSocket>>,
+        Fut: std::future::Future<Output = std::result::Result<UdpSocket, io::Error>>,
     {
         let shard = self.shard_for(&key);
         {
@@ -392,7 +392,7 @@ async fn run_udp_session(
 async fn send_session_datagram(
     upstream: &UdpSocket,
     task: UdpSessionTask,
-) -> Result<ActiveUdpExchange> {
+) -> std::result::Result<ActiveUdpExchange, io::Error> {
     upstream.send(&task.payload).await?;
 
     debug!(

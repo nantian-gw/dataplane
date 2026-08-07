@@ -13,9 +13,9 @@ fn expected_stream_reconnect_error_stays_quiet_at_info() {
 
     tracing::subscriber::with_default(subscriber, || {
         super::super::log_stream_failure_retry(
-            &XdsError::StreamError(anyhow::anyhow!(
-                "status: Unknown, message: \"h2 protocol error: error reading a body from connection\""
-            )),
+            &XdsError::StreamError(
+                "status: Unknown, message: \"h2 protocol error: error reading a body from connection\"".to_string(),
+            ),
             Duration::from_millis(1500),
         );
     });
@@ -39,9 +39,9 @@ fn expected_stream_reconnect_error_logs_at_debug() {
 
     tracing::subscriber::with_default(subscriber, || {
         super::super::log_stream_failure_retry(
-            &XdsError::StreamError(anyhow::anyhow!(
-                "status: Unknown, message: \"h2 protocol error: error reading a body from connection\""
-            )),
+            &XdsError::StreamError(
+                "status: Unknown, message: \"h2 protocol error: error reading a body from connection\"".to_string(),
+            ),
             Duration::from_millis(1500),
         );
     });
@@ -68,7 +68,7 @@ fn unexpected_stream_error_logs_at_warn() {
 
     tracing::subscriber::with_default(subscriber, || {
         super::super::log_stream_failure_retry(
-            &XdsError::StreamError(anyhow::anyhow!("stale xds stream: no control-plane message received for 30s")),
+            &XdsError::StreamError("stale xds stream: no control-plane message received for 30s".to_string()),
             Duration::from_millis(1500),
         );
     });
