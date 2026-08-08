@@ -49,7 +49,10 @@ fn request_meta_fixture_materializes_header_heavy_request() {
 
     assert_eq!(step.path, "/bench/header-heavy");
     assert_eq!(step.query_param_count, 5);
-    assert_eq!(step.header_name_count, 0, "headers are lazy in materialize()");
+    assert_eq!(
+        step.header_name_count, 0,
+        "headers are lazy in materialize()"
+    );
     assert_eq!(step.header_value_count, 0);
     assert_eq!(step.header_value_bytes, 0);
     assert_eq!(step.request_id, "");
@@ -70,7 +73,10 @@ fn request_view_fixture_captures_header_heavy_request_without_materializing_head
 
     assert_eq!(step.path, "/bench/header-heavy");
     assert_eq!(step.query_param_count, 5);
-    assert_eq!(step.header_name_count, 0, "headers are lazy in materialize()");
+    assert_eq!(
+        step.header_name_count, 0,
+        "headers are lazy in materialize()"
+    );
     assert_eq!(step.header_value_count, 0);
     assert_eq!(step.header_value_bytes, 0);
     assert_eq!(step.request_id, "bench-request-id");

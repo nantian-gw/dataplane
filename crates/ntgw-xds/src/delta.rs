@@ -180,12 +180,14 @@ fn upsert_resource(
             .push(StreamRoute::decode(bytes).map_err(|e| format!("decode StreamRoute: {e}"))?);
     } else if type_url.contains("BackendCluster") {
         snap.backends.retain(|b| b.name != name);
-        snap.backends
-            .push(BackendCluster::decode(bytes).map_err(|e| format!("decode BackendCluster: {e}"))?);
+        snap.backends.push(
+            BackendCluster::decode(bytes).map_err(|e| format!("decode BackendCluster: {e}"))?,
+        );
     } else if type_url.contains("SecretMaterial") {
         snap.secrets.retain(|s| s.name != name);
-        snap.secrets
-            .push(SecretMaterial::decode(bytes).map_err(|e| format!("decode SecretMaterial: {e}"))?);
+        snap.secrets.push(
+            SecretMaterial::decode(bytes).map_err(|e| format!("decode SecretMaterial: {e}"))?,
+        );
     } else {
         warn!("unknown delta type_url: {}", type_url);
     }

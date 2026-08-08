@@ -90,10 +90,16 @@ fn http_route_miss_uses_mesh_default_backend_for_ineligible_cross_namespace_rout
 
     // The route should be selected directly (not via fallback path)
     let selected = snapshot.select_http_route(&request);
-    assert!(selected.is_some(), "cross-namespace mesh route should be accepted");
+    assert!(
+        selected.is_some(),
+        "cross-namespace mesh route should be accepted"
+    );
     let selected = selected.unwrap();
     assert_eq!(selected.route_name, "mesh-echo-add-header");
-    assert_eq!(selected.route_namespace, "gateway-conformance-mesh-consumer");
+    assert_eq!(
+        selected.route_namespace,
+        "gateway-conformance-mesh-consumer"
+    );
 }
 
 #[test]

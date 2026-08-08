@@ -21,7 +21,6 @@ impl From<tonic::transport::Error> for XdsError {
     }
 }
 
-
 impl From<http::uri::InvalidUri> for XdsError {
     fn from(err: http::uri::InvalidUri) -> Self {
         XdsError::ConnectionFailed(err.to_string())

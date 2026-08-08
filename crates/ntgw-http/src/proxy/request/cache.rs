@@ -11,10 +11,7 @@ use pingora::prelude::Session;
 use super::extract::request_headers;
 use crate::proxy::RequestContext;
 
-pub(crate) fn cache_request_headers_if_needed(
-    ctx: &mut RequestContext,
-    session: &Session,
-    ) {
+pub(crate) fn cache_request_headers_if_needed(ctx: &mut RequestContext, session: &Session) {
     if ctx.request_headers.is_none() {
         let headers = request_headers(session.req_header());
         ctx.request_headers = Some(headers);

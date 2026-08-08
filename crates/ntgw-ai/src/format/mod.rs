@@ -42,7 +42,7 @@ impl AdapterRegistry {
         self.adapters.insert(name.into(), adapter);
     }
 
-#[must_use]
+    #[must_use]
     pub fn get(&self, name: &str) -> Option<&dyn FormatAdapter> {
         self.adapters.get(name).map(|a| a.as_ref())
     }

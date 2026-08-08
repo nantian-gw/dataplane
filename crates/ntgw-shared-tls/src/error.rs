@@ -15,7 +15,6 @@ pub enum SharedTlsError {
     IdentityConfig(String),
 }
 
-
 impl From<std::io::Error> for SharedTlsError {
     fn from(err: std::io::Error) -> Self {
         SharedTlsError::Bind(err.to_string())

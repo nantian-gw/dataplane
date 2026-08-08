@@ -29,7 +29,7 @@ pub(super) fn has_service_frontend_http_route_candidate(
         ListenerKind::Http,
         &snapshot.http_routes,
         &snapshot.http_route_hostname_index,
-        |route| (&route.namespace, &route.name, &route.parent_refs)
+        |route| (&route.namespace, &route.name, &route.parent_refs),
     )
 }
 
@@ -43,7 +43,7 @@ pub(super) fn has_service_frontend_grpc_route_candidate(
         ListenerKind::Grpc,
         &snapshot.grpc_routes,
         &snapshot.grpc_route_hostname_index,
-        |route| (&route.namespace, &route.name, &route.parent_refs)
+        |route| (&route.namespace, &route.name, &route.parent_refs),
     )
 }
 
@@ -186,7 +186,7 @@ where
         snapshot,
         request.host.as_deref(),
         request.port,
-        listener_kind
+        listener_kind,
     );
     if !listeners.enforce_attachments {
         return false;
@@ -210,10 +210,10 @@ where
                             snapshot,
                             parent_refs,
                             route_namespace,
-                            listener_match.listener
-    )
-                }
-    )
+                            listener_match.listener,
+                        )
+                },
+            )
     })
 }
 
@@ -226,7 +226,7 @@ fn matches_service_frontend_listener(
         snapshot,
         request.host.as_deref(),
         request.port,
-        listener_kind
+        listener_kind,
     )
     .listeners
     .iter()
@@ -302,7 +302,7 @@ pub(super) fn visit_http_route_candidates<'a>(
         &snapshot.http_route_hostname_index,
         request_host,
         snapshot.runtime_indexes_ready,
-        visit
+        visit,
     )
 }
 
@@ -316,7 +316,7 @@ pub(super) fn visit_grpc_route_candidates<'a>(
         &snapshot.grpc_route_hostname_index,
         request_host,
         snapshot.runtime_indexes_ready,
-        visit
+        visit,
     )
 }
 
@@ -332,7 +332,7 @@ fn any_hostname_route_candidate<'a, T>(
         index,
         request_host,
         runtime_indexes_ready,
-        |route| !predicate(route)
+        |route| !predicate(route),
     )
 }
 
@@ -353,7 +353,7 @@ fn visit_hostname_route_candidates<'a, T>(
                 return true;
             };
             visit(route)
-        }
+        },
     )
 }
 
@@ -394,8 +394,8 @@ pub(super) fn route_listener_match<'a>(
                 snapshot.route_attachment_listener_index.contains_listener(
                     route_namespace,
                     route_name,
-                    listener.listener_index
-    )
+                    listener.listener_index,
+                )
             })
             .copied()
             .max_by(|left, right| left.host_score.cmp(&right.host_score))

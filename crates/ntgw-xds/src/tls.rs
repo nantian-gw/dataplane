@@ -68,14 +68,17 @@ pub(crate) fn ensure_rustls_provider() {
     });
 }
 
-pub fn build_client_tls_config(opts: &ClientTlsOptions) -> std::result::Result<ClientTlsConfig, XdsError> {
+pub fn build_client_tls_config(
+    opts: &ClientTlsOptions,
+) -> std::result::Result<ClientTlsConfig, XdsError> {
     let mut tls = ClientTlsConfig::new();
 
     if let Some(domain_name) = trim_non_empty(&opts.domain_name) {
         tls = tls.domain_name(domain_name);
     }
     if let Some(ca_path) = trim_non_empty(&opts.ca_path) {
-        let pem = fs::read(ca_path).map_err(|e| XdsError::TlsConfig(format!("read ca cert: {e}")))?;
+        let pem =
+            fs::read(ca_path).map_err(|e| XdsError::TlsConfig(format!("read ca cert: {e}")))?;
         tls = tls.ca_certificate(Certificate::from_pem(pem));
     }
 
@@ -83,13 +86,17 @@ pub fn build_client_tls_config(opts: &ClientTlsOptions) -> std::result::Result<C
     let key_path = trim_non_empty(&opts.key_path);
     match (cert_path, key_path) {
         (Some(cert_path), Some(key_path)) => {
-            let cert_pem = fs::read(cert_path).map_err(|e| XdsError::TlsConfig(format!("read xds cert: {e}")))?;
-            let key_pem = fs::read(key_path).map_err(|e| XdsError::TlsConfig(format!("read xds key: {e}")))?;
+            let cert_pem = fs::read(cert_path)
+                .map_err(|e| XdsError::TlsConfig(format!("read xds cert: {e}")))?;
+            let key_pem = fs::read(key_path)
+                .map_err(|e| XdsError::TlsConfig(format!("read xds key: {e}")))?;
             tls = tls.identity(Identity::from_pem(cert_pem, key_pem));
         }
         (None, None) => {}
         _ => {
-            return Err(XdsError::TlsConfig("xds tls requires both cert_path and key_path".to_string()));
+            return Err(XdsError::TlsConfig(
+                "xds tls requires both cert_path and key_path".to_string(),
+            ));
         }
     }
 

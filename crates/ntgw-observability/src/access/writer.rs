@@ -370,10 +370,7 @@ fn run_access_log_worker(
     }
 }
 
-fn flush_access_log_writer(
-    writer: &mut BufWriter<LogTarget>,
-    worker_stats: &AccessLogWriterStats,
-) {
+fn flush_access_log_writer(writer: &mut BufWriter<LogTarget>, worker_stats: &AccessLogWriterStats) {
     let started = Instant::now();
     if writer.flush().is_err() {
         worker_stats.record_sink_error();
@@ -406,10 +403,7 @@ fn create_access_log_target(path: &str) -> Result<BufWriter<LogTarget>> {
     Ok(BufWriter::with_capacity(ACCESS_LOG_BUFFER_CAPACITY, writer))
 }
 
-fn write_access_log_line(
-    writer: &mut BufWriter<LogTarget>,
-    line: &str,
-) -> io::Result<()> {
+fn write_access_log_line(writer: &mut BufWriter<LogTarget>, line: &str) -> io::Result<()> {
     writer.write_all(line.as_bytes())?;
     writer.write_all(b"\n")
 }

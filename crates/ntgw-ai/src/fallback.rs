@@ -66,7 +66,7 @@ impl ModelFallback {
     }
 
     /// Get the first model in the chain (the primary).
-#[must_use]
+    #[must_use]
     pub fn primary(&self, model: &str) -> Option<&str> {
         self.chains.get(model).map(|c| c.primary.as_str())
     }

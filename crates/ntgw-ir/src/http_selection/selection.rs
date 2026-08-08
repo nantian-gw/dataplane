@@ -29,7 +29,7 @@ pub(super) fn select_http_route(
         snapshot,
         request.host.as_deref(),
         request.port,
-        ListenerKind::Http
+        ListenerKind::Http,
     );
     if listeners.enforce_attachments && listeners.listeners.is_empty() {
         return None;
@@ -47,8 +47,8 @@ pub(super) fn select_http_route(
                 snapshot,
                 &route.parent_refs,
                 &route.namespace,
-                listener_match.listener
-    )
+                listener_match.listener,
+            )
         {
             return true;
         }
@@ -65,8 +65,8 @@ pub(super) fn select_http_route(
                 &rule.backend_refs,
                 rule.session_persistence.as_ref(),
                 request,
-                session_resolver
-    );
+                session_resolver,
+            );
             if resolution.selected.is_none()
                 && resolution.error.is_none()
                 && !has_non_backend_http_filter(&rule.filters)
@@ -171,7 +171,7 @@ pub(super) fn select_grpc_backend(
         snapshot,
         request.host.as_deref(),
         request.port,
-        ListenerKind::Grpc
+        ListenerKind::Grpc,
     );
     if listeners.enforce_attachments && listeners.listeners.is_empty() {
         return None;
@@ -189,8 +189,8 @@ pub(super) fn select_grpc_backend(
                 snapshot,
                 &route.parent_refs,
                 &route.namespace,
-                listener_match.listener
-    )
+                listener_match.listener,
+            )
         {
             return true;
         }
@@ -207,8 +207,8 @@ pub(super) fn select_grpc_backend(
                 &rule.backend_refs,
                 rule.session_persistence.as_ref(),
                 request,
-                session_resolver
-    );
+                session_resolver,
+            );
             let Some(selected_backend) = resolution.selected else {
                 continue;
             };

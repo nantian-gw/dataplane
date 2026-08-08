@@ -10,8 +10,7 @@ mod view;
 pub(crate) use self::cache::{
     access_log_response_requirements, access_log_route_annotations,
     cache_access_log_connection_fields_if_needed,
-    cache_access_log_request_headers_from_header_if_needed,
-    cache_access_log_response_headers,
+    cache_access_log_request_headers_from_header_if_needed, cache_access_log_response_headers,
     cache_access_log_sent_response_headers_if_needed,
     cache_request_headers_for_filters_and_access_log, cache_request_headers_if_needed,
 };
@@ -21,9 +20,8 @@ pub(crate) use self::context::{
 };
 pub(crate) use self::extract::client_ip;
 pub(crate) use self::meta::{
-    build_request_meta, build_request_meta_from_header_with_port,
-    build_request_meta_with_headers, build_selection_request_meta,
-    fast_path_request_from_header,
+    build_request_meta, build_request_meta_from_header_with_port, build_request_meta_with_headers,
+    build_selection_request_meta, fast_path_request_from_header,
 };
 pub(crate) use self::tracing::{
     inject_request_span_context, record_request_span, server_port, start_request_span_from_header,

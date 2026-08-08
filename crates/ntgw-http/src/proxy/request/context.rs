@@ -1,4 +1,3 @@
-
 use ntgw_ir::Filter;
 
 use super::extract::{request_content_length, request_id_from_headers};
@@ -89,7 +88,6 @@ pub(crate) fn effective_http_protocol(ctx: &RequestContext) -> &str {
 pub(crate) fn response_filters_need_request_headers(filters: &[Filter]) -> bool {
     filters.iter().any(|filter| filter.filter_type == "CORS")
 }
-
 
 pub(crate) fn assign_string(target: &mut String, value: &str) {
     target.clear();

@@ -275,8 +275,11 @@ impl AIMetrics {
             )?,
 
             tokens_per_request: register_histogram_vec_with_registry!(
-                HistogramOpts::new("nantian_gw_ai_tokens_per_request", "Total tokens per request.")
-                    .buckets(TOKENS_PER_REQUEST_BUCKETS.to_vec()),
+                HistogramOpts::new(
+                    "nantian_gw_ai_tokens_per_request",
+                    "Total tokens per request."
+                )
+                .buckets(TOKENS_PER_REQUEST_BUCKETS.to_vec()),
                 &["model", "provider"],
                 registry
             )?,

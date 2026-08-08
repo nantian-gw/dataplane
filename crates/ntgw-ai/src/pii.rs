@@ -208,7 +208,6 @@ impl PIIMasker {
         let (masked, _count, _details) = self.mask(s);
         Ok(masked.into_owned().into_bytes())
     }
-
 }
 
 #[cfg(test)]

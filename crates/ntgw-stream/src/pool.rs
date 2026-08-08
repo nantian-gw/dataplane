@@ -242,7 +242,6 @@ impl TcpConnectionPool {
         debug!(count, "pool drained");
     }
 
-
     pub(crate) fn counter_snapshot(&self) -> PoolCountersSnapshot {
         PoolCountersSnapshot {
             active_connections: self.active_connections.load(Ordering::Relaxed),

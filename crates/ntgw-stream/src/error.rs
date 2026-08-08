@@ -21,7 +21,6 @@ impl From<std::io::Error> for StreamError {
     }
 }
 
-
 impl From<std::net::AddrParseError> for StreamError {
     fn from(err: std::net::AddrParseError) -> Self {
         StreamError::Dispatch(err.to_string())

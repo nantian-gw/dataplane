@@ -477,14 +477,17 @@ pub(crate) async fn do_request_filter(
                 if let Some(requirements) = access_log_response_requirements(
                     &proxy.access_log,
                     access_log_route_annotations(ctx),
-                ) && !requirements.sent_response_headers.is_empty() {
+                ) && !requirements.sent_response_headers.is_empty()
+                {
                     cache_access_log_response_headers(
                         &mut ctx.access_log_sent_response_headers,
                         &response,
                         &requirements.sent_response_headers,
                     );
                 }
-                session.write_response_header(Box::new(response), false).await?;
+                session
+                    .write_response_header(Box::new(response), false)
+                    .await?;
                 session.write_response_body(Some(body), true).await?;
                 404
             };
@@ -493,36 +496,35 @@ pub(crate) async fn do_request_filter(
         return Ok(true);
     };
 
-        // Cache connection fields (avoiding borrow conflict)
-        if let Some(requirements) = access_log_response_requirements(
-            &proxy.access_log,
-            access_log_route_annotations(ctx),
-        ) {
-            let downstream_tls_present = session
-                .as_downstream()
-                .digest()
-                .and_then(|digest| digest.ssl_digest.as_ref())
-                .is_some();
-            let client_remote_port = session
-                .client_addr()
-                .and_then(|addr| addr.as_inet().map(|inet| inet.port()));
-            let digest_peer_remote_port = session
-                .as_downstream()
-                .digest()
-                .and_then(|digest| digest.socket_digest.as_ref())
-                .and_then(|socket| socket.peer_addr())
-                .and_then(|addr| addr.as_inet().map(|inet| inet.port()));
-            if requirements.needs_scheme {
-                ctx.access_log_scheme = if downstream_tls_present {
-                    "https".to_string()
-                } else {
-                    "http".to_string()
-                };
-            }
-            if requirements.needs_remote_port {
-                ctx.access_log_remote_port = client_remote_port.or(digest_peer_remote_port);
-            }
+    // Cache connection fields (avoiding borrow conflict)
+    if let Some(requirements) =
+        access_log_response_requirements(&proxy.access_log, access_log_route_annotations(ctx))
+    {
+        let downstream_tls_present = session
+            .as_downstream()
+            .digest()
+            .and_then(|digest| digest.ssl_digest.as_ref())
+            .is_some();
+        let client_remote_port = session
+            .client_addr()
+            .and_then(|addr| addr.as_inet().map(|inet| inet.port()));
+        let digest_peer_remote_port = session
+            .as_downstream()
+            .digest()
+            .and_then(|digest| digest.socket_digest.as_ref())
+            .and_then(|socket| socket.peer_addr())
+            .and_then(|addr| addr.as_inet().map(|inet| inet.port()));
+        if requirements.needs_scheme {
+            ctx.access_log_scheme = if downstream_tls_present {
+                "https".to_string()
+            } else {
+                "http".to_string()
+            };
         }
+        if requirements.needs_remote_port {
+            ctx.access_log_remote_port = client_remote_port.or(digest_peer_remote_port);
+        }
+    }
 
     if frontend_client_certificate_requirement.closes_connection_without_valid_client_certificate(
         downstream_tls_client_certificate_present(session),

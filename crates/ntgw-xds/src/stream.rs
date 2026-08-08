@@ -60,6 +60,8 @@ where
 {
     match tokio::time::timeout(stale_stream_timeout, future).await {
         Ok(result) => Ok(result?),
-        Err(_) => Err(XdsError::StreamError(format!("stale xds stream: no control-plane message received for {stale_stream_timeout:?}")))
+        Err(_) => Err(XdsError::StreamError(format!(
+            "stale xds stream: no control-plane message received for {stale_stream_timeout:?}"
+        ))),
     }
 }

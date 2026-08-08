@@ -117,9 +117,21 @@ pub(crate) fn observe_completed_request(
             upstream_connect_time_ms: ctx.upstream_connect_latency_ms as u128,
             content_type: ctx.response_content_type.clone(),
             connection_id: ctx.connection_id.clone(),
-            request_header_values: ctx.access_log_request_headers.iter().map(|(k, v)| (k.to_string(), v.clone())).collect(),
-            sent_response_header_values: ctx.access_log_sent_response_headers.iter().map(|(k, v)| (k.to_string(), v.clone())).collect(),
-            upstream_response_header_values: ctx.access_log_upstream_response_headers.iter().map(|(k, v)| (k.to_string(), v.clone())).collect(),
+            request_header_values: ctx
+                .access_log_request_headers
+                .iter()
+                .map(|(k, v)| (k.to_string(), v.clone()))
+                .collect(),
+            sent_response_header_values: ctx
+                .access_log_sent_response_headers
+                .iter()
+                .map(|(k, v)| (k.to_string(), v.clone()))
+                .collect(),
+            upstream_response_header_values: ctx
+                .access_log_upstream_response_headers
+                .iter()
+                .map(|(k, v)| (k.to_string(), v.clone()))
+                .collect(),
             upstream_statuses: ctx.access_log_upstream_statuses.clone(),
             scheme: ctx.access_log_scheme.clone(),
             remote_port: ctx.access_log_remote_port,

@@ -313,16 +313,15 @@ fn build_tls_identity(
     secret_ref: &str,
     secret: &SecretMaterial,
 ) -> Result<SharedTlsIdentity, SharedTlsError> {
-    let certs =
-        X509::stack_from_pem(secret.cert_pem.as_bytes())
-            .map_err(|e| SharedTlsError::Certificate(format!("parse certificate PEM: {e}")))?;
+    let certs = X509::stack_from_pem(secret.cert_pem.as_bytes())
+        .map_err(|e| SharedTlsError::Certificate(format!("parse certificate PEM: {e}")))?;
     let Some(leaf) = certs.first() else {
         return Err(SharedTlsError::Certificate(
             "no certificates found in PEM".to_string(),
         ));
     };
-        pingora::tls::pkey::PKey::private_key_from_pem(secret.key_pem.as_bytes())
-            .map_err(|e| SharedTlsError::Certificate(format!("parse private key PEM: {e}")))?;
+    pingora::tls::pkey::PKey::private_key_from_pem(secret.key_pem.as_bytes())
+        .map_err(|e| SharedTlsError::Certificate(format!("parse private key PEM: {e}")))?;
 
     Ok(SharedTlsIdentity {
         secret_ref: secret_ref.to_string(),

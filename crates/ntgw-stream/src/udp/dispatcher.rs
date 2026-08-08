@@ -65,7 +65,10 @@ impl UdpDatagramDispatcher {
         }
     }
 
-    pub(super) async fn dispatch(&self, task: UdpSessionTask) -> std::result::Result<(), StreamError> {
+    pub(super) async fn dispatch(
+        &self,
+        task: UdpSessionTask,
+    ) -> std::result::Result<(), StreamError> {
         let worker = self.worker_index_for_task(&task);
         self.workers[worker]
             .send(task)

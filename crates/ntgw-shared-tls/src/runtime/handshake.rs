@@ -55,8 +55,9 @@ fn configure_frontend_client_validation(
         return Ok(());
     };
 
-    let ca_certs = X509::stack_from_pem(client_ca_bundle_pem.as_bytes())
-        .map_err(|e| SharedTlsError::Certificate(format!("parse frontend client CA bundle: {e}")))?;
+    let ca_certs = X509::stack_from_pem(client_ca_bundle_pem.as_bytes()).map_err(|e| {
+        SharedTlsError::Certificate(format!("parse frontend client CA bundle: {e}"))
+    })?;
     if ca_certs.is_empty() {
         return Err(SharedTlsError::Certificate(
             "frontend client CA bundle did not contain certificates".to_string(),
@@ -64,10 +65,9 @@ fn configure_frontend_client_validation(
     }
 
     for cert in ca_certs {
-        builder
-            .cert_store_mut()
-            .add_cert(cert)
-            .map_err(|e| SharedTlsError::Certificate(format!("add frontend client CA to trust store: {e}")))?;
+        builder.cert_store_mut().add_cert(cert).map_err(|e| {
+            SharedTlsError::Certificate(format!("add frontend client CA to trust store: {e}"))
+        })?;
     }
 
     if matches!(
@@ -80,7 +80,9 @@ fn configure_frontend_client_validation(
     }
     builder
         .set_session_id_context(b"ntgw-shared-tls")
-        .map_err(|e| SharedTlsError::Certificate(format!("set shared TLS session id context: {e}")))?;
+        .map_err(|e| {
+            SharedTlsError::Certificate(format!("set shared TLS session id context: {e}"))
+        })?;
     Ok(())
 }
 
@@ -136,23 +138,24 @@ fn apply_dynamic_tls_identity(
     ssl: &mut SslRef,
     identity: &SharedTlsIdentity,
 ) -> Result<(), SharedTlsError> {
-    let certs =
-        X509::stack_from_pem(identity.cert_pem.as_bytes())
-            .map_err(|e| SharedTlsError::Certificate(format!("parse certificate PEM: {e}")))?;
+    let certs = X509::stack_from_pem(identity.cert_pem.as_bytes())
+        .map_err(|e| SharedTlsError::Certificate(format!("parse certificate PEM: {e}")))?;
     let Some(leaf) = certs.first() else {
         return Err(SharedTlsError::Certificate(
             "no certificates found in PEM".to_string(),
         ));
     };
-    let key =
-            PKey::private_key_from_pem(identity.key_pem.as_bytes())
-                .map_err(|e| SharedTlsError::Certificate(format!("parse private key PEM: {e}")))?;
+    let key = PKey::private_key_from_pem(identity.key_pem.as_bytes())
+        .map_err(|e| SharedTlsError::Certificate(format!("parse private key PEM: {e}")))?;
 
-        ext::ssl_use_certificate(ssl, leaf).map_err(|e| SharedTlsError::Certificate(format!("load leaf certificate: {e}")))?;
+    ext::ssl_use_certificate(ssl, leaf)
+        .map_err(|e| SharedTlsError::Certificate(format!("load leaf certificate: {e}")))?;
     for cert in certs.iter().skip(1) {
-            ext::ssl_add_chain_cert(ssl, cert).map_err(|e| SharedTlsError::Certificate(format!("load certificate chain: {e}")))?;
+        ext::ssl_add_chain_cert(ssl, cert)
+            .map_err(|e| SharedTlsError::Certificate(format!("load certificate chain: {e}")))?;
     }
-        ext::ssl_use_private_key(ssl, &key).map_err(|e| SharedTlsError::Certificate(format!("load private key: {e}")))?;
+    ext::ssl_use_private_key(ssl, &key)
+        .map_err(|e| SharedTlsError::Certificate(format!("load private key: {e}")))?;
     Ok(())
 }
 

@@ -465,7 +465,7 @@ impl AIGatewayFilter {
     /// Resolve a gateway API key to a backend credential via the configured
     /// `ApiKeyManager`. Returns `None` if no key manager is configured or if
     /// no matching credential exists.
-#[must_use]
+    #[must_use]
     pub fn resolve_api_key(&self, gateway_key: &str) -> Option<crate::keyring::BackendCredential> {
         self.key_manager
             .as_ref()
@@ -555,7 +555,8 @@ impl AIGatewayFilter {
             }
 
             // Record first-token latency and tokens per request
-            self.metrics.record_first_token_latency(&model, "", duration.as_secs_f64());
+            self.metrics
+                .record_first_token_latency(&model, "", duration.as_secs_f64());
             self.metrics
                 .record_tokens_per_request(&model, "", usage.total_tokens as f64);
         }

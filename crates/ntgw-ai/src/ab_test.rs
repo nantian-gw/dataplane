@@ -69,7 +69,7 @@ impl ABTestEngine {
     /// Returns `None` if the experiment is not found. When weights do not sum to
     /// 1.0 the last variant whose cumulative weight exceeds the random roll is
     /// returned. If all weights are zero the first variant is returned.
-#[must_use]
+    #[must_use]
     pub fn select_variant(&self, experiment_id: &str) -> Option<Variant> {
         let experiment = self.experiments.get(experiment_id)?;
         let roll: f64 = rand::thread_rng().r#gen();

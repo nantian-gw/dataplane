@@ -153,7 +153,7 @@ impl SemanticCache {
 
     /// Try to find a cached response. Returns `None` if cache is disabled,
     /// no entry exists, or the entry is expired.
-#[must_use]
+    #[must_use]
     pub fn lookup(&self, request: &AIRequest) -> Option<AIResponse> {
         if !self.config.enabled {
             return None;
