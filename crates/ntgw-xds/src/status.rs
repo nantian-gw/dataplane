@@ -138,7 +138,7 @@ pub(crate) fn discovery_ack(
         version: version.to_string(),
         nonce: nonce.to_string(),
         subscriptions: vec!["*".to_string()],
-        result_status: DiscoveryResultStatus::Ack as i32,
+        result_status: DiscoveryResultStatus::DiscoveryAck as i32,
         error_detail: String::new(),
         supported_features: supported_features.to_vec(),
     }
@@ -156,7 +156,7 @@ pub(crate) fn discovery_open(
         version: version.to_string(),
         nonce: String::new(),
         subscriptions: vec!["*".to_string()],
-        result_status: DiscoveryResultStatus::Unspecified as i32,
+        result_status: DiscoveryResultStatus::DiscoveryUnspecified as i32,
         error_detail: String::new(),
         supported_features: supported_features.to_vec(),
     }
@@ -176,7 +176,7 @@ pub(crate) fn discovery_nack(
         version: version.to_string(),
         nonce: nonce.to_string(),
         subscriptions: vec!["*".to_string()],
-        result_status: DiscoveryResultStatus::Nack as i32,
+        result_status: DiscoveryResultStatus::DiscoveryNack as i32,
         error_detail: error_detail.to_string(),
         supported_features: supported_features.to_vec(),
     }

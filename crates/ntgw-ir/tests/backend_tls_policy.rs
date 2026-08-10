@@ -16,11 +16,11 @@ fn decodes_backend_tls_validation_from_proto() {
                 max_version: "TLS1_3".to_string(),
                 subject_alt_names: vec![
                     proto::BackendTlsSubjectAltName {
-                        r#type: proto::BackendTlsSubjectAltNameType::Hostname.into(),
+                        r#type: proto::BackendTlsSubjectAltNameType::BackendTlsSanHostname.into(),
                         value: "orders.backend.svc".to_string(),
                     },
                     proto::BackendTlsSubjectAltName {
-                        r#type: proto::BackendTlsSubjectAltNameType::Uri.into(),
+                        r#type: proto::BackendTlsSubjectAltNameType::BackendTlsSanUri.into(),
                         value: "spiffe://cluster.local/ns/default/sa/orders".to_string(),
                     },
                 ],

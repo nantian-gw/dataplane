@@ -15,7 +15,7 @@ proptest! {
                 address: "127.0.0.1".to_string(),
                 addresses: vec!["127.0.0.1".to_string()],
                 port: 8080,
-                protocol: proto::ListenerProtocol::Http as i32,
+                protocol: proto::ListenerProtocol::ListenerHttp as i32,
                 hostnames: vec![hostname.clone()],
                 attached_routes: vec![format!("default/{route_name}")],
                 ..proto::Listener::default()

@@ -124,18 +124,18 @@ fn consistent_hash_from_proto(item: proto::ConsistentHashPolicy) -> ConsistentHa
 
 fn load_balancing_type_from_proto(item: proto::LoadBalancingPolicyType) -> &'static str {
     match item {
-        proto::LoadBalancingPolicyType::RoundRobin => "RoundRobin",
-        proto::LoadBalancingPolicyType::ConsistentHash => "ConsistentHash",
-        proto::LoadBalancingPolicyType::Unspecified => "",
+        proto::LoadBalancingPolicyType::LoadBalancingRoundRobin => "RoundRobin",
+        proto::LoadBalancingPolicyType::LoadBalancingConsistentHash => "ConsistentHash",
+        proto::LoadBalancingPolicyType::LoadBalancingUnspecified => "",
     }
 }
 
 fn consistent_hash_key_type_from_proto(item: proto::ConsistentHashKeyType) -> &'static str {
     match item {
-        proto::ConsistentHashKeyType::SourceIp => "SourceIP",
-        proto::ConsistentHashKeyType::Header => "Header",
-        proto::ConsistentHashKeyType::Hostname => "Hostname",
-        proto::ConsistentHashKeyType::Unspecified => "",
+        proto::ConsistentHashKeyType::ConsistentHashSourceIp => "SourceIP",
+        proto::ConsistentHashKeyType::ConsistentHashHeader => "Header",
+        proto::ConsistentHashKeyType::ConsistentHashHostname => "Hostname",
+        proto::ConsistentHashKeyType::ConsistentHashUnspecified => "",
     }
 }
 
@@ -158,9 +158,9 @@ fn backend_subject_alt_name_from_proto(
     item: proto::BackendTlsSubjectAltName,
 ) -> BackendSubjectAltName {
     let kind = match item.r#type() {
-        proto::BackendTlsSubjectAltNameType::Hostname => "Hostname",
-        proto::BackendTlsSubjectAltNameType::Uri => "URI",
-        proto::BackendTlsSubjectAltNameType::Unspecified => "",
+        proto::BackendTlsSubjectAltNameType::BackendTlsSanHostname => "Hostname",
+        proto::BackendTlsSubjectAltNameType::BackendTlsSanUri => "URI",
+        proto::BackendTlsSubjectAltNameType::BackendTlsSanUnspecified => "",
     };
 
     BackendSubjectAltName {

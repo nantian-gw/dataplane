@@ -90,7 +90,7 @@ pub(super) fn stream_rule_from_proto(rule: proto::StreamRule) -> StreamRule {
             .into_iter()
             .map(|item| {
                 let mode = match item.mode() {
-                    proto::TlsRouteMode::Terminate => crate::TlsRouteMode::Terminate,
+                    proto::TlsRouteMode::TlsRouteTerminate => crate::TlsRouteMode::Terminate,
                     _ => crate::TlsRouteMode::Passthrough,
                 };
                 StreamMatch {
@@ -170,8 +170,8 @@ fn cookie_config_from_proto(item: proto::CookieConfig) -> crate::CookieConfig {
 
 fn session_type_from_proto(item: proto::SessionPersistenceType) -> String {
     match item {
-        proto::SessionPersistenceType::Header => "Header".to_string(),
-        proto::SessionPersistenceType::Cookie | proto::SessionPersistenceType::Unspecified => {
+        proto::SessionPersistenceType::SessionPersistenceHeader => "Header".to_string(),
+        proto::SessionPersistenceType::SessionPersistenceCookie | proto::SessionPersistenceType::SessionPersistenceUnspecified => {
             "Cookie".to_string()
         }
     }
@@ -179,8 +179,8 @@ fn session_type_from_proto(item: proto::SessionPersistenceType) -> String {
 
 fn cookie_lifetime_type_from_proto(item: proto::CookieLifetimeType) -> String {
     match item {
-        proto::CookieLifetimeType::Permanent => "Permanent".to_string(),
-        proto::CookieLifetimeType::Session | proto::CookieLifetimeType::Unspecified => {
+        proto::CookieLifetimeType::CookieLifetimePermanent => "Permanent".to_string(),
+        proto::CookieLifetimeType::CookieLifetimeSession | proto::CookieLifetimeType::CookieLifetimeUnspecified => {
             "Session".to_string()
         }
     }

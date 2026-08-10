@@ -106,7 +106,7 @@ pub async fn delta_connect_loop(
                 cluster: cluster.clone(),
                 response_nonce: msg.nonce,
                 type_url: msg.type_url.clone(),
-                result_status: DiscoveryResultStatus::Ack as i32,
+                result_status: DiscoveryResultStatus::DiscoveryAck as i32,
                 supported_features: supported.clone(),
                 ..Default::default()
             })

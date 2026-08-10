@@ -18,9 +18,9 @@ fn decodes_http_session_persistence_from_proto() {
                         seconds: 60,
                         nanos: 0,
                     }),
-                    r#type: proto::SessionPersistenceType::Cookie as i32,
+                    r#type: proto::SessionPersistenceType::SessionPersistenceCookie as i32,
                     cookie: Some(proto::CookieConfig {
-                        lifetime_type: proto::CookieLifetimeType::Permanent as i32,
+                        lifetime_type: proto::CookieLifetimeType::CookieLifetimePermanent as i32,
                     }),
                 }),
                 ..Default::default()
@@ -57,9 +57,9 @@ fn decodes_backend_session_persistence_from_proto() {
             namespace: "default".to_string(),
             session_persistence: Some(proto::SessionPersistence {
                 session_name: "sticky-backend".to_string(),
-                r#type: proto::SessionPersistenceType::Cookie as i32,
+                r#type: proto::SessionPersistenceType::SessionPersistenceCookie as i32,
                 cookie: Some(proto::CookieConfig {
-                    lifetime_type: proto::CookieLifetimeType::Session as i32,
+                    lifetime_type: proto::CookieLifetimeType::CookieLifetimeSession as i32,
                 }),
                 ..Default::default()
             }),

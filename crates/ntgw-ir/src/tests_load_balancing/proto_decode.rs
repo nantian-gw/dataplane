@@ -7,9 +7,9 @@ fn decodes_backend_load_balancing_from_proto() {
             name: "orders:8080".to_string(),
             namespace: "default".to_string(),
             load_balancing: Some(proto::LoadBalancingPolicy {
-                r#type: proto::LoadBalancingPolicyType::ConsistentHash as i32,
+                r#type: proto::LoadBalancingPolicyType::LoadBalancingConsistentHash as i32,
                 consistent_hash: Some(proto::ConsistentHashPolicy {
-                    key_type: proto::ConsistentHashKeyType::Header as i32,
+                    key_type: proto::ConsistentHashKeyType::ConsistentHashHeader as i32,
                     header_name: "x-user-id".to_string(),
                 }),
             }),
