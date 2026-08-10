@@ -171,18 +171,16 @@ fn cookie_config_from_proto(item: proto::CookieConfig) -> crate::CookieConfig {
 fn session_type_from_proto(item: proto::SessionPersistenceType) -> String {
     match item {
         proto::SessionPersistenceType::SessionPersistenceHeader => "Header".to_string(),
-        proto::SessionPersistenceType::SessionPersistenceCookie | proto::SessionPersistenceType::SessionPersistenceUnspecified => {
-            "Cookie".to_string()
-        }
+        proto::SessionPersistenceType::SessionPersistenceCookie
+        | proto::SessionPersistenceType::SessionPersistenceUnspecified => "Cookie".to_string(),
     }
 }
 
 fn cookie_lifetime_type_from_proto(item: proto::CookieLifetimeType) -> String {
     match item {
         proto::CookieLifetimeType::CookieLifetimePermanent => "Permanent".to_string(),
-        proto::CookieLifetimeType::CookieLifetimeSession | proto::CookieLifetimeType::CookieLifetimeUnspecified => {
-            "Session".to_string()
-        }
+        proto::CookieLifetimeType::CookieLifetimeSession
+        | proto::CookieLifetimeType::CookieLifetimeUnspecified => "Session".to_string(),
     }
 }
 
