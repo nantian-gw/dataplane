@@ -226,7 +226,7 @@ fn build_gateway_proxy(opts: &GatewayProxyOptions, runtime: &RuntimeOptions) -> 
     GatewayProxy::new(proxy_opts)
 }
 
-#[expect(dead_code)]
+#[allow(dead_code)]
 pub(super) fn listener_port_hint(listeners: &[&RuntimeListener]) -> Option<u32> {
     let mut ports = listeners
         .iter()
@@ -234,7 +234,7 @@ pub(super) fn listener_port_hint(listeners: &[&RuntimeListener]) -> Option<u32> 
     let first = ports.next()??;
     ports.all(|port| port == Some(first)).then_some(first)
 }
-#[expect(dead_code)]
+#[allow(dead_code)]
 fn listener_bind_port(bind: &str) -> Option<u32> {
     let (_, port) = bind.rsplit_once(':')?;
     port.parse::<u16>().ok().map(u32::from)
