@@ -65,18 +65,18 @@ async fn http1_listener_inflight_budget_fast_fails_unmatched_second_request() {
         .expect("first request should reach upstream");
 
     let mut second = TcpStream::connect(("127.0.0.1", gateway_port))
-        .await
-        .expect("second client connect");
+		.await
+		.expect("second client connect");
     second
-        .write_all(b"GET /missing HTTP/1.1\r\nHost: example.com\r\n\r\n")
-        .await
-        .expect("second request write");
+		.write_all(b"GET /limited HTTP/1.1\r\nHost: example.com\r\n\r\n")
+		.await
+		.expect("second request write");
     let second_response = read_http_response(&mut second)
-        .await
-        .expect("second response");
+		.await
+		.expect("second response");
     assert!(
         second_response.starts_with("HTTP/1.1 503"),
-        "expected 503 response, got: {second_response}"
+        "expected 503 response (inflight budget exceeded), got: {second_response}"
     );
 
     release_tx
