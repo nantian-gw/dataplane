@@ -1,65 +1,14 @@
-use super::*;
+use super::super::*;
+use super::{
+    BackendCandidateVisit, BackendSelectionCandidate,
+    EndpointAvailability, EndpointSelectionAvailability,
+    backend_ref_is_routable, spread_weighted_target,
+};
 use crate::http_fast_path::{CompiledHttpFastBackendRef, CompiledHttpFastBackendSelection};
-use std::borrow::Cow;
-
-struct BackendSelectionCandidate<'a> {
-    cluster: &'a BackendCluster,
-    backend_ref: &'a BackendRef,
-    backend_name: Cow<'a, str>,
-}
-
-#[derive(Default)]
-struct BackendCandidateVisit<'a> {
-    candidate_count: usize,
-    total_weight: u64,
-    saw_invalid_refs: bool,
-    saw_unhealthy_backend: bool,
-    effective_load_balancing: Option<&'a LoadBalancingPolicy>,
-    load_balancing_mismatch: bool,
-}
-
-impl<'a> BackendCandidateVisit<'a> {
-    fn observe_candidate(
-        &mut self,
-        backend_ref: &BackendRef,
-        load_balancing: Option<&'a LoadBalancingPolicy>,
-    ) {
-        self.candidate_count += 1;
-        self.total_weight += backend_ref.weight as u64;
-
-        if self.load_balancing_mismatch {
-            return;
-        }
-
-        let Some(load_balancing) = load_balancing else {
-            self.effective_load_balancing = None;
-            self.load_balancing_mismatch = true;
-            return;
-        };
-
-        match self.effective_load_balancing {
-            Some(current) if current != load_balancing => {
-                self.effective_load_balancing = None;
-                self.load_balancing_mismatch = true;
-            }
-            Some(_) => {}
-            None => self.effective_load_balancing = Some(load_balancing),
-        }
-    }
-
-    fn error(&self) -> Option<BackendSelectionError> {
-        if self.saw_unhealthy_backend {
-            Some(BackendSelectionError::NoHealthyBackends)
-        } else if self.saw_invalid_refs {
-            Some(BackendSelectionError::InvalidBackendRefs)
-        } else {
-            None
-        }
-    }
-}
+use std::time::Instant;
 
 impl Snapshot {
-    pub(super) fn resolve_backend_refs(
+    pub(crate) fn resolve_backend_refs(
         &self,
         refs: &[BackendRef],
     ) -> Option<(BackendEndpoint, String)> {
@@ -118,7 +67,7 @@ impl Snapshot {
                     .endpoint_selection_availability(cluster, compiled.backend_name.as_ref(), now)
                     .count
                     > 0)
-                .then_some(compiled.weight as u64)
+                    .then_some(compiled.weight as u64)
             })
             .sum::<u64>();
         if total_weight == 0 {
@@ -333,7 +282,7 @@ impl Snapshot {
     }
 
     #[cfg(test)]
-    fn collect_http_backend_candidates<'a>(
+    pub(super) fn collect_http_backend_candidates<'a>(
         &'a self,
         refs: &'a [BackendRef],
         now: Instant,
@@ -351,7 +300,7 @@ impl Snapshot {
         )
     }
 
-    fn visit_http_backend_candidates<'a>(
+    pub(super) fn visit_http_backend_candidates<'a>(
         &'a self,
         refs: &'a [BackendRef],
         now: Instant,
@@ -476,17 +425,17 @@ impl Snapshot {
         )
     }
 
-    fn backend_session_persistence(&self, backend_name: &str) -> Option<&SessionPersistence> {
+    pub(super) fn backend_session_persistence(&self, backend_name: &str) -> Option<&SessionPersistence> {
         self.backend_policy(backend_name)
             .and_then(|policy| policy.session_persistence.as_ref())
     }
 
-    fn backend_load_balancing(&self, backend_name: &str) -> Option<&LoadBalancingPolicy> {
+    pub(super) fn backend_load_balancing(&self, backend_name: &str) -> Option<&LoadBalancingPolicy> {
         self.backend_policy(backend_name)
             .and_then(|policy| policy.load_balancing.as_ref())
     }
 
-    pub(super) fn select_cluster_endpoint(
+    pub(crate) fn select_cluster_endpoint(
         &self,
         cluster: &BackendCluster,
         backend_name: &str,
@@ -589,7 +538,7 @@ impl Snapshot {
         None
     }
 
-    pub(super) fn backend_cluster_by_name(&self, backend_name: &str) -> Option<&BackendCluster> {
+    pub(crate) fn backend_cluster_by_name(&self, backend_name: &str) -> Option<&BackendCluster> {
         if self.runtime_indexes_ready
             && let Some(cluster) = self
                 .backend_index
@@ -605,7 +554,7 @@ impl Snapshot {
             .find(|cluster| cluster.namespace == namespace && cluster.name == name)
     }
 
-    pub(super) fn inherit_endpoint_runtime(&self, previous: &Snapshot) -> EndpointRuntimeStore {
+    pub(crate) fn inherit_endpoint_runtime(&self, previous: &Snapshot) -> EndpointRuntimeStore {
         previous
             .endpoint_runtime
             .inherit_for_backends(&self.backends)
@@ -643,7 +592,6 @@ impl Snapshot {
             }
         }
 
-        // Passive ejection is only a routing preference when there is an alternative.
         if primary > 0 {
             EndpointSelectionAvailability {
                 count: primary,
@@ -694,7 +642,7 @@ impl Snapshot {
         }
     }
 
-    pub(super) fn endpoint_is_available_at(
+    pub(crate) fn endpoint_is_available_at(
         &self,
         backend_name: &str,
         endpoint: &BackendEndpoint,
@@ -704,364 +652,5 @@ impl Snapshot {
             self.endpoint_availability_at(backend_name, endpoint, now),
             EndpointAvailability::Primary
         )
-    }
-}
-
-#[derive(Clone, Copy)]
-struct EndpointSelectionAvailability {
-    count: usize,
-    include_passive_ejected: bool,
-}
-
-#[derive(Clone, Copy)]
-enum EndpointAvailability {
-    Primary,
-    PassiveLastResort,
-    Unavailable,
-}
-
-impl Snapshot {
-    pub(super) fn should_mirror(&self, filter: &RequestMirrorFilter) -> bool {
-        let (numerator, denominator) = match &filter.fraction {
-            Some(fraction) => (fraction.numerator, fraction.denominator.max(1)),
-            None => (filter.percent.unwrap_or(100), 100),
-        };
-
-        if numerator == 0 {
-            return false;
-        }
-        if numerator >= denominator {
-            return true;
-        }
-
-        (self.selection_state.next_mirror_ticket() % denominator as u64) < numerator as u64
-    }
-}
-
-fn spread_weighted_target(ticket: u64, total_weight: u64) -> u64 {
-    if total_weight <= 1 {
-        return 0;
-    }
-
-    ticket.wrapping_mul(spread_weighted_stride(total_weight)) % total_weight
-}
-
-fn spread_weighted_stride(total_weight: u64) -> u64 {
-    if total_weight <= 1 {
-        return 1;
-    }
-
-    const PHI_NUMERATOR: u128 = 618_033_988_749_895;
-    const PHI_DENOMINATOR: u128 = 1_000_000_000_000_000;
-
-    let ideal =
-        (((total_weight as u128) * PHI_NUMERATOR + (PHI_DENOMINATOR / 2)) / PHI_DENOMINATOR) as u64;
-    let ideal = ideal.clamp(1, total_weight - 1);
-
-    for delta in 0..total_weight {
-        if let Some(candidate) = ideal.checked_sub(delta)
-            && candidate > 0
-            && gcd(candidate, total_weight) == 1
-        {
-            return candidate;
-        }
-        if let Some(candidate) = ideal.checked_add(delta)
-            && candidate < total_weight
-            && gcd(candidate, total_weight) == 1
-        {
-            return candidate;
-        }
-    }
-
-    1
-}
-
-fn gcd(mut left: u64, mut right: u64) -> u64 {
-    while right != 0 {
-        let next = left % right;
-        left = right;
-        right = next;
-    }
-    left
-}
-
-fn backend_ref_is_routable(backend_ref: &BackendRef) -> bool {
-    if backend_ref
-        .metadata
-        .get(BACKEND_REF_META_VALID)
-        .is_some_and(|value| value == "false")
-    {
-        return false;
-    }
-    matches!(
-        (backend_ref.group.as_str(), backend_ref.kind.as_str()),
-        ("", "") | ("", "Service") | ("multicluster.x-k8s.io", "ServiceImport")
-    )
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::time::Instant;
-
-    #[test]
-    fn collect_http_backend_candidates_preserves_backend_names() {
-        let snapshot = Snapshot {
-            backends: vec![BackendCluster {
-                name: "orders:8080".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
-                endpoints: vec![BackendEndpoint {
-                    address: "10.0.0.10".to_string(),
-                    port: 8080,
-                    healthy: true,
-                }],
-                wasm_plugin: None,
-                ai_service: None,
-                token_policy: None,
-
-                circuit_breaker: None,
-            }],
-            ..Snapshot::default()
-        };
-        let refs = vec![BackendRef {
-            namespace: "default".to_string(),
-            name: "orders".to_string(),
-            port: 8080,
-            weight: 1,
-            ..BackendRef::default()
-        }];
-
-        let (candidates, saw_invalid_refs, saw_unhealthy_backend) =
-            snapshot.collect_http_backend_candidates(&refs, Instant::now());
-
-        assert!(!saw_invalid_refs);
-        assert!(!saw_unhealthy_backend);
-        assert_eq!(candidates.len(), 1);
-        assert_eq!(candidates[0].backend_name, "default/orders:8080");
-    }
-
-    #[test]
-    fn visit_http_backend_candidates_preserves_order_and_status() {
-        let snapshot = Snapshot {
-            backends: vec![
-                BackendCluster {
-                    name: "users:8080".to_string(),
-                    namespace: "default".to_string(),
-                    protocol: "HTTP".to_string(),
-                    endpoints: vec![BackendEndpoint {
-                        address: "10.0.0.10".to_string(),
-                        port: 8080,
-                        healthy: true,
-                    }],
-                    wasm_plugin: None,
-                    ai_service: None,
-                    token_policy: None,
-
-                    circuit_breaker: None,
-                },
-                BackendCluster {
-                    name: "orders:8081".to_string(),
-                    namespace: "default".to_string(),
-                    protocol: "HTTP".to_string(),
-                    endpoints: vec![BackendEndpoint {
-                        address: "10.0.0.11".to_string(),
-                        port: 8081,
-                        healthy: false,
-                    }],
-                    wasm_plugin: None,
-                    ai_service: None,
-                    token_policy: None,
-
-                    circuit_breaker: None,
-                },
-                BackendCluster {
-                    name: "payments:8082".to_string(),
-                    namespace: "default".to_string(),
-                    protocol: "HTTP".to_string(),
-                    endpoints: vec![BackendEndpoint {
-                        address: "10.0.0.12".to_string(),
-                        port: 8082,
-                        healthy: true,
-                    }],
-                    wasm_plugin: None,
-                    ai_service: None,
-                    token_policy: None,
-
-                    circuit_breaker: None,
-                },
-            ],
-            ..Snapshot::default()
-        };
-        let refs = vec![
-            BackendRef {
-                namespace: "default".to_string(),
-                name: "users".to_string(),
-                port: 8080,
-                weight: 2,
-                ..BackendRef::default()
-            },
-            BackendRef {
-                namespace: "default".to_string(),
-                name: "ignored-zero".to_string(),
-                port: 8088,
-                weight: 0,
-                ..BackendRef::default()
-            },
-            BackendRef {
-                namespace: "default".to_string(),
-                name: "invalid".to_string(),
-                port: 8089,
-                weight: 1,
-                metadata: BTreeMap::from([(
-                    BACKEND_REF_META_VALID.to_string(),
-                    "false".to_string(),
-                )]),
-                ..BackendRef::default()
-            },
-            BackendRef {
-                namespace: "default".to_string(),
-                name: "orders".to_string(),
-                port: 8081,
-                weight: 4,
-                ..BackendRef::default()
-            },
-            BackendRef {
-                namespace: "default".to_string(),
-                name: "payments".to_string(),
-                port: 8082,
-                weight: 3,
-                ..BackendRef::default()
-            },
-        ];
-
-        let mut visited = Vec::new();
-        let outcome = snapshot.visit_http_backend_candidates(&refs, Instant::now(), |candidate| {
-            visited.push((
-                candidate.backend_name.into_owned(),
-                candidate.backend_ref.weight,
-            ));
-            true
-        });
-
-        assert_eq!(
-            visited,
-            vec![
-                ("default/users:8080".to_string(), 2),
-                ("default/payments:8082".to_string(), 3),
-            ]
-        );
-        assert_eq!(outcome.candidate_count, 2);
-        assert_eq!(outcome.total_weight, 5);
-        assert!(outcome.saw_invalid_refs);
-        assert!(outcome.saw_unhealthy_backend);
-    }
-
-    #[test]
-    fn backend_policy_helpers_borrow_snapshot_values() {
-        let snapshot = Snapshot {
-            backend_policies: BTreeMap::from([(
-                "default/users:8080".to_string(),
-                BackendPolicy {
-                    session_persistence: Some(SessionPersistence {
-                        session_name: "ntgw-session".to_string(),
-                        session_type: "Header".to_string(),
-                        ..SessionPersistence::default()
-                    }),
-                    load_balancing: Some(LoadBalancingPolicy {
-                        policy_type: "ConsistentHash".to_string(),
-                        consistent_hash: Some(ConsistentHashPolicy {
-                            key_type: "Header".to_string(),
-                            header_name: "x-user-id".to_string(),
-                        }),
-                    }),
-                    ..BackendPolicy::default()
-                },
-            )]),
-            ..Snapshot::default()
-        };
-        let stored = snapshot.backend_policy("default/users:8080").unwrap();
-
-        let session = snapshot
-            .backend_session_persistence("default/users:8080")
-            .unwrap();
-        let load_balancing = snapshot
-            .backend_load_balancing("default/users:8080")
-            .unwrap();
-
-        assert!(std::ptr::eq(
-            session,
-            stored.session_persistence.as_ref().unwrap()
-        ));
-        assert!(std::ptr::eq(
-            load_balancing,
-            stored.load_balancing.as_ref().unwrap()
-        ));
-    }
-
-    #[test]
-    fn visit_http_backend_candidates_borrows_indexed_backend_names() {
-        let mut snapshot = Snapshot {
-            backends: vec![BackendCluster {
-                name: "users:8080".to_string(),
-                namespace: "default".to_string(),
-                protocol: "HTTP".to_string(),
-                endpoints: vec![BackendEndpoint {
-                    address: "10.0.0.10".to_string(),
-                    port: 8080,
-                    healthy: true,
-                }],
-                wasm_plugin: None,
-                ai_service: None,
-                token_policy: None,
-
-                circuit_breaker: None,
-            }],
-            ..Snapshot::default()
-        };
-        snapshot.rebuild_runtime_indexes();
-        let refs = vec![BackendRef {
-            namespace: "default".to_string(),
-            name: "users".to_string(),
-            port: 8080,
-            weight: 1,
-            ..BackendRef::default()
-        }];
-
-        let mut saw_borrowed_backend_name = false;
-        snapshot.visit_http_backend_candidates(&refs, Instant::now(), |candidate| {
-            match candidate.backend_name {
-                std::borrow::Cow::Borrowed(name) => {
-                    saw_borrowed_backend_name = true;
-                    assert!(std::ptr::eq(name, snapshot.backend_names[0].as_ref()));
-                }
-                std::borrow::Cow::Owned(_) => panic!("expected indexed backend name borrow"),
-            }
-            true
-        });
-
-        assert!(saw_borrowed_backend_name);
-    }
-
-    #[test]
-    fn endpoint_rendezvous_hash_matches_string_port_parts() {
-        for port in [0, 1, 80, 8080, u32::MAX] {
-            let endpoint = BackendEndpoint {
-                address: "10.0.0.10".to_string(),
-                port,
-                healthy: true,
-            };
-            let port_text = port.to_string();
-
-            assert_eq!(
-                rendezvous_hash_endpoint("hash-key", "default/orders:8080", &endpoint),
-                rendezvous_hash(&[
-                    "hash-key",
-                    "default/orders:8080",
-                    endpoint.address.as_str(),
-                    port_text.as_str(),
-                ])
-            );
-        }
     }
 }

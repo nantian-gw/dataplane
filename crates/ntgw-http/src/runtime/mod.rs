@@ -3,7 +3,6 @@ use std::{
     fs, io,
     path::{Path, PathBuf},
     thread,
-    time::Duration,
 };
 
 use anyhow::{Context, Result, anyhow};
@@ -11,21 +10,21 @@ use async_trait::async_trait;
 use pingora::{
     apps::HttpServerOptions,
     listeners::tls::TlsSettings,
-    protocols::l4::ext::TcpKeepalive,
     proxy::ProxyServiceBuilder,
     server::{RunArgs, Server, ShutdownSignal, ShutdownSignalWatch},
     tls::{pkey::PKey, ssl::SslVerifyMode, x509::X509},
 };
+
+#[cfg(test)]
+use ntgw_observability::SharedOverloadStats;
 use tokio::sync::watch;
 use tracing::{error, info, warn};
-
 use ntgw_ir::{Listener, SecretMaterial, SharedSnapshot, Snapshot, TlsConfig};
 use ntgw_observability::{
     AccessLogOptions, HttpAdmissionController, HttpCircuitBreakerController,
-    HttpRateLimitController, RetryBudgetController, RuntimeStatsSnapshot, SharedOverloadStats,
+    HttpRateLimitController, RetryBudgetController, RuntimeStatsSnapshot,
     SharedRuntimeStats, SharedTrafficStats,
 };
-
 use crate::proxy::GatewayProxy;
 use crate::session::SessionPersistenceOptions;
 const LISTENER_ADDRESSES_METADATA_KEY: &str = "nantian.dev/listener-addresses";

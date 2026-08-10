@@ -9,12 +9,13 @@ use std::{
     time::Instant,
 };
 
-use ntgw_http::{AcceptedHttpApp, build_http_app, process_accepted_stream};
+use ntgw_http::{AcceptedHttpApp, build_http_app, process_accepted_stream, UpstreamTuningOptions};
+use ntgw_http::proxy::GatewayProxyOptions;
 use ntgw_ir::{Listener, SharedSnapshot, SharedSnapshotSignal, Snapshot, TlsRouteMode};
 use ntgw_observability::{
-    HttpCircuitBreakerController, HttpRateLimitController, RetryBudgetController,
-    RuntimeListenerFailure, SharedApplyStageRecorder, SharedOverloadStats, SharedRuntimeStats,
-    SharedTrafficStats,
+    HttpAdmissionController, HttpCircuitBreakerController, HttpRateLimitController,
+    RetryBudgetController, RuntimeListenerFailure, SharedApplyStageRecorder, SharedOverloadStats,
+    SharedRuntimeStats, SharedTrafficStats,
 };
 use parking_lot::RwLock;
 use pingora::protocols::l4::stream::Stream as L4Stream;

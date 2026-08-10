@@ -1,7 +1,9 @@
 mod cache;
 mod cors;
+mod helpers;
 mod jwt;
 mod redirect;
+pub(crate) use self::helpers::*;
 
 use bytes::Bytes;
 use ntgw_ir::SessionPersistence;
@@ -146,9 +148,11 @@ pub(crate) async fn do_request_filter(
         if ctx.rate_limit_applied {
             proxy.rate_limit.observe_allow();
         }
+        let route_namespace = selected.route_namespace.clone();
+        let route_name = selected.route_name.clone();
         cache_fast_selected_backend_state(
             ctx,
-            selected.clone(),
+            selected,
             proxy.selected_display_fields_needed(ctx),
         );
         cache_fast_path_access_log_fields(proxy, session, ctx);
@@ -165,8 +169,8 @@ pub(crate) async fn do_request_filter(
             proxy,
             session,
             ctx,
-            selected.route_namespace.as_ref(),
-            selected.route_name.as_ref(),
+            route_namespace.as_str(),
+            route_name.as_str(),
             fast_host.as_str(),
             fast_path.as_str(),
         )
@@ -439,20 +443,18 @@ pub(crate) async fn do_request_filter(
             cache_selected_backend_state(ctx, selected, config, proxy.access_log.enabled);
             proxy.seed_retry_budget(ctx);
             record_request_span(ctx);
-            let route_ns = ctx
-                .selected_backend
-                .as_ref()
-                .map(|b| b.route_namespace.clone());
-            let route_name = ctx.selected_backend.as_ref().map(|b| b.route_name.clone());
+            let selected_backend = ctx.selected_backend.clone();
+            let route_ns = selected_backend.as_ref().map(|b| b.route_namespace.as_str());
+            let route_name = selected_backend.as_ref().map(|b| b.route_name.as_str());
             let host = ctx.host.clone();
             let path = ctx.path.clone();
-            if let (Some(route_ns), Some(route_name)) = (&route_ns, &route_name)
+            if let (Some(route_ns), Some(route_name)) = (route_ns, route_name)
                 && try_cache_hit(
                     proxy,
                     session,
                     ctx,
-                    route_ns.as_str(),
-                    route_name.as_str(),
+                    route_ns,
+                    route_name,
                     host.as_str(),
                     path.as_str(),
                 )
@@ -720,20 +722,18 @@ pub(crate) async fn do_request_filter(
                 .and_then(|policy| session_cache.resolved_session(policy));
             cache_selected_backend_state(ctx, selected, config, proxy.access_log.enabled);
             proxy.seed_retry_budget(ctx);
-            let route_ns = ctx
-                .selected_backend
-                .as_ref()
-                .map(|b| b.route_namespace.clone());
-            let route_name = ctx.selected_backend.as_ref().map(|b| b.route_name.clone());
-            if let (Some(route_ns), Some(route_name)) = (&route_ns, &route_name) {
+            let selected_backend = ctx.selected_backend.clone();
+            let route_ns = selected_backend.as_ref().map(|b| b.route_namespace.as_str());
+            let route_name = selected_backend.as_ref().map(|b| b.route_name.as_str());
+            if let (Some(route_ns), Some(route_name)) = (route_ns, route_name) {
                 let host = ctx.host.clone();
                 let path = ctx.path.clone();
                 if try_cache_hit(
                     proxy,
                     session,
                     ctx,
-                    route_ns.as_str(),
-                    route_name.as_str(),
+                    route_ns,
+                    route_name,
                     host.as_str(),
                     path.as_str(),
                 )
@@ -830,44 +830,10 @@ pub(crate) async fn do_request_filter(
                     assign_ctx_string(&mut ctx.response_flags, "AR");
                     record_request_span(ctx);
                     session.respond_error(500).await?;
-                    return Ok(true);
                 }
             }
         }
     }
 
     Ok(false)
-}
-
-pub(super) fn ai_request_body_limit_exceeded(
-    current_len: usize,
-    chunk_len: usize,
-    limit: usize,
-) -> bool {
-    cache::ai_request_body_limit_exceeded(current_len, chunk_len, limit)
-}
-
-#[allow(dead_code)]
-pub(super) fn cache_lookup_method_allowed(method: &str) -> bool {
-    cache::cache_lookup_method_allowed(method)
-}
-
-fn cache_fast_path_access_log_fields(
-    proxy: &GatewayProxy,
-    session: &Session,
-    ctx: &mut RequestContext,
-) {
-    cache::cache_fast_path_access_log_fields(proxy, session, ctx)
-}
-
-async fn try_cache_hit(
-    proxy: &GatewayProxy,
-    session: &mut Session,
-    ctx: &mut RequestContext,
-    route_namespace: &str,
-    route_name: &str,
-    host: &str,
-    path: &str,
-) -> pingora::Result<bool> {
-    cache::try_cache_hit(proxy, session, ctx, route_namespace, route_name, host, path).await
 }

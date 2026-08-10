@@ -1,8 +1,6 @@
 use super::*;
-use ntgw_observability::HttpAdmissionController;
-use ntgw_observability::HttpCircuitBreakerController;
-use ntgw_observability::HttpRateLimitController;
-use ntgw_observability::RetryBudgetController;
+use crate::proxy::GatewayProxyOptions;
+use super::server::upstream_tuning_from_runtime;
 use ntgw_observability::RuntimeListenerFailure;
 use tracing::{error, info, warn};
 
@@ -178,19 +176,35 @@ impl ListenerSet {
         started: &mut usize,
     ) -> Option<String> {
         let bind = listener.bind.clone();
+        let opts = GatewayProxyOptions {
+            snapshot: ctx.snapshot.clone(),
+            access_log: ctx.access_log.clone(),
+            session_persistence: ctx.session_persistence.clone(),
+            traffic: ctx.traffic.clone(),
+            admission: ctx.admission.clone(),
+            circuit_breaker: ctx.circuit_breaker.clone(),
+            rate_limit: ctx.rate_limit.clone(),
+            retry_budget: ctx.retry_budget.clone(),
+            downstream_read_timeout: ctx.runtime.downstream_read_timeout,
+            downstream_max_connection_age: ctx.runtime.downstream_max_connection_age,
+            upstream_tcp_keepalive: ctx.runtime.upstream_tcp_keepalive.clone(),
+            upstream_tuning: upstream_tuning_from_runtime(&ctx.runtime),
+            request_tracing_enabled: ctx.runtime.request_tracing_enabled,
+            max_request_body_bytes: ctx.runtime.max_request_body_bytes,
+            max_request_header_bytes: ctx.runtime.max_request_header_bytes,
+            ai_gateway_max_request_body_bytes: ctx.runtime.experimental.ai_gateway_max_request_body_bytes,
+            listener_name_hint: None,
+            listener_port_hint: None,
+            cache: ctx.runtime.cache.clone(),
+            wasm_filter: None,
+            ai_filter: None,
+        };
         match start_server_with_asset_root(
             ListenerPlan {
                 listeners: vec![listener.clone()],
             },
-            ctx.snapshot.clone(),
+            opts,
             ctx.runtime.clone(),
-            ctx.access_log.clone(),
-            ctx.session_persistence.clone(),
-            ctx.traffic.clone(),
-            ctx.admission.clone(),
-            ctx.circuit_breaker.clone(),
-            ctx.rate_limit.clone(),
-            ctx.retry_budget.clone(),
             ctx.asset_root,
             ctx.stage_recorder,
         ) {

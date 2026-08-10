@@ -2,7 +2,7 @@ use ntgw_ir::{
     BackendCluster, BackendEndpoint, BackendRef, HttpMatch, HttpRoute, HttpRule, ParentRef,
     SecretMaterial, SharedSnapshot, StreamMatch, StreamRoute, StreamRule, TlsRouteMode,
 };
-use tokio::time::{Duration, timeout};
+use tokio::time::timeout;
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn shared_tls_terminate_negotiates_h2_alpn() -> Result<()> {
@@ -66,21 +66,41 @@ async fn shared_tls_runtime_detects_misdirected_https_requests() -> Result<()> {
     let plan = build_listener_plan(&snapshot.load(), &RuntimeOptions::default())?;
     let bind = Arc::new(plan.binds.get(&bind_addr).cloned().expect("bind"));
     let gateway_listener = TcpListener::bind(&bind_addr).await?;
-    let app = build_http_app(
-        snapshot.clone(),
-        HttpRuntimeOptions::default(),
-        AccessLogOptions {
+    let opts = GatewayProxyOptions {
+        snapshot: snapshot.clone(),
+        access_log: AccessLogOptions {
             enabled: false,
             ..AccessLogOptions::default()
         },
-        SessionPersistenceOptions::build(None, None)?,
-        SharedTrafficStats::shared(),
-        ntgw_observability::OverloadStats::shared(),
-        HttpCircuitBreakerController::new(Default::default()),
-        HttpRateLimitController::new(Default::default()),
-        RetryBudgetController::new(Default::default()),
-        None,
-    )?;
+        session_persistence: SessionPersistenceOptions::build(None, None)?,
+        traffic: SharedTrafficStats::shared(),
+        admission: HttpAdmissionController::new(
+            HttpAdmissionOptions::default(),
+            OverloadStats::shared(),
+        ),
+        circuit_breaker: HttpCircuitBreakerController::new(Default::default()),
+        rate_limit: HttpRateLimitController::new(Default::default()),
+        retry_budget: RetryBudgetController::new(Default::default()),
+        downstream_read_timeout: None,
+        downstream_max_connection_age: None,
+        upstream_tcp_keepalive: None,
+        upstream_tuning: Default::default(),
+        request_tracing_enabled: false,
+        max_request_body_bytes: 0,
+        max_request_header_bytes: 0,
+        ai_gateway_max_request_body_bytes: 0,
+        listener_name_hint: None,
+        listener_port_hint: None,
+        cache: CacheManager::new(CacheOptions {
+            enabled: false,
+            max_size_bytes: 0,
+            max_entry_size_bytes: 0,
+            default_ttl: Duration::from_secs(0),
+        }),
+        wasm_filter: None,
+        ai_filter: None,
+    };
+    let app = build_http_app(opts, HttpRuntimeOptions::default())?;
     let (_shutdown_tx, shutdown_rx) = watch::channel(false);
 
     let upstream_http = tokio::spawn(async move {
@@ -153,21 +173,41 @@ async fn shared_tls_rejects_invalid_frontend_validation_after_listener_selection
     let plan = build_listener_plan(&snapshot.load(), &RuntimeOptions::default())?;
     let bind = Arc::new(plan.binds.get(&bind_addr).cloned().expect("bind"));
     let gateway_listener = TcpListener::bind(&bind_addr).await?;
-    let app = build_http_app(
-        snapshot.clone(),
-        HttpRuntimeOptions::default(),
-        AccessLogOptions {
+    let opts = GatewayProxyOptions {
+        snapshot: snapshot.clone(),
+        access_log: AccessLogOptions {
             enabled: false,
             ..AccessLogOptions::default()
         },
-        SessionPersistenceOptions::build(None, None)?,
-        SharedTrafficStats::shared(),
-        ntgw_observability::OverloadStats::shared(),
-        HttpCircuitBreakerController::new(Default::default()),
-        HttpRateLimitController::new(Default::default()),
-        RetryBudgetController::new(Default::default()),
-        None,
-    )?;
+        session_persistence: SessionPersistenceOptions::build(None, None)?,
+        traffic: SharedTrafficStats::shared(),
+        admission: HttpAdmissionController::new(
+            HttpAdmissionOptions::default(),
+            OverloadStats::shared(),
+        ),
+        circuit_breaker: HttpCircuitBreakerController::new(Default::default()),
+        rate_limit: HttpRateLimitController::new(Default::default()),
+        retry_budget: RetryBudgetController::new(Default::default()),
+        downstream_read_timeout: None,
+        downstream_max_connection_age: None,
+        upstream_tcp_keepalive: None,
+        upstream_tuning: Default::default(),
+        request_tracing_enabled: false,
+        max_request_body_bytes: 0,
+        max_request_header_bytes: 0,
+        ai_gateway_max_request_body_bytes: 0,
+        listener_name_hint: None,
+        listener_port_hint: None,
+        cache: CacheManager::new(CacheOptions {
+            enabled: false,
+            max_size_bytes: 0,
+            max_entry_size_bytes: 0,
+            default_ttl: Duration::from_secs(0),
+        }),
+        wasm_filter: None,
+        ai_filter: None,
+    };
+    let app = build_http_app(opts, HttpRuntimeOptions::default())?;
     let (_shutdown_tx, shutdown_rx) = watch::channel(false);
     let (request_tx, mut request_rx) = tokio::sync::mpsc::unbounded_channel();
 

@@ -2,6 +2,7 @@
 mod tests;
 
 #[must_use]
+#[tracing::instrument]
 pub fn extract_server_name(payload: &[u8]) -> Option<String> {
     let record = parse_tls_record(payload)?;
     let handshake = parse_client_hello(record)?;

@@ -23,6 +23,7 @@ impl Snapshot {
         Arc::new(ArcSwap::from_pointee(Self::default()))
     }
 
+    #[tracing::instrument(skip_all)]
     pub fn rebuild_runtime_indexes(&mut self) {
         self.compile_matchers();
         self.backend_names = self

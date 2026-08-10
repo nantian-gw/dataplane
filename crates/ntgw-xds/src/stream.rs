@@ -29,6 +29,7 @@ pub(crate) fn should_apply_snapshot(current_version: &str, next_version: Option<
     next_version.is_none_or(|version| current_version != version)
 }
 
+#[tracing::instrument(skip_all)]
 pub(super) fn spawn_status_heartbeat(
     mut client: ConfigurationDiscoveryServiceClient<Channel>,
     node_id: String,
@@ -51,6 +52,7 @@ pub(super) fn spawn_status_heartbeat(
     })
 }
 
+#[tracing::instrument(skip_all)]
 pub(crate) async fn wait_for_stream_message<F, T>(
     future: F,
     stale_stream_timeout: Duration,

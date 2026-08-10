@@ -1,5 +1,9 @@
 use std::borrow::Cow;
 
+use form_urlencoded::parse;
+
+use super::*;
+
 use super::*;
 
 pub(crate) fn has_non_backend_http_filter(filters: &[Filter]) -> bool {
@@ -37,6 +41,7 @@ pub(crate) fn default_http_path_match() -> MatchedHttpPath {
     }
 }
 
+#[tracing::instrument]
 pub(crate) fn matches_http_rule(matcher: &HttpMatch, request: &RequestMeta) -> bool {
     matches_http_path(matcher, request)
         && matches_method(&matcher.method, &request.method)
@@ -44,6 +49,7 @@ pub(crate) fn matches_http_rule(matcher: &HttpMatch, request: &RequestMeta) -> b
         && matches_query_params(&matcher.query_params, &request.query_params)
 }
 
+#[tracing::instrument]
 pub(crate) fn matches_grpc_rule(
     matcher: &GrpcMatch,
     request: &RequestMeta,
@@ -345,6 +351,7 @@ pub(crate) fn is_grpc_request(request: &RequestMeta) -> bool {
     })
 }
 
+#[derive(Debug)]
 pub(crate) struct GrpcPath<'a> {
     pub(crate) service: &'a str,
     pub(crate) method: &'a str,

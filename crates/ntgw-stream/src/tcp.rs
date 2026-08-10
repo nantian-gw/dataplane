@@ -38,6 +38,7 @@ pub async fn bind(bind_addr: &str) -> Result<TcpListener, StreamError> {
 }
 
 #[allow(clippy::too_many_arguments)]
+#[tracing::instrument(skip_all)]
 pub async fn run_with_listener(
     snapshot: SharedSnapshot,
     listener_name: String,

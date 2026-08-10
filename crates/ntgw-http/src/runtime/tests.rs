@@ -19,9 +19,10 @@ use ntgw_ir::{
     TlsConfig,
 };
 use ntgw_observability::{
-    AccessLogOptions, ApplyStageRecorder, HttpCircuitBreakerController, HttpRateLimitController,
-    OverloadStats, RetryBudgetController, RuntimeStats, SharedApplyStageRecorder,
-    SharedTrafficStats, TrafficSnapshot, shutdown_access_log_writer,
+    AccessLogOptions, ApplyStageRecorder, HttpAdmissionController, HttpCircuitBreakerController,
+    HttpRateLimitController, OverloadStats, RetryBudgetController, RuntimeStats,
+    SharedApplyStageRecorder, SharedTrafficStats, TrafficSnapshot,
+    shutdown_access_log_writer,
 };
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
@@ -44,6 +45,8 @@ use super::{
     plain_http_server_options, process_accepted_stream, should_suppress_unavailable_bind_warning,
     start_server, start_server_with_overload_stats, stop_server, tcp_socket_options_for_bind,
 };
+use crate::cache::{CacheManager, CacheOptions};
+use crate::proxy::GatewayProxyOptions;
 use crate::session::SessionPersistenceOptions;
 use pingora::{
     protocols::tls::SslStream,
@@ -177,21 +180,42 @@ async fn accepted_http_stream_processes_basic_h1_request() -> anyhow::Result<()>
     let upstream_addr = upstream_listener.local_addr().context("upstream addr")?;
     let snapshot = simple_http_snapshot(free_tcp_port(), "/", upstream_addr.port() as u32, "HTTP");
     let traffic = SharedTrafficStats::shared();
-    let app = build_http_app(
+    let admission = HttpAdmissionController::new(
+        RuntimeOptions::default().admission.clone(),
+        ntgw_observability::OverloadStats::shared(),
+    );
+    let opts = GatewayProxyOptions {
         snapshot,
-        RuntimeOptions::default(),
-        AccessLogOptions {
+        access_log: AccessLogOptions {
             enabled: false,
             ..AccessLogOptions::default()
         },
-        SessionPersistenceOptions::build(None, None)?,
-        traffic.clone(),
-        ntgw_observability::OverloadStats::shared(),
-        HttpCircuitBreakerController::new(Default::default()),
-        HttpRateLimitController::new(Default::default()),
-        RetryBudgetController::new(Default::default()),
-        None,
-    )?;
+        session_persistence: SessionPersistenceOptions::build(None, None)?,
+        traffic: traffic.clone(),
+        admission,
+        circuit_breaker: HttpCircuitBreakerController::new(Default::default()),
+        rate_limit: HttpRateLimitController::new(Default::default()),
+        retry_budget: RetryBudgetController::new(Default::default()),
+        downstream_read_timeout: None,
+        downstream_max_connection_age: None,
+        upstream_tcp_keepalive: None,
+        upstream_tuning: Default::default(),
+        request_tracing_enabled: false,
+        max_request_body_bytes: 0,
+        max_request_header_bytes: 0,
+        ai_gateway_max_request_body_bytes: 0,
+        listener_name_hint: None,
+        listener_port_hint: None,
+        cache: CacheManager::new(CacheOptions {
+            enabled: false,
+            max_size_bytes: 0,
+            max_entry_size_bytes: 0,
+            default_ttl: Duration::from_secs(0),
+        }),
+        wasm_filter: None,
+        ai_filter: None,
+    };
+    let app = build_http_app(opts, RuntimeOptions::default())?;
 
     let (client_io, server_io) = tokio::io::duplex(16 * 1024);
     let (shutdown_tx, shutdown_rx) = tokio::sync::watch::channel(false);

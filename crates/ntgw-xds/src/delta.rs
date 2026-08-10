@@ -24,6 +24,7 @@ const SUBSCRIPTIONS: &[&str] = &[
 ];
 const SUBSCRIPTION_COUNT: usize = SUBSCRIPTIONS.len();
 
+#[tracing::instrument(skip_all)]
 pub async fn delta_connect_loop(
     node_id: String,
     cluster: String,

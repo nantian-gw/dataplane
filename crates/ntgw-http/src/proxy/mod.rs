@@ -20,7 +20,7 @@ use pingora_cache::NoCacheReason;
 use pingora_cache::cache_control::CacheControl;
 use tracing::error;
 
-pub(crate) use self::backend::UpstreamTuningOptions;
+pub use self::backend::UpstreamTuningOptions;
 use crate::cache::CacheManager;
 use crate::filters::{apply_request_filters, apply_response_filters, ensure_supported_filters};
 use crate::mirror::{forward_body_chunk, is_mirror_subrequest, wait_for_request_mirrors};
@@ -49,6 +49,8 @@ mod responses;
 mod retry;
 mod selection;
 mod upstream;
+mod free_fns;
+pub(crate) use free_fns::*;
 
 use self::backend::{
     build_upstream_peer_for_fast_path, build_upstream_peer_with_cached_config,
@@ -347,6 +349,31 @@ pub(crate) fn request_for_response_filters<'a>(
 
     full_request.get_or_insert_with(|| build_request_meta_with_headers(session))
 }
+/// Options for constructing a GatewayProxy.
+#[derive(Clone)]
+pub struct GatewayProxyOptions {
+    pub snapshot: SharedSnapshot,
+    pub access_log: AccessLogOptions,
+    pub session_persistence: SessionPersistenceOptions,
+    pub traffic: SharedTrafficStats,
+    pub admission: HttpAdmissionController,
+    pub circuit_breaker: HttpCircuitBreakerController,
+    pub rate_limit: HttpRateLimitController,
+    pub retry_budget: RetryBudgetController,
+    pub downstream_read_timeout: Option<Duration>,
+    pub downstream_max_connection_age: Option<Duration>,
+    pub upstream_tcp_keepalive: Option<TcpKeepalive>,
+    pub upstream_tuning: UpstreamTuningOptions,
+    pub request_tracing_enabled: bool,
+    pub max_request_body_bytes: usize,
+    pub max_request_header_bytes: usize,
+    pub ai_gateway_max_request_body_bytes: usize,
+    pub listener_name_hint: Option<String>,
+    pub listener_port_hint: Option<u32>,
+    pub cache: Arc<CacheManager>,
+    pub wasm_filter: Option<Arc<WasmPluginFilter>>,
+    pub ai_filter: Option<Arc<ntgw_ai::filter::AIGatewayFilter>>,
+}
 
 #[derive(Clone)]
 pub struct GatewayProxy {
@@ -376,30 +403,30 @@ pub struct GatewayProxy {
 }
 
 impl GatewayProxy {
-    #[allow(clippy::too_many_arguments)]
-    pub fn new(
-        snapshot: SharedSnapshot,
-        access_log: AccessLogOptions,
-        session_options: SessionPersistenceOptions,
-        traffic: SharedTrafficStats,
-        admission: HttpAdmissionController,
-        circuit_breaker: HttpCircuitBreakerController,
-        rate_limit: HttpRateLimitController,
-        retry_budget: RetryBudgetController,
-        downstream_read_timeout: Option<Duration>,
-        downstream_max_connection_age: Option<Duration>,
-        upstream_tcp_keepalive: Option<TcpKeepalive>,
-        upstream_tuning: UpstreamTuningOptions,
-        request_tracing_enabled: bool,
-        max_request_body_bytes: usize,
-        max_request_header_bytes: usize,
-        ai_gateway_max_request_body_bytes: usize,
-        listener_name_hint: Option<String>,
-        listener_port_hint: Option<u32>,
-        cache: Arc<CacheManager>,
-        wasm_filter: Option<Arc<WasmPluginFilter>>,
-        ai_filter: Option<Arc<ntgw_ai::filter::AIGatewayFilter>>,
-    ) -> Self {
+    pub fn new(opts: GatewayProxyOptions) -> Self {
+        let GatewayProxyOptions {
+            snapshot,
+            access_log,
+            session_persistence: session_options,
+            traffic,
+            admission,
+            circuit_breaker,
+            rate_limit,
+            retry_budget,
+            downstream_read_timeout,
+            downstream_max_connection_age,
+            upstream_tcp_keepalive,
+            upstream_tuning,
+            request_tracing_enabled,
+            max_request_body_bytes,
+            max_request_header_bytes,
+            ai_gateway_max_request_body_bytes,
+            listener_name_hint,
+            listener_port_hint,
+            cache,
+            wasm_filter,
+            ai_filter,
+        } = opts;
         Self {
             snapshot,
             access_log,
@@ -463,6 +490,7 @@ impl ProxyHttp for GatewayProxy {
         Ok(())
     }
 
+    #[tracing::instrument(skip_all)]
     async fn request_filter(
         &self,
         session: &mut Session,
@@ -512,6 +540,7 @@ impl ProxyHttp for GatewayProxy {
 
         Ok(())
     }
+    #[tracing::instrument(skip_all)]
     async fn upstream_peer(
         &self,
         session: &mut Session,
@@ -804,6 +833,7 @@ impl ProxyHttp for GatewayProxy {
         observe_completed_request(&self.access_log, &self.traffic, ctx, latency_ms, bytes_sent);
     }
 
+    #[tracing::instrument(skip_all)]
     async fn fail_to_proxy(
         &self,
         session: &mut Session,
@@ -842,6 +872,7 @@ impl ProxyHttp for GatewayProxy {
         should_suppress_proxy_error_log(error, session.response_written().is_some())
     }
 
+    #[tracing::instrument(skip_all)]
     fn error_while_proxy(
         &self,
         peer: &HttpPeer,
@@ -853,6 +884,7 @@ impl ProxyHttp for GatewayProxy {
         upstream::do_error_while_proxy(self, peer, session, e, ctx, client_reused)
     }
 
+    #[tracing::instrument(skip_all)]
     fn fail_to_connect(
         &self,
         session: &mut Session,
@@ -895,115 +927,6 @@ impl GatewayProxy {
     pub(super) fn selected_display_fields_needed(&self, ctx: &RequestContext) -> bool {
         self.access_log.enabled || ctx.request_span.is_some()
     }
-}
-
-pub(crate) fn https_request_is_misdirected_in_snapshot(
-    current: &Snapshot,
-    request_view: &RequestView<'_>,
-    downstream_tls_server_name: Option<&str>,
-) -> bool {
-    let Some(server_name) = downstream_tls_server_name else {
-        return false;
-    };
-    let request_key = request_view.routing_key();
-    current.https_request_is_misdirected(&request_key, Some(server_name))
-}
-
-pub(crate) fn cache_snapshot_version_if_observed(
-    ctx: &mut RequestContext,
-    snapshot_id: &str,
-    access_log_enabled: bool,
-    request_tracing_enabled: bool,
-) {
-    if access_log_enabled || request_tracing_enabled {
-        assign_ctx_string(&mut ctx.snapshot_version, snapshot_id);
-    }
-}
-
-pub(crate) fn missing_frontend_client_certificate_error(ctx: &mut RequestContext) -> Box<Error> {
-    ctx.status = 499;
-    assign_ctx_string(&mut ctx.response_flags, "DC");
-    record_request_span(ctx);
-    Error::new_down(ErrorType::ConnectionClosed)
-        .more_context("strict frontend client certificate validation requires a client certificate")
-}
-
-pub(crate) fn cache_selected_http_route_context(
-    ctx: &mut RequestContext,
-    access_log: &AccessLogOptions,
-    route: &SelectedHttpRoute,
-) {
-    cache_http_route_context(
-        ctx,
-        HttpRouteContextFields {
-            route_name: route.route_name.as_str(),
-            route_namespace: route.route_namespace.as_str(),
-            route_annotations: &route.route_annotations,
-            listener_name: route.listener_name.as_str(),
-            listener_protocol: route.listener_protocol.as_str(),
-            backend_name: route.backend_name.as_deref(),
-        },
-        access_log,
-    );
-    ctx.route_policy = route.route_policy.clone();
-}
-
-pub(crate) fn mark_downstream_max_connection_age_if_needed(
-    session: &mut Session,
-    ctx: &mut RequestContext,
-    max_connection_age: Option<Duration>,
-) {
-    let Some(max_connection_age) = max_connection_age else {
-        return;
-    };
-    if session.req_header().version == Version::HTTP_2 {
-        return;
-    }
-    let Some(connection_age) = downstream_connection_age(session) else {
-        return;
-    };
-    if connection_age < max_connection_age {
-        return;
-    }
-
-    session.as_downstream_mut().set_keepalive(None);
-    if ctx.response_flags.is_empty() {
-        assign_ctx_string(&mut ctx.response_flags, "MA");
-        record_request_span(ctx);
-    }
-}
-
-pub(crate) fn downstream_connection_age(session: &Session) -> Option<Duration> {
-    let now = SystemTime::now();
-    session
-        .as_downstream()
-        .digest()?
-        .timing_digest
-        .iter()
-        .flatten()
-        .filter_map(|timing| now.duration_since(timing.established_ts).ok())
-        .max()
-}
-
-pub(crate) fn select_backend_after_http_route_miss<F>(
-    cache: &SelectedBackendConfigCache,
-    current: &Snapshot,
-    request: &RequestMeta,
-    session_resolver: &F,
-) -> pingora::Result<Option<(SelectedBackend, Arc<SelectedBackendConfig>)>>
-where
-    F: Fn(&SessionPersistence) -> Option<PersistentSessionTarget>,
-{
-    let Some(selected) = current.select_backend_with_session_resolver(request, session_resolver)
-    else {
-        return Ok(None);
-    };
-    let config = selected_backend_config_cached(cache, current, &selected)?;
-    Ok(Some((selected, config)))
-}
-
-fn cache_response_body_limit_exceeded(current_len: usize, chunk_len: usize, limit: usize) -> bool {
-    limit > 0 && current_len.saturating_add(chunk_len) > limit
 }
 
 #[cfg(test)]

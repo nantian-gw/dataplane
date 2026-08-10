@@ -6,21 +6,41 @@ async fn spawn_bind_task_allows_dual_stack_wildcard_bind_pair() -> Result<()> {
 
     let port = free_port();
     let snapshot = Snapshot::shared();
-    let app = build_http_app(
-        snapshot.clone(),
-        HttpRuntimeOptions::default(),
-        AccessLogOptions {
+    let opts = GatewayProxyOptions {
+        snapshot: snapshot.clone(),
+        access_log: AccessLogOptions {
             enabled: false,
             ..AccessLogOptions::default()
         },
-        SessionPersistenceOptions::build(None, None)?,
-        SharedTrafficStats::shared(),
-        ntgw_observability::OverloadStats::shared(),
-        HttpCircuitBreakerController::new(Default::default()),
-        HttpRateLimitController::new(Default::default()),
-        RetryBudgetController::new(Default::default()),
-        None,
-    )?;
+        session_persistence: SessionPersistenceOptions::build(None, None)?,
+        traffic: SharedTrafficStats::shared(),
+        admission: HttpAdmissionController::new(
+            HttpAdmissionOptions::default(),
+            OverloadStats::shared(),
+        ),
+        circuit_breaker: HttpCircuitBreakerController::new(Default::default()),
+        rate_limit: HttpRateLimitController::new(Default::default()),
+        retry_budget: RetryBudgetController::new(Default::default()),
+        downstream_read_timeout: None,
+        downstream_max_connection_age: None,
+        upstream_tcp_keepalive: None,
+        upstream_tuning: Default::default(),
+        request_tracing_enabled: false,
+        max_request_body_bytes: 0,
+        max_request_header_bytes: 0,
+        ai_gateway_max_request_body_bytes: 0,
+        listener_name_hint: None,
+        listener_port_hint: None,
+        cache: CacheManager::new(CacheOptions {
+            enabled: false,
+            max_size_bytes: 0,
+            max_entry_size_bytes: 0,
+            default_ttl: Duration::from_secs(0),
+        }),
+        wasm_filter: None,
+        ai_filter: None,
+    };
+    let app = build_http_app(opts, HttpRuntimeOptions::default())?;
     let (_shutdown_tx, shutdown_rx) = watch::channel(false);
     let ipv4_bind = PlannedSharedTlsBind {
         bind: format!("0.0.0.0:{port}"),

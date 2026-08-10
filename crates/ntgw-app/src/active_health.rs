@@ -30,6 +30,7 @@ pub(crate) struct ReloadableProbeConfig {
     pub(crate) unhealthy_threshold: u32,
 }
 
+#[tracing::instrument(skip_all)]
 pub(crate) fn spawn(
     snapshot: SharedSnapshot,
     config: watch::Receiver<std::sync::Arc<ReloadableProbeConfig>>,

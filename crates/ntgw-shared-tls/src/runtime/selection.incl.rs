@@ -36,27 +36,44 @@ fn build_runtime_http_app(
     retry_budget: Arc<RwLock<RetryBudgetController>>,
 ) -> Result<AcceptedHttpApp, SharedTlsError> {
     let http_config = config.http.clone();
-    let circuit_breaker = circuit_breaker
-        .read()
-        .clone();
-    let rate_limit = rate_limit
-        .read()
-        .clone();
-    let retry_budget = retry_budget
-        .read()
-        .clone();
-    build_http_app(
-        snapshot,
-        http_config.runtime.clone(),
-        http_config.access_log.clone(),
-        http_config.session_persistence.clone(),
-        traffic,
+    let admission = HttpAdmissionController::new(
+        http_config.runtime.admission.clone(),
         overload,
+    );
+    let circuit_breaker = circuit_breaker.read().clone();
+    let rate_limit = rate_limit.read().clone();
+    let retry_budget = retry_budget.read().clone();
+    let opts = GatewayProxyOptions {
+        snapshot,
+        access_log: http_config.access_log.clone(),
+        session_persistence: http_config.session_persistence.clone(),
+        traffic,
+        admission,
         circuit_breaker,
         rate_limit,
         retry_budget,
-        None,
-    )
+        downstream_read_timeout: http_config.runtime.downstream_read_timeout,
+        downstream_max_connection_age: http_config.runtime.downstream_max_connection_age,
+        upstream_tcp_keepalive: http_config.runtime.upstream_tcp_keepalive.clone(),
+        upstream_tuning: UpstreamTuningOptions {
+            tcp_fast_open: http_config.runtime.upstream_tcp_fast_open,
+            tcp_recv_buf: http_config.runtime.upstream_tcp_recv_buf,
+            connection_timeout: http_config.runtime.upstream_connection_timeout,
+            read_timeout: http_config.runtime.upstream_read_timeout,
+            idle_timeout: http_config.runtime.upstream_idle_timeout,
+            dscp: http_config.runtime.upstream_dscp,
+        },
+        request_tracing_enabled: http_config.runtime.request_tracing_enabled,
+        max_request_body_bytes: http_config.runtime.max_request_body_bytes,
+        max_request_header_bytes: http_config.runtime.max_request_header_bytes,
+        ai_gateway_max_request_body_bytes: http_config.runtime.experimental.ai_gateway_max_request_body_bytes,
+        listener_name_hint: None,
+        listener_port_hint: None,
+        cache: http_config.runtime.cache.clone(),
+        wasm_filter: None,
+        ai_filter: None,
+    };
+    build_http_app(opts, http_config.runtime.clone())
     .map_err(|e| SharedTlsError::Handshake(format!("build http app: {e}")))
 }
 

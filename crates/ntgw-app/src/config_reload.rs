@@ -67,6 +67,7 @@ pub(crate) struct ReloadTargets {
     pub(crate) retry_budget: SharedRetryBudgetController,
 }
 
+#[tracing::instrument(skip_all)]
 pub(crate) fn build_config_snapshot(cfg: &DataPlaneConfig) -> Result<ConfigSnapshot> {
     let session_persistence =
         if let Some(shared_secret) = cfg.session_persistence.resolve_shared_secret() {
@@ -160,6 +161,7 @@ pub(crate) fn apply_config_snapshot(snapshot: ConfigSnapshot, targets: &ReloadTa
     }
 }
 
+#[tracing::instrument(skip_all)]
 pub(crate) fn spawn_config_reload_loop(
     source: ReloadingDataPlaneConfig,
     targets: ReloadTargets,
@@ -244,6 +246,7 @@ fn is_config_modify_event(event: &notify::Event, config_path: &Path) -> bool {
     event.paths.iter().any(|p| p == config_path)
 }
 
+#[tracing::instrument(skip_all)]
 fn try_reload(source: &ReloadingDataPlaneConfig, targets: &ReloadTargets) -> Result<()> {
     let updated = match source.load_if_changed() {
         Ok(Some(cfg)) => cfg,

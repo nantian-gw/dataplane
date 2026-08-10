@@ -65,6 +65,7 @@ impl UdpDatagramDispatcher {
         }
     }
 
+    #[tracing::instrument(skip_all)]
     pub(super) async fn dispatch(
         &self,
         task: UdpSessionTask,

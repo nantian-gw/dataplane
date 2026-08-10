@@ -23,6 +23,7 @@ use super::{
 use crate::admin::summary::{build_liveness_state, build_readiness_state};
 use crate::admin::types::ApiError;
 
+#[tracing::instrument(skip_all)]
 pub(crate) async fn livez(State(state): State<Arc<AppState>>) -> impl IntoResponse {
     let snapshot = (*state.snapshot.load()).clone();
     let runtime = state.runtime.snapshot();
@@ -35,6 +36,7 @@ pub(crate) async fn livez(State(state): State<Arc<AppState>>) -> impl IntoRespon
     }
 }
 
+#[tracing::instrument(skip_all)]
 pub(crate) async fn readyz(State(state): State<Arc<AppState>>) -> impl IntoResponse {
     let snapshot = (*state.snapshot.load()).clone();
     let runtime = state.runtime.snapshot();
@@ -50,6 +52,7 @@ pub(crate) async fn readyz(State(state): State<Arc<AppState>>) -> impl IntoRespo
     }
 }
 
+#[tracing::instrument(skip_all)]
 pub(crate) async fn metrics_view(State(state): State<Arc<AppState>>) -> impl IntoResponse {
     (
         [(
@@ -60,10 +63,12 @@ pub(crate) async fn metrics_view(State(state): State<Arc<AppState>>) -> impl Int
     )
 }
 
+#[tracing::instrument(skip_all)]
 pub(crate) async fn snapshot_view(State(state): State<Arc<AppState>>) -> Json<Snapshot> {
     Json(Snapshot::clone(&state.snapshot.load()))
 }
 
+#[tracing::instrument(skip_all)]
 pub(crate) async fn summary_view(State(state): State<Arc<AppState>>) -> Json<Value> {
     Json(build_summary_value(&state))
 }

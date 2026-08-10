@@ -5,8 +5,7 @@ use pingora::{
     apps::ServerApp, protocols::Stream, proxy::HttpProxy, server::configuration::ServerConf,
 };
 
-use crate::cache::CacheManager;
-use crate::proxy::UpstreamTuningOptions;
+use crate::proxy::{GatewayProxyOptions, UpstreamTuningOptions};
 
 mod filters;
 mod langfuse;
@@ -55,20 +54,31 @@ pub(super) fn start_server_with_overload_stats(
     let circuit_breaker = HttpCircuitBreakerController::new(runtime.circuit_breaker.clone());
     let rate_limit = HttpRateLimitController::new(runtime.rate_limit.clone());
     let retry_budget = RetryBudgetController::new(runtime.retry_budget.clone());
+    let opts = GatewayProxyOptions {
+        snapshot,
+        access_log,
+        session_persistence,
+        traffic,
+        admission,
+        circuit_breaker,
+        rate_limit,
+        retry_budget,
+        downstream_read_timeout: runtime.downstream_read_timeout,
+        downstream_max_connection_age: runtime.downstream_max_connection_age,
+        upstream_tcp_keepalive: runtime.upstream_tcp_keepalive.clone(),
+        upstream_tuning: upstream_tuning_from_runtime(&runtime),
+        request_tracing_enabled: runtime.request_tracing_enabled,
+        max_request_body_bytes: runtime.max_request_body_bytes,
+        max_request_header_bytes: runtime.max_request_header_bytes,
+        ai_gateway_max_request_body_bytes: runtime.experimental.ai_gateway_max_request_body_bytes,
+        listener_name_hint: None,
+        listener_port_hint: None,
+        cache: runtime.cache.clone(),
+        wasm_filter: None,
+        ai_filter: None,
+    };
     let join = thread::spawn(move || {
-        run_server(
-            plan_for_thread,
-            snapshot,
-            runtime,
-            access_log,
-            session_persistence,
-            traffic,
-            admission,
-            circuit_breaker,
-            rate_limit,
-            retry_budget,
-            receiver,
-        )
+        run_server(plan_for_thread, runtime, opts, receiver)
     });
 
     Ok(ActiveServer {
@@ -79,18 +89,10 @@ pub(super) fn start_server_with_overload_stats(
     })
 }
 
-#[allow(clippy::too_many_arguments)]
 pub(super) fn start_server_with_asset_root(
     plan: ListenerPlan,
-    snapshot: SharedSnapshot,
+    opts: GatewayProxyOptions,
     runtime: RuntimeOptions,
-    access_log: AccessLogOptions,
-    session_persistence: SessionPersistenceOptions,
-    traffic: SharedTrafficStats,
-    admission: HttpAdmissionController,
-    circuit_breaker: HttpCircuitBreakerController,
-    rate_limit: HttpRateLimitController,
-    retry_budget: RetryBudgetController,
     asset_root: &Path,
     stage_recorder: Option<&dyn ntgw_observability::ApplyStageRecorder>,
 ) -> Result<(ActiveServer, TlsAssetWriteStats)> {
@@ -102,15 +104,8 @@ pub(super) fn start_server_with_asset_root(
     let join = thread::spawn(move || {
         run_server(
             plan_for_thread,
-            snapshot,
             runtime,
-            access_log,
-            session_persistence,
-            traffic,
-            admission,
-            circuit_breaker,
-            rate_limit,
-            retry_budget,
+            opts,
             receiver,
         )
     });
@@ -150,42 +145,13 @@ pub struct AcceptedHttpApp {
     inner: Arc<HttpProxy<GatewayProxy>>,
 }
 
-#[allow(clippy::too_many_arguments)]
+#[tracing::instrument(skip_all)]
 pub fn build_http_app(
-    snapshot: SharedSnapshot,
+    opts: GatewayProxyOptions,
     runtime: RuntimeOptions,
-    access_log: AccessLogOptions,
-    session_persistence: SessionPersistenceOptions,
-    traffic: SharedTrafficStats,
-    overload: SharedOverloadStats,
-    circuit_breaker: HttpCircuitBreakerController,
-    rate_limit: HttpRateLimitController,
-    retry_budget: RetryBudgetController,
-    listener_name_hint: Option<String>,
 ) -> Result<AcceptedHttpApp> {
-    let admission = HttpAdmissionController::new(runtime.admission.clone(), overload);
     let mut app = HttpProxy::new(
-        build_gateway_proxy(
-            snapshot,
-            access_log,
-            session_persistence,
-            traffic,
-            admission,
-            circuit_breaker,
-            rate_limit,
-            retry_budget,
-            runtime.downstream_read_timeout,
-            runtime.downstream_max_connection_age,
-            runtime.upstream_tcp_keepalive.clone(),
-            upstream_tuning_from_runtime(&runtime),
-            runtime.request_tracing_enabled,
-            runtime.max_request_body_bytes,
-            runtime.max_request_header_bytes,
-            listener_name_hint,
-            None,
-            runtime.cache.clone(),
-            runtime.experimental.clone(),
-        ),
+        build_gateway_proxy(&opts, &runtime),
         Arc::new(server_conf_for_runtime(&runtime)),
     );
     app.server_options = Some(HttpServerOptions::default());
@@ -210,18 +176,11 @@ pub async fn process_accepted_stream(
     Ok(())
 }
 
-#[allow(clippy::too_many_arguments)]
+#[tracing::instrument(skip_all)]
 fn run_server(
     plan: RuntimePlan,
-    snapshot: SharedSnapshot,
     runtime: RuntimeOptions,
-    access_log: AccessLogOptions,
-    session_persistence: SessionPersistenceOptions,
-    traffic: SharedTrafficStats,
-    admission: HttpAdmissionController,
-    circuit_breaker: HttpCircuitBreakerController,
-    rate_limit: HttpRateLimitController,
-    retry_budget: RetryBudgetController,
+    opts: GatewayProxyOptions,
     shutdown: watch::Receiver<bool>,
 ) {
     let mut server = Server::new_with_opt_and_conf(None, server_conf_for_runtime(&runtime));
@@ -231,15 +190,8 @@ fn run_server(
     if let Err(err) = service::add_plain_http_service(
         &mut server,
         &plan,
-        snapshot.clone(),
+        &opts,
         &runtime,
-        access_log.clone(),
-        session_persistence.clone(),
-        traffic.clone(),
-        admission.clone(),
-        circuit_breaker.clone(),
-        rate_limit.clone(),
-        retry_budget.clone(),
     ) {
         error!(error = %err, "failed to configure plain http listeners");
         return;
@@ -247,15 +199,8 @@ fn run_server(
     if let Err(err) = tls::add_tls_http_service(
         &mut server,
         &plan,
-        snapshot,
+        &opts,
         &runtime,
-        access_log,
-        session_persistence,
-        traffic,
-        admission,
-        circuit_breaker,
-        rate_limit,
-        retry_budget,
     ) {
         error!(error = %err, "failed to configure tls http listeners");
         return;
@@ -285,70 +230,22 @@ fn run_server(
     }
 }
 
-#[allow(clippy::too_many_arguments)]
-fn build_gateway_proxy(
-    snapshot: SharedSnapshot,
-    access_log: AccessLogOptions,
-    session_persistence: SessionPersistenceOptions,
-    traffic: SharedTrafficStats,
-    admission: HttpAdmissionController,
-    circuit_breaker: HttpCircuitBreakerController,
-    rate_limit: HttpRateLimitController,
-    retry_budget: RetryBudgetController,
-    downstream_read_timeout: Option<Duration>,
-    downstream_max_connection_age: Option<Duration>,
-    upstream_tcp_keepalive: Option<TcpKeepalive>,
-    upstream_tuning: UpstreamTuningOptions,
-    request_tracing_enabled: bool,
-    max_request_body_bytes: usize,
-    max_request_header_bytes: usize,
-    listener_name_hint: Option<String>,
-    listener_port_hint: Option<u32>,
-    cache: Arc<CacheManager>,
-    experimental: ntgw_config::ExperimentalConfig,
-) -> GatewayProxy {
-    let wasm_filter = if experimental.enable_experimental_gateway {
-        filters::build_wasm_filter(&snapshot)
+fn build_gateway_proxy(opts: &GatewayProxyOptions, runtime: &RuntimeOptions) -> GatewayProxy {
+    let mut proxy_opts = (*opts).clone();
+    proxy_opts.wasm_filter = if runtime.experimental.enable_experimental_gateway {
+        filters::build_wasm_filter(&proxy_opts.snapshot)
     } else {
         None
     };
-    let ai_filter = if experimental.enable_ai_gateway {
-        filters::build_ai_filter(&snapshot, wasm_filter.clone())
+    proxy_opts.ai_filter = if runtime.experimental.enable_ai_gateway {
+        filters::build_ai_filter(&proxy_opts.snapshot, proxy_opts.wasm_filter.clone())
     } else {
         None
     };
-
-    GatewayProxy::new(
-        snapshot,
-        access_log,
-        session_persistence,
-        traffic,
-        admission,
-        circuit_breaker,
-        rate_limit,
-        retry_budget,
-        downstream_read_timeout,
-        downstream_max_connection_age,
-        upstream_tcp_keepalive,
-        upstream_tuning,
-        request_tracing_enabled,
-        max_request_body_bytes,
-        max_request_header_bytes,
-        experimental.ai_gateway_max_request_body_bytes,
-        listener_name_hint,
-        listener_port_hint,
-        cache,
-        wasm_filter,
-        ai_filter,
-    )
+    GatewayProxy::new(proxy_opts)
 }
 
-fn listener_name_hint(listeners: &[&RuntimeListener]) -> Option<String> {
-    let mut names = listeners.iter().map(|listener| listener.name.as_str());
-    let first = names.next()?;
-    names.all(|name| name == first).then(|| first.to_string())
-}
-
+#[expect(dead_code)]
 pub(super) fn listener_port_hint(listeners: &[&RuntimeListener]) -> Option<u32> {
     let mut ports = listeners
         .iter()
@@ -356,7 +253,7 @@ pub(super) fn listener_port_hint(listeners: &[&RuntimeListener]) -> Option<u32> 
     let first = ports.next()??;
     ports.all(|port| port == Some(first)).then_some(first)
 }
-
+#[expect(dead_code)]
 fn listener_bind_port(bind: &str) -> Option<u32> {
     let (_, port) = bind.rsplit_once(':')?;
     port.parse::<u16>().ok().map(u32::from)
@@ -383,7 +280,7 @@ impl ShutdownSignalWatch for LocalShutdownSignalWatch {
     }
 }
 
-fn upstream_tuning_from_runtime(runtime: &RuntimeOptions) -> UpstreamTuningOptions {
+pub(super) fn upstream_tuning_from_runtime(runtime: &RuntimeOptions) -> UpstreamTuningOptions {
     UpstreamTuningOptions {
         tcp_fast_open: runtime.upstream_tcp_fast_open,
         tcp_recv_buf: runtime.upstream_tcp_recv_buf,

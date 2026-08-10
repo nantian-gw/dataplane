@@ -1,18 +1,10 @@
 use super::*;
 
-#[allow(clippy::too_many_arguments)]
 pub(super) fn add_plain_http_service(
     server: &mut Server,
     plan: &RuntimePlan,
-    snapshot: SharedSnapshot,
+    opts: &GatewayProxyOptions,
     runtime: &RuntimeOptions,
-    access_log: AccessLogOptions,
-    session_persistence: SessionPersistenceOptions,
-    traffic: SharedTrafficStats,
-    admission: HttpAdmissionController,
-    circuit_breaker: HttpCircuitBreakerController,
-    rate_limit: HttpRateLimitController,
-    retry_budget: RetryBudgetController,
 ) -> Result<()> {
     let plain_listeners: Vec<&RuntimeListener> = plan
         .listeners
@@ -23,31 +15,9 @@ pub(super) fn add_plain_http_service(
         return Ok(());
     }
 
-    let listener_name_hint = listener_name_hint(&plain_listeners);
-    let listener_port_hint = listener_port_hint(&plain_listeners);
     let mut service = ProxyServiceBuilder::new(
         &server.configuration,
-        build_gateway_proxy(
-            snapshot,
-            access_log,
-            session_persistence,
-            traffic,
-            admission,
-            circuit_breaker,
-            rate_limit,
-            retry_budget,
-            runtime.downstream_read_timeout,
-            runtime.downstream_max_connection_age,
-            runtime.upstream_tcp_keepalive.clone(),
-            upstream_tuning_from_runtime(runtime),
-            runtime.request_tracing_enabled,
-            runtime.max_request_body_bytes,
-            runtime.max_request_header_bytes,
-            listener_name_hint,
-            listener_port_hint,
-            runtime.cache.clone(),
-            runtime.experimental.clone(),
-        ),
+        build_gateway_proxy(opts, runtime),
     )
     .name("Nantian Gateway HTTP")
     .server_options(plain_http_server_options(runtime.keepalive_request_limit))

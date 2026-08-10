@@ -32,6 +32,7 @@ fn apply_route_policy_to_peer(peer: &mut HttpPeer, ctx: &RequestContext) {
     }
 }
 
+#[tracing::instrument(skip_all)]
 pub(crate) async fn do_upstream_peer(
     proxy: &GatewayProxy,
     session: &mut Session,
@@ -203,6 +204,7 @@ pub(crate) async fn do_upstream_peer(
 
 use pingora::ErrorSource;
 
+#[tracing::instrument(skip_all)]
 pub(crate) fn do_error_while_proxy(
     proxy: &GatewayProxy,
     peer: &HttpPeer,
@@ -237,6 +239,7 @@ pub(crate) fn do_error_while_proxy(
     e
 }
 
+#[tracing::instrument(skip_all)]
 pub(crate) fn do_fail_to_connect(
     proxy: &GatewayProxy,
     session: &mut Session,
