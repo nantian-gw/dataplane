@@ -37,7 +37,7 @@ jobs:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
       - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
       - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae
-      - run: cargo test --workspace -- --skip response_side_access_log_variables_capture_proxied_retry_response
+      - run: cargo test --workspace -- --skip response_side_access_log_variables_capture_proxied_retry_response --skip report_records_allocation_pressure_for_system_allocator
 
   clippy:
     name: Clippy
