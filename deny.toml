@@ -1,17 +1,19 @@
 [advisories]
 # Direct dependencies have been upgraded where possible (prometheus 0.13→0.14,
-# jsonwebtoken 9→10). Remaining advisories are transitive dependencies of
-# pingora-core 0.8.1 (latest) or have no safe upgrade available.
+# jsonwebtoken 9→10, wasmtime 44→46). Remaining advisories are transitive
+# dependencies of pingora-core 0.8.1 (latest) or have no safe upgrade available.
 ignore = [
     # RUSTSEC-2024-0437: protobuf 2.28.0 crash via uncontrolled recursion.
-    # Transitive: pingora-core 0.8.1→prometheus 0.13.4→protobuf 2.28.0.
-    # Our direct deps use prometheus 0.14.0 (protobuf 3.7.2, safe).
-    # Cannot resolve until pingora-core upgrades its prometheus dependency.
+    # Patched in protobuf >=3.7.2. Our direct deps use prometheus 0.14.0 (protobuf 3.7.2, safe).
+    # Cannot resolve: pingora-core 0.8.1→prometheus 0.13.4→protobuf 2.28.0.
+    # Upstream: https://github.com/cloudflare/pingora/issues (tracking prometheus bump)
+    # Impact: Low — dataplane only exports Prometheus text format, no attacker-supplied protobuf.
     "RUSTSEC-2024-0437",
 
     # RUSTSEC-2024-0388: derivative 2.2.0 is unmaintained.
     # Transitive: pingora-core 0.8.1→derivative 2.2.0.
-    # No safe upgrade available; requires pingora-core to migrate away.
+    # No safe upgrade available; derivative is a proc-macro, no runtime impact.
+    # Requires pingora-core to migrate away.
     "RUSTSEC-2024-0388",
 
     # RUSTSEC-2025-0069: daemonize 0.5.0 is unmaintained (since Jun 2023).
@@ -21,15 +23,15 @@ ignore = [
 
     # RUSTSEC-2023-0071: rsa 0.9.10 — Marvin Attack timing side-channel.
     # Dev-only dependency of ntgw-http (used in tests only, not in production).
-    # No safe upgrade available; RustCrypto/RSA is working on constant-time impl.
+    # Latest stable: 0.9.10. 0.10.0-rc.18 is pre-release only.
+    # RustCrypto/RSA working on constant-time impl.
     "RUSTSEC-2023-0071",
-
-    # RUSTSEC-2026-0222: wasmtime 44.0.3 stores can mix up type indices between engines.
-    # Requires upgrading wasmtime to a patched version. Blocked on wasmtime 44→? upgrade.
-    "RUSTSEC-2026-0222",
-    "RUSTSEC-2026-0173",
-    "RUSTSEC-2026-0190",
 ]
+# Removed (resolved):
+#   RUSTSEC-2026-0222: wasmtime 44.0.3 stores mix type indices between engines.
+#     → FIXED: wasmtime upgraded to 46.0.2 (>=46.0.2 patched).
+#   RUSTSEC-2026-0173: proc-macro-error2 unmaintained — crate not in dependency tree (stale).
+#   RUSTSEC-2026-0190: anyhow <1.0.103 unsoundness — anyhow is at 1.0.104 (>=1.0.103 patched).
 
 [licenses]
 allow = [

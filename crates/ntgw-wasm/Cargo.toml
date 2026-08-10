@@ -6,7 +6,7 @@ license.workspace = true
 
 [dependencies]
 ntgw-wasm-sdk = { workspace = true }
-wasmtime = "44"
+wasmtime = "46"
 serde = { workspace = true }
 serde_json = { workspace = true }
 tokio = { workspace = true }
