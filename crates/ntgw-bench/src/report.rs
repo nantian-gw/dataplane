@@ -26,25 +26,25 @@ use crate::scenarios::{
 };
 
 #[derive(Debug, Clone, Serialize)]
-pub(crate) struct BenchConfig {
-    pub(crate) iterations: u32,
-    pub(crate) snapshot: ntgw_ir::bench::SnapshotBenchConfig,
-    pub(crate) tls_rotation: ntgw_http::runtime_bench::TlsRotationBenchConfig,
-    pub(crate) xds_apply: ntgw_xds::bench::ApplyBenchConfig,
-    pub(crate) request_meta: ntgw_http::bench::RequestMetaBuildBenchConfig,
-    pub(crate) filter_chain: ntgw_http::bench::FilterChainBenchConfig,
-    pub(crate) session_persistence: ntgw_http::bench::SessionBenchConfig,
-    pub(crate) access_log: ntgw_observability::bench::AccessLogBenchConfig,
-    pub(crate) traffic_stats: ntgw_observability::bench::TrafficStatsBenchConfig,
-    pub(crate) traffic_stats_cardinality:
+pub struct BenchConfig {
+    pub iterations: u32,
+    pub snapshot: ntgw_ir::bench::SnapshotBenchConfig,
+    pub tls_rotation: ntgw_http::runtime_bench::TlsRotationBenchConfig,
+    pub xds_apply: ntgw_xds::bench::ApplyBenchConfig,
+    pub request_meta: ntgw_http::bench::RequestMetaBuildBenchConfig,
+    pub filter_chain: ntgw_http::bench::FilterChainBenchConfig,
+    pub session_persistence: ntgw_http::bench::SessionBenchConfig,
+    pub access_log: ntgw_observability::bench::AccessLogBenchConfig,
+    pub traffic_stats: ntgw_observability::bench::TrafficStatsBenchConfig,
+    pub traffic_stats_cardinality:
         ntgw_observability::bench::TrafficStatsCardinalityBenchConfig,
-    pub(crate) http_capacity: ntgw_http::runtime_bench::HttpCapacityMatrixBenchConfig,
-    pub(crate) stream: ntgw_stream::bench::StreamBenchConfig,
-    pub(crate) stream_pool_contention: ntgw_stream::bench::TcpPoolContentionBenchConfig,
+    pub http_capacity: ntgw_http::runtime_bench::HttpCapacityMatrixBenchConfig,
+    pub stream: ntgw_stream::bench::StreamBenchConfig,
+    pub stream_pool_contention: ntgw_stream::bench::TcpPoolContentionBenchConfig,
 }
 
 #[derive(Debug, Clone, Serialize)]
-pub(crate) struct BenchReport {
+pub struct BenchReport {
     pub(crate) captured_at_unix_seconds: u64,
     pub(crate) allocator: String,
     pub(crate) config: BenchConfig,
@@ -123,7 +123,7 @@ pub(crate) struct ResourceDelta {
     pub(crate) bytes_reallocated: Option<i64>,
 }
 
-pub(crate) async fn build_report(config: BenchConfig) -> Result<BenchReport> {
+pub async fn build_report(config: BenchConfig) -> Result<BenchReport> {
     let scenarios = vec![
         run_http_route_selection(config.iterations, config.snapshot)?,
         run_grpc_route_selection(config.iterations, config.snapshot)?,

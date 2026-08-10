@@ -5,13 +5,6 @@ use std::{fs, path::PathBuf};
 use anyhow::Result;
 use clap::Parser;
 
-mod report;
-mod scenarios;
-#[cfg(test)]
-mod tests;
-
-use report::{BenchConfig, build_report};
-
 #[cfg(all(
     not(feature = "allocator-mimalloc"),
     not(feature = "allocator-jemalloc")
@@ -38,6 +31,8 @@ struct Cli {
     tls_listeners: usize,
     #[arg(long, default_value_t = 4)]
     tls_ca_bundle_variants: usize,
+    #[arg(long, hide = true)]
+    bench: bool,
 }
 
 #[tokio::main(flavor = "current_thread")]
@@ -65,7 +60,7 @@ async fn main() -> Result<()> {
     let http_capacity_config = ntgw_http::runtime_bench::HttpCapacityMatrixBenchConfig::default();
     let stream_config = ntgw_stream::bench::StreamBenchConfig::default();
     let stream_pool_contention_config = ntgw_stream::bench::TcpPoolContentionBenchConfig::default();
-    let report = build_report(BenchConfig {
+    let report = ntgw_bench::build_report(ntgw_bench::BenchConfig {
         iterations,
         snapshot: snapshot_config,
         tls_rotation: tls_config,

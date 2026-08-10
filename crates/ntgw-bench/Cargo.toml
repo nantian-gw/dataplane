@@ -25,3 +25,7 @@ ntgw-stream.workspace = true
 ntgw-wasm.workspace = true
 ntgw-xds.workspace = true
 wat.workspace = true
+
+[[bench]]
+name = "bench"
+harness = false
