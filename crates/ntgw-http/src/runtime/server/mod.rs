@@ -77,9 +77,7 @@ pub(super) fn start_server_with_overload_stats(
         wasm_filter: None,
         ai_filter: None,
     };
-    let join = thread::spawn(move || {
-        run_server(plan_for_thread, runtime, opts, receiver)
-    });
+    let join = thread::spawn(move || run_server(plan_for_thread, runtime, opts, receiver));
 
     Ok(ActiveServer {
         plan,
@@ -101,14 +99,7 @@ pub(super) fn start_server_with_asset_root(
     let asset_stats = materialize_tls_assets_in_dir(&plan, asset_root)?;
     observe_reload_stage_elapsed(stage_recorder, "tls_assets", stage);
     let plan_for_thread = materialize_runtime_plan(&plan, asset_root);
-    let join = thread::spawn(move || {
-        run_server(
-            plan_for_thread,
-            runtime,
-            opts,
-            receiver,
-        )
-    });
+    let join = thread::spawn(move || run_server(plan_for_thread, runtime, opts, receiver));
 
     Ok((
         ActiveServer {
@@ -187,21 +178,11 @@ fn run_server(
 
     server.bootstrap();
 
-    if let Err(err) = service::add_plain_http_service(
-        &mut server,
-        &plan,
-        &opts,
-        &runtime,
-    ) {
+    if let Err(err) = service::add_plain_http_service(&mut server, &plan, &opts, &runtime) {
         error!(error = %err, "failed to configure plain http listeners");
         return;
     }
-    if let Err(err) = tls::add_tls_http_service(
-        &mut server,
-        &plan,
-        &opts,
-        &runtime,
-    ) {
+    if let Err(err) = tls::add_tls_http_service(&mut server, &plan, &opts, &runtime) {
         error!(error = %err, "failed to configure tls http listeners");
         return;
     }

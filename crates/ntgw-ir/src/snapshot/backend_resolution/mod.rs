@@ -3,7 +3,6 @@ mod resolution;
 mod tests;
 
 use super::super::*;
-use crate::http_fast_path::{CompiledHttpFastBackendRef, CompiledHttpFastBackendSelection};
 use std::borrow::Cow;
 
 // ---------------------------------------------------------------------------

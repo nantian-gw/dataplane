@@ -85,13 +85,11 @@ pub(super) fn add_tls_http_service(
         return Ok(());
     }
 
-    let mut service = ProxyServiceBuilder::new(
-        &server.configuration,
-        build_gateway_proxy(opts, runtime),
-    )
-    .name("Nantian Gateway HTTPS")
-    .server_options(tls_http_server_options(runtime.keepalive_request_limit))
-    .build();
+    let mut service =
+        ProxyServiceBuilder::new(&server.configuration, build_gateway_proxy(opts, runtime))
+            .name("Nantian Gateway HTTPS")
+            .server_options(tls_http_server_options(runtime.keepalive_request_limit))
+            .build();
 
     let reuse_port = reuse_port_for_runtime(runtime);
     for listener in tls_listeners {

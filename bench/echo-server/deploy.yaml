@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echo-bench
+  labels:
+    app: echo-bench
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: echo-bench
+  template:
+    metadata:
+      labels:
+        app: echo-bench
+    spec:
+      containers:
+      - name: echo
+        image: ghcr.io/nantian-gw/echo-bench:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: 500m
+            memory: 32Mi
+          limits:
+            cpu: 2000m
+            memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: echo-bench
+spec:
+  selector:
+    app: echo-bench
+  ports:
+  - port: 80
+    targetPort: 8080

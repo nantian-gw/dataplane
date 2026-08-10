@@ -2,18 +2,16 @@ use std::sync::Arc;
 use std::time::{Duration, SystemTime};
 
 use http::Version;
-use pingora::{Error, ErrorType};
-use pingora::proxy::Session;
 use ntgw_ir::{PersistentSessionTarget, SelectedHttpRoute, SessionPersistence, Snapshot};
+use pingora::proxy::Session;
+use pingora::{Error, ErrorType};
 
-use super::{
-    GatewayProxy, RequestContext,
-};
+use super::RequestContext;
 use super::context::{
-    assign_ctx_string, cache_http_route_context, HttpRouteContextFields, SelectedBackendConfig,
+    HttpRouteContextFields, SelectedBackendConfig, assign_ctx_string, cache_http_route_context,
 };
-use super::request::{record_request_span, RequestView};
-use super::selection::{selected_backend_config_cached, SelectedBackendConfigCache};
+use super::request::{RequestView, record_request_span};
+use super::selection::{SelectedBackendConfigCache, selected_backend_config_cached};
 use ntgw_observability::AccessLogOptions;
 
 pub(crate) fn https_request_is_misdirected_in_snapshot(
@@ -121,6 +119,10 @@ where
     Ok(Some((selected, config)))
 }
 
-pub(crate) fn cache_response_body_limit_exceeded(current_len: usize, chunk_len: usize, limit: usize) -> bool {
+pub(crate) fn cache_response_body_limit_exceeded(
+    current_len: usize,
+    chunk_len: usize,
+    limit: usize,
+) -> bool {
     limit > 0 && current_len.saturating_add(chunk_len) > limit
 }

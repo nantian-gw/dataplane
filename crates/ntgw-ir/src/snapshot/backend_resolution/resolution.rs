@@ -1,8 +1,7 @@
 use super::super::*;
 use super::{
-    BackendCandidateVisit, BackendSelectionCandidate,
-    EndpointAvailability, EndpointSelectionAvailability,
-    backend_ref_is_routable, spread_weighted_target,
+    BackendCandidateVisit, BackendSelectionCandidate, EndpointAvailability,
+    EndpointSelectionAvailability, backend_ref_is_routable, spread_weighted_target,
 };
 use crate::http_fast_path::{CompiledHttpFastBackendRef, CompiledHttpFastBackendSelection};
 use std::time::Instant;
@@ -67,7 +66,7 @@ impl Snapshot {
                     .endpoint_selection_availability(cluster, compiled.backend_name.as_ref(), now)
                     .count
                     > 0)
-                    .then_some(compiled.weight as u64)
+                .then_some(compiled.weight as u64)
             })
             .sum::<u64>();
         if total_weight == 0 {
@@ -425,12 +424,18 @@ impl Snapshot {
         )
     }
 
-    pub(super) fn backend_session_persistence(&self, backend_name: &str) -> Option<&SessionPersistence> {
+    pub(super) fn backend_session_persistence(
+        &self,
+        backend_name: &str,
+    ) -> Option<&SessionPersistence> {
         self.backend_policy(backend_name)
             .and_then(|policy| policy.session_persistence.as_ref())
     }
 
-    pub(super) fn backend_load_balancing(&self, backend_name: &str) -> Option<&LoadBalancingPolicy> {
+    pub(super) fn backend_load_balancing(
+        &self,
+        backend_name: &str,
+    ) -> Option<&LoadBalancingPolicy> {
         self.backend_policy(backend_name)
             .and_then(|policy| policy.load_balancing.as_ref())
     }

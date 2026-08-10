@@ -4,8 +4,6 @@ use form_urlencoded::parse;
 
 use super::*;
 
-use super::*;
-
 pub(crate) fn has_non_backend_http_filter(filters: &[Filter]) -> bool {
     filters.iter().any(|filter| {
         filter.request_redirect.is_some()

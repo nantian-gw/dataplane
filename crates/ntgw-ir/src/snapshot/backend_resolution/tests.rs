@@ -107,10 +107,7 @@ fn visit_http_backend_candidates_preserves_order_and_status() {
             name: "invalid".to_string(),
             port: 8089,
             weight: 1,
-            metadata: BTreeMap::from([(
-                BACKEND_REF_META_VALID.to_string(),
-                "false".to_string(),
-            )]),
+            metadata: BTreeMap::from([(BACKEND_REF_META_VALID.to_string(), "false".to_string())]),
             ..BackendRef::default()
         },
         BackendRef {

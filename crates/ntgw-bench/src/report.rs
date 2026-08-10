@@ -36,8 +36,7 @@ pub struct BenchConfig {
     pub session_persistence: ntgw_http::bench::SessionBenchConfig,
     pub access_log: ntgw_observability::bench::AccessLogBenchConfig,
     pub traffic_stats: ntgw_observability::bench::TrafficStatsBenchConfig,
-    pub traffic_stats_cardinality:
-        ntgw_observability::bench::TrafficStatsCardinalityBenchConfig,
+    pub traffic_stats_cardinality: ntgw_observability::bench::TrafficStatsCardinalityBenchConfig,
     pub http_capacity: ntgw_http::runtime_bench::HttpCapacityMatrixBenchConfig,
     pub stream: ntgw_stream::bench::StreamBenchConfig,
     pub stream_pool_contention: ntgw_stream::bench::TcpPoolContentionBenchConfig,

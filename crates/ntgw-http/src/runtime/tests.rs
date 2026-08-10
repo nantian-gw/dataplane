@@ -21,8 +21,7 @@ use ntgw_ir::{
 use ntgw_observability::{
     AccessLogOptions, ApplyStageRecorder, HttpAdmissionController, HttpCircuitBreakerController,
     HttpRateLimitController, OverloadStats, RetryBudgetController, RuntimeStats,
-    SharedApplyStageRecorder, SharedTrafficStats, TrafficSnapshot,
-    shutdown_access_log_writer,
+    SharedApplyStageRecorder, SharedTrafficStats, TrafficSnapshot, shutdown_access_log_writer,
 };
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},

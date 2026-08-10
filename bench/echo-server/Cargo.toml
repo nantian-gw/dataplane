@@ -1,0 +1,20 @@
+[package]
+name = "echo-server"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "echo-server"
+path = "main.rs"
+
+[dependencies]
+actix-web = "4"
+actix-rt = "2"
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = "symbols"
+
+[workspace]

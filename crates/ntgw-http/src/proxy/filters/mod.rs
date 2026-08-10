@@ -150,11 +150,7 @@ pub(crate) async fn do_request_filter(
         }
         let route_namespace = selected.route_namespace.clone();
         let route_name = selected.route_name.clone();
-        cache_fast_selected_backend_state(
-            ctx,
-            selected,
-            proxy.selected_display_fields_needed(ctx),
-        );
+        cache_fast_selected_backend_state(ctx, selected, proxy.selected_display_fields_needed(ctx));
         cache_fast_path_access_log_fields(proxy, session, ctx);
         tracing::trace!(
             route_name = %ctx.route_name,
@@ -444,7 +440,9 @@ pub(crate) async fn do_request_filter(
             proxy.seed_retry_budget(ctx);
             record_request_span(ctx);
             let selected_backend = ctx.selected_backend.clone();
-            let route_ns = selected_backend.as_ref().map(|b| b.route_namespace.as_str());
+            let route_ns = selected_backend
+                .as_ref()
+                .map(|b| b.route_namespace.as_str());
             let route_name = selected_backend.as_ref().map(|b| b.route_name.as_str());
             let host = ctx.host.clone();
             let path = ctx.path.clone();
@@ -723,7 +721,9 @@ pub(crate) async fn do_request_filter(
             cache_selected_backend_state(ctx, selected, config, proxy.access_log.enabled);
             proxy.seed_retry_budget(ctx);
             let selected_backend = ctx.selected_backend.clone();
-            let route_ns = selected_backend.as_ref().map(|b| b.route_namespace.as_str());
+            let route_ns = selected_backend
+                .as_ref()
+                .map(|b| b.route_namespace.as_str());
             let route_name = selected_backend.as_ref().map(|b| b.route_name.as_str());
             if let (Some(route_ns), Some(route_name)) = (route_ns, route_name) {
                 let host = ctx.host.clone();

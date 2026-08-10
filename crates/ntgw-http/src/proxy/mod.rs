@@ -2,12 +2,11 @@ use std::{
     boxed::Box,
     collections::HashMap,
     sync::Arc,
-    time::{Duration, Instant, SystemTime},
+    time::{Duration, Instant},
 };
 
 use async_trait::async_trait;
 use bytes::Bytes;
-use http::Version;
 use ntgw_ai::wasm_filter::WasmPluginFilter;
 use pingora::{
     Error, ErrorSource, ErrorType,
@@ -42,6 +41,7 @@ mod context;
 mod downstream_tls;
 mod external_auth;
 mod filters;
+mod free_fns;
 mod guards;
 mod logging;
 mod request;
@@ -49,7 +49,6 @@ mod responses;
 mod retry;
 mod selection;
 mod upstream;
-mod free_fns;
 pub(crate) use free_fns::*;
 
 use self::backend::{
@@ -65,10 +64,9 @@ use self::context::cache_selected_backend;
 #[cfg(test)]
 use self::context::clear_completed_request_context;
 use self::context::{
-    HttpRouteContextFields, SelectedBackendConfig, assign_ctx_string,
-    cache_fast_selected_backend_state, cache_http_route_context, cache_route_annotations,
-    cache_selected_backend_ref, cache_selected_backend_state, observe_selected_backend_failure,
-    observe_selected_backend_success, record_upstream_connection,
+    SelectedBackendConfig, assign_ctx_string, cache_fast_selected_backend_state,
+    cache_route_annotations, cache_selected_backend_ref, cache_selected_backend_state,
+    observe_selected_backend_failure, observe_selected_backend_success, record_upstream_connection,
     record_upstream_peer_build_failure, record_upstream_tls_handshake_failure,
     request_start_time_unix_ms, reset_request_context, route_budget_key, route_kind_name,
     selected_backend_is_transport_retry_excluded, store_admission_permit,

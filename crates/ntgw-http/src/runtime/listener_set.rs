@@ -1,6 +1,6 @@
+use super::server::upstream_tuning_from_runtime;
 use super::*;
 use crate::proxy::GatewayProxyOptions;
-use super::server::upstream_tuning_from_runtime;
 use ntgw_observability::RuntimeListenerFailure;
 use tracing::{error, info, warn};
 
@@ -192,7 +192,10 @@ impl ListenerSet {
             request_tracing_enabled: ctx.runtime.request_tracing_enabled,
             max_request_body_bytes: ctx.runtime.max_request_body_bytes,
             max_request_header_bytes: ctx.runtime.max_request_header_bytes,
-            ai_gateway_max_request_body_bytes: ctx.runtime.experimental.ai_gateway_max_request_body_bytes,
+            ai_gateway_max_request_body_bytes: ctx
+                .runtime
+                .experimental
+                .ai_gateway_max_request_body_bytes,
             listener_name_hint: None,
             listener_port_hint: None,
             cache: ctx.runtime.cache.clone(),

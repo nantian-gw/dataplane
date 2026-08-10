@@ -56,14 +56,12 @@ pub use stream_fast_path::StreamFastPathPlan;
 pub use timeouts::RouteTimeouts;
 
 // Re-export constants from types
-pub(crate) use types::{BACKEND_REF_META_VALID};
-pub use types::{PASSIVE_EJECTION_CONSECUTIVE_FAILURES, PASSIVE_EJECTION_COOLDOWN};
+pub(crate) use types::BACKEND_REF_META_VALID;
 pub(crate) use types::{HttpBackendResolution, ResolvedHttpBackend, StreamMatchScore};
-
+pub use types::{PASSIVE_EJECTION_CONSECUTIVE_FAILURES, PASSIVE_EJECTION_COOLDOWN};
 
 use std::{
-    borrow::Cow,
-    collections::{BTreeMap, HashMap, HashSet, hash_map::Entry},
+    collections::{BTreeMap, HashMap},
     sync::{
         Arc,
         atomic::{AtomicU64, Ordering},
@@ -72,10 +70,8 @@ use std::{
 };
 
 use arc_swap::ArcSwap;
-use form_urlencoded::parse;
 use parking_lot::{Condvar, Mutex};
 use regex::Regex;
-use serde::{Deserialize, Serialize};
 use tokio::sync::watch;
 
 pub type SharedSnapshot = Arc<ArcSwap<Snapshot>>;

@@ -1,7 +1,7 @@
 use pingora::prelude::Session;
 
-use super::super::RequestContext;
 use super::super::GatewayProxy;
+use super::super::RequestContext;
 use super::cache;
 
 pub(crate) fn ai_request_body_limit_exceeded(

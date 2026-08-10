@@ -7,21 +7,16 @@ use std::{
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
-use crate::endpoint_runtime::{EndpointRuntimeHandle, EndpointRuntimeSnapshot, EndpointRuntimeStore};
-use crate::http_fast_path::{CompiledSelectedHttpBackend, HttpFastPathPlan, HttpFastPathRequest};
-use crate::mesh::{ParentRef, ServiceFrontendRef, Workload};
+use crate::endpoint_runtime::EndpointRuntimeStore;
+use crate::filters::Filter;
+use crate::http_fast_path::HttpFastPathPlan;
 use crate::matching::normalize_host_ref;
-use crate::runtime_id::{RuntimeId, RuntimeIdIndex, RuntimeResourceRef, SelectedBackendRuntimeIds};
-use crate::session::{CookieConfig, PersistentSessionTarget, SessionPersistence};
+use crate::mesh::{ParentRef, ServiceFrontendRef, Workload};
+use crate::runtime_id::RuntimeIdIndex;
+use crate::selection::BackendSelectionError;
+use crate::session::SessionPersistence;
 use crate::stream_fast_path::StreamFastPathPlan;
 use crate::timeouts::RouteTimeouts;
-use crate::selection::{BackendSelectionError, RequestMirrorContext, RouteKind, SelectedBackend, SelectedHttpRoute};
-use crate::filters::{
-    ClaimToHeader, CorsFilter, DirectResponseFilter, ExtensionFilter, ExternalAuthFilter,
-    ExternalGRPCAuthConfig, ExternalHTTPAuthConfig, Filter, Fraction, HeaderModifier,
-    HeaderOperation, JwtAuthFilter, MatchedHttpPath, PathModifier, RequestMirrorFilter,
-    RequestRedirectFilter, UrlRewriteFilter,
-};
 
 // ---------------------------------------------------------------------------
 // Constants

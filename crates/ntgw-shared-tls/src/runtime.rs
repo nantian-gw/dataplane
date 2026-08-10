@@ -9,8 +9,8 @@ use std::{
     time::Instant,
 };
 
-use ntgw_http::{AcceptedHttpApp, build_http_app, process_accepted_stream, UpstreamTuningOptions};
 use ntgw_http::proxy::GatewayProxyOptions;
+use ntgw_http::{AcceptedHttpApp, UpstreamTuningOptions, build_http_app, process_accepted_stream};
 use ntgw_ir::{Listener, SharedSnapshot, SharedSnapshotSignal, Snapshot, TlsRouteMode};
 use ntgw_observability::{
     HttpAdmissionController, HttpCircuitBreakerController, HttpRateLimitController,
