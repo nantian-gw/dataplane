@@ -62,7 +62,42 @@ async fn websocket_large_payload_tunnels_in_both_directions() {
         // Let the tunnel stabilise before sending the large payload.
         tokio::time::sleep(std::time::Duration::from_millis(500)).await;
 
-        client.write_all(&client_payload).await?;
+        // Write the payload with retry on transient errors.
+        let mut write_attempts = 0;
+        let write_result = loop {
+            match client.try_write(&client_payload) {
+                Ok(n) if n == client_payload.len() => break Ok(()),
+                Ok(n) => {
+                    // Partial write: send remaining bytes.
+                    let remaining = &client_payload[n..];
+                    if let Err(e) = client.write_all(remaining).await {
+                        if write_attempts < 3 {
+                            write_attempts += 1;
+                            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+                            continue;
+                        }
+                        break Err(e);
+                    }
+                    break Ok(());
+                }
+                Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                    tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+                    continue;
+                }
+                Err(e) => {
+                    if write_attempts < 3
+                        && (e.kind() == std::io::ErrorKind::BrokenPipe
+                            || e.kind() == std::io::ErrorKind::ConnectionReset)
+                    {
+                        write_attempts += 1;
+                        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+                        continue;
+                    }
+                    break Err(e);
+                }
+            }
+        };
+        write_result?;
         let mut echoed = vec![0; client_payload.len()];
         let mut read_offset = 0;
         let deadline = std::time::Duration::from_secs(30);
