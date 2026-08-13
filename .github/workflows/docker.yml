@@ -42,7 +42,7 @@ jobs:
           tags: |
             type=sha,prefix=sha-,format=short,suffix=-${{ matrix.arch }}
             type=raw,value=latest-${{ matrix.arch }},enable=${{ github.ref == 'refs/heads/main' }}
-            type=semver,pattern={{raw}},suffix=-${{ matrix.arch }}
+            type=ref,event=tag,suffix=-${{ matrix.arch }}
 
       - name: Login to GHCR
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
