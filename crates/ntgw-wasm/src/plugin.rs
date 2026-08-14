@@ -1,4 +1,5 @@
 use std::collections::{HashMap, HashSet};
+use std::fs;
 use std::sync::Arc;
 use std::sync::OnceLock;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
@@ -139,6 +140,9 @@ impl PluginManager {
                 epoch_deadline_clone.fetch_add(1, Ordering::Release);
             }
         });
+        // Prune stale serialized module cache files on startup.
+        prune_module_cache();
+
 
         Ok(Self {
             engine,
@@ -265,7 +269,7 @@ impl PluginManager {
 
         // Try to load from serialized cache first.
         let module = if let Some(sha) = sha256 {
-            let cache_dir = std::env::temp_dir().join("ntgw-wasm-cache");
+            let cache_dir = cache_dir();
             let cache_path = cache_dir.join(format!("{sha}.wasmbin"));
             if let Ok(cached_bytes) = std::fs::read(&cache_path) {
                 // SAFETY: Module::deserialize is unsafe because deserialized modules
@@ -303,8 +307,8 @@ impl PluginManager {
 
                 // Persist serialized module to cache.
                 if let Some(sha) = sha256 {
-                    let cache_dir = std::env::temp_dir().join("ntgw-wasm-cache");
-                    if let Err(e) = std::fs::create_dir_all(&cache_dir) {
+                    let cache_dir = cache_dir();
+                    if let Err(e) = fs::create_dir_all(&cache_dir) {
                         warn!(error = %e, "failed to create wasm cache directory");
                     } else {
                         match m.serialize() {
@@ -314,6 +318,8 @@ impl PluginManager {
                                     warn!(sha256 = sha, error = %e, "failed to write serialized module to cache");
                                 } else {
                                     debug!(sha256 = sha, "wrote serialized module to cache");
+                                    // Prune cache after each write to keep disk usage bounded.
+                                    prune_module_cache();
                                 }
                             }
                             Err(e) => {
@@ -578,6 +584,34 @@ impl Drop for PluginManager {
         self.shutdown();
         if let Some(handle) = self.epoch_handle.take() {
             let _ = handle.join();
+        }
+    }
+}
+/// Maximum number of serialized module cache files to keep.
+const MAX_CACHED_MODULE_FILES: usize = 50;
+
+fn cache_dir() -> std::path::PathBuf {
+    std::env::temp_dir().join("ntgw-wasm-cache")
+}
+
+/// Prune the module cache directory, keeping only the most recent files.
+/// Called periodically to prevent unbounded disk usage from stale cache entries.
+fn prune_module_cache() {
+    let dir = cache_dir();
+    let mut entries: Vec<_> = match fs::read_dir(&dir) {
+        Ok(rd) => rd.filter_map(|e| e.ok()).collect(),
+        Err(_) => return,
+    };
+    if entries.len() <= MAX_CACHED_MODULE_FILES {
+        return;
+    }
+    // Sort by modification time (oldest first).
+    entries.sort_by_key(|e| e.metadata().ok().and_then(|m| m.modified().ok()));
+    // Remove the oldest files beyond the cap.
+    let to_remove = entries.len() - MAX_CACHED_MODULE_FILES;
+    for entry in entries.iter().take(to_remove) {
+        if let Err(e) = fs::remove_file(entry.path()) {
+            warn!(path = %entry.path().display(), error = %e, "failed to remove stale cache file");
         }
     }
 }
