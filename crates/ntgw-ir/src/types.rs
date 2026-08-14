@@ -712,7 +712,6 @@ pub struct WasmPluginConfig {
     pub hooks: Vec<String>,
     pub config_json: String,
     pub sandbox: WasmSandboxConfig,
-    pub source_url: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
