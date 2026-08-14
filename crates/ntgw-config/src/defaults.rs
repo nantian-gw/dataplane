@@ -285,7 +285,7 @@ pub(crate) fn default_http_cache_default_ttl_seconds() -> u64 {
 }
 
 pub(crate) fn default_xds_protocol() -> String {
-    "sotw".to_string()
+    "delta".to_string()
 }
 
 #[expect(dead_code, reason = "reserved for future route config")]
