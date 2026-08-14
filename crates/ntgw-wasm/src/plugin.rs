@@ -4,7 +4,7 @@ use std::sync::OnceLock;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::time::Duration;
 
-use parking_lot::RwLock;
+use parking_lot::{Mutex, RwLock};
 use serde::Deserialize;
 use tracing::{debug, info, warn};
 use wasmtime::{Module, Store, Val};
@@ -109,6 +109,10 @@ pub struct PluginManager {
     pub exec_count: Arc<AtomicU64>,
     /// Total number of hook invocation errors (timeout, trap, missing export, etc.).
     pub error_count: Arc<AtomicU64>,
+    /// Pool of pre-allocated Store objects to reduce allocation overhead per invocation.
+    /// Each store is reused by resetting its PluginContext between invocations.
+    /// Bounded to avoid unbounded memory growth.
+    store_pool: Mutex<Vec<wasmtime::Store<PluginContext>>>,
 }
 
 impl PluginManager {
@@ -146,6 +150,7 @@ impl PluginManager {
             load_count: Arc::new(AtomicU64::new(0)),
             exec_count: Arc::new(AtomicU64::new(0)),
             error_count: Arc::new(AtomicU64::new(0)),
+            store_pool: Mutex::new(Vec::new()),
         })
     }
 
@@ -461,59 +466,85 @@ impl PluginManager {
 
         let max_ticks = sandbox.max_execution_ms / 5; // tick interval is 5ms
         let memory_limit = sandbox.max_memory_bytes;
-        let mut store = Store::new(
-            &self.engine,
-            PluginContext {
-                config,
-                request_headers,
-                response_headers: HashMap::new(),
-                body,
-                memory_limit,
-                table_elements_limit: engine::MAX_WASM_TABLE_ELEMENTS,
-            },
-        );
 
-        // Apply resource limiting through the PluginContext itself
-        store.limiter(|ctx| ctx);
+        // Acquire a Store from the pool, or create a fresh one if empty.
+        let mut store = match self.store_pool.lock().pop() {
+            Some(mut s) => {
+                s.data_mut().reset(
+                    config,
+                    request_headers,
+                    body,
+                    memory_limit,
+                    engine::MAX_WASM_TABLE_ELEMENTS,
+                );
+                s
+            }
+            None => {
+                let mut s = Store::new(
+                    &self.engine,
+                    PluginContext {
+                        config,
+                        request_headers,
+                        response_headers: HashMap::new(),
+                        body,
+                        memory_limit,
+                        table_elements_limit: engine::MAX_WASM_TABLE_ELEMENTS,
+                    },
+                );
+                // Apply resource limiting through the PluginContext itself
+                s.limiter(|ctx| ctx);
+                s
+            }
+        };
 
         // Set epoch deadline for timeout enforcement
         let current = self.epoch_deadline.load(Ordering::Acquire);
         store.set_epoch_deadline(current + max_ticks);
 
-        // Instantiate the plugin (uses pre-compiled InstancePre for fast reuse)
-        let instance = instance_pre.instantiate(&mut store).map_err(|e| {
-            WasmError::PluginExecution(name.to_string(), format!("instantiation error: {e}"))
-        })?;
-
-        // Call the hook export
-        let export_name = hook.export_name();
-        let func = instance.get_func(&mut store, export_name).ok_or_else(|| {
-            self.error_count.fetch_add(1, Ordering::Relaxed);
-            WasmError::InvalidHook(format!("plugin '{name}' missing export '{export_name}'"))
-        })?;
-
-        let mut results = [Val::I32(0)];
-        match func.call(&mut store, &[], &mut results) {
-            Ok(_) => {
-                let ctx = store.data_mut();
-                let response_headers = std::mem::take(&mut ctx.response_headers);
-                let code = results.first().and_then(|v| v.i32()).unwrap_or(0);
-                if code == 0 {
-                    Ok(HookResult::Continue { response_headers })
-                } else {
-                    Ok(HookResult::Reject(code))
-                }
-            }
-            Err(e) => {
+        // Wrap instantiation + execution in a closure so that
+        // instance/func borrows on store are dropped before pool release.
+        let result = (|| -> Result<HookResult, WasmError> {
+            let instance = instance_pre.instantiate(&mut store).map_err(|e| {
+                WasmError::PluginExecution(name.to_string(), format!("instantiation error: {e}"))
+            })?;
+            let export_name = hook.export_name();
+            let func = instance.get_func(&mut store, export_name).ok_or_else(|| {
                 self.error_count.fetch_add(1, Ordering::Relaxed);
-                if let Some(trap) = e.downcast_ref::<wasmtime::Trap>()
-                    && matches!(trap, wasmtime::Trap::Interrupt)
-                {
-                    return Err(WasmError::PluginTimeout(name.to_string()));
+                WasmError::InvalidHook(format!("plugin '{name}' missing export '{export_name}'"))
+            })?;
+            let mut results = [Val::I32(0)];
+            match func.call(&mut store, &[], &mut results) {
+                Ok(_) => {
+                    let ctx = store.data_mut();
+                    let response_headers = std::mem::take(&mut ctx.response_headers);
+                    let code = results.first().and_then(|v| v.i32()).unwrap_or(0);
+                    if code == 0 {
+                        Ok(HookResult::Continue { response_headers })
+                    } else {
+                        Ok(HookResult::Reject(code))
+                    }
                 }
-                Err(WasmError::PluginExecution(name.to_string(), format!("{e}")))
+                Err(e) => {
+                    self.error_count.fetch_add(1, Ordering::Relaxed);
+                    if let Some(trap) = e.downcast_ref::<wasmtime::Trap>()
+                        && matches!(trap, wasmtime::Trap::Interrupt)
+                    {
+                        Err(WasmError::PluginTimeout(name.to_string()))
+                    } else {
+                        Err(WasmError::PluginExecution(name.to_string(), format!("{e}")))
+                    }
+                }
             }
+        })();
+
+        // Return the store to the pool for reuse to avoid re-allocation.
+        let mut pool = self.store_pool.lock();
+        if pool.len() < engine::STORE_POOL_MAX_SIZE {
+            pool.push(store);
         }
+        drop(pool);
+
+        result
     }
 }
 
