@@ -82,42 +82,35 @@ pub unsafe fn host_set_header(name: &str, value: &str) {
 /// This is a minimal allocator exported from the guest .wasm module.
 /// It uses a static buffer and offset — suitable for single-threaded plugin use.
 pub mod allocator {
+    // Static buffer region that the host writes into via the returned pointer.
+    // The buffer must be `static mut` so its address lands in the writable data
+    // segment of the WASM linear memory. Accessed only via `addr_of!` (sound).
     static mut BUFFER: [u8; 65536] = [0; 65536];
-    static mut OFFSET: usize = 0;
+    // The current bump offset. Using an AtomicUsize (rather than a raw static mut)
+    // makes the offset update formally correct even though a single WASM instance
+    // executes single-threaded. Relaxed ordering is sufficient because every hook
+    // runs sequentially within one instance.
+    static OFFSET: core::sync::atomic::AtomicUsize = core::sync::atomic::AtomicUsize::new(0);
 
     /// Export this as "alloc" for the host to use.
     /// Returns the offset into the static buffer.
-    // SAFETY: no_mangle is required for the WASM host to call this function
-    // by name ("alloc"). There is no name collision risk in a single WASM module.
     #[unsafe(no_mangle)]
     pub extern "C" fn alloc(len: i32) -> i32 {
         let len = len as usize;
-        // SAFETY: Single-threaded WASM execution guarantees exclusive access
-        // to the static mut OFFSET. No concurrent reads or writes are possible.
-        let offset = unsafe { OFFSET };
+        let offset = OFFSET.load(core::sync::atomic::Ordering::Relaxed);
         let new_offset = offset + len;
         if new_offset > 65536 {
             return -1; // out of memory
         }
-        // Return pointer relative to memory base (offset within BUFFER if it were at address 0).
-        // In practice, wasm linear memory starts at 0, so this offset IS the address.
-        // But BUFFER isn't at linear memory address 0 — we need to return the actual
-        // address of BUFFER + offset in linear memory.
-        // SAFETY: OFFSET was checked against BUFFER size (65536) in the bounds
-        // check above, so the resulting pointer stays within the static buffer allocation.
+        // SAFETY: The pointer is returned to the host as an address into
+        // WASM linear memory. The buffer is never read as a Rust value here.
         let addr = unsafe { (core::ptr::addr_of!(BUFFER) as *const u8).add(offset) as usize };
-        // SAFETY: Single-threaded WASM execution guarantees exclusive access.
-        // new_offset was already validated not to exceed BUFFER capacity.
-        unsafe { OFFSET = new_offset };
+        OFFSET.store(new_offset, core::sync::atomic::Ordering::Relaxed);
         addr as i32
     }
 
     /// Reset the allocator (call at start of each request)
     pub fn reset() {
-        // SAFETY: Single-threaded WASM execution guarantees exclusive access
-        // to OFFSET. Resetting to 0 is always safe.
-        unsafe {
-            OFFSET = 0;
-        }
+        OFFSET.store(0, core::sync::atomic::Ordering::Relaxed);
     }
 }

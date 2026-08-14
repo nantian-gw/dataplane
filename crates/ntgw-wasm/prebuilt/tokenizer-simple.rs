@@ -45,6 +45,5 @@ pub extern "C" fn tokenize(ptr: i32, len: i32) -> i32 {
 
 #[no_mangle]
 pub extern "C" fn reset() {
-    // Safety: reset executes in single-threaded context; no concurrent access.
-    unsafe { OFFSET = 0; }
+    OFFSET.store(0, core::sync::atomic::Ordering::Relaxed);
 }

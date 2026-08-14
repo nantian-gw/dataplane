@@ -2,7 +2,7 @@
 // Exports: alloc, embed, get_embedding, reset
 
 static mut BUFFER: [u8; 65536] = [0; 65536];
-static mut OFFSET: usize = 0;
+static OFFSET: core::sync::atomic::AtomicUsize = core::sync::atomic::AtomicUsize::new(0);
 
 // Last computed embedding (fixed 4-dimensional zero vector)
 static mut EMBEDDING: [f32; 4] = [0.0; 4];
@@ -10,15 +10,14 @@ static mut EMBEDDING_DIM: i32 = 4;
 
 #[no_mangle]
 pub extern "C" fn alloc(len: i32) -> i32 {
-    // Safety: single-threaded static mut read during init.
-    let offset = unsafe { OFFSET };
+    // SAFETY: The offset is only mutated by a single WASM instance.
+    let offset = OFFSET.load(core::sync::atomic::Ordering::Relaxed);
     let new_offset = offset + len as usize;
     if new_offset > 65536 {
         return -1;
     }
-    // Safety: single-threaded static mut write during init.
-    unsafe { OFFSET = new_offset; }
-    // Safety: offset validated by init to be within BUFFER bounds.
+    OFFSET.store(new_offset, core::sync::atomic::Ordering::Relaxed);
+    // SAFETY: offset validated to be within BUFFER bounds by check above.
     unsafe { BUFFER.as_ptr().add(offset) as i32 }
 }
 
@@ -49,6 +48,5 @@ pub extern "C" fn get_embedding(buf_ptr: i32, buf_len: i32) {
 
 #[no_mangle]
 pub extern "C" fn reset() {
-    // Safety: single-threaded static mut reset.
-    unsafe { OFFSET = 0; }
+    OFFSET.store(0, core::sync::atomic::Ordering::Relaxed);
 }
