@@ -6,7 +6,7 @@ use super::{
         default_access_enabled, default_access_format, default_access_mode, default_access_path,
         default_access_sample_rate, default_active_health_check_enabled,
         default_active_health_check_interval_ms, default_active_health_check_timeout_ms,
-        default_active_health_check_unhealthy_threshold, default_ai_gateway_max_request_body_bytes,
+        default_ai_gateway_max_request_body_bytes, default_active_health_check_unhealthy_threshold, default_wasm_max_concurrency,
         default_downstream_read_timeout_ms, default_graceful_drain_period_ms,
         default_http_cache_default_ttl_seconds, default_http_cache_enabled,
         default_http_cache_max_entry_size_mb, default_http_cache_max_size_mb,
@@ -190,6 +190,7 @@ impl Default for ExperimentalConfig {
             enable_experimental_gateway: false,
             enable_ai_gateway: false,
             ai_gateway_max_request_body_bytes: default_ai_gateway_max_request_body_bytes(),
+            wasm_max_concurrency: default_wasm_max_concurrency(),
         }
     }
 }

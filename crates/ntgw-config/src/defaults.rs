@@ -219,6 +219,9 @@ pub(crate) fn default_http_max_request_header_bytes() -> usize {
 pub(crate) fn default_ai_gateway_max_request_body_bytes() -> usize {
     10 * 1024 * 1024
 }
+pub(crate) fn default_wasm_max_concurrency() -> usize {
+    32
+}
 
 pub(crate) fn default_work_stealing() -> bool {
     true

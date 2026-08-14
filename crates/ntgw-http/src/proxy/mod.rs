@@ -676,6 +676,40 @@ impl ProxyHttp for GatewayProxy {
             wait_for_request_mirrors(&mut ctx.request_mirrors).await;
         }
 
+        // Apply wasm response headers from on_request hook.
+        if !ctx.wasm_response_headers.is_empty() {
+            for (name, value) in std::mem::take(&mut ctx.wasm_response_headers) {
+                if let Ok(header_name) = http::HeaderName::from_bytes(name.as_bytes()) {
+                    upstream_response.insert_header(header_name.as_str().to_string(), value.clone())?;
+                }
+            }
+        }
+
+        // Execute wasm on_response hook.
+        if let Some(ref wasm) = self.wasm_filter {
+            let request_headers: HashMap<String, String> = ctx
+                .request_headers
+                .as_ref()
+                .map(|h| h.iter().map(|(k, v)| (k.clone(), v.join(","))).collect())
+                .unwrap_or_default();
+            match wasm.post_process(request_headers, vec![]).await {
+                Ok(headers) => {
+                    for (name, value) in headers {
+                        if let Ok(header_name) = http::HeaderName::from_bytes(name.as_bytes()) {
+                            upstream_response.insert_header(header_name.as_str().to_string(), value.clone())?;
+                        }
+                    }
+                }
+                Err(e) => {
+                    tracing::warn!(
+                        target: "wasm_filter",
+                        error = %e,
+                        "wasm post_process failed, continuing"
+                    );
+                }
+            }
+        }
+
         if let Some(http_cache) = ctx.http_cache.0.as_mut() {
             let status = upstream_response.status.as_u16();
             if status < 500 && (status < 300 || status == 404) {
@@ -707,20 +741,6 @@ impl ProxyHttp for GatewayProxy {
 
         record_request_span(ctx);
 
-        if let Some(ref wasm) = self.wasm_filter {
-            let request_headers: HashMap<String, String> = ctx
-                .request_headers
-                .as_ref()
-                .map(|h| h.iter().map(|(k, v)| (k.clone(), v.join(","))).collect())
-                .unwrap_or_default();
-            if let Err(e) = wasm.post_process(request_headers, vec![]).await {
-                tracing::warn!(
-                    target: "wasm_filter",
-                    error = %e,
-                    "wasm post_process failed, continuing"
-                );
-            }
-        }
 
         Ok(())
     }

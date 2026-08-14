@@ -754,23 +754,26 @@ pub(crate) async fn do_request_filter(
             .iter()
             .map(|(k, v)| (k.to_string(), v.to_str().unwrap_or("").to_string()))
             .collect();
-        if let Err(e) = wasm.pre_process(request_headers, vec![]).await {
-            match e {
-                WasmError::PluginRejected(_name, code) => {
-                    let status = code.clamp(400, 599) as u16;
-                    ctx.status = status;
-                    assign_ctx_string(&mut ctx.response_flags, "WR");
-                    record_request_span(ctx);
-                    session.respond_error(status).await?;
-                    return Ok(true);
+        match wasm.pre_process(request_headers, vec![]).await {
+            Ok(headers) => {
+                if !headers.is_empty() {
+                    ctx.wasm_response_headers = headers;
                 }
-                _ => {
-                    tracing::warn!(
-                        target: "wasm_filter",
-                        error = %e,
-                        "wasm pre_process failed, continuing"
-                    );
-                }
+            }
+            Err(WasmError::PluginRejected(_name, code)) => {
+                let status = code.clamp(400, 599) as u16;
+                ctx.status = status;
+                assign_ctx_string(&mut ctx.response_flags, "WR");
+                record_request_span(ctx);
+                session.respond_error(status).await?;
+                return Ok(true);
+            }
+            Err(e) => {
+                tracing::warn!(
+                    target: "wasm_filter",
+                    error = %e,
+                    "wasm pre_process failed, continuing"
+                );
             }
         }
     }

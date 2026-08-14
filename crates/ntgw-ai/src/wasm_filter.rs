@@ -17,11 +17,11 @@ pub struct WasmPluginFilter {
 }
 
 impl WasmPluginFilter {
-    pub fn new(plugin_manager: Arc<PluginManager>, plugin_names: Vec<String>) -> Self {
+    pub fn new(plugin_manager: Arc<PluginManager>, plugin_names: Vec<String>, max_concurrency: usize) -> Self {
         Self {
             plugin_manager,
             plugin_names,
-            concurrency_limit: Arc::new(Semaphore::new(32)),
+            concurrency_limit: Arc::new(Semaphore::new(max_concurrency)),
         }
     }
 
@@ -29,11 +29,14 @@ impl WasmPluginFilter {
     ///
     /// Each plugin receives request headers and the raw body. If any plugin
     /// returns a rejection code the entire pre-process phase fails.
+    ///
+    /// On success, returns the response headers set by plugins via `set_header`,
+    /// so the caller can propagate them to the actual HTTP response.
     pub async fn pre_process(
         &self,
         request_headers: HashMap<String, String>,
         body: Vec<u8>,
-    ) -> Result<(), WasmError> {
+    ) -> Result<HashMap<String, String>, WasmError> {
         let _permit = match self.concurrency_limit.clone().try_acquire_owned() {
             Ok(permit) => permit,
             Err(TryAcquireError::NoPermits) => {
@@ -52,6 +55,7 @@ impl WasmPluginFilter {
         };
         let headers = Arc::new(request_headers);
         let body = Arc::new(body);
+        let mut all_response_headers: HashMap<String, String> = HashMap::new();
         for name in &self.plugin_names {
             tracing::debug!(
                 target: "wasm_filter",
@@ -74,13 +78,7 @@ impl WasmPluginFilter {
             .map_err(|e| WasmError::PluginExecution(name.clone(), format!("join error: {e}")))??;
             match result {
                 HookResult::Continue { response_headers } => {
-                    if !response_headers.is_empty() {
-                        tracing::warn!(
-                            target: "wasm_filter",
-                            plugin = %name,
-                            "guest set response headers but they are not propagated to the caller"
-                        );
-                    }
+                    all_response_headers.extend(response_headers);
                 }
                 HookResult::Reject(code) => {
                     tracing::warn!(
@@ -94,15 +92,18 @@ impl WasmPluginFilter {
             }
         }
 
-        Ok(())
+        Ok(all_response_headers)
     }
 
     /// Post-response: execute all plugins' on_response hook.
+    ///
+    /// Returns the response headers set by plugins so the caller can apply them
+    /// to the ongoing response before it is committed to the client.
     pub async fn post_process(
         &self,
         request_headers: HashMap<String, String>,
         response_body: Vec<u8>,
-    ) -> Result<(), WasmError> {
+    ) -> Result<HashMap<String, String>, WasmError> {
         let _permit = match self.concurrency_limit.clone().try_acquire_owned() {
             Ok(permit) => permit,
             Err(TryAcquireError::NoPermits) => {
@@ -121,6 +122,7 @@ impl WasmPluginFilter {
         };
         let headers = Arc::new(request_headers);
         let body = Arc::new(response_body);
+        let mut all_response_headers: HashMap<String, String> = HashMap::new();
         for name in &self.plugin_names {
             tracing::debug!(
                 target: "wasm_filter",
@@ -143,13 +145,7 @@ impl WasmPluginFilter {
             .map_err(|e| WasmError::PluginExecution(name.clone(), format!("join error: {e}")))??;
             match result {
                 HookResult::Continue { response_headers } => {
-                    if !response_headers.is_empty() {
-                        tracing::warn!(
-                            target: "wasm_filter",
-                            plugin = %name,
-                            "guest set response headers but they are not propagated to the caller"
-                        );
-                    }
+                    all_response_headers.extend(response_headers);
                 }
                 HookResult::Reject(code) => {
                     tracing::warn!(
@@ -163,6 +159,6 @@ impl WasmPluginFilter {
             }
         }
 
-        Ok(())
+        Ok(all_response_headers)
     }
 }

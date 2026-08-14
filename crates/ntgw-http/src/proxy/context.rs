@@ -1,5 +1,5 @@
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, HashMap},
     fmt::{self},
     net::IpAddr,
     sync::Arc,
@@ -145,6 +145,7 @@ pub struct RequestContext {
     pub(crate) fast_selected_backend: Option<FastSelectedBackendState>,
     pub(crate) selected_backend_config: Option<Arc<SelectedBackendConfig>>,
     pub(crate) external_auth_response_headers: BTreeMap<String, Vec<String>>,
+    pub(crate) wasm_response_headers: HashMap<String, String>,
     pub(crate) local_response_traffic_topology: Option<Arc<TrafficTopology>>,
     pub(crate) transport_retry_excluded_endpoints: Vec<TransportRetryExcludedEndpoint>,
     pub(crate) retry_backoff: Option<Duration>,

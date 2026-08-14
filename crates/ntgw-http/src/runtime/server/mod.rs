@@ -214,7 +214,7 @@ fn run_server(
 fn build_gateway_proxy(opts: &GatewayProxyOptions, runtime: &RuntimeOptions) -> GatewayProxy {
     let mut proxy_opts = (*opts).clone();
     proxy_opts.wasm_filter = if runtime.experimental.enable_experimental_gateway {
-        filters::build_wasm_filter(&proxy_opts.snapshot)
+        filters::build_wasm_filter(&proxy_opts.snapshot, runtime.experimental.wasm_max_concurrency)
     } else {
         None
     };

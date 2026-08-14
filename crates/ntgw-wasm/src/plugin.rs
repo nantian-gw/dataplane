@@ -16,13 +16,13 @@ use crate::error::WasmError;
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 pub enum WasmHook {
     /// Executed when a request is received (before upstream proxy).
-    #[serde(rename = "on_request")]
+    #[serde(rename = "on_request", alias = "onRequest")]
     OnRequest,
     /// Executed when a response is received (before sending to client).
-    #[serde(rename = "on_response")]
+    #[serde(rename = "on_response", alias = "onResponse")]
     OnResponse,
     /// Executed for each streamed chunk.
-    #[serde(rename = "on_stream_chunk")]
+    #[serde(rename = "on_stream_chunk", alias = "onStreamChunk")]
     OnStreamChunk,
 }
 
@@ -44,6 +44,12 @@ pub struct WasmSandboxConfig {
     pub max_memory_bytes: usize,
     /// Maximum execution time in milliseconds.
     pub max_execution_ms: u64,
+    /// Whether the plugin may make outbound network requests.
+    /// Currently reserved: WASI networking is not registered, so this is implicitly denied.
+    pub allow_network: bool,
+    /// Whether the plugin may access the host file system.
+    /// Currently reserved: WASI filesystem is not registered, so this is implicitly denied.
+    pub allow_file_system: bool,
 }
 
 impl Default for WasmSandboxConfig {
@@ -51,6 +57,8 @@ impl Default for WasmSandboxConfig {
         Self {
             max_memory_bytes: 16 * 1024 * 1024, // 16 MiB
             max_execution_ms: 10,               // 10 ms
+            allow_network: false,
+            allow_file_system: false,
         }
     }
 }

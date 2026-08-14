@@ -165,6 +165,8 @@ fn test_sandbox_config_custom() {
     let cfg = WasmSandboxConfig {
         max_memory_bytes: 1024,
         max_execution_ms: 100,
+        allow_network: false,
+        allow_file_system: false,
     };
     assert_eq!(cfg.max_memory_bytes, 1024);
     assert_eq!(cfg.max_execution_ms, 100);

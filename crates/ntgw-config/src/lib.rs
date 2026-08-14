@@ -337,6 +337,8 @@ pub struct ExperimentalConfig {
     pub enable_ai_gateway: bool,
     #[serde(default = "default_ai_gateway_max_request_body_bytes")]
     pub ai_gateway_max_request_body_bytes: usize,
+    #[serde(default = "default_wasm_max_concurrency")]
+    pub wasm_max_concurrency: usize,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

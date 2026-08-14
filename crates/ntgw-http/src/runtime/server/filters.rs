@@ -67,6 +67,7 @@ pub(super) fn build_ai_filter(
 
 pub(super) fn build_wasm_filter(
     snapshot: &SharedSnapshot,
+    max_concurrency: usize,
 ) -> Option<Arc<ntgw_ai::wasm_filter::WasmPluginFilter>> {
     use ntgw_ai::wasm_filter::WasmPluginFilter;
     use ntgw_wasm::plugin::{WasmHook, WasmPluginSpec, WasmSandboxConfig, global_plugin_manager};
@@ -122,6 +123,8 @@ pub(super) fn build_wasm_filter(
                 }
             },
             max_execution_ms: wp.sandbox.max_execution_time_ms,
+            allow_network: wp.sandbox.allow_network,
+            allow_file_system: wp.sandbox.allow_file_system,
         };
 
         desired.push((
@@ -174,5 +177,5 @@ pub(super) fn build_wasm_filter(
         return None;
     }
 
-    Some(Arc::new(WasmPluginFilter::new(pm, plugin_names)))
+    Some(Arc::new(WasmPluginFilter::new(pm, plugin_names, max_concurrency)))
 }
