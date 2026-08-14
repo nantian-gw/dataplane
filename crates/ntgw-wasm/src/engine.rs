@@ -89,7 +89,11 @@ impl wasmtime::ResourceLimiter for PluginContext {
     }
 
     fn instances(&self) -> usize {
-        1
+        // Allow 2 instances per Store: one from the pool (previous use) and
+        // one being created via instance_pre.instantiate(). The pool reuses
+        // Store objects, so a pooled Store may still hold an old instance
+        // during the brief instantiation window.
+        2
     }
 }
 

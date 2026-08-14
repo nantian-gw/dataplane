@@ -680,7 +680,8 @@ impl ProxyHttp for GatewayProxy {
         if !ctx.wasm_response_headers.is_empty() {
             for (name, value) in std::mem::take(&mut ctx.wasm_response_headers) {
                 if let Ok(header_name) = http::HeaderName::from_bytes(name.as_bytes()) {
-                    upstream_response.insert_header(header_name.as_str().to_string(), value.clone())?;
+                    upstream_response
+                        .insert_header(header_name.as_str().to_string(), value.clone())?;
                 }
             }
         }
@@ -696,7 +697,8 @@ impl ProxyHttp for GatewayProxy {
                 Ok(headers) => {
                     for (name, value) in headers {
                         if let Ok(header_name) = http::HeaderName::from_bytes(name.as_bytes()) {
-                            upstream_response.insert_header(header_name.as_str().to_string(), value.clone())?;
+                            upstream_response
+                                .insert_header(header_name.as_str().to_string(), value.clone())?;
                         }
                     }
                 }
@@ -740,7 +742,6 @@ impl ProxyHttp for GatewayProxy {
         }
 
         record_request_span(ctx);
-
 
         Ok(())
     }

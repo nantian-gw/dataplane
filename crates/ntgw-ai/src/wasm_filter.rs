@@ -17,7 +17,11 @@ pub struct WasmPluginFilter {
 }
 
 impl WasmPluginFilter {
-    pub fn new(plugin_manager: Arc<PluginManager>, plugin_names: Vec<String>, max_concurrency: usize) -> Self {
+    pub fn new(
+        plugin_manager: Arc<PluginManager>,
+        plugin_names: Vec<String>,
+        max_concurrency: usize,
+    ) -> Self {
         Self {
             plugin_manager,
             plugin_names,

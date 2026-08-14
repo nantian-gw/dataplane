@@ -177,5 +177,9 @@ pub(super) fn build_wasm_filter(
         return None;
     }
 
-    Some(Arc::new(WasmPluginFilter::new(pm, plugin_names, max_concurrency)))
+    Some(Arc::new(WasmPluginFilter::new(
+        pm,
+        plugin_names,
+        max_concurrency,
+    )))
 }

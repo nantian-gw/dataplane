@@ -143,7 +143,6 @@ impl PluginManager {
         // Prune stale serialized module cache files on startup.
         prune_module_cache();
 
-
         Ok(Self {
             engine,
             linker,
