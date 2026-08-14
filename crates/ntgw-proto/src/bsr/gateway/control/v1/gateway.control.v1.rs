@@ -167,6 +167,11 @@ pub struct WasmPluginConfig {
     /// Sandbox constraints for Wasm execution.
     #[prost(message, optional, tag="7")]
     pub sandbox: ::core::option::Option<WasmSandboxConfig>,
+    /// Optional reference URL from which the data plane may fetch the module
+    /// bytes instead of inlining them in `wasm_bytes`. When both are set,
+    /// `wasm_bytes` takes precedence.
+    #[prost(string, tag="8")]
+    pub source_url: ::prost::alloc::string::String,
 }
 /// WasmSandboxConfig defines resource limits and security constraints
 /// for WebAssembly plugin execution.

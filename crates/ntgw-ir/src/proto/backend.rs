@@ -11,6 +11,7 @@ pub(super) fn backend_from_proto(item: proto::BackendCluster) -> BackendCluster 
         sha256: wp.sha256,
         hooks: wp.hooks,
         config_json: wp.config_json,
+        source_url: wp.source_url,
         sandbox: WasmSandboxConfig {
             max_memory_bytes: wp.sandbox.map(|s| s.max_memory_bytes).unwrap_or(0),
             max_execution_time_ms: wp.sandbox.map(|s| s.max_execution_time_ms).unwrap_or(0),
