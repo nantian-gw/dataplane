@@ -20,6 +20,10 @@ pub struct AiServiceConfig {
     /// Timeout for AI provider API calls.
     #[prost(message, optional, tag="5")]
     pub timeout: ::core::option::Option<::prost_types::Duration>,
+    /// Optional endpoint URL override for the AI provider API.
+    /// If empty, the data plane uses the provider's default endpoint.
+    #[prost(string, tag="6")]
+    pub endpoint: ::prost::alloc::string::String,
 }
 /// AIServiceAuthConfig specifies how the data plane authenticates to an AI provider API.
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
@@ -33,6 +37,9 @@ pub struct AiServiceAuthConfig {
     /// HTTP header name to inject the credential into (e.g. "Authorization", "x-api-key").
     #[prost(string, tag="3")]
     pub header: ::prost::alloc::string::String,
+    /// Key within the Kubernetes Secret to read the credential from.
+    #[prost(string, tag="4")]
+    pub key: ::prost::alloc::string::String,
 }
 /// TokenPolicyConfig defines token-based rate limiting for AI model calls.
 #[derive(Clone, PartialEq, ::prost::Message)]

@@ -728,6 +728,7 @@ pub struct AIServiceConfig {
     pub provider: String,
     pub format: String,
     pub model: String,
+    pub endpoint: String,
     pub auth: Option<AIServiceAuthConfig>,
     pub timeout_secs: Option<u64>,
 }
@@ -736,6 +737,7 @@ pub struct AIServiceConfig {
 pub struct AIServiceAuthConfig {
     pub auth_type: String,
     pub secret_ref: String,
+    pub key: String,
     pub header: String,
 }
 

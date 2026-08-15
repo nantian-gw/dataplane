@@ -24,9 +24,11 @@ pub(super) fn backend_from_proto(item: proto::BackendCluster) -> BackendCluster 
         provider: ai.provider,
         format: ai.format,
         model: ai.model,
+        endpoint: ai.endpoint,
         auth: ai.auth.map(|a| AIServiceAuthConfig {
             auth_type: a.r#type,
             secret_ref: a.secret_ref,
+            key: a.key,
             header: a.header,
         }),
         timeout_secs: ai
