@@ -24,6 +24,30 @@ pub trait FormatAdapter: Send + Sync {
 
     fn serialize_stream_chunk(&self, chunk: &AIStreamChunk) -> Result<String, AIError>;
 
+    /// Parse the full SSE response body into stream chunks.
+    /// Each provider may have a different wire format.
+    fn parse_stream_body(&self, body: &[u8]) -> Result<Vec<AIStreamChunk>, AIError> {
+        // Default implementation: parse as OpenAI-style SSE
+        let sse_text = std::str::from_utf8(body)
+            .map_err(|e| AIError::Internal(anyhow::anyhow!("SSE: {e}")))?;
+        let mut chunks = Vec::new();
+        for event in sse_text.split("
+
+") {
+            let event = event.trim();
+            if event.is_empty() { continue; }
+            for line in event.lines() {
+                if let Some(json) = line.strip_prefix("data: ") {
+                    if json == "[DONE]" { continue; }
+                    let chunk: AIStreamChunk = serde_json::from_str(json)
+                        .map_err(|e| AIError::Internal(anyhow::anyhow!("SSE parse error: {e}")))?;
+                    chunks.push(chunk);
+                }
+            }
+        }
+        Ok(chunks)
+    }
+
     fn error_response(&self, status: u16, message: &str) -> Result<Vec<u8>, AIError>;
 }
 
@@ -60,17 +84,15 @@ impl Default for AdapterRegistry {
 
 #[must_use]
 pub fn detect_format(path: &str) -> Option<&'static str> {
-    if path.contains("/v1/chat/completions")
-        || path.contains("/v1/completions")
-        || path.contains("/chat/completions")
-    {
-        return Some("openai");
-    }
-    if path.contains("/v1/messages") {
-        return Some("anthropic");
-    }
-    if path.contains("/api/chat") || path.contains("/api/generate") {
-        return Some("ollama");
+    // Use path segment matching to avoid false positives.
+    let segments: Vec<&str> = path.split('/').filter(|s| !s.is_empty()).collect();
+    for seg in segments.windows(2) {
+        match seg {
+            ["v1", "chat\\_completions"] | ["v1", "completions"] | ["chat", "completions"] => return Some("openai"),
+            ["v1", "messages"] => return Some("anthropic"),
+            ["api", "chat"] | ["api", "generate"] => return Some("ollama"),
+            _ => (),
+        }
     }
     None
 }
