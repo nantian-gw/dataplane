@@ -21,21 +21,28 @@ pub(super) fn backend_from_proto(item: proto::BackendCluster) -> BackendCluster 
     });
 
     let ai_service = item.ai_service.map(|ai| AIServiceConfig {
-        provider: ai.provider,
-        format: ai.format,
-        model: ai.model,
-        endpoint: ai.endpoint,
-        auth: ai.auth.map(|a| AIServiceAuthConfig {
-            auth_type: a.r#type,
-            secret_ref: a.secret_ref,
-            key: a.key,
-            header: a.header,
-        }),
-        timeout_secs: ai
-            .timeout
-            .as_ref()
-            .and_then(duration_from_proto)
-            .map(|d| d.as_secs()),
+	    provider: ai.provider,
+	    format: ai.format,
+	    model: ai.model,
+	    endpoint: ai.endpoint,
+	    auth: ai.auth.map(|a| AIServiceAuthConfig {
+		    auth_type: a.r#type,
+		    secret_ref: a.secret_ref,
+		    key: a.key,
+		    header: a.header,
+	    }),
+	    timeout_secs: ai
+		    .timeout
+		    .as_ref()
+		    .and_then(duration_from_proto)
+		    .map(|d| d.as_secs()),
+	    retry_max_retries: ai.retry_max_retries,
+	    retry_backoff_ms: ai
+		    .retry_backoff
+		    .as_ref()
+		    .and_then(duration_from_proto)
+		    .map(|d| d.as_millis() as u64)
+		    .unwrap_or(0),
     });
 
     let token_policy = item.token_policy.map(|tp| TokenPolicyConfig {

@@ -24,6 +24,12 @@ pub struct AiServiceConfig {
     /// If empty, the data plane uses the provider's default endpoint.
     #[prost(string, tag="6")]
     pub endpoint: ::prost::alloc::string::String,
+    /// Maximum number of retry attempts for transient failures.
+    #[prost(uint32, tag="7")]
+    pub retry_max_retries: u32,
+    /// Base backoff duration between retries.
+    #[prost(message, optional, tag="8")]
+    pub retry_backoff: ::core::option::Option<::prost_types::Duration>,
 }
 /// AIServiceAuthConfig specifies how the data plane authenticates to an AI provider API.
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
