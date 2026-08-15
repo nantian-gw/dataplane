@@ -14,7 +14,7 @@ pub(super) fn build_ai_filter(
     use ntgw_ai::ratelimit::{RateLimitConfig, TokenRateLimiter};
 
     let registry = prometheus::default_registry();
-    let metrics = match AIMetrics::new(&registry) {
+    let metrics = match AIMetrics::new(registry) {
         Ok(m) => Arc::new(m),
         Err(e) => {
             tracing::warn!(
