@@ -107,20 +107,22 @@ impl Default for CacheConfig {
     }
 }
 
-/// Build a cache key from the request model and a hash of the last user message content.
-/// Uses a full-content hash instead of a truncated prefix to avoid collisions.
+/// Build a cache key from the request model and the full conversation context.
+/// Hashes the entire message history (system prompts, tool results, prior turns)
+/// so that distinct conversations with different context but the same last user
+/// message produce different cache keys.
 pub fn build_cache_key(request: &AIRequest) -> String {
-    let content = request
-        .messages
-        .iter()
-        .rev()
-        .find(|m| matches!(m.role, AIRole::User))
-        .map(|m| content_str(&m.content))
-        .unwrap_or_default();
-
     let mut hasher = std::collections::hash_map::DefaultHasher::new();
     request.model.hash(&mut hasher);
-    content.hash(&mut hasher);
+
+    // Include the full message history in order so that context and ordering
+    // affect the key. This prevents cache collisions between conversations
+    // that share only the final user message.
+    for message in &request.messages {
+        matches!(message.role, AIRole::User).hash(&mut hasher);
+        content_str(&message.content).hash(&mut hasher);
+    }
+
     format!("cache:{:016x}", hasher.finish())
 }
 
