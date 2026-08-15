@@ -863,7 +863,6 @@ impl ProxyHttp for GatewayProxy {
             http_cache.finish_miss_handler().await.ok();
         }
 
-
         record_request_span(ctx);
         let latency_ms = ctx
             .started_at

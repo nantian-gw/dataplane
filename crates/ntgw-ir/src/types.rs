@@ -725,14 +725,14 @@ pub struct WasmSandboxConfig {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AIServiceConfig {
-	pub provider: String,
-	pub format: String,
-	pub model: String,
-	pub endpoint: String,
-	pub auth: Option<AIServiceAuthConfig>,
-	pub timeout_secs: Option<u64>,
-	pub retry_max_retries: u32,
-	pub retry_backoff_ms: u64,
+    pub provider: String,
+    pub format: String,
+    pub model: String,
+    pub endpoint: String,
+    pub auth: Option<AIServiceAuthConfig>,
+    pub timeout_secs: Option<u64>,
+    pub retry_max_retries: u32,
+    pub retry_backoff_ms: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

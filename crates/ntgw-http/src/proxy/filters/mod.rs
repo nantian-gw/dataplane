@@ -831,7 +831,10 @@ pub(crate) async fn do_request_filter(
                     .and_then(|v| v.to_str().ok())
                     .map(|k| k.to_string())
             });
-        match ai_filter.pre_process(ctx.path.as_str(), &body, api_key.as_deref()).await {
+        match ai_filter
+            .pre_process(ctx.path.as_str(), &body, api_key.as_deref())
+            .await
+        {
             Ok(ai_ctx) => {
                 ctx.ai_context = Some(ai_ctx);
             }

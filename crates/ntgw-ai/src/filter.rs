@@ -624,12 +624,10 @@ impl AIGatewayFilter {
         }
 
         // OTel tracing — span was started in process_with_fallback
-        if let Some(ref tracer) = self.tracer {
-            if let Some(span) = ctx.ai_span.lock().take() {
-                let prompt_tokens = usage.as_ref().map_or(0, |u| u.prompt_tokens);
-                let completion_tokens = usage.as_ref().map_or(0, |u| u.completion_tokens);
-                tracer.end_span(span, prompt_tokens, completion_tokens);
-            }
+        if let (Some(tracer), Some(span)) = (self.tracer.as_ref(), ctx.ai_span.lock().take()) {
+            let prompt_tokens = usage.as_ref().map_or(0, |u| u.prompt_tokens);
+            let completion_tokens = usage.as_ref().map_or(0, |u| u.completion_tokens);
+            tracer.end_span(span, prompt_tokens, completion_tokens);
         }
 
         // Mask PII in the response body before returning to client
