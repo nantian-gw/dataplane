@@ -14,6 +14,7 @@ pub struct AITracer {
 }
 
 /// A span representing an AI inference operation.
+#[derive(Debug)]
 pub struct AISpan {
     pub name: String,
     pub start: Instant,

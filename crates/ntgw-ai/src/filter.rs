@@ -34,6 +34,10 @@ pub struct AIContext {
     pub raw_request: Vec<u8>,
     pub cache_key: Option<String>,
     pub complexity: Option<Complexity>,
+    /// OTel span tracking the upstream inference call. Created in
+    /// process_with_fallback before the upstream call and ended in
+    /// post_process so the span measures the actual upstream time.
+    pub ai_span: std::sync::Arc<parking_lot::Mutex<Option<crate::observability::tracing::AISpan>>>,
 }
 
 /// AI Gateway filter: wraps upstream call with format conversion,
@@ -459,6 +463,7 @@ impl AIGatewayFilter {
             raw_request: masked_body,
             cache_key,
             complexity,
+            ai_span: std::sync::Arc::new(parking_lot::Mutex::new(None)),
         })
     }
 
@@ -618,12 +623,13 @@ impl AIGatewayFilter {
             }
         }
 
-        // OTel tracing
+        // OTel tracing — span was started in process_with_fallback
         if let Some(ref tracer) = self.tracer {
-            let prompt_tokens = usage.as_ref().map_or(0, |u| u.prompt_tokens);
-            let completion_tokens = usage.as_ref().map_or(0, |u| u.completion_tokens);
-            let span = tracer.start_span("ai.inference", &model, &format, is_stream);
-            tracer.end_span(span, prompt_tokens, completion_tokens);
+            if let Some(span) = ctx.ai_span.lock().take() {
+                let prompt_tokens = usage.as_ref().map_or(0, |u| u.prompt_tokens);
+                let completion_tokens = usage.as_ref().map_or(0, |u| u.completion_tokens);
+                tracer.end_span(span, prompt_tokens, completion_tokens);
+            }
         }
 
         // Mask PII in the response body before returning to client
@@ -688,8 +694,17 @@ impl AIGatewayFilter {
         let mut ctx = self.pre_process(path, body, api_key).await?;
         let original_model = ctx.request.model.clone();
         let mut attempt: u32 = 0;
-
         loop {
+            // Start OTel span before upstream call to measure actual inference time.
+            if let Some(ref tracer) = self.tracer {
+                *ctx.ai_span.lock() = Some(tracer.start_span(
+                    "ai.inference",
+                    &ctx.request.model,
+                    &ctx.format,
+                    ctx.request.stream,
+                ));
+            }
+
             let (response_body, response_status) =
                 upstream_call(&ctx.request, &ctx.raw_request).await?;
 
