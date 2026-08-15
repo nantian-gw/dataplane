@@ -61,11 +61,13 @@ impl SlidingWindow {
     }
 
     /// Check before sending request. Returns whether request can proceed.
+    /// Also checks token budget from previous requests so that requests
+    /// are rejected before incurring upstream cost when the budget is exhausted.
     fn check(&mut self) -> RateLimitResult {
         let now = Instant::now();
         let window = Duration::from_secs(60);
 
-        // Remove requests outside the sliding window
+        // Remove requests and tokens outside the sliding window
         while let Some(&t) = self.requests.front() {
             if now.duration_since(t) > window {
                 self.requests.pop_front();
@@ -73,9 +75,34 @@ impl SlidingWindow {
                 break;
             }
         }
+        while let Some(&(t, _)) = self.minute_tokens.front() {
+            if now.duration_since(t) > window {
+                self.minute_tokens.pop_front();
+            } else {
+                break;
+            }
+        }
+        while let Some(&(t, _)) = self.hour_tokens.front() {
+            if now.duration_since(t) > Duration::from_secs(3600) {
+                self.hour_tokens.pop_front();
+            } else {
+                break;
+            }
+        }
 
+        // Check minute token budget from previous requests
+        let minute_used: u64 = self.minute_tokens.iter().map(|(_, t)| t).sum();
+        if self.minute_token_limit > 0 && minute_used >= self.minute_token_limit {
+            return RateLimitResult::Limited { retry_after_secs: 1 };
+        }
+        // Check hour token budget from previous requests
+        let hour_used: u64 = self.hour_tokens.iter().map(|(_, t)| t).sum();
+        if self.hour_token_limit > 0 && hour_used >= self.hour_token_limit {
+            return RateLimitResult::Limited { retry_after_secs: 1 };
+        }
+
+        // Check request limit
         if self.minute_req_limit > 0 && self.requests.len() >= self.minute_req_limit as usize {
-            // The oldest request determines when a slot opens up
             let oldest = self.requests.front().copied().unwrap_or(now);
             let secs = oldest.duration_since(now).checked_add(window).unwrap_or(window);
             return RateLimitResult::Limited {
@@ -84,7 +111,11 @@ impl SlidingWindow {
         }
 
         self.requests.push_back(now);
-        RateLimitResult::Allowed { remaining: self.minute_req_limit.saturating_sub(self.requests.len() as u64) }
+        RateLimitResult::Allowed {
+            remaining: self.minute_token_limit
+                .saturating_sub(minute_used)
+                .min(self.minute_req_limit.saturating_sub(self.requests.len() as u64)),
+        }
     }
 
     /// Record tokens after response and check limits.
