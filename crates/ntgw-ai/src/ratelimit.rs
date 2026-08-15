@@ -1,4 +1,5 @@
 use dashmap::DashMap;
+use std::collections::VecDeque;
 use std::time::{Duration, Instant};
 
 /// Result of a rate limit check.
@@ -34,84 +35,95 @@ impl Default for RateLimitConfig {
     }
 }
 
-/// Per-key sliding window state.
+/// Per-key sliding window state using true sliding-window algorithm.
+/// Maintains deques of timestamps so that rate limits are enforced
+/// continuously rather than on fixed clock boundaries.
 struct SlidingWindow {
-    minute_tokens: u64,
-    hour_tokens: u64,
-    minute_requests: u64,
-    minute_reset: Instant,
-    hour_reset: Instant,
-    minute_limit: u64,
-    hour_limit: u64,
     minute_req_limit: u64,
+    minute_token_limit: u64,
+    hour_token_limit: u64,
+    requests: VecDeque<Instant>,
+    minute_tokens: VecDeque<(Instant, u64)>,
+    hour_tokens: VecDeque<(Instant, u64)>,
 }
 
 impl SlidingWindow {
     fn new(config: &RateLimitConfig) -> Self {
-        let now = Instant::now();
         let burst = config.burst.max(1.0);
         Self {
-            minute_tokens: 0,
-            hour_tokens: 0,
-            minute_requests: 0,
-            minute_reset: now + Duration::from_secs(60),
-            hour_reset: now + Duration::from_secs(3600),
-            minute_limit: (config.tokens_per_minute as f64 * burst) as u64,
-            hour_limit: (config.tokens_per_hour as f64 * burst) as u64,
             minute_req_limit: (config.requests_per_minute as f64 * burst) as u64,
+            minute_token_limit: (config.tokens_per_minute as f64 * burst) as u64,
+            hour_token_limit: (config.tokens_per_hour as f64 * burst) as u64,
+            requests: VecDeque::new(),
+            minute_tokens: VecDeque::new(),
+            hour_tokens: VecDeque::new(),
         }
     }
 
     /// Check before sending request. Returns whether request can proceed.
     fn check(&mut self) -> RateLimitResult {
         let now = Instant::now();
+        let window = Duration::from_secs(60);
 
-        // Reset windows if expired
-        if now >= self.minute_reset {
-            self.minute_tokens = 0;
-            self.minute_requests = 0;
-            self.minute_reset = now + Duration::from_secs(60);
+        // Remove requests outside the sliding window
+        while let Some(&t) = self.requests.front() {
+            if now.duration_since(t) > window {
+                self.requests.pop_front();
+            } else {
+                break;
+            }
         }
-        if now >= self.hour_reset {
-            self.hour_tokens = 0;
-            self.hour_reset = now + Duration::from_secs(3600);
-        }
 
-        self.minute_requests += 1;
-
-        // Check request limit (after incrementing, so we include this request)
-        if self.minute_req_limit > 0 && self.minute_requests > self.minute_req_limit {
-            let secs = self.minute_reset.duration_since(now).as_secs().max(1);
+        if self.minute_req_limit > 0 && self.requests.len() >= self.minute_req_limit as usize {
+            // The oldest request determines when a slot opens up
+            let oldest = self.requests.front().copied().unwrap_or(now);
+            let secs = oldest.duration_since(now).checked_add(window).unwrap_or(window);
             return RateLimitResult::Limited {
-                retry_after_secs: secs,
+                retry_after_secs: secs.as_secs().max(1),
             };
         }
 
-        RateLimitResult::Allowed { remaining: 0 }
+        self.requests.push_back(now);
+        RateLimitResult::Allowed { remaining: self.minute_req_limit.saturating_sub(self.requests.len() as u64) }
     }
 
     /// Record tokens after response and check limits.
     fn record_tokens(&mut self, tokens: u64) -> RateLimitResult {
         let now = Instant::now();
-        self.minute_tokens += tokens;
-        self.hour_tokens += tokens;
 
-        // Check after recording
-        if self.hour_limit > 0 && self.hour_tokens > self.hour_limit {
-            let secs = self.hour_reset.duration_since(now).as_secs().max(1);
-            return RateLimitResult::Limited {
-                retry_after_secs: secs,
-            };
+        // Prune minute tokens outside the 60s sliding window
+        while let Some(&(t, _)) = self.minute_tokens.front() {
+            if now.duration_since(t) > Duration::from_secs(60) {
+                self.minute_tokens.pop_front();
+            } else {
+                break;
+            }
         }
-        if self.minute_limit > 0 && self.minute_tokens > self.minute_limit {
-            let secs = self.minute_reset.duration_since(now).as_secs().max(1);
-            return RateLimitResult::Limited {
-                retry_after_secs: secs,
-            };
+        // Prune hour tokens outside the 3600s sliding window
+        while let Some(&(t, _)) = self.hour_tokens.front() {
+            if now.duration_since(t) > Duration::from_secs(3600) {
+                self.hour_tokens.pop_front();
+            } else {
+                break;
+            }
         }
 
+        let minute_sum: u64 = self.minute_tokens.iter().map(|(_, t)| t).sum();
+        let hour_sum: u64 = self.hour_tokens.iter().map(|(_, t)| t).sum();
+
+        if self.hour_token_limit > 0 && hour_sum + tokens > self.hour_token_limit {
+            return RateLimitResult::Limited { retry_after_secs: 1 };
+        }
+        if self.minute_token_limit > 0 && minute_sum + tokens > self.minute_token_limit {
+            return RateLimitResult::Limited { retry_after_secs: 1 };
+        }
+
+        self.minute_tokens.push_back((now, tokens));
+        self.hour_tokens.push_back((now, tokens));
+
+        let new_minute_sum = minute_sum + tokens;
         RateLimitResult::Allowed {
-            remaining: self.minute_limit.saturating_sub(self.minute_tokens),
+            remaining: self.minute_token_limit.saturating_sub(new_minute_sum),
         }
     }
 }
