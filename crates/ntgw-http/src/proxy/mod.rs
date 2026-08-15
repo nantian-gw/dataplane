@@ -782,7 +782,46 @@ impl ProxyHttp for GatewayProxy {
         }
 
         if _end_of_stream && self.ai_filter.is_some() && ctx.ai_context.is_some() {
-            // Deferred to logging() which is async — avoids block_on in sync context
+            // Process the AI response body in the response_body_filter context
+            // so the transformed body reaches the client before the response is sent.
+            let response_body: Vec<u8> = ctx
+                .cached_response_body
+                .iter()
+                .flat_map(|b| b.iter())
+                .copied()
+                .collect();
+            let ai_ctx = ctx.ai_context.take();
+            let result = tokio::task::block_in_place(|| {
+                tokio::runtime::Handle::current().block_on(async {
+                    if let Some(ref ai_filter) = self.ai_filter
+                        && let Some(ai_ctx) = ai_ctx
+                    {
+                        ai_filter
+                            .post_process(ai_ctx, &response_body, ctx.status)
+                            .await
+                    } else {
+                        Ok(response_body)
+                    }
+                })
+            });
+            match result {
+                Ok(transformed_body) => {
+                    *body = Some(Bytes::from(transformed_body));
+                }
+                Err(e) => {
+                    tracing::warn!(target: "ai_gateway", error = %e, "AI post_process failed");
+                    // Fall back to the original buffered body
+                    let fallback: Vec<u8> = ctx
+                        .cached_response_body
+                        .iter()
+                        .flat_map(|b| b.iter())
+                        .copied()
+                        .collect();
+                    *body = Some(Bytes::from(fallback));
+                }
+            }
+            ctx.cached_response_body.clear();
+            ctx.cached_response_body_bytes = 0;
         }
 
         Ok(None)
@@ -824,23 +863,6 @@ impl ProxyHttp for GatewayProxy {
             http_cache.finish_miss_handler().await.ok();
         }
 
-        // AI Gateway post-processing — performed here in async context
-        if let Some(ref ai_filter) = self.ai_filter
-            && let Some(ai_ctx) = ctx.ai_context.take()
-        {
-            let response_body: Vec<u8> = ctx
-                .cached_response_body
-                .iter()
-                .flat_map(|b| b.iter())
-                .copied()
-                .collect();
-            if let Err(e) = ai_filter
-                .post_process(ai_ctx, &response_body, ctx.status)
-                .await
-            {
-                tracing::warn!(target: "ai_gateway", error = %e, "AI gateway post_process failed");
-            }
-        }
 
         record_request_span(ctx);
         let latency_ms = ctx
