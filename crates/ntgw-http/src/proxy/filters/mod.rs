@@ -815,7 +815,23 @@ pub(crate) async fn do_request_filter(
         }
 
         ctx.path = session.req_header().uri.path().to_string();
-        match ai_filter.pre_process(ctx.path.as_str(), &body, None).await {
+        // Extract API key from Authorization: Bearer <key> or x-api-key header.
+        let api_key: Option<String> = session
+            .req_header()
+            .headers
+            .get("authorization")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.strip_prefix("Bearer "))
+            .map(|k| k.to_string())
+            .or_else(|| {
+                session
+                    .req_header()
+                    .headers
+                    .get("x-api-key")
+                    .and_then(|v| v.to_str().ok())
+                    .map(|k| k.to_string())
+            });
+        match ai_filter.pre_process(ctx.path.as_str(), &body, api_key.as_deref()).await {
             Ok(ai_ctx) => {
                 ctx.ai_context = Some(ai_ctx);
             }
