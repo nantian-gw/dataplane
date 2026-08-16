@@ -31,14 +31,20 @@ pub trait FormatAdapter: Send + Sync {
         let sse_text = std::str::from_utf8(body)
             .map_err(|e| AIError::Internal(anyhow::anyhow!("SSE: {e}")))?;
         let mut chunks = Vec::new();
-        for event in sse_text.split("
+        for event in sse_text.split(
+            "
 
-") {
+",
+        ) {
             let event = event.trim();
-            if event.is_empty() { continue; }
+            if event.is_empty() {
+                continue;
+            }
             for line in event.lines() {
                 if let Some(json) = line.strip_prefix("data: ") {
-                    if json == "[DONE]" { continue; }
+                    if json == "[DONE]" {
+                        continue;
+                    }
                     let chunk: AIStreamChunk = serde_json::from_str(json)
                         .map_err(|e| AIError::Internal(anyhow::anyhow!("SSE parse error: {e}")))?;
                     chunks.push(chunk);
@@ -88,7 +94,9 @@ pub fn detect_format(path: &str) -> Option<&'static str> {
     let segments: Vec<&str> = path.split('/').filter(|s| !s.is_empty()).collect();
     for seg in segments.windows(2) {
         match seg {
-            ["v1", "chat\\_completions"] | ["v1", "completions"] | ["chat", "completions"] => return Some("openai"),
+            ["v1", "chat\\_completions"] | ["v1", "completions"] | ["chat", "completions"] => {
+                return Some("openai");
+            }
             ["v1", "messages"] => return Some("anthropic"),
             ["api", "chat"] | ["api", "generate"] => return Some("ollama"),
             _ => (),

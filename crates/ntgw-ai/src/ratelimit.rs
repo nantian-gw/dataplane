@@ -93,18 +93,25 @@ impl SlidingWindow {
         // Check minute token budget from previous requests
         let minute_used: u64 = self.minute_tokens.iter().map(|(_, t)| t).sum();
         if self.minute_token_limit > 0 && minute_used >= self.minute_token_limit {
-            return RateLimitResult::Limited { retry_after_secs: 1 };
+            return RateLimitResult::Limited {
+                retry_after_secs: 1,
+            };
         }
         // Check hour token budget from previous requests
         let hour_used: u64 = self.hour_tokens.iter().map(|(_, t)| t).sum();
         if self.hour_token_limit > 0 && hour_used >= self.hour_token_limit {
-            return RateLimitResult::Limited { retry_after_secs: 1 };
+            return RateLimitResult::Limited {
+                retry_after_secs: 1,
+            };
         }
 
         // Check request limit
         if self.minute_req_limit > 0 && self.requests.len() >= self.minute_req_limit as usize {
             let oldest = self.requests.front().copied().unwrap_or(now);
-            let secs = oldest.duration_since(now).checked_add(window).unwrap_or(window);
+            let secs = oldest
+                .duration_since(now)
+                .checked_add(window)
+                .unwrap_or(window);
             return RateLimitResult::Limited {
                 retry_after_secs: secs.as_secs().max(1),
             };
@@ -112,9 +119,10 @@ impl SlidingWindow {
 
         self.requests.push_back(now);
         RateLimitResult::Allowed {
-            remaining: self.minute_token_limit
-                .saturating_sub(minute_used)
-                .min(self.minute_req_limit.saturating_sub(self.requests.len() as u64)),
+            remaining: self.minute_token_limit.saturating_sub(minute_used).min(
+                self.minute_req_limit
+                    .saturating_sub(self.requests.len() as u64),
+            ),
         }
     }
 
@@ -143,10 +151,14 @@ impl SlidingWindow {
         let hour_sum: u64 = self.hour_tokens.iter().map(|(_, t)| t).sum();
 
         if self.hour_token_limit > 0 && hour_sum + tokens > self.hour_token_limit {
-            return RateLimitResult::Limited { retry_after_secs: 1 };
+            return RateLimitResult::Limited {
+                retry_after_secs: 1,
+            };
         }
         if self.minute_token_limit > 0 && minute_sum + tokens > self.minute_token_limit {
-            return RateLimitResult::Limited { retry_after_secs: 1 };
+            return RateLimitResult::Limited {
+                retry_after_secs: 1,
+            };
         }
 
         self.minute_tokens.push_back((now, tokens));

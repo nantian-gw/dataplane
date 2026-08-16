@@ -43,7 +43,13 @@ pub struct AIContext {
 /// AI Gateway filter: wraps upstream call with format conversion,
 /// token counting, metrics, tracing, Langfuse.
 /// Resolve the rate limit key based on the configured scope.
-fn rate_limit_key(scope: &str, api_key: Option<&str>, model: &str, path: &str, user: &str) -> String {
+fn rate_limit_key(
+    scope: &str,
+    api_key: Option<&str>,
+    model: &str,
+    path: &str,
+    user: &str,
+) -> String {
     match scope {
         "apiKey" => api_key.unwrap_or("unknown").to_string(),
         "model" => model.to_string(),
@@ -423,7 +429,13 @@ impl AIGatewayFilter {
 
         // 3. Rate limit check (pre-request)
         if let Some(ref rl) = self.rate_limiter {
-            let rl_key = rate_limit_key(&rl.config.scope, api_key, &request.model, path, request.user.as_deref().unwrap_or(""));
+            let rl_key = rate_limit_key(
+                &rl.config.scope,
+                api_key,
+                &request.model,
+                path,
+                request.user.as_deref().unwrap_or(""),
+            );
             match rl.check(&rl_key) {
                 RateLimitResult::Limited { retry_after_secs } => {
                     self.metrics
@@ -580,7 +592,13 @@ impl AIGatewayFilter {
         // Record rate limit token usage (post-response)
         if let Some(ref rl) = self.rate_limiter {
             let total_tokens = usage.as_ref().map(|u| u.total_tokens).unwrap_or(0);
-            let rl_key = rate_limit_key(&rl.config.scope, None, &model, "", ctx.request.user.as_deref().unwrap_or(""));
+            let rl_key = rate_limit_key(
+                &rl.config.scope,
+                None,
+                &model,
+                "",
+                ctx.request.user.as_deref().unwrap_or(""),
+            );
             if let RateLimitResult::Limited { .. } = rl.record_usage(&rl_key, total_tokens) {
                 self.metrics.record_rate_limit_hit(&model, &rl.config.scope);
             }
