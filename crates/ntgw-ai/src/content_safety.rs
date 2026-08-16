@@ -134,6 +134,31 @@ impl ContentSafetyFilter {
                 "illegal",
                 r"(?i)(hacking|phishing)\s+(guide|tutorial|instructions?|how\s+to\s+(hack|break\s+into|infiltrate))",
             ),
+            (
+                "violence-cn-1",
+                "violence",
+                r"(杀人|自杀|爆炸|恐怖袭击|枪支|砍人|炸毁|抢劫|绑架)",
+            ),
+            (
+                "hate-cn-1",
+                "hate",
+                r"(歧视|种族主义|纳粹|低等民族|劣等民族|消灭.*民族|驱逐.*民族)",
+            ),
+            (
+                "self-harm-cn-1",
+                "self_harm",
+                r"(自杀|自残|割腕|跳楼|安眠药|不想活|结束生命|伤害自己)",
+            ),
+            (
+                "exploitation-cn-1",
+                "exploitation",
+                r"(儿童.*色情|未成年人.*性|幼女|猥亵.*儿童|儿童.*裸体)",
+            ),
+            (
+                "illegal-cn-1",
+                "illegal",
+                r"(毒品|贩毒|赌博|诈骗|洗钱|走私|造假|非法交易|作弊|代考)",
+            ),
         ]
         .into_iter()
         .map(|(label, category, pattern)| Self::compile_builtin_pattern(label, category, pattern))

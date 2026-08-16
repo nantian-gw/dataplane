@@ -11,6 +11,7 @@ pub enum PIIEntityType {
     Phone,
     PersonName,
     CreditCard,
+    SSN,
     IDCard,
     Address,
     URL,
@@ -24,6 +25,7 @@ impl PIIEntityType {
             Self::Phone => "phone",
             Self::PersonName => "person",
             Self::CreditCard => "credit_card",
+            Self::SSN => "ssn",
             Self::IDCard => "id_card",
             Self::Address => "address",
             Self::URL => "url",
@@ -99,7 +101,7 @@ impl PIIMasker {
                     Self::compile_builtin_pattern(
                         "credit-card",
                         PIIEntityType::CreditCard,
-                        r"\b(?:\d[ -]*?){13,16}\b",
+                        r"\b\d{4}[- ]?\d{4}[- ]?\d{4}[- ]?\d{4}\b",
                     )?,
                     Self::compile_builtin_pattern(
                         "id-card",
@@ -115,6 +117,21 @@ impl PIIMasker {
                         "ip",
                         PIIEntityType::IPAddress,
                         r"\b(?:\d{1,3}\.){3}\d{1,3}\b",
+                    )?,
+                    Self::compile_builtin_pattern(
+                        "person-name",
+                        PIIEntityType::PersonName,
+                        r"(?:Mr|Mrs|Ms|Dr)\.?\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*",
+                    )?,
+                    Self::compile_builtin_pattern(
+                        "address",
+                        PIIEntityType::Address,
+                        r"\d+\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*(?:\s+(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Drive|Dr|Lane|Ln|Way|Court|Ct))",
+                    )?,
+                    Self::compile_builtin_pattern(
+                        "ssn",
+                        PIIEntityType::SSN,
+                        r"\d{3}-\d{2}-\d{4}",
                     )?,
                 ])
             })

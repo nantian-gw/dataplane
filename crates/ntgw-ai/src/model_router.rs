@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use rand::seq::SliceRandom;
 
 use crate::format::ir::AIRequest;
 
@@ -62,7 +63,15 @@ impl ModelRouter {
 
     #[must_use]
     pub fn route(&self, complexity: Complexity) -> Option<&ModelRoute> {
-        self.routes.get(&complexity).and_then(|v| v.first())
+        self.routes.get(&complexity).and_then(|routes| {
+            let total_weight: u32 = routes.iter().map(|r| r.weight).sum();
+            if total_weight == 0 {
+                return routes.first();
+            }
+            // Weighted random selection: pick a route with probability proportional to its weight.
+            let mut rng = rand::thread_rng();
+            routes.choose_weighted(&mut rng, |r| r.weight).ok()
+        })
     }
 
     #[must_use]
