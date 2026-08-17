@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use ntgw_wasm::sandbox::AISandbox;
 
@@ -440,7 +440,32 @@ impl AIGatewayFilter {
                 RateLimitResult::Limited { retry_after_secs } => {
                     self.metrics
                         .record_rate_limit_hit(&request.model, &rl.config.scope);
-                    return Err(AIError::RateLimitExceeded { retry_after_secs });
+                    match rl.config.on_limit.as_str() {
+                        "queue" => {
+                            // Queue mode: sleep and retry once
+                            tokio::time::sleep(Duration::from_secs(retry_after_secs.min(5))).await;
+                            // Re-check after waiting
+                            match rl.check(&rl_key) {
+                                RateLimitResult::Limited { .. } => {
+                                    return Err(AIError::RateLimitExceeded { retry_after_secs });
+                                }
+                                RateLimitResult::Allowed { .. } => {}
+                            }
+                        }
+                        "warn" => {
+                            // Warn mode: log and allow
+                            tracing::warn!(
+                                target: "rate_limiter",
+                                scope = %rl.config.scope,
+                                key = %rl_key,
+                                "rate limit exceeded (warn mode, allowing)"
+                            );
+                        }
+                        _ => {
+                            // Default: reject
+                            return Err(AIError::RateLimitExceeded { retry_after_secs });
+                        }
+                    }
                 }
                 RateLimitResult::Allowed { .. } => {}
             }
@@ -629,7 +654,12 @@ impl AIGatewayFilter {
                 serde_json::from_slice(response_body).unwrap_or(serde_json::Value::Null);
 
             if let Err(e) = lf
-                .ingest_trace(&trace_id, None, None, &Default::default())
+                .ingest_trace(
+                    &trace_id,
+                    ctx.request.user.as_deref(),
+                    None,
+                    &Default::default(),
+                )
                 .await
             {
                 tracing::warn!(error = %e, "failed to ingest trace to Langfuse");

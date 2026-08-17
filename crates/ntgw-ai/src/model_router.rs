@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use rand::seq::SliceRandom;
+use std::collections::HashMap;
 
 use crate::format::ir::AIRequest;
 
