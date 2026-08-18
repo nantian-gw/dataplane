@@ -45,6 +45,8 @@ fn build_upstream_peer_reuses_backend_tls_validation_cache_for_equivalent_policy
         }),
         session_persistence: None,
         load_balancing: None,
+        health_check: None,
+        outlier_detection: None,
     };
     let second_policy = BackendPolicy {
         connect_timeout: None,
@@ -62,6 +64,8 @@ fn build_upstream_peer_reuses_backend_tls_validation_cache_for_equivalent_policy
         }),
         session_persistence: None,
         load_balancing: None,
+        health_check: None,
+        outlier_detection: None,
     };
 
     let first_peer = build_upstream_peer(
@@ -144,6 +148,8 @@ fn build_upstream_peer_reuses_backend_tls_validation_cache_across_interleaved_sn
         }),
         session_persistence: None,
         load_balancing: None,
+        health_check: None,
+        outlier_detection: None,
     };
     let interleaved_policy = BackendPolicy {
         connect_timeout: None,
@@ -161,6 +167,8 @@ fn build_upstream_peer_reuses_backend_tls_validation_cache_across_interleaved_sn
         }),
         session_persistence: None,
         load_balancing: None,
+        health_check: None,
+        outlier_detection: None,
     };
 
     let first_peer = build_upstream_peer(

@@ -1317,6 +1317,7 @@ fn external_auth_with_backend_tls_and_session_persistence_combo_snapshot() {
                             key_type: "SourceIP".to_string(),
                             header_name: String::new(),
                         }),
+                        slow_start: None,
                     }),
                     ..BackendPolicy::default()
                 },

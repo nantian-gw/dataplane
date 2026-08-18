@@ -42,6 +42,8 @@ fn build_upstream_peer_uses_backend_tls_validation_hostname() {
             }),
             session_persistence: None,
             load_balancing: None,
+            health_check: None,
+            outlier_detection: None,
         }),
     )
     .expect("peer");

@@ -1,7 +1,7 @@
 use super::routes::session_persistence_from_proto;
 use super::values::{duration_from_proto, list_value, optional_string, struct_value};
 use super::*;
-use crate::CircuitBreakerConfig;
+use crate::{CircuitBreakerConfig, HealthCheckConfig, OutlierDetectionConfig, SlowStartConfig};
 
 pub(super) fn backend_from_proto(item: proto::BackendCluster) -> BackendCluster {
     let wasm_plugin = item.wasm_plugin.map(|wp| WasmPluginConfig {
@@ -115,6 +115,24 @@ pub(super) fn backend_policy_from_proto(item: &proto::BackendCluster) -> Backend
             .clone()
             .map(session_persistence_from_proto),
         load_balancing: item.load_balancing.clone().map(load_balancing_from_proto),
+        health_check: item.health_check.as_ref().map(|hc| HealthCheckConfig {
+            r#type: hc.r#type.clone(),
+            path: hc.path.clone(),
+            expected_status: hc.expected_status,
+            interval: hc.interval.as_ref().and_then(duration_from_proto),
+            timeout: hc.timeout.as_ref().and_then(duration_from_proto),
+            healthy_threshold: hc.healthy_threshold,
+            unhealthy_threshold: hc.unhealthy_threshold,
+        }),
+        outlier_detection: item
+            .outlier_detection
+            .as_ref()
+            .map(|od| OutlierDetectionConfig {
+                consecutive_5xx: od.consecutive_5xx,
+                interval: od.interval.as_ref().and_then(duration_from_proto),
+                base_ejection_time: od.base_ejection_time.as_ref().and_then(duration_from_proto),
+                max_ejection_percent: od.max_ejection_percent,
+            }),
     }
 }
 
@@ -122,6 +140,9 @@ fn load_balancing_from_proto(item: proto::LoadBalancingPolicy) -> LoadBalancingP
     LoadBalancingPolicy {
         policy_type: load_balancing_type_from_proto(item.r#type()).to_string(),
         consistent_hash: item.consistent_hash.map(consistent_hash_from_proto),
+        slow_start: item.slow_start.map(|ss| SlowStartConfig {
+            window: ss.window.as_ref().and_then(duration_from_proto),
+        }),
     }
 }
 
@@ -136,6 +157,8 @@ fn load_balancing_type_from_proto(item: proto::LoadBalancingPolicyType) -> &'sta
     match item {
         proto::LoadBalancingPolicyType::LoadBalancingRoundRobin => "RoundRobin",
         proto::LoadBalancingPolicyType::LoadBalancingConsistentHash => "ConsistentHash",
+        proto::LoadBalancingPolicyType::LoadBalancingLeastRequest => "LeastRequest",
+        proto::LoadBalancingPolicyType::LoadBalancingRandom => "Random",
         proto::LoadBalancingPolicyType::LoadBalancingUnspecified => "",
     }
 }

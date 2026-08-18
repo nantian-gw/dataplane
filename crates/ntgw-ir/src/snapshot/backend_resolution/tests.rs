@@ -160,6 +160,7 @@ fn backend_policy_helpers_borrow_snapshot_values() {
                     ..SessionPersistence::default()
                 }),
                 load_balancing: Some(LoadBalancingPolicy {
+                    slow_start: None,
                     policy_type: "ConsistentHash".to_string(),
                     consistent_hash: Some(ConsistentHashPolicy {
                         key_type: "Header".to_string(),

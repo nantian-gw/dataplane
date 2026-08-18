@@ -43,6 +43,7 @@ fn consistent_hash_by_header_keeps_same_endpoint_for_same_key() {
             "default/users:8080".to_string(),
             BackendPolicy {
                 load_balancing: Some(LoadBalancingPolicy {
+                    slow_start: None,
                     policy_type: "ConsistentHash".to_string(),
                     consistent_hash: Some(ConsistentHashPolicy {
                         key_type: "Header".to_string(),

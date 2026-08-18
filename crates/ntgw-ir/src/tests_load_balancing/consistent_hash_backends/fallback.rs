@@ -56,6 +56,7 @@ fn missing_consistent_hash_key_falls_back_to_weighted_round_robin() {
                 "default/users:8080".to_string(),
                 BackendPolicy {
                     load_balancing: Some(LoadBalancingPolicy {
+                        slow_start: None,
                         policy_type: "ConsistentHash".to_string(),
                         consistent_hash: Some(ConsistentHashPolicy {
                             key_type: "Header".to_string(),
@@ -69,6 +70,7 @@ fn missing_consistent_hash_key_falls_back_to_weighted_round_robin() {
                 "default/orders:8081".to_string(),
                 BackendPolicy {
                     load_balancing: Some(LoadBalancingPolicy {
+                        slow_start: None,
                         policy_type: "ConsistentHash".to_string(),
                         consistent_hash: Some(ConsistentHashPolicy {
                             key_type: "Header".to_string(),

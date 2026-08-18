@@ -56,6 +56,7 @@ fn consistent_hash_by_header_uses_stable_non_crypto_backend_hash() {
                 "default/users:8080".to_string(),
                 BackendPolicy {
                     load_balancing: Some(LoadBalancingPolicy {
+                        slow_start: None,
                         policy_type: "ConsistentHash".to_string(),
                         consistent_hash: Some(ConsistentHashPolicy {
                             key_type: "Header".to_string(),
@@ -69,6 +70,7 @@ fn consistent_hash_by_header_uses_stable_non_crypto_backend_hash() {
                 "default/orders:8081".to_string(),
                 BackendPolicy {
                     load_balancing: Some(LoadBalancingPolicy {
+                        slow_start: None,
                         policy_type: "ConsistentHash".to_string(),
                         consistent_hash: Some(ConsistentHashPolicy {
                             key_type: "Header".to_string(),

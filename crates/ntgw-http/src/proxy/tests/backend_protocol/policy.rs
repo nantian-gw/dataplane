@@ -10,6 +10,8 @@ fn apply_backend_policy_sets_peer_timeouts() {
             tls_validation: None,
             session_persistence: None,
             load_balancing: None,
+            health_check: None,
+            outlier_detection: None,
         }),
         None,
     );
@@ -44,6 +46,8 @@ fn route_timeouts_override_backend_policy_defaults() {
             tls_validation: None,
             session_persistence: None,
             load_balancing: None,
+            health_check: None,
+            outlier_detection: None,
         }),
         Some(&RouteTimeouts {
             request: Some(std::time::Duration::from_secs(12)),
@@ -75,6 +79,8 @@ fn zero_backend_policy_request_timeout_is_ignored() {
             tls_validation: None,
             session_persistence: None,
             load_balancing: None,
+            health_check: None,
+            outlier_detection: None,
         }),
         None,
     );

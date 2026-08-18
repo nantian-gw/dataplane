@@ -39,6 +39,8 @@ impl Snapshot {
                 || policy.tls_validation.is_some()
                 || policy.session_persistence.is_some()
                 || policy.load_balancing.is_some()
+                || policy.health_check.is_some()
+                || policy.outlier_detection.is_some()
             {
                 backend_policies.insert(backend_name, policy);
             }

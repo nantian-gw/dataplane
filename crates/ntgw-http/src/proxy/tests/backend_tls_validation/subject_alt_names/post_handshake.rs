@@ -45,6 +45,8 @@ fn build_upstream_peer_uses_post_handshake_subject_alt_name_validation() {
             }),
             session_persistence: None,
             load_balancing: None,
+            health_check: None,
+            outlier_detection: None,
         }),
     )
     .expect("peer");

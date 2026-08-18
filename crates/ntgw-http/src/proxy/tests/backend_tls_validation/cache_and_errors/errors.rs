@@ -39,6 +39,8 @@ fn build_upstream_peer_rejects_missing_backend_tls_ca_bundle() {
             }),
             session_persistence: None,
             load_balancing: None,
+            health_check: None,
+            outlier_detection: None,
         }),
     )
     .expect_err("custom CA validation without CA bundle should be rejected");

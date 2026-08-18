@@ -42,6 +42,8 @@ fn build_upstream_peer_enables_tls_when_backend_tls_policy_requires_it() {
             }),
             session_persistence: None,
             load_balancing: None,
+            health_check: None,
+            outlier_detection: None,
         }),
     )
     .expect("peer");
