@@ -174,6 +174,7 @@ fn https_misdirected_snapshot(
         ],
         http_routes: vec![
             HttpRoute {
+                security_policy: None,
                 name: "example".to_string(),
                 namespace: "default".to_string(),
                 hostnames: vec!["example.org".to_string()],
@@ -189,6 +190,7 @@ fn https_misdirected_snapshot(
                 annotations: BTreeMap::new(),
             },
             HttpRoute {
+                security_policy: None,
                 name: "second".to_string(),
                 namespace: "default".to_string(),
                 hostnames: Vec::new(),
@@ -209,6 +211,8 @@ fn https_misdirected_snapshot(
             https_misdirected_backend(second_backend_port as u32),
         ],
         secrets: vec![SecretMaterial {
+            htpasswd: String::new(),
+            oidc_client_secret: String::new(),
             namespace: "default".to_string(),
             name: "example-cert".to_string(),
             cert_pem: VALID_SERVER_CERT_PEM.to_string(),
@@ -260,6 +264,7 @@ fn https_misdirected_rule(backend_port: u32) -> HttpRule {
 
 fn https_misdirected_backend(port: u32) -> BackendCluster {
     BackendCluster {
+        security_policy: None,
         ai_service: None,
         token_policy: None,
         name: format!("backend:{port}").into(),

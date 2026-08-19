@@ -501,7 +501,7 @@ pub(crate) async fn do_request_filter(
 
     // Cache connection fields (avoiding borrow conflict)
     if let Some(requirements) =
-        access_log_response_requirements(&proxy.access_log, access_log_route_annotations(ctx))
+        access_log_response_requirements(&proxy.access_log, &route.route_annotations)
     {
         let downstream_tls_present = session
             .as_downstream()
