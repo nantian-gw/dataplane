@@ -3,6 +3,7 @@ mod cache;
 mod cors;
 mod helpers;
 mod jwt;
+mod oidc;
 mod redirect;
 mod ip_filter;
 pub(crate) use self::helpers::*;
@@ -591,6 +592,9 @@ pub(crate) async fn do_request_filter(
         return Ok(true);
     }
     if ip_filter::handle_ip_filter(proxy, session, ctx, &route).await? {
+        return Ok(true);
+    }
+    if oidc::handle_oidc(proxy, session, ctx, &route).await? {
         return Ok(true);
     }
     if basic_auth::handle_basic_auth(proxy, session, ctx, &route).await? {
