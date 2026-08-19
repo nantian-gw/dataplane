@@ -20,6 +20,7 @@ fn decodes_http_route_timeouts_from_proto() {
             }],
             ..Default::default()
         }],
+        security_policy: None,
         ..Default::default()
     });
 
@@ -44,6 +45,7 @@ fn from_proto_retains_http_grpc_and_stream_route_labels() {
             labels: std::collections::HashMap::from([("team".to_string(), "edge".to_string())]),
             ..Default::default()
         }],
+        security_policy: None,
         grpc_routes: vec![proto::GrpcRoute {
             name: "grpc-route".to_string(),
             namespace: "default".to_string(),
@@ -56,6 +58,7 @@ fn from_proto_retains_http_grpc_and_stream_route_labels() {
             labels: std::collections::HashMap::from([("team".to_string(), "tcp".to_string())]),
             ..Default::default()
         }],
+        security_policy: None,
         ..Default::default()
     });
 

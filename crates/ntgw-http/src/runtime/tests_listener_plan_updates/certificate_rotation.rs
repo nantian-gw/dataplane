@@ -12,6 +12,7 @@ fn listener_updates_restart_when_same_secret_ref_certificate_material_rotates() 
                 None,
             )),
         },
+    security_policy: None,
     )]);
     let desired_listener = PlannedListener {
         name: "default/gw/https".to_string(),
@@ -23,6 +24,7 @@ fn listener_updates_restart_when_same_secret_ref_certificate_material_rotates() 
             None,
         )),
     };
+    security_policy: None,
     let desired = ListenerPlan {
         listeners: vec![desired_listener.clone()],
     };
@@ -64,6 +66,7 @@ fn listener_updates_restart_when_secondary_certificate_ref_material_rotates() {
             }),
             ..Listener::default()
         }],
+        security_policy: None,
         secrets: vec![
             example_secret_material(),
             SecretMaterial {
@@ -71,6 +74,8 @@ fn listener_updates_restart_when_secondary_certificate_ref_material_rotates() {
                 name: "backup-cert".to_string(),
                 cert_pem: SECONDARY_CERT_PEM.to_string(),
                 key_pem: SECONDARY_KEY_PEM.to_string(),
+            htpasswd: String::new(),
+                        oidc_client_secret: String::new(),
             },
         ],
         ..Snapshot::default()
@@ -84,6 +89,8 @@ fn listener_updates_restart_when_secondary_certificate_ref_material_rotates() {
                 name: "backup-cert".to_string(),
                 cert_pem: VALID_SERVER_CERT_PEM.to_string(),
                 key_pem: VALID_SERVER_KEY_PEM.to_string(),
+            htpasswd: String::new(),
+                        oidc_client_secret: String::new(),
             },
         ],
         ..Snapshot::default()
@@ -123,6 +130,7 @@ fn listener_updates_restart_when_frontend_validation_bundle_rotates() {
                 Some("CA-OLD"),
             )),
         },
+    security_policy: None,
     )]);
     let desired_listener = PlannedListener {
         name: "default/gw/https".to_string(),
@@ -134,6 +142,7 @@ fn listener_updates_restart_when_frontend_validation_bundle_rotates() {
             Some("CA-NEW"),
         )),
     };
+    security_policy: None,
     let desired = ListenerPlan {
         listeners: vec![desired_listener.clone()],
     };

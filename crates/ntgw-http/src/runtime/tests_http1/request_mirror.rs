@@ -15,6 +15,7 @@ fn mirrored_http_snapshot(
             attached_routes: vec!["default/route".to_string()],
             ..Listener::default()
         }],
+        security_policy: None,
         http_routes: vec![HttpRoute {
             name: "route".to_string(),
             namespace: "default".to_string(),
@@ -56,6 +57,7 @@ fn mirrored_http_snapshot(
             }],
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
+        security_policy: None,
         }],
         backends: vec![
             BackendCluster {
@@ -71,6 +73,7 @@ fn mirrored_http_snapshot(
                 }],
                 wasm_plugin: None,
             
+                security_policy: None,
                 circuit_breaker: None,},
             BackendCluster {
                 ai_service: None,
@@ -85,6 +88,7 @@ fn mirrored_http_snapshot(
                 }],
                 wasm_plugin: None,
             
+                security_policy: None,
                 circuit_breaker: None,},
         ],
         ..Snapshot::default()

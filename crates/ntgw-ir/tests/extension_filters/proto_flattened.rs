@@ -40,6 +40,7 @@ fn decodes_flattened_extension_ref_direct_response_from_proto() {
             labels: HashMap::new(),
             annotations: HashMap::new(),
         }],
+        security_policy: None,
         grpc_routes: vec![],
         stream_routes: vec![],
         backends: vec![],

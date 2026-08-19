@@ -10,6 +10,7 @@ fn excluded_mesh_port_fallback_ignores_non_mesh_listeners_when_checking_attached
                 attached_routes: vec!["default/gateway-route".to_string()],
                 ..Listener::default()
             },
+            security_policy: None,
             mesh_listener(
                 "gateway-conformance-mesh",
                 "echo-v1",
@@ -54,6 +55,7 @@ fn excluded_mesh_port_fallback_ignores_non_mesh_listeners_when_checking_attached
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
+        security_policy: None,
         backends: vec![
             BackendCluster {
                 name: "echo-v1:80".into(),
@@ -69,6 +71,7 @@ fn excluded_mesh_port_fallback_ignores_non_mesh_listeners_when_checking_attached
                 token_policy: None,
             
                 circuit_breaker: None,},
+            security_policy: None,
             BackendCluster {
                 name: "echo-v1:8080".into(),
                 namespace: "gateway-conformance-mesh".into(),

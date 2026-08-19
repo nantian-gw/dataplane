@@ -34,6 +34,7 @@ fn uses_runtime_bind_address_for_plain_http_listeners() {
             protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
             ..Listener::default()
         }],
+        security_policy: None,
         ..Snapshot::default()
     };
 
@@ -87,6 +88,7 @@ fn binds_all_listener_addresses_from_field() {
             protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
             ..Listener::default()
         }],
+        security_policy: None,
         ..Snapshot::default()
     };
 
@@ -122,6 +124,7 @@ fn falls_back_to_listener_addresses_metadata() {
             metadata,
             ..Listener::default()
         }],
+        security_policy: None,
         ..Snapshot::default()
     };
 
@@ -151,6 +154,7 @@ fn preserves_distinct_plain_http_listener_ports() {
                 protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 ..Listener::default()
             },
+            security_policy: None,
             Listener {
                 name: "default/gw/http-8080".to_string(),
                 address: "0.0.0.0".to_string(),
@@ -190,6 +194,7 @@ fn listener_port_hint_uses_common_dual_stack_bind_port() {
             protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
             ..Listener::default()
         }],
+        security_policy: None,
         ..Snapshot::default()
     };
     let plan = build_listener_plan(
@@ -218,6 +223,7 @@ fn listener_port_hint_is_absent_for_mixed_listener_ports() {
                 protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 ..Listener::default()
             },
+            security_policy: None,
             Listener {
                 name: "default/gw/http-alt".to_string(),
                 address: "0.0.0.0".to_string(),

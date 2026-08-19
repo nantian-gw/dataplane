@@ -30,6 +30,8 @@ fn build_upstream_peer_reuses_client_certificate_cache_for_equivalent_snapshot_c
             name: "client-cert".to_string(),
             cert_pem: TEST_CLIENT_CERT_PEM.to_string(),
             key_pem: TEST_CLIENT_KEY_PEM.to_string(),
+        htpasswd: String::new(),
+                    oidc_client_secret: String::new(),
         }],
         ..Snapshot::default()
     };
@@ -40,6 +42,8 @@ fn build_upstream_peer_reuses_client_certificate_cache_for_equivalent_snapshot_c
             name: "client-cert".to_string(),
             cert_pem: TEST_CLIENT_CERT_PEM.to_string(),
             key_pem: TEST_CLIENT_KEY_PEM.to_string(),
+        htpasswd: String::new(),
+                    oidc_client_secret: String::new(),
         }],
         ..Snapshot::default()
     };
@@ -92,6 +96,8 @@ fn build_upstream_peer_reuses_client_certificate_cache_across_interleaved_snapsh
             name: "client-cert".to_string(),
             cert_pem: TEST_CLIENT_CERT_PEM.to_string(),
             key_pem: TEST_CLIENT_KEY_PEM.to_string(),
+        htpasswd: String::new(),
+                    oidc_client_secret: String::new(),
         }],
         ..Snapshot::default()
     };
@@ -102,6 +108,8 @@ fn build_upstream_peer_reuses_client_certificate_cache_across_interleaved_snapsh
             name: "client-cert".to_string(),
             cert_pem: TEST_SERVER_SAN_CERT_PEM.to_string(),
             key_pem: TEST_SERVER_SAN_KEY_PEM.to_string(),
+        htpasswd: String::new(),
+                    oidc_client_secret: String::new(),
         }],
         ..Snapshot::default()
     };
@@ -112,6 +120,8 @@ fn build_upstream_peer_reuses_client_certificate_cache_across_interleaved_snapsh
             name: "client-cert".to_string(),
             cert_pem: TEST_CLIENT_CERT_PEM.to_string(),
             key_pem: TEST_CLIENT_KEY_PEM.to_string(),
+        htpasswd: String::new(),
+                    oidc_client_secret: String::new(),
         }],
         ..Snapshot::default()
     };

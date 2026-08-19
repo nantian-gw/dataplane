@@ -13,6 +13,7 @@ fn selects_udp_backend_by_listener() {
             backend_tls: None,
             metadata: BTreeMap::new(),
         }],
+        security_policy: None,
         stream_routes: vec![StreamRoute {
             name: "dns".to_string(),
             namespace: "default".to_string(),
@@ -40,6 +41,7 @@ fn selects_udp_backend_by_listener() {
                 token_policy: None,
         
                 circuit_breaker: None,}],
+        security_policy: None,
         ..Snapshot::default()
     };
 

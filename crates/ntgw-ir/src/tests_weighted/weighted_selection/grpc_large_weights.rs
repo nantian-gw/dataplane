@@ -13,6 +13,7 @@ fn spreads_large_weighted_grpc_backends_across_short_request_batches() {
             backend_tls: None,
             metadata: BTreeMap::new(),
         }],
+        security_policy: None,
         grpc_routes: vec![GrpcRoute {
             name: "weighted".to_string(),
             namespace: "default".to_string(),
@@ -46,6 +47,7 @@ fn spreads_large_weighted_grpc_backends_across_short_request_batches() {
                 token_policy: None,
             
                 circuit_breaker: None,},
+            security_policy: None,
             BackendCluster {
                 name: "echo-v2:7070".to_string().into(),
                 namespace: "default".to_string().into(),

@@ -242,6 +242,7 @@ fn https_misdirected_listener(name: &str, port: u16, hostnames: Vec<&str>) -> Li
         }),
         ..Listener::default()
     }
+security_policy: None,
 }
 
 fn https_misdirected_rule(backend_port: u32) -> HttpRule {

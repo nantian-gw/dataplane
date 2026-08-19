@@ -81,6 +81,7 @@ fn decodes_external_auth_http_filter_from_proto() {
             labels: HashMap::new(),
             annotations: HashMap::new(),
         }],
+        security_policy: None,
         grpc_routes: vec![],
         stream_routes: vec![],
         backends: vec![],
@@ -171,6 +172,7 @@ fn decodes_external_auth_grpc_filter_from_proto() {
             labels: HashMap::new(),
             annotations: HashMap::new(),
         }],
+        security_policy: None,
         grpc_routes: vec![],
         stream_routes: vec![],
         backends: vec![],
@@ -263,6 +265,7 @@ fn decodes_external_auth_backend_with_tls_validation_from_proto() {
             labels: HashMap::new(),
             annotations: HashMap::new(),
         }],
+        security_policy: None,
         grpc_routes: vec![],
         stream_routes: vec![],
         backends: vec![proto::BackendCluster {
@@ -282,6 +285,7 @@ fn decodes_external_auth_backend_with_tls_validation_from_proto() {
             token_policy: None,
             ..Default::default()
         }],
+        security_policy: None,
         secrets: vec![],
         extensions: None,
         required_features: vec![],

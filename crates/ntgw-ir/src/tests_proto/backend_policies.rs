@@ -17,6 +17,7 @@ fn decodes_backend_ref_weight_from_proto() {
             }],
             ..Default::default()
         }],
+        security_policy: None,
         ..Default::default()
     });
 
@@ -43,6 +44,7 @@ fn decodes_backend_timeouts_from_proto() {
             wasm_plugin: None,
             ..Default::default()
         }],
+        security_policy: None,
         ..Default::default()
     });
 
@@ -71,6 +73,7 @@ fn decodes_proto_snapshot_without_runtime_indexes_for_staged_apply() {
             wasm_plugin: None,
             ..Default::default()
         }],
+        security_policy: None,
         ..Default::default()
     });
 
@@ -103,6 +106,7 @@ fn decodes_zero_backend_request_timeout_as_unset() {
             wasm_plugin: None,
             ..Default::default()
         }],
+        security_policy: None,
         ..Default::default()
     });
 
@@ -147,6 +151,7 @@ fn decodes_backend_ref_filters_from_proto() {
             }],
             ..Default::default()
         }],
+        security_policy: None,
         ..Default::default()
     });
 

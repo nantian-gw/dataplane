@@ -15,6 +15,7 @@ fn request_mirror_fraction_sampling_uses_fraction_window() {
                 token_policy: None,
         
                 circuit_breaker: None,}],
+        security_policy: None,
         ..Snapshot::default()
     };
 

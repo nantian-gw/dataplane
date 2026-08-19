@@ -13,6 +13,7 @@ fn selects_tls_backend_by_listener_and_sni() {
             backend_tls: None,
             metadata: BTreeMap::new(),
         }],
+        security_policy: None,
         stream_routes: vec![StreamRoute {
             name: "tls-route".to_string(),
             namespace: "default".to_string(),
@@ -44,6 +45,7 @@ fn selects_tls_backend_by_listener_and_sni() {
                 token_policy: None,
         
                 circuit_breaker: None,}],
+        security_policy: None,
         ..Snapshot::default()
     };
 

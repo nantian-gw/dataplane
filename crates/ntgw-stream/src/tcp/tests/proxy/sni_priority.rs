@@ -19,6 +19,7 @@ async fn tls_passthrough_prefers_exact_sni_match_over_wildcard() -> Result<()> {
             "LISTENER_PROTOCOL_TLS_PASSTHROUGH",
         )
     };
+    security_policy: None,
     let snapshot = Snapshot::shared();
     snapshot.store(Arc::new(Snapshot {
         listeners: vec![listener.clone()],
@@ -45,6 +46,7 @@ async fn tls_passthrough_prefers_exact_sni_match_over_wildcard() -> Result<()> {
                 labels: BTreeMap::new(),
                 annotations: BTreeMap::new(),
             },
+            security_policy: None,
             StreamRoute {
                 name: "exact-route".to_string(),
                 namespace: "default".to_string(),
@@ -83,6 +85,7 @@ async fn tls_passthrough_prefers_exact_sni_match_over_wildcard() -> Result<()> {
                 wasm_plugin: None,
             
                 circuit_breaker: None,},
+            security_policy: None,
             BackendCluster {
                 ai_service: None,
                 token_policy: None,

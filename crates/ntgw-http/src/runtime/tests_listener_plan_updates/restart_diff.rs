@@ -8,6 +8,7 @@ fn listener_updates_restart_only_changed_listener() {
                 bind: "0.0.0.0:80".to_string(),
                 protocol: ListenerProtocol::Plain,
             },
+        security_policy: None,
         ),
         (
             "0.0.0.0:443".to_string(),
@@ -21,6 +22,7 @@ fn listener_updates_restart_only_changed_listener() {
                     None,
                 )),
             },
+        security_policy: None,
         ),
     ]);
     let desired = ListenerPlan {
@@ -30,6 +32,7 @@ fn listener_updates_restart_only_changed_listener() {
                 bind: "0.0.0.0:80".to_string(),
                 protocol: ListenerProtocol::Plain,
             },
+            security_policy: None,
             PlannedListener {
                 name: "default/gw/https".to_string(),
                 bind: "0.0.0.0:443".to_string(),
@@ -64,6 +67,7 @@ fn listener_updates_do_not_restart_when_only_listener_name_changes() {
                 bind: "0.0.0.0:80".to_string(),
                 protocol: ListenerProtocol::Plain,
             },
+        security_policy: None,
         ),
         (
             "[::]:80".to_string(),
@@ -72,6 +76,7 @@ fn listener_updates_do_not_restart_when_only_listener_name_changes() {
                 bind: "[::]:80".to_string(),
                 protocol: ListenerProtocol::Plain,
             },
+        security_policy: None,
         ),
     ]);
     let desired = ListenerPlan {
@@ -81,6 +86,7 @@ fn listener_updates_do_not_restart_when_only_listener_name_changes() {
                 bind: "0.0.0.0:80".to_string(),
                 protocol: ListenerProtocol::Plain,
             },
+            security_policy: None,
             PlannedListener {
                 name: "mesh/default/echo-v2/80".to_string(),
                 bind: "[::]:80".to_string(),
@@ -101,6 +107,7 @@ fn listener_updates_restart_finished_listener_without_touching_others() {
         bind: "127.0.0.1:8080".to_string(),
         protocol: ListenerProtocol::Plain,
     };
+    security_policy: None,
     let active = BTreeMap::from([(listener.bind.clone(), listener.clone())]);
     let desired = ListenerPlan {
         listeners: vec![listener.clone()],
@@ -125,6 +132,7 @@ fn listener_updates_force_reload_restarts_active_listeners_even_when_plan_is_unc
         bind: "127.0.0.1:8080".to_string(),
         protocol: ListenerProtocol::Plain,
     };
+    security_policy: None,
     let active = BTreeMap::from([(listener.bind.clone(), listener.clone())]);
     let desired = ListenerPlan {
         listeners: vec![listener.clone()],
@@ -160,6 +168,7 @@ fn listener_replace_reports_retained_listeners_when_plan_is_unchanged() -> anyho
         bind: bind.clone(),
         protocol: ListenerProtocol::Plain,
     };
+    security_policy: None,
     let plan = ListenerPlan {
         listeners: vec![listener.clone()],
     };
@@ -217,6 +226,7 @@ fn listener_replace_retains_last_good_listener_when_new_listener_start_fails() -
         bind: old_bind.clone(),
         protocol: ListenerProtocol::Plain,
     };
+    security_policy: None,
     let mut listeners = ListenerSet::default();
 
     let initial = listeners.replace(
@@ -260,6 +270,7 @@ fn listener_replace_retains_last_good_listener_when_new_listener_start_fails() -
                     None,
                 )),
             }],
+        security_policy: None,
         }),
         listener_replace_context(
             "v2",
@@ -327,6 +338,7 @@ async fn listener_replace_keeps_existing_http_connection_when_new_listener_start
         bind: old_bind.clone(),
         protocol: ListenerProtocol::Plain,
     };
+    security_policy: None,
     let mut listeners = ListenerSet::default();
 
     let initial = listeners.replace(
@@ -380,6 +392,7 @@ async fn listener_replace_keeps_existing_http_connection_when_new_listener_start
                     None,
                 )),
             }],
+        security_policy: None,
         }),
         listener_replace_context(
             "v2",

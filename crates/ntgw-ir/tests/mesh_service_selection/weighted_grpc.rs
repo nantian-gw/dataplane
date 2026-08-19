@@ -52,6 +52,7 @@ fn mesh_grpc_service_frontend_weighted_backends_keep_expected_distribution() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
+        security_policy: None,
         backends: vec![
             BackendCluster {
                 name: "echo-v1:7070".into(),
@@ -68,6 +69,7 @@ fn mesh_grpc_service_frontend_weighted_backends_keep_expected_distribution() {
 
                 circuit_breaker: None,
             },
+            security_policy: None,
             BackendCluster {
                 name: "echo-v2:7070".into(),
                 namespace: "default".into(),

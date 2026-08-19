@@ -16,6 +16,7 @@ fn decodes_backend_load_balancing_from_proto() {
             wasm_plugin: None,
             ..Default::default()
         }],
+        security_policy: None,
         ..Default::default()
     });
 

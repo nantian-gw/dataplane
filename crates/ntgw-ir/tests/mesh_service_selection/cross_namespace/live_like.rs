@@ -79,6 +79,7 @@ fn live_like_cross_namespace_mesh_route_matches_consumer_on_service_frontend() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
+        security_policy: None,
         backends: vec![
             BackendCluster {
                 name: "echo-v1:80".into(),
@@ -94,6 +95,7 @@ fn live_like_cross_namespace_mesh_route_matches_consumer_on_service_frontend() {
                 token_policy: None,
             
                 circuit_breaker: None,},
+            security_policy: None,
             BackendCluster {
                 name: "echo-v1:8080".into(),
                 namespace: "nantian-mesh-validation".into(),
@@ -122,6 +124,7 @@ fn live_like_cross_namespace_mesh_route_matches_consumer_on_service_frontend() {
                 token_policy: None,
             
                 circuit_breaker: None,},
+        security_policy: None,
         ],
         workloads: vec![
             Workload {

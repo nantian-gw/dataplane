@@ -18,6 +18,7 @@ fn passive_endpoint_ejection_temporarily_removes_endpoint_from_rotation() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
+        security_policy: None,
         backends: vec![BackendCluster {
             name: "echo:8080".to_string().into(),
             namespace: "default".to_string().into(),
@@ -87,6 +88,7 @@ fn passive_endpoint_ejection_keeps_single_endpoint_as_last_resort() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
+        security_policy: None,
         backends: vec![BackendCluster {
             name: "echo:8080".to_string().into(),
             namespace: "default".to_string().into(),

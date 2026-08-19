@@ -56,6 +56,7 @@ fn external_auth_http_snapshot(
             attached_routes: vec!["default/route".to_string()],
             ..Listener::default()
         }],
+        security_policy: None,
         http_routes: vec![HttpRoute {
             security_policy: None,
             name: "route".to_string(),
@@ -169,6 +170,7 @@ fn external_auth_grpc_snapshot(
             attached_routes: vec!["default/route".to_string()],
             ..Listener::default()
         }],
+        security_policy: None,
         http_routes: vec![HttpRoute {
             security_policy: None,
             name: "route".to_string(),

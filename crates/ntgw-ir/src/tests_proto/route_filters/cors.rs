@@ -41,6 +41,7 @@ fn decodes_cors_filter_from_proto() {
             }],
             ..Default::default()
         }],
+        security_policy: None,
         ..Default::default()
     });
 

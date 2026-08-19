@@ -31,6 +31,7 @@ fn materialized_tls_assets_use_owner_only_permissions() {
                 Some("CA-A"),
             )),
         }],
+    security_policy: None,
     };
 
     super::listener_plan::materialize_tls_assets_in_dir(&plan, &asset_dir)
@@ -87,6 +88,7 @@ fn skips_tls_listener_without_primary_identity_when_materializing_runtime_plan()
                 frontend_validation_mode: None,
             }),
         }],
+    security_policy: None,
     };
 
     let runtime_plan = super::listener_plan::materialize_runtime_plan(&plan, &asset_dir);

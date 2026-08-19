@@ -18,6 +18,7 @@ fn endpoint_success_clears_passive_failure_streak() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
+        security_policy: None,
         backends: vec![BackendCluster {
             name: "echo:8080".to_string().into(),
             namespace: "default".to_string().into(),

@@ -21,6 +21,7 @@ fn inherited_runtime_state_applies_updated_backend_weights() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
+        security_policy: None,
         backends: vec![
             BackendCluster {
                 name: "users:8080".to_string().into(),
@@ -36,6 +37,7 @@ fn inherited_runtime_state_applies_updated_backend_weights() {
                 token_policy: None,
             
                 circuit_breaker: None,},
+            security_policy: None,
             BackendCluster {
                 name: "orders:8081".to_string().into(),
                 namespace: "default".to_string().into(),
@@ -83,6 +85,7 @@ fn inherited_runtime_state_applies_updated_backend_weights() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
+        security_policy: None,
         backends: current.backends.clone(),
         ..Snapshot::default()
     };

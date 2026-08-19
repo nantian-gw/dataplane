@@ -18,6 +18,7 @@ fn decodes_listener_backend_tls_from_proto() {
             }),
             ..Default::default()
         }],
+        security_policy: None,
         ..Default::default()
     });
 
@@ -46,6 +47,7 @@ fn select_http_backend_preserves_listener_backend_tls() {
             }),
             ..Listener::default()
         }],
+        security_policy: None,
         http_routes: vec![HttpRoute {
             name: "route".to_string(),
             namespace: "default".to_string(),
@@ -76,6 +78,7 @@ fn select_http_backend_preserves_listener_backend_tls() {
 
             circuit_breaker: None,
         }],
+        security_policy: None,
         ..Snapshot::default()
     };
 

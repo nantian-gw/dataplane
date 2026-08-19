@@ -10,6 +10,7 @@ fn grpc_h2c_snapshot(listener_port: u16, backend_port: u32) -> ntgw_ir::SharedSn
             attached_routes: vec!["default/grpc-route".to_string()],
             ..Listener::default()
         }],
+        security_policy: None,
         grpc_routes: vec![GrpcRoute {
             name: "grpc-route".to_string(),
             namespace: "default".to_string(),
@@ -38,6 +39,7 @@ fn grpc_h2c_snapshot(listener_port: u16, backend_port: u32) -> ntgw_ir::SharedSn
             }],
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
+        security_policy: None,
         }],
         backends: vec![BackendCluster {
             ai_service: None,
@@ -52,6 +54,7 @@ fn grpc_h2c_snapshot(listener_port: u16, backend_port: u32) -> ntgw_ir::SharedSn
             }],
             wasm_plugin: None,
         
+                security_policy: None,
                 circuit_breaker: None,}],
         ..Snapshot::default()
     }));

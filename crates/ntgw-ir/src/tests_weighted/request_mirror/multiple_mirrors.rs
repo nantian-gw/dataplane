@@ -16,6 +16,7 @@ fn selects_all_request_mirrors_and_strips_mirror_filters() {
                 token_policy: None,
             
                 circuit_breaker: None,},
+            security_policy: None,
             BackendCluster {
                 name: "shadow-b:8082".to_string().into(),
                 namespace: "observability".to_string().into(),
@@ -103,6 +104,7 @@ fn request_mirror_visitor_stops_after_first_selected_mirror() {
                 token_policy: None,
             
                 circuit_breaker: None,},
+            security_policy: None,
             BackendCluster {
                 name: "shadow-b:8082".to_string().into(),
                 namespace: "observability".to_string().into(),

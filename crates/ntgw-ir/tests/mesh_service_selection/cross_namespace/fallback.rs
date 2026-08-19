@@ -36,6 +36,7 @@ fn mesh_service_backend_fallback_still_applies_when_attached_route_is_not_eligib
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
+        security_policy: None,
         backends: vec![BackendCluster {
             name: "echo-v1:80".into(),
             namespace: "gateway-conformance-mesh".into(),

@@ -13,6 +13,7 @@ fn selects_grpc_backend_on_http_listener() {
             backend_tls: None,
             metadata: BTreeMap::new(),
         }],
+        security_policy: None,
         grpc_routes: vec![GrpcRoute {
             name: "grpc-route".to_string(),
             namespace: "default".to_string(),
@@ -48,6 +49,7 @@ fn selects_grpc_backend_on_http_listener() {
                 token_policy: None,
         
                 circuit_breaker: None,}],
+        security_policy: None,
         ..Snapshot::default()
     };
 
@@ -88,6 +90,7 @@ fn selects_grpc_backend_by_regex_service_and_method() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
+        security_policy: None,
         backends: vec![BackendCluster {
             name: "greeter:9090".to_string().into(),
             namespace: "default".to_string().into(),

@@ -34,6 +34,7 @@ proptest! {
                 labels: std::collections::BTreeMap::new(),
                 annotations: std::collections::BTreeMap::new(),
             }],
+            security_policy: None,
             backends: vec![BackendCluster {
                 name: "generated:8080".to_string().into(),
                 namespace: "default".to_string().into(),

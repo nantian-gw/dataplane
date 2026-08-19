@@ -30,6 +30,7 @@ fn observe_selected_backend_failure_ejects_endpoint_after_threshold() {
                 }],
                 labels: BTreeMap::new(),
                 annotations: BTreeMap::new(),
+            security_policy: None,
             }],
             backends: vec![BackendCluster {
                 ai_service: None,
@@ -51,6 +52,7 @@ fn observe_selected_backend_failure_ejects_endpoint_after_threshold() {
                 ],
                 wasm_plugin: None,
             
+                security_policy: None,
                 circuit_breaker: None,}],
             ..Snapshot::default()
         }));

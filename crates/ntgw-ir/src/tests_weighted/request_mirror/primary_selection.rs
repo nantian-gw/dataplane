@@ -36,6 +36,7 @@ fn request_mirror_does_not_change_primary_backend_selection() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
+        security_policy: None,
         backends: vec![
             BackendCluster {
                 name: "users:8080".to_string().into(),
@@ -51,6 +52,7 @@ fn request_mirror_does_not_change_primary_backend_selection() {
                 token_policy: None,
             
                 circuit_breaker: None,},
+            security_policy: None,
             BackendCluster {
                 name: "shadow:8081".to_string().into(),
                 namespace: "observability".to_string().into(),

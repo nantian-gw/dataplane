@@ -8,6 +8,7 @@ fn http_fast_path_marks_simple_http_route_eligible() {
             attached_routes: vec!["default/orders".to_string()],
             ..Listener::default()
         }],
+        security_policy: None,
         http_routes: vec![HttpRoute {
             name: "orders".to_string(),
             namespace: "default".to_string(),
@@ -39,6 +40,7 @@ fn http_fast_path_marks_simple_http_route_eligible() {
                 token_policy: None,
         
                 circuit_breaker: None,}],
+        security_policy: None,
         ..Snapshot::default()
     };
 
@@ -59,6 +61,7 @@ fn http_fast_path_visits_candidate_listeners_without_index_vectors() {
                 protocol: "HTTP".to_string(),
                 ..Listener::default()
             },
+            security_policy: None,
             Listener {
                 name: "default/gw/grpc".to_string(),
                 port: 80,
@@ -71,6 +74,7 @@ fn http_fast_path_visits_candidate_listeners_without_index_vectors() {
                 protocol: "HTTP".to_string(),
                 ..Listener::default()
             },
+            security_policy: None,
             Listener {
                 name: "default/gw/http-other-port".to_string(),
                 port: 8080,
@@ -125,6 +129,7 @@ fn http_fast_path_rejects_routes_that_need_headers_or_filters() {
                 }],
                 ..HttpRoute::default()
             },
+            security_policy: None,
             HttpRoute {
                 name: "filter-route".to_string(),
                 namespace: "default".to_string(),
@@ -154,6 +159,7 @@ fn http_fast_path_rejects_routes_that_need_headers_or_filters() {
                 token_policy: None,
         
                 circuit_breaker: None,}],
+        security_policy: None,
         ..Snapshot::default()
     };
 
@@ -174,6 +180,7 @@ fn http_fast_path_rejects_unresolved_backend_refs_at_compile_time() {
             attached_routes: vec!["default/orders".to_string()],
             ..Listener::default()
         }],
+        security_policy: None,
         http_routes: vec![HttpRoute {
             name: "orders".to_string(),
             namespace: "default".to_string(),
@@ -213,6 +220,7 @@ fn http_fast_path_selects_same_simple_backend_as_generic_http_selection() {
             attached_routes: vec!["default/orders".to_string()],
             ..Listener::default()
         }],
+        security_policy: None,
         http_routes: vec![HttpRoute {
             name: "orders".to_string(),
             namespace: "default".to_string(),
@@ -244,6 +252,7 @@ fn http_fast_path_selects_same_simple_backend_as_generic_http_selection() {
                 token_policy: None,
         
                 circuit_breaker: None,}],
+        security_policy: None,
         ..Snapshot::default()
     };
     snapshot.rebuild_runtime_indexes();
@@ -298,6 +307,7 @@ fn http_fast_path_does_not_select_grpc_requests() {
             }],
             ..HttpRoute::default()
         }],
+        security_policy: None,
         backends: vec![BackendCluster {
             name: "orders:8080".to_string().into(),
             namespace: "default".to_string().into(),
@@ -341,6 +351,7 @@ fn http_fast_path_falls_back_when_best_match_needs_listener_backend_tls() {
                 }),
                 ..Listener::default()
             },
+            security_policy: None,
             Listener {
                 name: "default/gw/plain".to_string(),
                 port: 80,
@@ -366,6 +377,7 @@ fn http_fast_path_falls_back_when_best_match_needs_listener_backend_tls() {
                 }],
                 ..HttpRoute::default()
             },
+            security_policy: None,
             HttpRoute {
                 name: "fallback".to_string(),
                 namespace: "default".to_string(),
@@ -398,6 +410,7 @@ fn http_fast_path_falls_back_when_best_match_needs_listener_backend_tls() {
                 token_policy: None,
             
                 circuit_breaker: None,},
+            security_policy: None,
             BackendCluster {
                 name: "fallback:8081".to_string().into(),
                 namespace: "default".to_string().into(),

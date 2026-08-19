@@ -15,6 +15,7 @@ fn simple_http_snapshot(
             attached_routes: vec!["default/route".to_string()],
             ..Listener::default()
         }],
+        security_policy: None,
         http_routes: vec![HttpRoute {
             name: "route".to_string(),
             namespace: "default".to_string(),
@@ -43,6 +44,7 @@ fn simple_http_snapshot(
             }],
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
+        security_policy: None,
         }],
         backends: vec![BackendCluster {
             ai_service: None,
@@ -57,6 +59,7 @@ fn simple_http_snapshot(
             }],
             wasm_plugin: None,
         
+                security_policy: None,
                 circuit_breaker: None,}],
         ..Snapshot::default()
     }));
@@ -84,6 +87,7 @@ fn cors_http_snapshot(
             attached_routes: vec!["default/route".to_string()],
             ..Listener::default()
         }],
+        security_policy: None,
         http_routes: vec![HttpRoute {
             name: "route".to_string(),
             namespace: "default".to_string(),
@@ -126,6 +130,7 @@ fn cors_http_snapshot(
             }],
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
+        security_policy: None,
         }],
         backends: vec![BackendCluster {
             ai_service: None,
@@ -140,6 +145,7 @@ fn cors_http_snapshot(
             }],
             wasm_plugin: None,
         
+                security_policy: None,
                 circuit_breaker: None,}],
         ..Snapshot::default()
     }));
@@ -170,6 +176,7 @@ fn dual_protocol_snapshot(
             ],
             ..Listener::default()
         }],
+        security_policy: None,
         http_routes: vec![
             HttpRoute {
                 name: "http-route".to_string(),
@@ -199,6 +206,7 @@ fn dual_protocol_snapshot(
                 }],
                 labels: BTreeMap::new(),
                 annotations: BTreeMap::new(),
+            security_policy: None,
             },
             HttpRoute {
                 name: "h2c-route".to_string(),
@@ -228,6 +236,7 @@ fn dual_protocol_snapshot(
                 }],
                 labels: BTreeMap::new(),
                 annotations: BTreeMap::new(),
+            security_policy: None,
             },
         ],
         backends: vec![
@@ -244,6 +253,7 @@ fn dual_protocol_snapshot(
                 }],
                 wasm_plugin: None,
             
+                security_policy: None,
                 circuit_breaker: None,},
             BackendCluster {
                 ai_service: None,
@@ -258,6 +268,7 @@ fn dual_protocol_snapshot(
                 }],
                 wasm_plugin: None,
             
+                security_policy: None,
                 circuit_breaker: None,},
         ],
         ..Snapshot::default()

@@ -16,6 +16,7 @@ fn decodes_listener_frontend_validation_from_proto() {
             }),
             ..Default::default()
         }],
+        security_policy: None,
         ..Default::default()
     });
 

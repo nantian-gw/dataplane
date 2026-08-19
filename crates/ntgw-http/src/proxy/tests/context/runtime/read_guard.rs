@@ -30,6 +30,7 @@ fn observe_selected_backend_failure_completes_while_snapshot_read_guard_is_held(
                 }],
                 labels: BTreeMap::new(),
                 annotations: BTreeMap::new(),
+            security_policy: None,
             }],
             backends: vec![BackendCluster {
                 ai_service: None,
@@ -51,6 +52,7 @@ fn observe_selected_backend_failure_completes_while_snapshot_read_guard_is_held(
                 ],
                 wasm_plugin: None,
             
+                security_policy: None,
                 circuit_breaker: None,}],
             ..Snapshot::default()
         }));

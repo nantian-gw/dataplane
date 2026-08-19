@@ -35,6 +35,7 @@ fn route_policy_body_limit_override() {
         session_persistence: None,
         backend_tls: None,
         route_policy: Some(route_policy),
+    security_policy: None,
     };
 
     let global_default: usize = 10 * 1024 * 1024;
@@ -69,6 +70,7 @@ fn route_policy_body_limit_falls_back_to_global() {
         session_persistence: None,
         backend_tls: None,
         route_policy: None,
+    security_policy: None,
     };
 
     let global_default: usize = 10 * 1024 * 1024;
@@ -110,6 +112,7 @@ fn route_policy_body_limit_none_uses_global() {
         session_persistence: None,
         backend_tls: None,
         route_policy: Some(route_policy),
+    security_policy: None,
     };
 
     let global_default: usize = 10 * 1024 * 1024;

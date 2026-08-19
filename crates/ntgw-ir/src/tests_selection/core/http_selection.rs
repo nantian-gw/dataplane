@@ -35,6 +35,7 @@ fn selects_http_backend_by_host_path_method_header_and_query() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
+        security_policy: None,
         backends: vec![BackendCluster {
             name: "users:8080".to_string().into(),
             namespace: "default".to_string().into(),

@@ -8,6 +8,7 @@ fn listener_frontend_client_certificate_lookup_uses_runtime_index_semantics() {
                 name: "plain".to_string(),
                 ..Listener::default()
             },
+            security_policy: None,
             Listener {
                 name: "reject".to_string(),
                 tls: Some(TlsConfig {
@@ -30,6 +31,7 @@ fn listener_frontend_client_certificate_lookup_uses_runtime_index_semantics() {
                 }),
                 ..Listener::default()
             },
+            security_policy: None,
             Listener {
                 name: "fallback".to_string(),
                 tls: Some(TlsConfig {

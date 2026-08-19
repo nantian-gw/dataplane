@@ -17,6 +17,7 @@ fn runtime_store_test_snapshot() -> Snapshot {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
+        security_policy: None,
         backends: vec![BackendCluster {
             name: "echo:8080".to_string().into(),
             namespace: "default".to_string().into(),
@@ -186,6 +187,7 @@ fn inherited_runtime_state_prunes_removed_endpoint_keys() {
                 token_policy: None,
         
                 circuit_breaker: None,}],
+        security_policy: None,
         ..Snapshot::default()
     };
     next.inherit_runtime_state_from(&current);
