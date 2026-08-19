@@ -5,17 +5,16 @@ use prost_types::{Duration as ProtoDuration, ListValue, Struct, Value, value::Ki
 
 use crate::{
     AIServiceAuthConfig, AIServiceConfig, BackendCluster, BackendEndpoint, BackendPolicy,
-    BackendRef, BackendSubjectAltName, BackendTlsValidation, ConsistentHashPolicy, CorsFilter,
-    DirectResponseFilter, ExtensionFilter, ExternalAuthFilter, ExternalGRPCAuthConfig,
-    ExternalHTTPAuthConfig, Filter, Fraction, GrpcMatch, GrpcRoute, GrpcRule, HeaderMatch,
-    HeaderModifier, HeaderOperation, HttpMatch, HttpRoute, HttpRule, Listener, LoadBalancingPolicy,
-    ParentRef, PathModifier, QueryMatch, RequestMirrorFilter, RequestRedirectFilter, RetryPolicy,
-    RouteTimeouts, SecretMaterial, SessionPersistence, Snapshot, StreamMatch, StreamRoute,
-    StreamRule, TlsConfig, TokenPolicyConfig, UrlRewriteFilter, WasmPluginConfig,
-    WasmSandboxConfig, Workload,
-    SecurityPolicyConfig, SecurityAuthNConfig, SecurityAuthZConfig, SecurityCorsConfig,
-    JwtAuthConfig, OidcAuthConfig, BasicAuthConfig, ExternalAuthConfig,
-    ExternalHttpAuth, ExternalGrpcAuth, RateLimitRule, SecurityIpConfig,
+    BackendRef, BackendSubjectAltName, BackendTlsValidation, BasicAuthConfig, ConsistentHashPolicy,
+    CorsFilter, DirectResponseFilter, ExtensionFilter, ExternalAuthConfig, ExternalAuthFilter,
+    ExternalGRPCAuthConfig, ExternalGrpcAuth, ExternalHTTPAuthConfig, ExternalHttpAuth, Filter,
+    Fraction, GrpcMatch, GrpcRoute, GrpcRule, HeaderMatch, HeaderModifier, HeaderOperation,
+    HttpMatch, HttpRoute, HttpRule, JwtAuthConfig, Listener, LoadBalancingPolicy, OidcAuthConfig,
+    ParentRef, PathModifier, QueryMatch, RateLimitRule, RequestMirrorFilter, RequestRedirectFilter,
+    RetryPolicy, RouteTimeouts, SecretMaterial, SecurityAuthNConfig, SecurityAuthZConfig,
+    SecurityCorsConfig, SecurityIpConfig, SecurityPolicyConfig, SessionPersistence, Snapshot,
+    StreamMatch, StreamRoute, StreamRule, TlsConfig, TokenPolicyConfig, UrlRewriteFilter,
+    WasmPluginConfig, WasmSandboxConfig, Workload,
 };
 
 mod backend;
@@ -139,8 +138,7 @@ impl Snapshot {
                     key_pem: item.key_pem,
                     htpasswd: item.htpasswd,
                     oidc_client_secret: item.oidc_client_secret,
-                },
-                )
+                })
                 .collect(),
             workloads,
             selection_state: Default::default(),
@@ -149,7 +147,9 @@ impl Snapshot {
     }
 }
 
-pub(super) fn security_policy_from_proto(proto: proto::SecurityPolicyConfig) -> SecurityPolicyConfig {
+pub(super) fn security_policy_from_proto(
+    proto: proto::SecurityPolicyConfig,
+) -> SecurityPolicyConfig {
     let mut out = SecurityPolicyConfig::default();
     if let Some(authn) = proto.authn {
         let mut a = SecurityAuthNConfig::default();
@@ -228,27 +228,31 @@ pub(super) fn security_policy_from_proto(proto: proto::SecurityPolicyConfig) -> 
             max_age: cors.max_age,
         });
     }
-    out.rate_limit = proto.rate_limit.into_iter().map(|r| {
-        let key_type = r.key_type.clone();
-        RateLimitRule {
-            scope: match r.scope() {
-                proto::RateLimitScope::Global => "global".to_string(),
-                proto::RateLimitScope::Listener => "listener".to_string(),
-                proto::RateLimitScope::Route => "route".to_string(),
-                proto::RateLimitScope::Backend => "backend".to_string(),
-                _ => String::new(),
-            },
-            requests_per_second: r.requests_per_second,
-            burst: r.burst,
-            key_type,
-            on_limit: match r.on_limit() {
-                proto::RateLimitAction::Reject => "reject".to_string(),
-                proto::RateLimitAction::Queue => "queue".to_string(),
-                _ => String::new(),
-            },
-            key_header_name: r.key_header_name,
-        }
-    }).collect();
+    out.rate_limit = proto
+        .rate_limit
+        .into_iter()
+        .map(|r| {
+            let key_type = r.key_type.clone();
+            RateLimitRule {
+                scope: match r.scope() {
+                    proto::RateLimitScope::Global => "global".to_string(),
+                    proto::RateLimitScope::Listener => "listener".to_string(),
+                    proto::RateLimitScope::Route => "route".to_string(),
+                    proto::RateLimitScope::Backend => "backend".to_string(),
+                    _ => String::new(),
+                },
+                requests_per_second: r.requests_per_second,
+                burst: r.burst,
+                key_type,
+                on_limit: match r.on_limit() {
+                    proto::RateLimitAction::Reject => "reject".to_string(),
+                    proto::RateLimitAction::Queue => "queue".to_string(),
+                    _ => String::new(),
+                },
+                key_header_name: r.key_header_name,
+            }
+        })
+        .collect();
     if let Some(ip) = proto.ip {
         out.ip = Some(SecurityIpConfig {
             allow_cidrs: ip.allow_cidrs,

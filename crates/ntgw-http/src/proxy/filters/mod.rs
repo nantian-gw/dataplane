@@ -2,10 +2,10 @@ mod basic_auth;
 mod cache;
 mod cors;
 mod helpers;
+mod ip_filter;
 mod jwt;
 mod oidc;
 mod redirect;
-mod ip_filter;
 pub(crate) use self::helpers::*;
 
 use bytes::Bytes;

@@ -169,10 +169,7 @@ impl HttpRateLimitController {
         self.backend.options.enabled()
     }
 
-    pub fn try_acquire_backend(
-        &self,
-        backend: &str,
-    ) -> Result<bool, HttpRateLimitRejection> {
+    pub fn try_acquire_backend(&self, backend: &str) -> Result<bool, HttpRateLimitRejection> {
         let now = Instant::now();
         let backend_bucket = self.backend.bucket(backend);
         if let Some(bucket) = backend_bucket.as_ref()
@@ -185,11 +182,7 @@ impl HttpRateLimitController {
         Ok(backend_bucket.is_some())
     }
 
-    pub fn try_acquire(
-        &self,
-        listener: &str,
-        route: &str,
-    ) -> Result<bool, HttpRateLimitRejection> {
+    pub fn try_acquire(&self, listener: &str, route: &str) -> Result<bool, HttpRateLimitRejection> {
         let now = Instant::now();
         let global = self.global.clone();
         if let Some(bucket) = global.as_ref()
@@ -224,11 +217,7 @@ impl HttpRateLimitController {
             return Err(HttpRateLimitRejection::Route);
         }
 
-        Ok(
-            global.is_some()
-                || listener_bucket.is_some()
-                || route_bucket.is_some()
-        )
+        Ok(global.is_some() || listener_bucket.is_some() || route_bucket.is_some())
     }
 
     pub fn snapshot(&self) -> HttpRateLimitSnapshot {

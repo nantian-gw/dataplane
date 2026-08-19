@@ -104,7 +104,9 @@ async fn send_401(session: &mut Session, realm: &str) -> pingora::Result<()> {
     let mut response = ResponseHeader::build(401, None)?;
     response.insert_header("www-authenticate", format!("Basic realm=\"{realm}\""))?;
     response.insert_header("content-length", "0")?;
-    session.write_response_header(Box::new(response), false).await?;
+    session
+        .write_response_header(Box::new(response), false)
+        .await?;
     session.write_response_body(None, true).await?;
     Ok(())
 }

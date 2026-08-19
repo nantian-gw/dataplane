@@ -22,15 +22,14 @@ mod types;
 pub use types::{
     AIServiceAuthConfig, AIServiceConfig, BackendCluster, BackendEndpoint, BackendPolicy,
     BackendRef, BackendServiceIndex, BackendSubjectAltName, BackendTlsConfig, BackendTlsValidation,
-    CircuitBreakerConfig, ConsistentHashPolicy, FrontendClientCertificateRequirement,
-    FrontendValidation, GrpcMatch, GrpcRoute, GrpcRule, HeaderMatch, HostnameRouteIndex, HttpMatch,
-    HttpRoute, HttpRule, Listener, LoadBalancingPolicy, QueryMatch, RequestMaterializationHints,
-    RequestMeta, RetryPolicy, RouteAttachmentListenerIndex, SecretMaterial, Snapshot, StreamMatch,
-    StreamRoute, StreamRule, TlsConfig, TlsRouteMode, TokenPolicyConfig, WasmPluginConfig,
-    WasmSandboxConfig,
-    SecurityPolicyConfig, SecurityAuthNConfig, SecurityAuthZConfig, SecurityCorsConfig,
-    JwtAuthConfig, OidcAuthConfig, BasicAuthConfig, ExternalAuthConfig,
-    ExternalHttpAuth, ExternalGrpcAuth, RateLimitRule, SecurityIpConfig,
+    BasicAuthConfig, CircuitBreakerConfig, ConsistentHashPolicy, ExternalAuthConfig,
+    ExternalGrpcAuth, ExternalHttpAuth, FrontendClientCertificateRequirement, FrontendValidation,
+    GrpcMatch, GrpcRoute, GrpcRule, HeaderMatch, HostnameRouteIndex, HttpMatch, HttpRoute,
+    HttpRule, JwtAuthConfig, Listener, LoadBalancingPolicy, OidcAuthConfig, QueryMatch,
+    RateLimitRule, RequestMaterializationHints, RequestMeta, RetryPolicy,
+    RouteAttachmentListenerIndex, SecretMaterial, SecurityAuthNConfig, SecurityAuthZConfig,
+    SecurityCorsConfig, SecurityIpConfig, SecurityPolicyConfig, Snapshot, StreamMatch, StreamRoute,
+    StreamRule, TlsConfig, TlsRouteMode, TokenPolicyConfig, WasmPluginConfig, WasmSandboxConfig,
 };
 
 // Re-export internal types from other modules

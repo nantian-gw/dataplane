@@ -57,7 +57,8 @@ pub(super) async fn handle_oidc(
     };
 
     // Check for existing valid session cookie
-    if let Some(cookie_value) = extract_cookie(session.req_header(), effective_cookie_name(oidc_config))
+    if let Some(cookie_value) =
+        extract_cookie(session.req_header(), effective_cookie_name(oidc_config))
         && verify_session(&cookie_value, &signing_key)
     {
         return Ok(false);
@@ -79,7 +80,15 @@ async fn handle_oidc_callback(
     let code = match extract_query_param(query, "code") {
         Some(code) => code,
         None => {
-            send_oidc_error(proxy, session, ctx, route, 400, "missing authorization code").await?;
+            send_oidc_error(
+                proxy,
+                session,
+                ctx,
+                route,
+                400,
+                "missing authorization code",
+            )
+            .await?;
             return Ok(true);
         }
     };
@@ -96,9 +105,13 @@ async fn handle_oidc_callback(
     };
 
     // Exchange authorization code for tokens
-    let token_response =
-        exchange_code_for_tokens(oidc_config, &client_secret, &code, &oidc_config.redirect_url)
-            .await;
+    let token_response = exchange_code_for_tokens(
+        oidc_config,
+        &client_secret,
+        &code,
+        &oidc_config.redirect_url,
+    )
+    .await;
 
     let token_data = match token_response {
         Ok(data) => data,
@@ -145,8 +158,8 @@ async fn handle_oidc_callback(
     };
 
     // Determine redirect target: use state param or redirect_url
-    let redirect_target = extract_query_param(query, "state")
-        .unwrap_or_else(|| oidc_config.redirect_url.clone());
+    let redirect_target =
+        extract_query_param(query, "state").unwrap_or_else(|| oidc_config.redirect_url.clone());
 
     let cookie_name = effective_cookie_name(oidc_config);
 
@@ -272,8 +285,8 @@ fn decode_jwt_claims(token: &str) -> Result<JwtClaims, String> {
         .decode(parts[1])
         .map_err(|e| format!("failed to decode JWT payload: {e}"))?;
 
-    let claims: JwtClaims = serde_json::from_slice(&payload)
-        .map_err(|e| format!("failed to parse JWT claims: {e}"))?;
+    let claims: JwtClaims =
+        serde_json::from_slice(&payload).map_err(|e| format!("failed to parse JWT claims: {e}"))?;
 
     Ok(claims)
 }
@@ -369,7 +382,10 @@ fn verify_session(cookie_value: &str, signing_key: &str) -> bool {
     session.exp > now
 }
 
-fn create_session_cookie(payload: &OidcSessionPayload, signing_key: &str) -> Result<String, String> {
+fn create_session_cookie(
+    payload: &OidcSessionPayload,
+    signing_key: &str,
+) -> Result<String, String> {
     if signing_key.is_empty() {
         return Err("session signing key not found".to_string());
     }
@@ -456,7 +472,6 @@ struct OidcSessionPayload {
     exp: u64,
     access_token_hash: String,
 }
-
 
 #[derive(Debug)]
 struct TokenData {

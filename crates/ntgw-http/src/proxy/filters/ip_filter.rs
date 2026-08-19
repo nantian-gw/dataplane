@@ -14,11 +14,7 @@ pub(super) async fn handle_ip_filter(
     _ctx: &mut RequestContext,
     route: &SelectedHttpRoute,
 ) -> pingora::Result<bool> {
-    let ip_config = match route
-        .security_policy
-        .as_ref()
-        .and_then(|sp| sp.ip.as_ref())
-    {
+    let ip_config = match route.security_policy.as_ref().and_then(|sp| sp.ip.as_ref()) {
         Some(config) => config,
         None => return Ok(false),
     };
@@ -89,7 +85,9 @@ async fn send_403(session: &mut Session, message: &str) -> pingora::Result<()> {
     let mut response = ResponseHeader::build(403, None)?;
     response.insert_header("content-type", "text/plain")?;
     response.insert_header("content-length", body.len().to_string())?;
-    session.write_response_header(Box::new(response), false).await?;
+    session
+        .write_response_header(Box::new(response), false)
+        .await?;
     session.write_response_body(Some(body), true).await?;
     Ok(())
 }

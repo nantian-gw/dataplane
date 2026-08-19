@@ -125,6 +125,8 @@ pub(crate) fn to_http_rate_limit_options(cfg: &RuntimeProtectionConfig) -> HttpR
         } else {
             0
         },
+        backend_requests_per_second: 0,
+        backend_burst: 0,
     }
 }
 
