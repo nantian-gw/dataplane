@@ -17,6 +17,7 @@ fn consistent_hash_by_header_keeps_same_endpoint_for_same_key() {
             }],
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
+        security_policy: None,
         }],
         backends: vec![BackendCluster {
             name: "users:8080".to_string().into(),
@@ -38,6 +39,7 @@ fn consistent_hash_by_header_keeps_same_endpoint_for_same_key() {
                 ai_service: None,
                 token_policy: None,
         
+                security_policy: None,
                 circuit_breaker: None,}],
         backend_policies: BTreeMap::from([(
             "default/users:8080".to_string(),

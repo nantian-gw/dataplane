@@ -103,6 +103,7 @@ fn selects_http_route_without_backend_for_redirect_rule() {
             }],
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
+        security_policy: None,
         }],
         ..Snapshot::default()
     };
@@ -176,6 +177,7 @@ fn select_http_route_preserves_rule_then_backend_filter_order() {
             }],
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
+        security_policy: None,
         }],
         backends: vec![BackendCluster {
             name: "echo:8080".to_string().into(),
@@ -190,6 +192,7 @@ fn select_http_route_preserves_rule_then_backend_filter_order() {
                 ai_service: None,
                 token_policy: None,
         
+                security_policy: None,
                 circuit_breaker: None,}],
         ..Snapshot::default()
     };

@@ -93,6 +93,7 @@ pub fn build_snapshot_switch_fixture(config: SnapshotBenchConfig) -> SnapshotSwi
                             .collect(),
 
                         circuit_breaker: None,
+                        security_policy: None,
                     };
                     let mut next_cluster = current_cluster.clone();
                     for (endpoint_index, endpoint) in next_cluster.endpoints.iter_mut().enumerate()
@@ -141,6 +142,7 @@ pub fn build_snapshot_switch_fixture(config: SnapshotBenchConfig) -> SnapshotSwi
                 }],
                 labels: BTreeMap::new(),
                 annotations: BTreeMap::new(),
+                security_policy: None,
             };
             current.http_routes.push(route.clone());
             next.http_routes.push(route);

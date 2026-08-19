@@ -28,6 +28,9 @@ pub use types::{
     RequestMeta, RetryPolicy, RouteAttachmentListenerIndex, SecretMaterial, Snapshot, StreamMatch,
     StreamRoute, StreamRule, TlsConfig, TlsRouteMode, TokenPolicyConfig, WasmPluginConfig,
     WasmSandboxConfig,
+    SecurityPolicyConfig, SecurityAuthNConfig, SecurityAuthZConfig, SecurityCorsConfig,
+    JwtAuthConfig, OidcAuthConfig, BasicAuthConfig, ExternalAuthConfig,
+    ExternalHttpAuth, ExternalGrpcAuth, RateLimitRule, SecurityIpConfig,
 };
 
 // Re-export internal types from other modules
