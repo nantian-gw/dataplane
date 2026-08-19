@@ -1,3 +1,4 @@
+mod basic_auth;
 mod cache;
 mod cors;
 mod helpers;
@@ -586,6 +587,11 @@ pub(crate) async fn do_request_filter(
     }
 
     if redirect::handle_redirect(proxy, session, ctx, &route, &request, filter_request).await? {
+        return Ok(true);
+    }
+
+
+    if basic_auth::handle_basic_auth(proxy, session, ctx, &route).await? {
         return Ok(true);
     }
 

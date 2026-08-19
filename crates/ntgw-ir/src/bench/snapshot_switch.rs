@@ -46,6 +46,8 @@ pub fn build_snapshot_switch_fixture(config: SnapshotBenchConfig) -> SnapshotSwi
             name: format!("bench-cert-{listener_index}"),
             cert_pem: format!("CERT-{listener_index}"),
             key_pem: format!("KEY-{listener_index}"),
+            htpasswd: String::new(),
+            oidc_client_secret: String::new(),
         };
         current.secrets.push(secret.clone());
         next.secrets.push(secret);

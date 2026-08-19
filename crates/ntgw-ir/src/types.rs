@@ -804,6 +804,8 @@ pub struct SecretMaterial {
     pub name: String,
     pub cert_pem: String,
     pub key_pem: String,
+    pub htpasswd: String,
+    pub oidc_client_secret: String,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

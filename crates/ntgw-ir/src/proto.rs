@@ -137,7 +137,10 @@ impl Snapshot {
                     name: item.name,
                     cert_pem: item.cert_pem,
                     key_pem: item.key_pem,
-                })
+                    htpasswd: item.htpasswd,
+                    oidc_client_secret: item.oidc_client_secret,
+                },
+                )
                 .collect(),
             workloads,
             selection_state: Default::default(),
