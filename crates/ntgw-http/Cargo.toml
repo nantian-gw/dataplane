@@ -34,6 +34,7 @@ prometheus.workspace = true
 tonic.workspace = true
 reqwest.workspace = true
 jsonwebtoken.workspace = true
+ipnet.workspace = true
 
 [dev-dependencies]
 h2.workspace = true
