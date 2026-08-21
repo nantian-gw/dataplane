@@ -209,6 +209,8 @@ fn https_misdirected_snapshot(
             https_misdirected_backend(second_backend_port as u32),
         ],
         secrets: vec![SecretMaterial {
+            htpasswd: String::new(),
+            oidc_client_secret: String::new(),
             namespace: "default".to_string(),
             name: "example-cert".to_string(),
             cert_pem: VALID_SERVER_CERT_PEM.to_string(),
@@ -272,5 +274,6 @@ fn https_misdirected_backend(port: u32) -> BackendCluster {
         }],
         wasm_plugin: None,
         circuit_breaker: None,
+                security_policy: None,
     }
 }

@@ -15,6 +15,7 @@ fn selects_request_mirror_backend_and_strips_mirror_filter() {
                 token_policy: None,
         
                 circuit_breaker: None,}],
+        security_policy: None,
         ..Snapshot::default()
     };
 

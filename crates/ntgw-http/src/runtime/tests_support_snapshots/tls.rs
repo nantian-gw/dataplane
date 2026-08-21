@@ -1,5 +1,7 @@
 fn example_secret_material() -> SecretMaterial {
     SecretMaterial {
+        htpasswd: String::new(),
+        oidc_client_secret: String::new(),
         namespace: "default".to_string(),
         name: "example-cert".to_string(),
         cert_pem: VALID_SERVER_CERT_PEM.to_string(),

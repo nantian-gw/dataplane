@@ -19,6 +19,7 @@ fn decodes_grpc_regex_match_type_from_proto() {
             }],
             ..Default::default()
         }],
+        security_policy: None,
         ..Default::default()
     });
 

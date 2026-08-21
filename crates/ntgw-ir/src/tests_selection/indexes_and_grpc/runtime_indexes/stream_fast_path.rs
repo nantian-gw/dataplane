@@ -8,6 +8,7 @@ fn stream_fast_path_precompiles_backend_refs_for_attached_routes() {
             attached_routes: vec!["default/tcp-route".to_string()],
             ..Listener::default()
         }],
+        security_policy: None,
         stream_routes: vec![StreamRoute {
             name: "tcp-route".to_string(),
             namespace: "default".to_string(),
@@ -36,6 +37,7 @@ fn stream_fast_path_precompiles_backend_refs_for_attached_routes() {
                 token_policy: None,
         
                 circuit_breaker: None,}],
+        security_policy: None,
         ..Snapshot::default()
     };
 
@@ -67,6 +69,7 @@ fn stream_fast_path_skips_unavailable_compiled_backend_and_keeps_searching() {
             ],
             ..Listener::default()
         }],
+        security_policy: None,
         stream_routes: vec![
             StreamRoute {
                 name: "unavailable".to_string(),
@@ -82,6 +85,7 @@ fn stream_fast_path_skips_unavailable_compiled_backend_and_keeps_searching() {
                 }],
                 ..StreamRoute::default()
             },
+            security_policy: None,
             StreamRoute {
                 name: "available".to_string(),
                 namespace: "default".to_string(),
@@ -112,6 +116,7 @@ fn stream_fast_path_skips_unavailable_compiled_backend_and_keeps_searching() {
                 token_policy: None,
             
                 circuit_breaker: None,},
+            security_policy: None,
             BackendCluster {
                 name: "available:8080".to_string().into(),
                 namespace: "default".to_string().into(),
@@ -150,6 +155,7 @@ fn stream_fast_path_falls_back_to_default_service_backend_when_no_route_matches(
             metadata: service_frontend_metadata("default", "orders", 8080),
             ..Listener::default()
         }],
+        security_policy: None,
         backends: vec![BackendCluster {
             name: "orders:8080".to_string().into(),
             namespace: "default".to_string().into(),

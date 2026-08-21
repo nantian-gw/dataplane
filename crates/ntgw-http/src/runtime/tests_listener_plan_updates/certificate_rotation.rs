@@ -71,6 +71,8 @@ fn listener_updates_restart_when_secondary_certificate_ref_material_rotates() {
                 name: "backup-cert".to_string(),
                 cert_pem: SECONDARY_CERT_PEM.to_string(),
                 key_pem: SECONDARY_KEY_PEM.to_string(),
+            htpasswd: String::new(),
+                        oidc_client_secret: String::new(),
             },
         ],
         ..Snapshot::default()
@@ -84,6 +86,8 @@ fn listener_updates_restart_when_secondary_certificate_ref_material_rotates() {
                 name: "backup-cert".to_string(),
                 cert_pem: VALID_SERVER_CERT_PEM.to_string(),
                 key_pem: VALID_SERVER_KEY_PEM.to_string(),
+            htpasswd: String::new(),
+                        oidc_client_secret: String::new(),
             },
         ],
         ..Snapshot::default()

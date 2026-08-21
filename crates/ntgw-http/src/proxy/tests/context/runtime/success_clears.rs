@@ -51,7 +51,8 @@ fn observe_selected_backend_success_clears_failure_streak() {
                 ],
                 wasm_plugin: None,
             
-                circuit_breaker: None,}],
+                circuit_breaker: None,
+                security_policy: None,}],
             ..Snapshot::default()
         }));
     }

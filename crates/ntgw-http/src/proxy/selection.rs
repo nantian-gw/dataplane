@@ -64,6 +64,7 @@ pub(crate) fn selected_backend_from_http_route(
         session_persistence,
         backend_tls,
         route_policy: _route_policy,
+        security_policy: _security_policy,
     } = route;
 
     match (backend, backend_name, backend_error) {

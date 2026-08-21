@@ -26,6 +26,8 @@ fn orders_multi_certificate_identities_by_sni_match_then_fallback_order() {
                 name: "client-cert".to_string(),
                 cert_pem: CLIENT_CERT_PEM.to_string(),
                 key_pem: CLIENT_KEY_PEM.to_string(),
+            htpasswd: String::new(),
+                        oidc_client_secret: String::new(),
             },
             example_secret_material(),
         ],

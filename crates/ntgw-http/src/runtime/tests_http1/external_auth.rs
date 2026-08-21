@@ -125,7 +125,8 @@ fn external_auth_http_snapshot(
                 }],
                 wasm_plugin: None,
             
-                circuit_breaker: None,},
+                circuit_breaker: None,
+                security_policy: None,},
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
@@ -139,7 +140,8 @@ fn external_auth_http_snapshot(
                 }],
                 wasm_plugin: None,
             
-                circuit_breaker: None,},
+                circuit_breaker: None,
+                security_policy: None,},
         ],
         ..Snapshot::default()
     }));
@@ -228,7 +230,8 @@ fn external_auth_grpc_snapshot(
                 }],
                 wasm_plugin: None,
             
-                circuit_breaker: None,},
+                circuit_breaker: None,
+                security_policy: None,},
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
@@ -242,7 +245,8 @@ fn external_auth_grpc_snapshot(
                 }],
                 wasm_plugin: None,
             
-                circuit_breaker: None,},
+                circuit_breaker: None,
+                security_policy: None,},
         ],
         ..Snapshot::default()
     }));
@@ -1224,7 +1228,8 @@ fn external_auth_backend_tls_validation_in_snapshot() {
             }],
             wasm_plugin: None,
         
-                circuit_breaker: None,}],
+                circuit_breaker: None,
+                security_policy: None,}],
         backend_policies: {
             let mut m = std::collections::BTreeMap::new();
             m.insert(
@@ -1280,7 +1285,8 @@ fn external_auth_with_backend_tls_and_session_persistence_combo_snapshot() {
                 }],
                 wasm_plugin: None,
             
-                circuit_breaker: None,},
+                circuit_breaker: None,
+                security_policy: None,},
             ntgw_ir::BackendCluster {
                 ai_service: None,
                 token_policy: None,
@@ -1294,7 +1300,8 @@ fn external_auth_with_backend_tls_and_session_persistence_combo_snapshot() {
                 }],
                 wasm_plugin: None,
             
-                circuit_breaker: None,},
+                circuit_breaker: None,
+                security_policy: None,},
         ],
         backend_policies: {
             let mut m = std::collections::BTreeMap::new();

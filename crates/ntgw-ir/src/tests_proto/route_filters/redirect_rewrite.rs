@@ -50,6 +50,7 @@ fn decodes_redirect_and_rewrite_filters_from_proto() {
             }],
             ..Default::default()
         }],
+        security_policy: None,
         ..Default::default()
     });
 

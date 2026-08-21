@@ -32,6 +32,7 @@ fn decodes_request_mirror_filter_from_proto() {
             }],
             ..Default::default()
         }],
+        security_policy: None,
         ..Default::default()
     });
 

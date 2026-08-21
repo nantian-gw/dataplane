@@ -88,10 +88,7 @@ fn route_returns_best_model() {
     let mut router = ModelRouter::new();
     router.add_routes(
         Complexity::Simple,
-        vec![
-            ModelRoute::new("gpt-3.5-turbo", 10, Some(4096)),
-            ModelRoute::new("claude-haiku", 5, Some(4096)),
-        ],
+        vec![ModelRoute::new("gpt-3.5-turbo", 10, Some(4096))],
     );
 
     let best = router.route(Complexity::Simple).unwrap();

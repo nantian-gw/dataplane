@@ -19,6 +19,7 @@ fn inherited_runtime_state_keeps_weighted_selection_progress() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
+        security_policy: None,
         backends: vec![
             BackendCluster {
                 name: "echo-v1:7070".to_string().into(),
@@ -34,6 +35,7 @@ fn inherited_runtime_state_keeps_weighted_selection_progress() {
                 token_policy: None,
             
                 circuit_breaker: None,},
+            security_policy: None,
             BackendCluster {
                 name: "echo-v2:7070".to_string().into(),
                 namespace: "default".to_string().into(),

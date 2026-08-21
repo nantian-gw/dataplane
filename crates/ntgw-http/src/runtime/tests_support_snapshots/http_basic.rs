@@ -57,7 +57,8 @@ fn simple_http_snapshot(
             }],
             wasm_plugin: None,
         
-                circuit_breaker: None,}],
+                circuit_breaker: None,
+                security_policy: None,}],
         ..Snapshot::default()
     }));
     {
@@ -140,7 +141,8 @@ fn cors_http_snapshot(
             }],
             wasm_plugin: None,
         
-                circuit_breaker: None,}],
+                circuit_breaker: None,
+                security_policy: None,}],
         ..Snapshot::default()
     }));
     {
@@ -244,7 +246,8 @@ fn dual_protocol_snapshot(
                 }],
                 wasm_plugin: None,
             
-                circuit_breaker: None,},
+                circuit_breaker: None,
+                security_policy: None,},
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
@@ -258,7 +261,8 @@ fn dual_protocol_snapshot(
                 }],
                 wasm_plugin: None,
             
-                circuit_breaker: None,},
+                circuit_breaker: None,
+                security_policy: None,},
         ],
         ..Snapshot::default()
     }));

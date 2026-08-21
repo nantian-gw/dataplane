@@ -14,6 +14,7 @@ fn ignores_routes_not_attached_to_matching_listener_hostname() {
                 backend_tls: None,
                 metadata: BTreeMap::new(),
             },
+            security_policy: None,
             Listener {
                 name: "default/gw/wildcard".to_string(),
                 address: "0.0.0.0".to_string(),
@@ -37,6 +38,7 @@ fn ignores_routes_not_attached_to_matching_listener_hostname() {
                 labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
             },
+            security_policy: None,
             HttpRoute {
                 name: "wildcard-route".to_string(),
                 namespace: "default".to_string(),
@@ -55,6 +57,7 @@ fn ignores_routes_not_attached_to_matching_listener_hostname() {
                 labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
             },
+        security_policy: None,
         ],
         backends: vec![
             backend_cluster("default", "infra-backend-v1", "10.0.0.1"),

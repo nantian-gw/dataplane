@@ -18,6 +18,7 @@ async fn replace_reports_listener_start_failure() -> Result<()> {
                     bind,
                     protocol: StreamProtocol::Tcp,
                 }],
+            security_policy: None,
             }),
             ntgw_ir::Snapshot::shared(),
             AccessLogOptions {

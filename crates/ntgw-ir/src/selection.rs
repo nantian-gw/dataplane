@@ -4,7 +4,7 @@ use ntgw_config::RoutePolicyConfig;
 
 use crate::{
     BackendEndpoint, BackendTlsConfig, Filter, MatchedHttpPath, RetryPolicy, RouteTimeouts,
-    SessionPersistence,
+    SecurityPolicyConfig, SessionPersistence,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -73,4 +73,5 @@ pub struct SelectedHttpRoute {
     pub session_persistence: Option<SessionPersistence>,
     pub backend_tls: Option<BackendTlsConfig>,
     pub route_policy: Option<RoutePolicyConfig>,
+    pub security_policy: Option<SecurityPolicyConfig>,
 }

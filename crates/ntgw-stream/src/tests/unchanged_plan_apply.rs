@@ -15,6 +15,7 @@ async fn run_marks_unchanged_stream_plan_as_applied_for_new_version() -> Result<
         attached_routes: vec!["default/route-a".to_string()],
         ..Listener::default()
     };
+    security_policy: None,
     snapshot.store(Arc::new(ntgw_ir::Snapshot {
         id: "v1".to_string(),
         listeners: vec![listener.clone()],

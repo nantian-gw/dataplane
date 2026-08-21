@@ -16,6 +16,7 @@ fn selects_grpc_backend_for_catch_all_rule_without_parseable_grpc_path() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
+        security_policy: None,
         backends: vec![BackendCluster {
             name: "greeter:9090".to_string().into(),
             namespace: "default".to_string().into(),
@@ -72,6 +73,7 @@ fn selects_grpc_backend_for_header_only_match_without_parseable_grpc_path() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
+        security_policy: None,
         backends: vec![BackendCluster {
             name: "greeter:9090".to_string().into(),
             namespace: "default".to_string().into(),

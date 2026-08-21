@@ -8,6 +8,7 @@ license.workspace = true
 anyhow.workspace = true
 async-trait.workspace = true
 base64.workspace = true
+bcrypt.workspace = true
 bytes.workspace = true
 hmac.workspace = true
 http.workspace = true
@@ -33,6 +34,7 @@ prometheus.workspace = true
 tonic.workspace = true
 reqwest.workspace = true
 jsonwebtoken.workspace = true
+ipnet.workspace = true
 
 [dev-dependencies]
 h2.workspace = true

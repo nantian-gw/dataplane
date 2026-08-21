@@ -10,6 +10,7 @@ fn runtime_indexes_precompute_listener_and_hostname_route_candidates() {
                 attached_routes: vec!["default/exact".to_string(), "default/wild".to_string()],
                 ..Listener::default()
             },
+            security_policy: None,
             Listener {
                 name: "default/gw/grpc-80".to_string(),
                 port: 80,
@@ -26,6 +27,7 @@ fn runtime_indexes_precompute_listener_and_hostname_route_candidates() {
                 hostnames: vec!["api.example.com".to_string()],
                 ..HttpRoute::default()
             },
+            security_policy: None,
             HttpRoute {
                 name: "wild".to_string(),
                 namespace: "default".to_string(),
@@ -38,6 +40,7 @@ fn runtime_indexes_precompute_listener_and_hostname_route_candidates() {
                 hostnames: vec![],
                 ..HttpRoute::default()
             },
+        security_policy: None,
         ],
         grpc_routes: vec![
             GrpcRoute {
@@ -46,6 +49,7 @@ fn runtime_indexes_precompute_listener_and_hostname_route_candidates() {
                 hostnames: vec!["grpc.example.com".to_string()],
                 ..GrpcRoute::default()
             },
+            security_policy: None,
             GrpcRoute {
                 name: "grpc-wild".to_string(),
                 namespace: "default".to_string(),
@@ -163,6 +167,7 @@ fn hostname_route_index_visits_next_candidate_without_duplicate_sources() {
                 hostnames: vec!["api.example.com".to_string(), "*.example.com".to_string()],
                 ..HttpRoute::default()
             },
+            security_policy: None,
             HttpRoute {
                 name: "catch-all".to_string(),
                 namespace: "default".to_string(),
@@ -175,6 +180,7 @@ fn hostname_route_index_visits_next_candidate_without_duplicate_sources() {
                 hostnames: vec!["*.example.com".to_string()],
                 ..HttpRoute::default()
             },
+            security_policy: None,
             HttpRoute {
                 name: "exact".to_string(),
                 namespace: "default".to_string(),
@@ -213,6 +219,7 @@ fn unbuilt_route_attachment_index_does_not_override_slow_path_route_attachment_l
         attached_routes: vec!["default/other".to_string()],
         ..Listener::default()
     }]);
+    security_policy: None,
     let snapshot = Snapshot {
         listeners: vec![Listener {
             name: "default/gw/http".to_string(),
@@ -221,6 +228,7 @@ fn unbuilt_route_attachment_index_does_not_override_slow_path_route_attachment_l
             attached_routes: vec!["default/orders".to_string()],
             ..Listener::default()
         }],
+        security_policy: None,
         http_routes: vec![HttpRoute {
             name: "orders".to_string(),
             namespace: "default".to_string(),
@@ -244,6 +252,7 @@ fn unbuilt_route_attachment_index_does_not_override_slow_path_route_attachment_l
                 token_policy: None,
         
                 circuit_breaker: None,}],
+        security_policy: None,
         route_attachment_listener_index: stale_index,
         runtime_indexes_ready: false,
         ..Snapshot::default()
@@ -288,6 +297,7 @@ fn runtime_indexes_precompute_service_frontend_metadata_by_listener_name() {
                 ]),
                 ..Listener::default()
             },
+            security_policy: None,
             Listener {
                 name: "default/gw/plain".to_string(),
                 ..Listener::default()
@@ -336,6 +346,7 @@ fn unbuilt_service_frontend_index_does_not_override_slow_path_lookup() {
             ]),
             ..Listener::default()
         }],
+        security_policy: None,
         service_frontend_index: std::collections::HashMap::from([(
             "default/gw/service-http".to_string(),
             crate::mesh::ServiceFrontendRef {
@@ -368,6 +379,7 @@ fn runtime_indexes_precompute_service_frontend_attachment_lookup() {
                 metadata: service_frontend_metadata("default", "orders", 8080),
                 ..Listener::default()
             },
+            security_policy: None,
             Listener {
                 name: "default/gw/service-http-attached".to_string(),
                 port: 8080,
@@ -391,6 +403,7 @@ fn runtime_indexes_precompute_service_frontend_attachment_lookup() {
                 token_policy: None,
         
                 circuit_breaker: None,}],
+        security_policy: None,
         ..Snapshot::default()
     };
 
@@ -421,6 +434,7 @@ fn unbuilt_service_frontend_attachment_index_does_not_override_slow_path_lookup(
             metadata: service_frontend_metadata("default", "orders", 8080),
             ..Listener::default()
         }],
+        security_policy: None,
         backends: vec![BackendCluster {
             name: "orders:8080".to_string().into(),
             namespace: "default".to_string().into(),
@@ -466,6 +480,7 @@ fn runtime_indexes_precompute_service_frontend_attachment_lookup_by_namespace() 
                 attached_routes: vec!["default/orders-route".to_string()],
                 ..Listener::default()
             },
+            security_policy: None,
             Listener {
                 name: "default/gw/plain".to_string(),
                 metadata: service_frontend_metadata("default", "payments", 8080),
@@ -506,6 +521,7 @@ fn runtime_indexes_precompute_service_frontend_port_lookup() {
                 metadata: service_frontend_metadata("default", "orders", 8080),
                 ..Listener::default()
             },
+            security_policy: None,
             Listener {
                 name: "default/gw/service-http-indexed".to_string(),
                 port: 8080,
@@ -529,6 +545,7 @@ fn runtime_indexes_precompute_service_frontend_port_lookup() {
                 token_policy: None,
         
                 circuit_breaker: None,}],
+        security_policy: None,
         ..Snapshot::default()
     };
 
@@ -566,6 +583,7 @@ fn unbuilt_service_frontend_port_index_does_not_override_slow_path_lookup() {
                 metadata: service_frontend_metadata("default", "orders", 8080),
                 ..Listener::default()
             },
+            security_policy: None,
             Listener {
                 name: "default/gw/service-http-indexed".to_string(),
                 port: 8080,
@@ -589,6 +607,7 @@ fn unbuilt_service_frontend_port_index_does_not_override_slow_path_lookup() {
                 token_policy: None,
         
                 circuit_breaker: None,}],
+        security_policy: None,
         service_frontend_listener_port_index: std::collections::HashMap::from([(8080, vec![
             1, 0,
         ])]),

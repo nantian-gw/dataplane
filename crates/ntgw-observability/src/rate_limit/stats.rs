@@ -9,8 +9,10 @@ pub(super) struct HttpRateLimitStats {
     pub(super) rejected_global_total: u64,
     pub(super) rejected_listener_total: u64,
     pub(super) rejected_route_total: u64,
+    pub(super) rejected_backend_total: u64,
     pub(super) rejected_listener_by_name: BTreeMap<String, u64>,
     pub(super) rejected_route_by_name: BTreeMap<String, u64>,
+    pub(super) rejected_backend_by_name: BTreeMap<String, u64>,
 }
 
 impl HttpRateLimitStats {
@@ -34,6 +36,12 @@ impl HttpRateLimitStats {
                 self.rejected_route_total = self.rejected_route_total.saturating_add(1);
                 if let Some(key) = key.filter(|value| !value.trim().is_empty()) {
                     increment_named(&mut self.rejected_route_by_name, key);
+                }
+            }
+            HttpRateLimitRejection::Backend => {
+                self.rejected_backend_total = self.rejected_backend_total.saturating_add(1);
+                if let Some(key) = key.filter(|value| !value.trim().is_empty()) {
+                    increment_named(&mut self.rejected_backend_by_name, key);
                 }
             }
         }

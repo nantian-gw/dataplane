@@ -696,6 +696,7 @@ pub struct BackendCluster {
     pub token_policy: Option<TokenPolicyConfig>,
     #[serde(default)]
     pub circuit_breaker: Option<CircuitBreakerConfig>,
+    pub security_policy: Option<SecurityPolicyConfig>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -826,6 +827,8 @@ pub struct SecretMaterial {
     pub name: String,
     pub cert_pem: String,
     pub key_pem: String,
+    pub htpasswd: String,
+    pub oidc_client_secret: String,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -857,4 +860,119 @@ pub struct RequestMeta {
     pub source_ip: Option<String>,
     pub headers: BTreeMap<String, Vec<String>>,
     pub query_params: BTreeMap<String, Vec<String>>,
+}
+
+// ---------------------------------------------------------------------------
+// Security Policy types
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct SecurityPolicyConfig {
+    pub authn: Option<SecurityAuthNConfig>,
+    pub authz: Option<SecurityAuthZConfig>,
+    pub cors: Option<SecurityCorsConfig>,
+    #[serde(default)]
+    pub rate_limit: Vec<RateLimitRule>,
+    pub ip: Option<SecurityIpConfig>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct SecurityAuthNConfig {
+    pub jwt: Option<JwtAuthConfig>,
+    pub oidc: Option<OidcAuthConfig>,
+    pub basic_auth: Option<BasicAuthConfig>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct SecurityAuthZConfig {
+    pub external: Option<ExternalAuthConfig>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct JwtAuthConfig {
+    pub issuer: String,
+    pub jwks_url: String,
+    pub audience: String,
+    pub header_name: String,
+    pub token_prefix: String,
+    #[serde(default)]
+    pub claims_to_headers: BTreeMap<String, String>,
+    pub cache_ttl_secs: i32,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct OidcAuthConfig {
+    pub provider_authorization_url: String,
+    pub provider_token_url: String,
+    pub provider_jwks_url: String,
+    pub provider_userinfo_url: String,
+    pub client_id: String,
+    pub client_secret_ref: String,
+    pub callback_path: String,
+    #[serde(default)]
+    pub scopes: Vec<String>,
+    pub redirect_url: String,
+    pub session_signing_key_ref: String,
+    pub session_cookie_name: String,
+    pub session_ttl_secs: i32,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct BasicAuthConfig {
+    pub htpasswd_ref: String,
+    pub bcrypt: bool,
+    pub realm: String,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct ExternalAuthConfig {
+    pub protocol: String,
+    pub backend_ref: Option<BackendRef>,
+    pub http: Option<ExternalHttpAuth>,
+    pub grpc: Option<ExternalGrpcAuth>,
+    pub forward_body_max_size: i32,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct ExternalHttpAuth {
+    pub path_prefix: String,
+    #[serde(default)]
+    pub headers_to_add: Vec<String>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct ExternalGrpcAuth {
+    pub grpc_service: String,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct SecurityCorsConfig {
+    #[serde(default)]
+    pub allow_origins: Vec<String>,
+    #[serde(default)]
+    pub allow_methods: Vec<String>,
+    #[serde(default)]
+    pub allow_headers: Vec<String>,
+    #[serde(default)]
+    pub expose_headers: Vec<String>,
+    pub allow_credentials: bool,
+    pub max_age: i32,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct RateLimitRule {
+    pub scope: String,
+    pub requests_per_second: u32,
+    pub burst: u32,
+    pub key_type: String,
+    pub on_limit: String,
+    pub key_header_name: String,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct SecurityIpConfig {
+    #[serde(default)]
+    pub allow_cidrs: Vec<String>,
+    #[serde(default)]
+    pub deny_cidrs: Vec<String>,
 }

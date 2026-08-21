@@ -19,6 +19,7 @@ fn does_not_fallback_to_service_backend_for_mesh_listener_without_route() {
 
             circuit_breaker: None,
         }],
+        security_policy: None,
         ..Snapshot::default()
     };
 
@@ -58,6 +59,7 @@ fn does_not_fallback_to_service_backend_for_mesh_grpc_listener_without_route() {
 
             circuit_breaker: None,
         }],
+        security_policy: None,
         ..Snapshot::default()
     };
 
@@ -118,6 +120,7 @@ fn attached_mesh_route_without_match_does_not_fallback_to_service_backend() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
+        security_policy: None,
         backends: vec![BackendCluster {
             name: "echo:80".into(),
             namespace: "default".into(),

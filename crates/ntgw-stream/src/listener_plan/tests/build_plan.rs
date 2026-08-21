@@ -11,6 +11,7 @@ fn stream_listener_plan_ignores_non_topology_listener_changes() {
         attached_routes: vec!["default/route-a".to_string()],
         ..Listener::default()
     };
+    security_policy: None,
     let mut changed = base.clone();
     changed.attached_routes = vec!["default/route-b".to_string()];
     changed
@@ -40,6 +41,7 @@ fn stream_listener_plan_changes_when_bind_changes() {
         metadata: BTreeMap::new(),
         ..Listener::default()
     };
+    security_policy: None,
     let mut moved = tcp.clone();
     moved.port = 9443;
 
@@ -68,6 +70,7 @@ fn build_listener_plan_ignores_tls_passthrough_listeners() {
             protocol: "LISTENER_PROTOCOL_TLS_PASSTHROUGH".to_string(),
             ..Listener::default()
         }],
+        security_policy: None,
         ..ntgw_ir::Snapshot::default()
     };
 

@@ -98,6 +98,7 @@ fn test_listener(name: &str, port: u32, protocol: &str) -> Listener {
         backend_tls: None,
         metadata: BTreeMap::new(),
     }
+security_policy: None,
 }
 
 fn route_name_for_listener(listener_name: &str) -> &str {
@@ -135,6 +136,7 @@ fn test_snapshot(
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
+        security_policy: None,
         backends: vec![BackendCluster {
             ai_service: None,
             token_policy: None,

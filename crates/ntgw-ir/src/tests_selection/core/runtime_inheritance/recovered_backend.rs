@@ -21,6 +21,7 @@ fn inherited_runtime_state_reintroduces_recovered_backend_into_rotation() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
+        security_policy: None,
         backends: vec![
             BackendCluster {
                 name: "users:8080".to_string().into(),
@@ -36,6 +37,7 @@ fn inherited_runtime_state_reintroduces_recovered_backend_into_rotation() {
                 token_policy: None,
             
                 circuit_breaker: None,},
+            security_policy: None,
             BackendCluster {
                 name: "orders:8081".to_string().into(),
                 namespace: "default".to_string().into(),
@@ -80,6 +82,7 @@ fn inherited_runtime_state_reintroduces_recovered_backend_into_rotation() {
                 token_policy: None,
             
                 circuit_breaker: None,},
+            security_policy: None,
             BackendCluster {
                 name: "orders:8081".to_string().into(),
                 namespace: "default".to_string().into(),

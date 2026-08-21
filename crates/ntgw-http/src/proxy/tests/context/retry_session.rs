@@ -17,6 +17,7 @@ fn falls_back_to_first_backend() {
             wasm_plugin: None,
 
             circuit_breaker: None,
+                security_policy: None,
         }],
         ..Snapshot::default()
     };

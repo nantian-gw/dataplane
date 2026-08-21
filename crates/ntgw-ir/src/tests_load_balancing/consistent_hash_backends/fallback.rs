@@ -20,6 +20,7 @@ fn missing_consistent_hash_key_falls_back_to_weighted_round_robin() {
             }],
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
+        security_policy: None,
         }],
         backends: vec![
             BackendCluster {
@@ -35,6 +36,7 @@ fn missing_consistent_hash_key_falls_back_to_weighted_round_robin() {
                 ai_service: None,
                 token_policy: None,
             
+                security_policy: None,
                 circuit_breaker: None,},
             BackendCluster {
                 name: "orders:8081".to_string().into(),
@@ -49,6 +51,7 @@ fn missing_consistent_hash_key_falls_back_to_weighted_round_robin() {
                 ai_service: None,
                 token_policy: None,
             
+                security_policy: None,
                 circuit_breaker: None,},
         ],
         backend_policies: BTreeMap::from([

@@ -16,6 +16,7 @@ fn does_not_fall_back_for_mesh_http_service_request_without_routes() {
                 token_policy: None,
             
                 circuit_breaker: None,},
+            security_policy: None,
             BackendCluster {
                 name: "echo:8080".to_string().into(),
                 namespace: "default".to_string().into(),

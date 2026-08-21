@@ -409,7 +409,8 @@ fn unhealthy_backend_http_snapshot(
             }],
             wasm_plugin: None,
         
-                circuit_breaker: None,}],
+                circuit_breaker: None,
+                security_policy: None,}],
         ..Snapshot::default()
     }));
     let mut s = (**shared.load()).clone();

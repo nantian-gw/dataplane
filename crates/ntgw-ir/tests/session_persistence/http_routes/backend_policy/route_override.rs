@@ -21,6 +21,7 @@ fn route_session_persistence_overrides_backend_policy() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
+        security_policy: None,
         backends: vec![
             BackendCluster {
                 name: "users:8080".into(),
@@ -36,6 +37,7 @@ fn route_session_persistence_overrides_backend_policy() {
                 token_policy: None,
             
                 circuit_breaker: None,},
+            security_policy: None,
             BackendCluster {
                 name: "orders:8081".into(),
                 namespace: "default".into(),

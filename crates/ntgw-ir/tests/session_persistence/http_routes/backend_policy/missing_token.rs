@@ -18,6 +18,7 @@ fn applies_backend_policy_session_persistence_without_existing_token() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
+        security_policy: None,
         backends: vec![BackendCluster {
             name: "orders:8081".into(),
             namespace: "default".into(),

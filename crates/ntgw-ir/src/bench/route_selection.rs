@@ -92,6 +92,7 @@ pub fn build_route_selection_fixture(config: SnapshotBenchConfig) -> RouteSelect
                         ),
 
                         circuit_breaker: None,
+                        security_policy: None,
                     });
 
                     BackendRef {
@@ -165,6 +166,7 @@ pub fn build_route_selection_fixture(config: SnapshotBenchConfig) -> RouteSelect
                         ),
 
                         circuit_breaker: None,
+                        security_policy: None,
                     });
 
                     BackendRef {
@@ -237,6 +239,7 @@ pub fn build_route_selection_fixture(config: SnapshotBenchConfig) -> RouteSelect
                         ),
 
                         circuit_breaker: None,
+                        security_policy: None,
                     });
 
                     BackendRef {

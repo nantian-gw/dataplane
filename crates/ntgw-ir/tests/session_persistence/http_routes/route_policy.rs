@@ -21,6 +21,7 @@ fn prefers_http_persistent_session_backend_over_weighted_selection() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
+        security_policy: None,
         backends: vec![
             BackendCluster {
                 name: "users:8080".into(),
@@ -36,6 +37,7 @@ fn prefers_http_persistent_session_backend_over_weighted_selection() {
                 token_policy: None,
             
                 circuit_breaker: None,},
+            security_policy: None,
             BackendCluster {
                 name: "orders:8081".into(),
                 namespace: "default".into(),
@@ -94,6 +96,7 @@ fn falls_back_to_weighted_selection_when_session_target_is_unavailable() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
+        security_policy: None,
         backends: vec![
             BackendCluster {
                 name: "users:8080".into(),
@@ -109,6 +112,7 @@ fn falls_back_to_weighted_selection_when_session_target_is_unavailable() {
                 token_policy: None,
             
                 circuit_breaker: None,},
+            security_policy: None,
             BackendCluster {
                 name: "orders:8081".into(),
                 namespace: "default".into(),

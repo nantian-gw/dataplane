@@ -9,6 +9,7 @@ fn runtime_indexes_precompute_stream_listener_route_candidates() {
                 attached_routes: vec!["default/tcp-a".to_string(), "default/tcp-b".to_string()],
                 ..Listener::default()
             },
+            security_policy: None,
             Listener {
                 name: "default/gw/tls".to_string(),
                 port: 9443,
@@ -24,6 +25,7 @@ fn runtime_indexes_precompute_stream_listener_route_candidates() {
                 kind: "TCP".to_string(),
                 ..StreamRoute::default()
             },
+            security_policy: None,
             StreamRoute {
                 name: "tcp-b".to_string(),
                 namespace: "default".to_string(),
@@ -36,6 +38,7 @@ fn runtime_indexes_precompute_stream_listener_route_candidates() {
                 kind: "TLS".to_string(),
                 ..StreamRoute::default()
             },
+        security_policy: None,
         ],
         ..Snapshot::default()
     };
@@ -79,6 +82,7 @@ fn stream_listener_set_best_candidates_visit_in_input_order() {
                 hostnames: vec!["*.example.com".to_string()],
                 ..Listener::default()
             },
+            security_policy: None,
             Listener {
                 name: "default/gw/exact-a".to_string(),
                 protocol: "TLS".to_string(),
@@ -91,6 +95,7 @@ fn stream_listener_set_best_candidates_visit_in_input_order() {
                 hostnames: vec!["api.example.com".to_string()],
                 ..Listener::default()
             },
+            security_policy: None,
             Listener {
                 name: "default/gw/catch-all".to_string(),
                 protocol: "TLS".to_string(),

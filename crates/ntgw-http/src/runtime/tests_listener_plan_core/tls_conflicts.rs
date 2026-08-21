@@ -42,6 +42,8 @@ fn skips_malformed_tls_secret_and_keeps_later_valid_listener_on_same_bind() {
                 cert_pem: "-----BEGIN CERTIFICATE-----\nmalformed\n-----END CERTIFICATE-----\n"
                     .to_string(),
                 key_pem: VALID_SERVER_KEY_PEM.to_string(),
+            htpasswd: String::new(),
+                        oidc_client_secret: String::new(),
             },
             example_secret_material(),
         ],

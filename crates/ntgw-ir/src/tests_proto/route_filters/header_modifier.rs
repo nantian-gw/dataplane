@@ -28,6 +28,7 @@ fn decodes_header_modifier_filter_from_proto() {
             }],
             ..Default::default()
         }],
+        security_policy: None,
         ..Default::default()
     });
 

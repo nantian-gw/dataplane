@@ -16,6 +16,7 @@ fn does_not_fall_back_for_short_mesh_service_host_without_workload_index() {
                 token_policy: None,
             
                 circuit_breaker: None,},
+            security_policy: None,
             BackendCluster {
                 name: "echo:7070".to_string().into(),
                 namespace: "default".to_string().into(),

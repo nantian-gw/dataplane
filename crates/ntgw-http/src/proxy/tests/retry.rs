@@ -142,6 +142,7 @@ fn snapshot_with_circuit_breaker_syncs_per_backend_limit() {
         name: "unlimited-svc".to_string().into(),
         namespace: "default".to_string().into(),
         circuit_breaker: None,
+                security_policy: None,
         ..Default::default()
     });
 

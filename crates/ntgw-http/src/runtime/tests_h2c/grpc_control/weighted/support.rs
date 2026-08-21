@@ -67,7 +67,8 @@ fn weighted_grpc_h2c_snapshot(
                 }],
                 wasm_plugin: None,
             
-                circuit_breaker: None,},
+                circuit_breaker: None,
+                security_policy: None,},
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
@@ -81,7 +82,8 @@ fn weighted_grpc_h2c_snapshot(
                 }],
                 wasm_plugin: None,
             
-                circuit_breaker: None,},
+                circuit_breaker: None,
+                security_policy: None,},
         ],
         ..Snapshot::default()
     }));
@@ -182,7 +184,8 @@ fn weighted_mesh_grpc_h2c_snapshot_with_addresses(
                 }],
                 wasm_plugin: None,
             
-                circuit_breaker: None,},
+                circuit_breaker: None,
+                security_policy: None,},
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
@@ -196,7 +199,8 @@ fn weighted_mesh_grpc_h2c_snapshot_with_addresses(
                 }],
                 wasm_plugin: None,
             
-                circuit_breaker: None,},
+                circuit_breaker: None,
+                security_policy: None,},
         ],
         ..Snapshot::default()
     }));

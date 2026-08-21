@@ -13,6 +13,7 @@ fn rejects_tls_sni_outside_listener_hostname_even_when_route_hostname_matches() 
             backend_tls: None,
             metadata: BTreeMap::new(),
         }],
+        security_policy: None,
         stream_routes: vec![StreamRoute {
             name: "wildcard-route".to_string(),
             namespace: "default".to_string(),
@@ -44,6 +45,7 @@ fn rejects_tls_sni_outside_listener_hostname_even_when_route_hostname_matches() 
                 token_policy: None,
         
                 circuit_breaker: None,}],
+        security_policy: None,
         ..Snapshot::default()
     };
 

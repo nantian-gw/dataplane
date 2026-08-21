@@ -15,6 +15,7 @@ fn selects_most_specific_header_match_on_attached_listener() {
             backend_tls: None,
             metadata: BTreeMap::new(),
         }],
+        security_policy: None,
         http_routes: vec![HttpRoute {
             name: "header-matching".to_string(),
             namespace: "default".to_string(),
@@ -105,6 +106,7 @@ fn prefers_lexicographically_earlier_route_when_http_scores_tie() {
                 labels: BTreeMap::new(),
                 annotations: BTreeMap::new(),
             },
+            security_policy: None,
             HttpRoute {
                 name: "a-route".to_string(),
                 namespace: "default".to_string(),

@@ -14,6 +14,7 @@ fn selects_listener_attachments_by_request_port() {
                 backend_tls: None,
                 metadata: BTreeMap::new(),
             },
+            security_policy: None,
             Listener {
                 name: "default/gw/http-8080".to_string(),
                 address: "0.0.0.0".to_string(),
@@ -37,6 +38,7 @@ fn selects_listener_attachments_by_request_port() {
                 labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
             },
+            security_policy: None,
             HttpRoute {
                 name: "backend-v2".to_string(),
                 namespace: "default".to_string(),

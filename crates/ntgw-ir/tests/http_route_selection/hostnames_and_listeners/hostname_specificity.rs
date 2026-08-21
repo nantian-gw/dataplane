@@ -24,6 +24,7 @@ fn prefers_the_most_specific_listener_hostname_group() {
                 labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
             },
+            security_policy: None,
             HttpRoute {
                 name: "example-route".to_string(),
                 namespace: "default".to_string(),
@@ -47,6 +48,7 @@ fn prefers_the_most_specific_listener_hostname_group() {
                 labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
             },
+        security_policy: None,
         ],
         backends: vec![
             backend_cluster("default", "infra-backend-v1", "10.0.0.1"),

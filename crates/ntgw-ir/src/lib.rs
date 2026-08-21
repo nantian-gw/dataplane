@@ -22,13 +22,14 @@ mod types;
 pub use types::{
     AIServiceAuthConfig, AIServiceConfig, BackendCluster, BackendEndpoint, BackendPolicy,
     BackendRef, BackendServiceIndex, BackendSubjectAltName, BackendTlsConfig, BackendTlsValidation,
-    CircuitBreakerConfig, ConsistentHashPolicy, FrontendClientCertificateRequirement,
-    FrontendValidation, GrpcMatch, GrpcRoute, GrpcRule, HeaderMatch, HealthCheckConfig,
-    HostnameRouteIndex, HttpMatch, HttpRoute, HttpRule, Listener, LoadBalancingPolicy,
-    OutlierDetectionConfig, QueryMatch, RequestMaterializationHints, RequestMeta, RetryPolicy,
-    RouteAttachmentListenerIndex, SecretMaterial, SlowStartConfig, Snapshot, StreamMatch,
-    StreamRoute, StreamRule, TlsConfig, TlsRouteMode, TokenPolicyConfig, WasmPluginConfig,
-    WasmSandboxConfig,
+    CircuitBreakerConfig, ConsistentHashPolicy, ExternalAuthConfig,
+    ExternalGrpcAuth, ExternalHttpAuth, FrontendClientCertificateRequirement, FrontendValidation,
+    GrpcMatch, GrpcRoute, GrpcRule, HeaderMatch, HealthCheckConfig, HostnameRouteIndex, HttpMatch,
+    HttpRoute, HttpRule, JwtAuthConfig, Listener, BasicAuthConfig, LoadBalancingPolicy, OidcAuthConfig, OutlierDetectionConfig,
+    QueryMatch, RateLimitRule, RequestMaterializationHints, RequestMeta, RetryPolicy,
+    RouteAttachmentListenerIndex, SecretMaterial, SecurityAuthNConfig, SecurityAuthZConfig,
+    SecurityCorsConfig, SecurityIpConfig, SecurityPolicyConfig, SlowStartConfig, Snapshot, StreamMatch,
+    StreamRoute, StreamRule, TlsConfig, TlsRouteMode, TokenPolicyConfig, WasmPluginConfig, WasmSandboxConfig,
 };
 
 // Re-export internal types from other modules

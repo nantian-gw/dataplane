@@ -24,6 +24,8 @@ pub struct HttpRateLimitOptions {
     pub listener_burst: u32,
     pub route_requests_per_second: u32,
     pub route_burst: u32,
+    pub backend_requests_per_second: u32,
+    pub backend_burst: u32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -31,6 +33,7 @@ pub enum HttpRateLimitRejection {
     Global,
     Listener,
     Route,
+    Backend,
 }
 
 impl HttpRateLimitRejection {
@@ -39,6 +42,7 @@ impl HttpRateLimitRejection {
             Self::Global => "global",
             Self::Listener => "listener",
             Self::Route => "route",
+            Self::Backend => "backend",
         }
     }
 }
@@ -69,13 +73,16 @@ pub struct HttpRateLimitSnapshot {
     pub global: RateLimitScopeSnapshot,
     pub listener: NamedRateLimitScopeSnapshot,
     pub route: NamedRateLimitScopeSnapshot,
+    pub backend: NamedRateLimitScopeSnapshot,
     pub allowed_total: u64,
     pub rejected_total: u64,
     pub rejected_global_total: u64,
     pub rejected_listener_total: u64,
     pub rejected_route_total: u64,
+    pub rejected_backend_total: u64,
     pub rejected_listener_by_name: BTreeMap<String, u64>,
     pub rejected_route_by_name: BTreeMap<String, u64>,
+    pub rejected_backend_by_name: BTreeMap<String, u64>,
 }
 
 #[derive(Debug, Clone)]
@@ -84,6 +91,7 @@ pub struct HttpRateLimitController {
     global: Option<SharedBucket>,
     listener: KeyedScopeController,
     route: KeyedScopeController,
+    backend: KeyedScopeController,
     stats: Arc<RwLock<HttpRateLimitStats>>,
 }
 
@@ -103,6 +111,10 @@ impl HttpRateLimitController {
             route: KeyedScopeController::new(
                 options.route_requests_per_second,
                 options.route_burst,
+            ),
+            backend: KeyedScopeController::new(
+                options.backend_requests_per_second,
+                options.backend_burst,
             ),
             stats: Arc::new(RwLock::new(HttpRateLimitStats::default())),
         }
@@ -151,6 +163,23 @@ impl HttpRateLimitController {
 
     pub fn route_scope_enabled(&self) -> bool {
         self.route.options.enabled()
+    }
+
+    pub fn backend_scope_enabled(&self) -> bool {
+        self.backend.options.enabled()
+    }
+
+    pub fn try_acquire_backend(&self, backend: &str) -> Result<bool, HttpRateLimitRejection> {
+        let now = Instant::now();
+        let backend_bucket = self.backend.bucket(backend);
+        if let Some(bucket) = backend_bucket.as_ref()
+            && !try_consume_bucket(bucket, self.backend.options, now)
+        {
+            self.observe_reject(HttpRateLimitRejection::Backend, Some(backend));
+            return Err(HttpRateLimitRejection::Backend);
+        }
+
+        Ok(backend_bucket.is_some())
     }
 
     pub fn try_acquire(&self, listener: &str, route: &str) -> Result<bool, HttpRateLimitRejection> {
@@ -204,13 +233,16 @@ impl HttpRateLimitController {
             global,
             listener: self.listener.snapshot(now),
             route: self.route.snapshot(now),
+            backend: self.backend.snapshot(now),
             allowed_total: stats.allowed_total,
             rejected_total: stats.rejected_total,
             rejected_global_total: stats.rejected_global_total,
             rejected_listener_total: stats.rejected_listener_total,
             rejected_route_total: stats.rejected_route_total,
+            rejected_backend_total: stats.rejected_backend_total,
             rejected_listener_by_name: stats.rejected_listener_by_name.clone(),
             rejected_route_by_name: stats.rejected_route_by_name.clone(),
+            rejected_backend_by_name: stats.rejected_backend_by_name.clone(),
         }
     }
 
@@ -218,6 +250,7 @@ impl HttpRateLimitController {
         if !self.global_options.enabled()
             && !self.listener.options.enabled()
             && !self.route.options.enabled()
+            && !self.backend.options.enabled()
         {
             return;
         }

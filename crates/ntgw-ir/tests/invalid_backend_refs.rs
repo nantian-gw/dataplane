@@ -27,6 +27,7 @@ fn listener(name: &str, attached_route: &str) -> Listener {
         backend_tls: None,
         metadata: BTreeMap::new(),
     }
+security_policy: None,
 }
 
 fn backend_cluster(namespace: &str, name: &str, healthy: bool) -> BackendCluster {
@@ -48,4 +49,5 @@ fn backend_cluster(namespace: &str, name: &str, healthy: bool) -> BackendCluster
         token_policy: None,
         circuit_breaker: None,
     }
+security_policy: None,
 }

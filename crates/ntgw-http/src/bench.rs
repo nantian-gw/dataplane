@@ -254,6 +254,7 @@ fn simple_fast_path_snapshot() -> Snapshot {
             }],
 
             circuit_breaker: None,
+            security_policy: None,
         }],
         ..Snapshot::default()
     }

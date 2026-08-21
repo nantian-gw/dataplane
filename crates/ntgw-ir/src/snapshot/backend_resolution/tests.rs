@@ -19,6 +19,7 @@ fn collect_http_backend_candidates_preserves_backend_names() {
             token_policy: None,
             circuit_breaker: None,
         }],
+        security_policy: None,
         ..Snapshot::default()
     };
     let refs = vec![BackendRef {
@@ -56,6 +57,7 @@ fn visit_http_backend_candidates_preserves_order_and_status() {
                 token_policy: None,
                 circuit_breaker: None,
             },
+            security_policy: None,
             BackendCluster {
                 name: "orders:8081".to_string(),
                 namespace: "default".to_string(),
@@ -84,6 +86,7 @@ fn visit_http_backend_candidates_preserves_order_and_status() {
                 token_policy: None,
                 circuit_breaker: None,
             },
+        security_policy: None,
         ],
         ..Snapshot::default()
     };
@@ -208,6 +211,7 @@ fn visit_http_backend_candidates_borrows_indexed_backend_names() {
             token_policy: None,
             circuit_breaker: None,
         }],
+        security_policy: None,
         ..Snapshot::default()
     };
     snapshot.rebuild_runtime_indexes();

@@ -16,6 +16,7 @@ fn does_not_select_grpc_backend_for_non_grpc_request_with_parseable_path() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
+        security_policy: None,
         backends: vec![BackendCluster {
             name: "greeter:9090".to_string().into(),
             namespace: "default".to_string().into(),

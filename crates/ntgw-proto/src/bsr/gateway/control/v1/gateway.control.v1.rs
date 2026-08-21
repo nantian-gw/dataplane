@@ -286,6 +286,9 @@ pub struct Listener {
     /// Additional addresses to bind (for dual-stack or multi-interface setups).
     #[prost(string, repeated, tag="10")]
     pub addresses: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// Security policy attached to this listener.
+    #[prost(message, optional, tag="11")]
+    pub security_policy: ::core::option::Option<SecurityPolicyConfig>,
 }
 /// TlsConfig specifies TLS settings for a listener's frontend (client-facing) side.
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
@@ -394,6 +397,9 @@ pub struct HttpRoute {
     /// and connection keepalive settings.
     #[prost(message, optional, tag="8")]
     pub route_policy: ::core::option::Option<RoutePolicy>,
+    /// Security policy attached to this route.
+    #[prost(message, optional, tag="9")]
+    pub security_policy: ::core::option::Option<SecurityPolicyConfig>,
 }
 /// HttpRule defines a single HTTP routing rule: match conditions, filters
 /// to apply, and backends to forward to.
@@ -546,6 +552,9 @@ pub struct GrpcRoute {
     /// and connection keepalive settings.
     #[prost(message, optional, tag="8")]
     pub route_policy: ::core::option::Option<RoutePolicy>,
+    /// Security policy attached to this route.
+    #[prost(message, optional, tag="9")]
+    pub security_policy: ::core::option::Option<SecurityPolicyConfig>,
 }
 /// GrpcRule defines a single gRPC routing rule: service/method matching,
 /// filters, and backend forwarding.
@@ -740,6 +749,9 @@ pub struct BackendCluster {
     /// Per-backend outlier detection configuration.
     #[prost(message, optional, tag="16")]
     pub outlier_detection: ::core::option::Option<OutlierDetectionConfig>,
+    /// Security policy attached to this backend cluster.
+    #[prost(message, optional, tag="17")]
+    pub security_policy: ::core::option::Option<SecurityPolicyConfig>,
 }
 /// CircuitBreakerConfig defines per-backend circuit breaker thresholds.
 /// When not set, the data plane uses its default circuit breaker settings.
@@ -870,6 +882,231 @@ pub struct SecretMaterial {
     /// PEM-encoded private key data.
     #[prost(string, tag="4")]
     pub key_pem: ::prost::alloc::string::String,
+    /// BasicAuth htpasswd content (bcrypt hash lines).
+    #[prost(string, tag="5")]
+    pub htpasswd: ::prost::alloc::string::String,
+    /// OIDC client secret.
+    #[prost(string, tag="6")]
+    pub oidc_client_secret: ::prost::alloc::string::String,
+}
+// ============================================================
+// Security Policy types (gateway.nantian.dev/v1alpha1 SecurityPolicy CRD)
+// ============================================================
+
+/// SecurityPolicyConfig is the unified security policy attached to
+/// Listener / HTTPRoute / GRPCRoute / BackendCluster level.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SecurityPolicyConfig {
+    /// Authentication configuration (JWT, OIDC, or BasicAuth).
+    #[prost(message, optional, tag="1")]
+    pub authn: ::core::option::Option<SecurityAuthNConfig>,
+    /// Authorization configuration (external auth service).
+    #[prost(message, optional, tag="2")]
+    pub authz: ::core::option::Option<SecurityAuthZConfig>,
+    /// CORS configuration.
+    #[prost(message, optional, tag="3")]
+    pub cors: ::core::option::Option<SecurityCorsConfig>,
+    /// Rate limiting rules (ordered list).
+    #[prost(message, repeated, tag="4")]
+    pub rate_limit: ::prost::alloc::vec::Vec<RateLimitRule>,
+    /// IP-based access control.
+    #[prost(message, optional, tag="5")]
+    pub ip: ::core::option::Option<SecurityIpConfig>,
+}
+/// SecurityAuthNConfig aggregates authentication methods.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SecurityAuthNConfig {
+    /// JWT authentication configuration.
+    #[prost(message, optional, tag="1")]
+    pub jwt: ::core::option::Option<JwtAuthConfig>,
+    /// OIDC Authorization Code flow configuration.
+    #[prost(message, optional, tag="2")]
+    pub oidc: ::core::option::Option<OidcConfig>,
+    /// HTTP Basic Authentication (htpasswd/bcrypt).
+    #[prost(message, optional, tag="3")]
+    pub basic_auth: ::core::option::Option<BasicAuthConfig>,
+}
+/// SecurityAuthZConfig aggregates authorization methods.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SecurityAuthZConfig {
+    /// External authorization service (ext_authz equivalent).
+    #[prost(message, optional, tag="1")]
+    pub external: ::core::option::Option<ExternalAuthConfig>,
+}
+/// SecurityCORSConfig defines the CORS policy.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct SecurityCorsConfig {
+    /// List of allowed origins.
+    #[prost(string, repeated, tag="1")]
+    pub allow_origins: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// List of allowed HTTP methods.
+    #[prost(string, repeated, tag="2")]
+    pub allow_methods: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// List of allowed request headers.
+    #[prost(string, repeated, tag="3")]
+    pub allow_headers: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// List of headers the browser can read from the response.
+    #[prost(string, repeated, tag="4")]
+    pub expose_headers: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// Whether credentials are allowed.
+    #[prost(bool, tag="5")]
+    pub allow_credentials: bool,
+    /// Maximum age (seconds) for preflight cache.
+    #[prost(int32, tag="6")]
+    pub max_age: i32,
+}
+/// RateLimitRule defines a single rate limiting rule.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct RateLimitRule {
+    /// Scope: global, listener, route, or backend.
+    #[prost(enumeration="RateLimitScope", tag="1")]
+    pub scope: i32,
+    /// Requests per second allowed.
+    #[prost(uint32, tag="2")]
+    pub requests_per_second: u32,
+    /// Burst size.
+    #[prost(uint32, tag="3")]
+    pub burst: u32,
+    /// Key type: sourceIP, header, route.
+    #[prost(string, tag="4")]
+    pub key_type: ::prost::alloc::string::String,
+    /// Action when limit exceeded.
+    #[prost(enumeration="RateLimitAction", tag="5")]
+    pub on_limit: i32,
+    /// Header name when key_type is header.
+    #[prost(string, tag="6")]
+    pub key_header_name: ::prost::alloc::string::String,
+}
+/// SecurityIPConfig defines IP-based access control rules.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct SecurityIpConfig {
+    /// CIDR ranges to allow.
+    #[prost(string, repeated, tag="1")]
+    pub allow_cidrs: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// CIDR ranges to deny.
+    #[prost(string, repeated, tag="2")]
+    pub deny_cidrs: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+/// JwtAuthConfig is the JWT authentication policy.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct JwtAuthConfig {
+    /// JWT issuers to validate.
+    #[prost(message, repeated, tag="1")]
+    pub issuers: ::prost::alloc::vec::Vec<JwtIssuer>,
+}
+/// JwtIssuer defines a single JWT issuer configuration.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct JwtIssuer {
+    /// The expected issuer URL.
+    #[prost(string, tag="1")]
+    pub issuer: ::prost::alloc::string::String,
+    /// JSON Web Key Set URL.
+    #[prost(string, tag="2")]
+    pub jwks_url: ::prost::alloc::string::String,
+    /// Expected audience.
+    #[prost(string, tag="3")]
+    pub audience: ::prost::alloc::string::String,
+    /// Header name where the JWT is found.
+    #[prost(string, tag="4")]
+    pub header_name: ::prost::alloc::string::String,
+    /// Token prefix stripped before forwarding.
+    #[prost(string, tag="5")]
+    pub token_prefix: ::prost::alloc::string::String,
+    /// Claims to extract and forward as headers.
+    #[prost(map="string, string", tag="6")]
+    pub claims_to_headers: ::std::collections::HashMap<::prost::alloc::string::String, ::prost::alloc::string::String>,
+    /// JWKS cache TTL in seconds.
+    #[prost(int32, tag="7")]
+    pub cache_ttl_secs: i32,
+}
+/// OIDCConfig is the OIDC Authorization Code flow policy.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct OidcConfig {
+    /// OIDC Provider authorization endpoint.
+    #[prost(string, tag="1")]
+    pub provider_authorization_url: ::prost::alloc::string::String,
+    /// OIDC Provider token endpoint.
+    #[prost(string, tag="2")]
+    pub provider_token_url: ::prost::alloc::string::String,
+    /// OIDC Provider JWKS URL.
+    #[prost(string, tag="3")]
+    pub provider_jwks_url: ::prost::alloc::string::String,
+    /// OIDC Provider userinfo endpoint.
+    #[prost(string, tag="4")]
+    pub provider_userinfo_url: ::prost::alloc::string::String,
+    /// OAuth2 client ID.
+    #[prost(string, tag="5")]
+    pub client_id: ::prost::alloc::string::String,
+    /// OAuth2 client secret reference.
+    #[prost(string, tag="6")]
+    pub client_secret_ref: ::prost::alloc::string::String,
+    /// Callback path for authorization code exchange.
+    #[prost(string, tag="7")]
+    pub callback_path: ::prost::alloc::string::String,
+    /// Scopes to request during authorization.
+    #[prost(string, repeated, tag="8")]
+    pub scopes: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// Redirect URL after successful authentication.
+    #[prost(string, tag="9")]
+    pub redirect_url: ::prost::alloc::string::String,
+    /// HMAC signing key reference.
+    #[prost(string, tag="10")]
+    pub session_signing_key_ref: ::prost::alloc::string::String,
+    /// Session cookie name.
+    #[prost(string, tag="11")]
+    pub session_cookie_name: ::prost::alloc::string::String,
+    /// Session TTL in seconds.
+    #[prost(int32, tag="12")]
+    pub session_ttl_secs: i32,
+}
+/// BasicAuthConfig is the HTTP Basic Authentication policy.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct BasicAuthConfig {
+    /// BasicAuth htpasswd content (bcrypt hash lines).
+    #[prost(string, tag="1")]
+    pub htpasswd_ref: ::prost::alloc::string::String,
+    /// Whether passwords are bcrypt-hashed.
+    #[prost(bool, tag="2")]
+    pub bcrypt: bool,
+    /// WWW-Authenticate realm string.
+    #[prost(string, tag="3")]
+    pub realm: ::prost::alloc::string::String,
+}
+/// ExternalAuthConfig defines external authorization service settings.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ExternalAuthConfig {
+    /// Transport protocol for the external auth service.
+    #[prost(enumeration="ExternalAuthTransport", tag="1")]
+    pub protocol: i32,
+    /// Backend reference for the external auth service.
+    #[prost(message, optional, tag="2")]
+    pub backend_ref: ::core::option::Option<BackendRef>,
+    /// HTTP-specific settings.
+    #[prost(message, optional, tag="3")]
+    pub http: ::core::option::Option<ExternalAuthHttp>,
+    /// gRPC-specific settings.
+    #[prost(message, optional, tag="4")]
+    pub grpc: ::core::option::Option<ExternalAuthGrpc>,
+    /// Maximum body size in bytes to forward.
+    #[prost(int32, tag="5")]
+    pub forward_body_max_size: i32,
+}
+/// ExternalAuthHTTP contains HTTP-specific external auth settings.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct ExternalAuthHttp {
+    /// Path prefix for the external auth HTTP request.
+    #[prost(string, tag="1")]
+    pub path_prefix: ::prost::alloc::string::String,
+    /// Headers to forward to the external auth service.
+    #[prost(string, repeated, tag="2")]
+    pub headers_to_add: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+/// ExternalAuthGRPC defines gRPC-specific external authorization settings.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct ExternalAuthGrpc {
+    /// Fully qualified gRPC service method name.
+    #[prost(string, tag="1")]
+    pub grpc_service: ::prost::alloc::string::String,
 }
 /// ListenerProtocol enumerates the transport-layer protocols a listener can serve.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
@@ -1180,6 +1417,113 @@ impl ConsistentHashKeyType {
             "CONSISTENT_HASH_SOURCE_IP" => Some(Self::ConsistentHashSourceIp),
             "CONSISTENT_HASH_HEADER" => Some(Self::ConsistentHashHeader),
             "CONSISTENT_HASH_HOSTNAME" => Some(Self::ConsistentHashHostname),
+            _ => None,
+        }
+    }
+}
+/// RateLimitScope determines which traffic volume is counted.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum RateLimitScope {
+    /// Unspecified scope.
+    Unspecified = 0,
+    /// Apply to all traffic globally.
+    Global = 1,
+    /// Apply per listener.
+    Listener = 2,
+    /// Apply per route.
+    Route = 3,
+    /// Apply per backend cluster.
+    Backend = 4,
+}
+impl RateLimitScope {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "RATE_LIMIT_SCOPE_UNSPECIFIED",
+            Self::Global => "RATE_LIMIT_SCOPE_GLOBAL",
+            Self::Listener => "RATE_LIMIT_SCOPE_LISTENER",
+            Self::Route => "RATE_LIMIT_SCOPE_ROUTE",
+            Self::Backend => "RATE_LIMIT_SCOPE_BACKEND",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "RATE_LIMIT_SCOPE_UNSPECIFIED" => Some(Self::Unspecified),
+            "RATE_LIMIT_SCOPE_GLOBAL" => Some(Self::Global),
+            "RATE_LIMIT_SCOPE_LISTENER" => Some(Self::Listener),
+            "RATE_LIMIT_SCOPE_ROUTE" => Some(Self::Route),
+            "RATE_LIMIT_SCOPE_BACKEND" => Some(Self::Backend),
+            _ => None,
+        }
+    }
+}
+/// RateLimitAction determines the behavior when limit is exceeded.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum RateLimitAction {
+    /// Unspecified action.
+    Unspecified = 0,
+    /// Reject the request with 429.
+    Reject = 1,
+    /// Queue the request for delayed processing.
+    Queue = 2,
+}
+impl RateLimitAction {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "RATE_LIMIT_ACTION_UNSPECIFIED",
+            Self::Reject => "RATE_LIMIT_ACTION_REJECT",
+            Self::Queue => "RATE_LIMIT_ACTION_QUEUE",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "RATE_LIMIT_ACTION_UNSPECIFIED" => Some(Self::Unspecified),
+            "RATE_LIMIT_ACTION_REJECT" => Some(Self::Reject),
+            "RATE_LIMIT_ACTION_QUEUE" => Some(Self::Queue),
+            _ => None,
+        }
+    }
+}
+/// ExternalAuthTransport specifies the transport to the external auth service.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum ExternalAuthTransport {
+    /// Unspecified transport.
+    Unspecified = 0,
+    /// HTTP transport.
+    Http = 1,
+    /// gRPC transport.
+    Grpc = 2,
+}
+impl ExternalAuthTransport {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "EXTERNAL_AUTH_TRANSPORT_UNSPECIFIED",
+            Self::Http => "EXTERNAL_AUTH_TRANSPORT_HTTP",
+            Self::Grpc => "EXTERNAL_AUTH_TRANSPORT_GRPC",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "EXTERNAL_AUTH_TRANSPORT_UNSPECIFIED" => Some(Self::Unspecified),
+            "EXTERNAL_AUTH_TRANSPORT_HTTP" => Some(Self::Http),
+            "EXTERNAL_AUTH_TRANSPORT_GRPC" => Some(Self::Grpc),
             _ => None,
         }
     }

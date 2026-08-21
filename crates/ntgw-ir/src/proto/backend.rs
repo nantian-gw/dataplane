@@ -75,6 +75,7 @@ pub(super) fn backend_from_proto(item: proto::BackendCluster) -> BackendCluster 
         ai_service,
         token_policy,
         circuit_breaker,
+        security_policy: item.security_policy.map(security_policy_from_proto),
     }
 }
 

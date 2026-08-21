@@ -51,7 +51,8 @@ fn observe_selected_backend_failure_ejects_endpoint_after_threshold() {
                 ],
                 wasm_plugin: None,
             
-                circuit_breaker: None,}],
+                circuit_breaker: None,
+                security_policy: None,}],
             ..Snapshot::default()
         }));
     }
