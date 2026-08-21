@@ -17,7 +17,6 @@ fn tcproute_listener(
         metadata: BTreeMap::new(),
     }
 }
-security_policy: None,
 
 fn tcproute_route(
     name: &str,
@@ -35,10 +34,9 @@ fn tcproute_route(
             backend_refs,
         }],
         labels: BTreeMap::new(),
-            annotations: BTreeMap::new(),
+        annotations: BTreeMap::new(),
     }
 }
-security_policy: None,
 
 fn tcproute_backend(name: &str, port: u32, endpoints: Vec<BackendEndpoint>) -> BackendCluster {
     BackendCluster {
@@ -47,11 +45,11 @@ fn tcproute_backend(name: &str, port: u32, endpoints: Vec<BackendEndpoint>) -> B
         protocol: "TCP".to_string().into(),
         endpoints,
         wasm_plugin: None,
-                ai_service: None,
-                token_policy: None,
+        ai_service: None,
+        token_policy: None,
         circuit_breaker: None,
+        security_policy: None,
     }
-security_policy: None,
 }
 
 #[test]

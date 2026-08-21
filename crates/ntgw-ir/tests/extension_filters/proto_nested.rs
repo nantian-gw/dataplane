@@ -8,6 +8,7 @@ fn decodes_extension_ref_direct_response_from_proto() {
         listeners: vec![],
         http_routes: vec![proto::HttpRoute {
             route_policy: None,
+            security_policy: None,
             name: "orders".to_string(),
             namespace: "default".to_string(),
             hostnames: vec!["example.com".to_string()],
@@ -47,7 +48,6 @@ fn decodes_extension_ref_direct_response_from_proto() {
             labels: HashMap::new(),
             annotations: HashMap::new(),
         }],
-        security_policy: None,
         grpc_routes: vec![],
         stream_routes: vec![],
         backends: vec![],

@@ -87,7 +87,6 @@ fn selected_stream_backend_runtime_ids_normalize_proto_route_kind() {
             attached_routes: vec!["default/orders-tcp".to_string()],
             ..Listener::default()
         }],
-        security_policy: None,
         stream_routes: vec![StreamRoute {
             name: "orders-tcp".to_string(),
             namespace: "default".to_string(),
@@ -114,9 +113,12 @@ fn selected_stream_backend_runtime_ids_normalize_proto_route_kind() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        
-                circuit_breaker: None,}],
-        security_policy: None,
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                }],
         ..Snapshot::default()
     };
     snapshot.rebuild_runtime_indexes();
@@ -151,7 +153,6 @@ fn runtime_indexes_resolve_resource_refs_by_runtime_id() {
         Some(RuntimeResourceRef::Listener {
             name: "default/gw/http".to_string(),
         })
-    security_policy: None,
     );
 
     let http_route_id = snapshot
@@ -163,7 +164,6 @@ fn runtime_indexes_resolve_resource_refs_by_runtime_id() {
             namespace: "default".to_string(),
             name: "orders".to_string(),
         })
-    security_policy: None,
     );
 
     let http_rule_id = snapshot
@@ -187,7 +187,6 @@ fn runtime_indexes_resolve_resource_refs_by_runtime_id() {
             namespace: "default".to_string(),
             name: "orders-grpc".to_string(),
         })
-    security_policy: None,
     );
     let grpc_rule_id = snapshot
         .grpc_rule_runtime_id("default", "orders-grpc", 0)
@@ -211,7 +210,6 @@ fn runtime_indexes_resolve_resource_refs_by_runtime_id() {
             namespace: "default".to_string(),
             name: "orders-tcp".to_string(),
         })
-    security_policy: None,
     );
     let stream_rule_id = snapshot
         .stream_rule_runtime_id("TCPRoute", "default", "orders-tcp", 0)
@@ -264,7 +262,6 @@ fn runtime_id_test_snapshot(reordered: bool) -> Snapshot {
             attached_routes: vec!["default/orders".to_string()],
             ..Listener::default()
         },
-        security_policy: None,
         Listener {
             name: "default/gw/grpc".to_string(),
             address: "0.0.0.0".to_string(),
@@ -294,9 +291,12 @@ fn runtime_id_test_snapshot(reordered: bool) -> Snapshot {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        
-                circuit_breaker: None,},
-        security_policy: None,
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                },
         BackendCluster {
             name: "payments:8080".to_string().into(),
             namespace: "default".to_string().into(),
@@ -309,8 +309,12 @@ fn runtime_id_test_snapshot(reordered: bool) -> Snapshot {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        
-                circuit_breaker: None,},
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                },
     ];
 
     if reordered {
@@ -354,7 +358,6 @@ fn runtime_id_test_snapshot(reordered: bool) -> Snapshot {
             ],
             ..HttpRoute::default()
         }],
-        security_policy: None,
         grpc_routes: vec![GrpcRoute {
             name: "orders-grpc".to_string(),
             namespace: "default".to_string(),
@@ -380,7 +383,6 @@ fn runtime_id_test_snapshot(reordered: bool) -> Snapshot {
             }],
             ..StreamRoute::default()
         }],
-        security_policy: None,
         backends,
         ..Snapshot::default()
     }

@@ -365,6 +365,7 @@ fn tlsroute_terminate_snapshot(
                 wasm_plugin: None,
 
                 circuit_breaker: None,
+                security_policy: None,
             },
             BackendCluster {
                 ai_service: None,
@@ -380,6 +381,7 @@ fn tlsroute_terminate_snapshot(
                 wasm_plugin: None,
 
                 circuit_breaker: None,
+                security_policy: None,
             },
         ],
         secrets: vec![example_secret_material("example-cert")],

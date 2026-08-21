@@ -20,7 +20,6 @@ fn hostname_intersection_conformance_case_does_not_leak_to_unspecified_listener(
                 backend_tls: None,
                 metadata: BTreeMap::new(),
             },
-            security_policy: None,
             Listener {
                 name: "gateway-conformance-infra/httproute-hostname-intersection/listener-2"
                     .to_string(),
@@ -53,7 +52,6 @@ fn hostname_intersection_conformance_case_does_not_leak_to_unspecified_listener(
                 backend_tls: None,
                 metadata: BTreeMap::new(),
             },
-            security_policy: None,
             Listener {
                 name: "gateway-conformance-infra/httproute-hostname-intersection-all/listener-1"
                     .to_string(),
@@ -83,9 +81,8 @@ fn hostname_intersection_conformance_case_does_not_leak_to_unspecified_listener(
                     8080,
                 )],
                 labels: BTreeMap::new(),
-            annotations: BTreeMap::new(),
+                annotations: BTreeMap::new(),
             },
-            security_policy: None,
             HttpRoute {
                 name: "httproute-hostname-intersection-all".to_string(),
                 namespace: "gateway-conformance-infra".to_string(),
@@ -110,7 +107,7 @@ fn hostname_intersection_conformance_case_does_not_leak_to_unspecified_listener(
                     session_persistence: None,
                 }],
                 labels: BTreeMap::new(),
-            annotations: BTreeMap::new(),
+                annotations: BTreeMap::new(),
             },
         ],
         backends: vec![

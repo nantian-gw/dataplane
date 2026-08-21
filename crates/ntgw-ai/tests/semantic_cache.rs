@@ -94,3 +94,60 @@ fn test_different_requests_different_keys() {
     cache.store(&key, &resp);
     assert!(cache.lookup(&req2).is_none());
 }
+
+#[test]
+fn test_message_roles_are_part_of_cache_key() {
+    use ntgw_ai::format::ir::*;
+
+    let mut system_req = make_request("same content");
+    system_req.messages[0].role = AIRole::System;
+
+    let mut assistant_req = make_request("same content");
+    assistant_req.messages[0].role = AIRole::Assistant;
+
+    assert_ne!(
+        build_cache_key(&system_req),
+        build_cache_key(&assistant_req)
+    );
+}
+
+#[test]
+fn test_request_options_are_part_of_cache_key() {
+    let mut low_temp = make_request("same prompt");
+    low_temp.temperature = Some(0.1);
+    low_temp.max_tokens = Some(128);
+    low_temp.stream = false;
+
+    let mut high_temp = make_request("same prompt");
+    high_temp.temperature = Some(0.9);
+    high_temp.max_tokens = Some(128);
+    high_temp.stream = false;
+
+    let mut streaming = low_temp.clone();
+    streaming.stream = true;
+
+    assert_ne!(build_cache_key(&low_temp), build_cache_key(&high_temp));
+    assert_ne!(build_cache_key(&low_temp), build_cache_key(&streaming));
+}
+
+#[test]
+fn test_tool_metadata_is_part_of_cache_key() {
+    use ntgw_ai::format::ir::*;
+
+    let mut first = make_request("tool result");
+    first.messages[0].role = AIRole::Tool;
+    first.messages[0].tool_call_id = Some("call-1".into());
+    first.messages[0].tool_calls = vec![AIToolCall {
+        id: "call-1".into(),
+        call_type: "function".into(),
+        function: AIToolCallFunction {
+            name: "lookup_order".into(),
+            arguments: "{\"id\":\"A\"}".into(),
+        },
+    }];
+
+    let mut second = first.clone();
+    second.messages[0].tool_calls[0].function.arguments = "{\"id\":\"B\"}".into();
+
+    assert_ne!(build_cache_key(&first), build_cache_key(&second));
+}

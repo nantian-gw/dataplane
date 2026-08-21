@@ -52,4 +52,3 @@ fn mesh_listener(
     );
     listener
 }
-security_policy: None,

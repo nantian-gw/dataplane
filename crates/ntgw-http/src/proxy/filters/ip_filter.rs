@@ -54,11 +54,11 @@ pub(super) async fn handle_ip_filter(
     if !ip_config.allow_cidrs.is_empty() {
         let mut allowed = false;
         for cidr_str in &ip_config.allow_cidrs {
-            if let Ok(cidr) = cidr_str.parse::<ipnet::IpNet>() {
-                if cidr.contains(&client_ip) {
-                    allowed = true;
-                    break;
-                }
+            if let Ok(cidr) = cidr_str.parse::<ipnet::IpNet>()
+                && cidr.contains(&client_ip)
+            {
+                allowed = true;
+                break;
             }
         }
         if !allowed {
@@ -69,11 +69,11 @@ pub(super) async fn handle_ip_filter(
 
     // Check deny list
     for cidr_str in &ip_config.deny_cidrs {
-        if let Ok(cidr) = cidr_str.parse::<ipnet::IpNet>() {
-            if cidr.contains(&client_ip) {
-                send_403(session, "IP not allowed").await?;
-                return Ok(true);
-            }
+        if let Ok(cidr) = cidr_str.parse::<ipnet::IpNet>()
+            && cidr.contains(&client_ip)
+        {
+            send_403(session, "IP not allowed").await?;
+            return Ok(true);
         }
     }
 

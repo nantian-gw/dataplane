@@ -29,6 +29,8 @@ fn example_secret_material(name: &str) -> SecretMaterial {
         name: name.to_string(),
         cert_pem: VALID_SERVER_CERT_PEM.to_string(),
         key_pem: VALID_SERVER_KEY_PEM.to_string(),
+        htpasswd: String::new(),
+        oidc_client_secret: String::new(),
     }
 }
 
@@ -38,6 +40,8 @@ fn wildcard_secret_material(name: &str) -> SecretMaterial {
         name: name.to_string(),
         cert_pem: VALID_SERVER_CERT_PEM.replace("server-san.example", "*.example.org"),
         key_pem: VALID_SERVER_KEY_PEM.to_string(),
+        htpasswd: String::new(),
+        oidc_client_secret: String::new(),
     }
 }
 
@@ -256,6 +260,7 @@ fn shared_tls_snapshot(
                 wasm_plugin: None,
 
                 circuit_breaker: None,
+                security_policy: None,
             },
             BackendCluster {
                 ai_service: None,
@@ -271,6 +276,7 @@ fn shared_tls_snapshot(
                 wasm_plugin: None,
 
                 circuit_breaker: None,
+                security_policy: None,
             },
         ],
         secrets: vec![example_secret_material("example-cert")],

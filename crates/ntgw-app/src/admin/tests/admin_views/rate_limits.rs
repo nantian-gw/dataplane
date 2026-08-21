@@ -12,6 +12,8 @@ async fn rate_limit_view_returns_available_tokens_and_rejection_counts() {
             listener_burst: 2,
             route_requests_per_second: 1,
             route_burst: 1,
+            backend_requests_per_second: 0,
+            backend_burst: 0,
         },
     );
     assert!(with_rate_limit(&state, |controller| {

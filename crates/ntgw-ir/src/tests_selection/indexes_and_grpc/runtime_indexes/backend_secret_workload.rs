@@ -13,14 +13,19 @@ fn runtime_indexes_accelerate_backend_secret_and_workload_lookups() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        
-                circuit_breaker: None,}],
-        security_policy: None,
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                }],
         secrets: vec![SecretMaterial {
             namespace: "default".to_string(),
             name: "client-cert".to_string(),
             cert_pem: "cert".to_string(),
             key_pem: "key".to_string(),
+            htpasswd: String::new(),
+            oidc_client_secret: String::new(),
         }],
         workloads: vec![Workload {
             name: "dp-1".to_string(),
@@ -59,7 +64,6 @@ fn unbuilt_backend_index_does_not_override_slow_path_backend_lookup() {
             }],
             ..HttpRoute::default()
         }],
-        security_policy: None,
         backends: vec![
             BackendCluster {
                 name: "orders:8080".to_string().into(),
@@ -73,9 +77,12 @@ fn unbuilt_backend_index_does_not_override_slow_path_backend_lookup() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            
-                circuit_breaker: None,},
-            security_policy: None,
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                },
             BackendCluster {
                 name: "payments:8080".to_string().into(),
                 namespace: "default".to_string().into(),
@@ -88,8 +95,12 @@ fn unbuilt_backend_index_does_not_override_slow_path_backend_lookup() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            
-                circuit_breaker: None,},
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                },
         ],
         backend_index: std::collections::HashMap::from([(
             std::sync::Arc::<str>::from("default/orders:8080"),
@@ -126,7 +137,6 @@ fn runtime_indexes_precompute_backend_lookup_for_backend_refs() {
             }],
             ..HttpRoute::default()
         }],
-        security_policy: None,
         backends: vec![
             BackendCluster {
                 name: "orders:8080".to_string().into(),
@@ -140,9 +150,12 @@ fn runtime_indexes_precompute_backend_lookup_for_backend_refs() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            
-                circuit_breaker: None,},
-            security_policy: None,
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                },
             BackendCluster {
                 name: "payments:8080".to_string().into(),
                 namespace: "default".to_string().into(),
@@ -155,8 +168,12 @@ fn runtime_indexes_precompute_backend_lookup_for_backend_refs() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            
-                circuit_breaker: None,},
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                },
         ],
         ..Snapshot::default()
     };
@@ -194,9 +211,12 @@ fn backend_lookup_requires_an_exact_port_string_match() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        
-                circuit_breaker: None,}],
-        security_policy: None,
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                }],
         runtime_indexes_ready: false,
         ..Snapshot::default()
     };
@@ -217,7 +237,6 @@ fn backend_ref_lookup_requires_an_exact_port_string_match() {
             }],
             ..HttpRoute::default()
         }],
-        security_policy: None,
         backends: vec![BackendCluster {
             name: "orders:08080".to_string().into(),
             namespace: "default".to_string().into(),
@@ -230,8 +249,12 @@ fn backend_ref_lookup_requires_an_exact_port_string_match() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        
-                circuit_breaker: None,}],
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                }],
         runtime_indexes_ready: false,
         ..Snapshot::default()
     };
@@ -257,14 +280,16 @@ fn unbuilt_secret_index_does_not_override_slow_path_secret_lookup() {
                 name: "client-cert".to_string(),
                 cert_pem: "expected-cert".to_string(),
                 key_pem: "expected-key".to_string(),
+                htpasswd: String::new(),
+                oidc_client_secret: String::new(),
             },
-            htpasswd: String::new(),
-                        oidc_client_secret: String::new(),
             SecretMaterial {
                 namespace: "default".to_string(),
                 name: "other-cert".to_string(),
                 cert_pem: "stale-cert".to_string(),
                 key_pem: "stale-key".to_string(),
+                htpasswd: String::new(),
+                oidc_client_secret: String::new(),
             },
         ],
         secret_index: std::collections::HashMap::from([(
@@ -320,9 +345,12 @@ fn runtime_indexes_precompute_backend_service_namespace_lookup() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            
-                circuit_breaker: None,},
-            security_policy: None,
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                },
             BackendCluster {
                 name: "payments:9090".to_string().into(),
                 namespace: "tenant-a".to_string().into(),
@@ -331,8 +359,12 @@ fn runtime_indexes_precompute_backend_service_namespace_lookup() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            
-                circuit_breaker: None,},
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                },
             BackendCluster {
                 name: "shared:8080".to_string().into(),
                 namespace: "default".to_string().into(),
@@ -341,9 +373,12 @@ fn runtime_indexes_precompute_backend_service_namespace_lookup() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            
-                circuit_breaker: None,},
-            security_policy: None,
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                },
             BackendCluster {
                 name: "shared:8080".to_string().into(),
                 namespace: "tenant-b".to_string().into(),
@@ -352,8 +387,12 @@ fn runtime_indexes_precompute_backend_service_namespace_lookup() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            
-                circuit_breaker: None,},
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                },
             BackendCluster {
                 name: "padded:08080".to_string().into(),
                 namespace: "default".to_string().into(),
@@ -362,9 +401,12 @@ fn runtime_indexes_precompute_backend_service_namespace_lookup() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            
-                circuit_breaker: None,},
-        security_policy: None,
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                },
         ],
         ..Snapshot::default()
     };
@@ -427,9 +469,12 @@ fn unbuilt_backend_service_index_does_not_override_slow_path_namespace_lookup() 
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        
-                circuit_breaker: None,}],
-        security_policy: None,
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                }],
         backend_service_index: stale_index,
         runtime_indexes_ready: false,
         ..Snapshot::default()

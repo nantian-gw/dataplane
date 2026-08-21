@@ -13,9 +13,12 @@ fn falls_back_to_first_healthy_backend() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        
-                circuit_breaker: None,}],
-        security_policy: None,
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                }],
         ..Snapshot::default()
     };
 

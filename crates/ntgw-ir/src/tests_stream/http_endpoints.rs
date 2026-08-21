@@ -18,7 +18,6 @@ fn rotates_healthy_endpoints_within_cluster() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
-        security_policy: None,
         backends: vec![BackendCluster {
             name: "users:8080".to_string().into(),
             namespace: "default".to_string().into(),
@@ -38,8 +37,12 @@ fn rotates_healthy_endpoints_within_cluster() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        
-                circuit_breaker: None,}],
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                }],
         ..Snapshot::default()
     };
     let request = RequestMeta::new(

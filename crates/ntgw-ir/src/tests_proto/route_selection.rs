@@ -20,7 +20,6 @@ fn decodes_http_route_timeouts_from_proto() {
             }],
             ..Default::default()
         }],
-        security_policy: None,
         ..Default::default()
     });
 
@@ -45,7 +44,6 @@ fn from_proto_retains_http_grpc_and_stream_route_labels() {
             labels: std::collections::HashMap::from([("team".to_string(), "edge".to_string())]),
             ..Default::default()
         }],
-        security_policy: None,
         grpc_routes: vec![proto::GrpcRoute {
             name: "grpc-route".to_string(),
             namespace: "default".to_string(),
@@ -58,7 +56,6 @@ fn from_proto_retains_http_grpc_and_stream_route_labels() {
             labels: std::collections::HashMap::from([("team".to_string(), "tcp".to_string())]),
             ..Default::default()
         }],
-        security_policy: None,
         ..Default::default()
     });
 
@@ -106,7 +103,6 @@ fn selects_http_route_without_backend_for_redirect_rule() {
             }],
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
-        security_policy: None,
         }],
         ..Snapshot::default()
     };
@@ -180,7 +176,6 @@ fn select_http_route_preserves_rule_then_backend_filter_order() {
             }],
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
-        security_policy: None,
         }],
         backends: vec![BackendCluster {
             name: "echo:8080".to_string().into(),
@@ -194,9 +189,10 @@ fn select_http_route_preserves_rule_then_backend_filter_order() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        
+
                 security_policy: None,
-                circuit_breaker: None,}],
+                circuit_breaker: None,
+                }],
         ..Snapshot::default()
     };
 

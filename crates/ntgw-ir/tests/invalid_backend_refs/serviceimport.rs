@@ -24,7 +24,6 @@ fn treats_serviceimport_backend_refs_as_routable() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
-        security_policy: None,
         backends: vec![BackendCluster {
             name: "payments:9443".into(),
             namespace: "default".into(),
@@ -39,6 +38,7 @@ fn treats_serviceimport_backend_refs_as_routable() {
             token_policy: None,
 
             circuit_breaker: None,
+            security_policy: None,
         }],
         ..Snapshot::default()
     };

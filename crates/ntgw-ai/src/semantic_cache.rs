@@ -1,11 +1,10 @@
-use std::borrow::Cow;
 use std::hash::{Hash, Hasher};
 use std::sync::Arc;
 
 use dashmap::DashMap;
 use std::time::{Duration, Instant};
 
-use crate::format::ir::{AIContent, AIRequest, AIResponse, AIRole};
+use crate::format::ir::{AIContent, AIMessage, AIRequest, AIResponse, AIRole};
 
 /// Backend trait for cache storage. Implementations: memory, Redis, pgvector.
 pub trait CacheBackend: Send + Sync {
@@ -63,15 +62,15 @@ impl Default for MemoryCacheBackend {
 
 impl CacheBackend for MemoryCacheBackend {
     fn store(&self, key: &str, response: &CachedResponse, _ttl: Duration) {
+        if self.max_entries == 0 {
+            return;
+        }
+
         // Evict expired entries first, then if still at capacity evict one more.
         if self.entries.len() >= self.max_entries {
             self.entries.retain(|_, v| !v.is_expired());
-            let evict_key = self.entries.iter().next().map(|e| e.key().clone());
-            #[allow(clippy::collapsible_if)]
             if self.entries.len() >= self.max_entries {
-                if let Some(key) = evict_key {
-                    self.entries.remove(&key);
-                }
+                self.remove_eviction_candidate();
             }
         }
         self.entries.insert(key.to_string(), response.clone());
@@ -86,6 +85,15 @@ impl CacheBackend for MemoryCacheBackend {
 
     fn remove(&self, key: &str) {
         self.entries.remove(key);
+    }
+}
+
+impl MemoryCacheBackend {
+    fn remove_eviction_candidate(&self) {
+        let evict_key = self.entries.iter().next().map(|e| e.key().clone());
+        if let Some(key) = evict_key {
+            self.entries.remove(&key);
+        }
     }
 }
 
@@ -113,27 +121,79 @@ impl Default for CacheConfig {
 /// message produce different cache keys.
 pub fn build_cache_key(request: &AIRequest) -> String {
     let mut hasher = std::collections::hash_map::DefaultHasher::new();
+
     request.model.hash(&mut hasher);
+    hash_f32_option(request.temperature, &mut hasher);
+    request.max_tokens.hash(&mut hasher);
+    hash_f32_option(request.top_p, &mut hasher);
+    request.stop.hash(&mut hasher);
+    request.stream.hash(&mut hasher);
+    request.user.hash(&mut hasher);
+    if !request.extra.is_empty() {
+        serde_json::to_string(&request.extra)
+            .unwrap_or_default()
+            .hash(&mut hasher);
+    }
 
     // Include the full message history in order so that context and ordering
     // affect the key. This prevents cache collisions between conversations
     // that share only the final user message.
     for message in &request.messages {
-        matches!(message.role, AIRole::User).hash(&mut hasher);
-        content_str(&message.content).hash(&mut hasher);
+        hash_message(message, &mut hasher);
     }
 
     format!("cache:{:016x}", hasher.finish())
 }
 
-fn content_str(content: &AIContent) -> Cow<'_, str> {
+fn hash_f32_option(value: Option<f32>, hasher: &mut impl Hasher) {
+    value.map(f32::to_bits).hash(hasher);
+}
+
+fn hash_message(message: &AIMessage, hasher: &mut impl Hasher) {
+    hash_role(message.role, hasher);
+    message.name.hash(hasher);
+    hash_content(&message.content, hasher);
+    message.tool_call_id.hash(hasher);
+    message.tool_calls.len().hash(hasher);
+    for tool_call in &message.tool_calls {
+        tool_call.id.hash(hasher);
+        tool_call.call_type.hash(hasher);
+        tool_call.function.name.hash(hasher);
+        tool_call.function.arguments.hash(hasher);
+    }
+}
+
+fn hash_role(role: AIRole, hasher: &mut impl Hasher) {
+    match role {
+        AIRole::System => 0_u8,
+        AIRole::User => 1,
+        AIRole::Assistant => 2,
+        AIRole::Tool => 3,
+    }
+    .hash(hasher);
+}
+
+fn hash_content(content: &AIContent, hasher: &mut impl Hasher) {
     match content {
-        AIContent::Text(s) => Cow::Borrowed(s.as_str()),
-        AIContent::MultiPart(parts) => {
-            let texts: Vec<&str> = parts.iter().filter_map(|p| p.text.as_deref()).collect();
-            Cow::Owned(texts.join(" "))
+        AIContent::Text(text) => {
+            0_u8.hash(hasher);
+            text.hash(hasher);
         }
-        AIContent::None => Cow::Borrowed(""),
+        AIContent::MultiPart(parts) => {
+            1_u8.hash(hasher);
+            parts.len().hash(hasher);
+            for part in parts {
+                part.content_type.hash(hasher);
+                part.text.hash(hasher);
+                if let Some(image_url) = &part.image_url {
+                    image_url.url.hash(hasher);
+                    image_url.detail.hash(hasher);
+                }
+            }
+        }
+        AIContent::None => {
+            2_u8.hash(hasher);
+        }
     }
 }
 
@@ -217,6 +277,50 @@ mod tests {
             "at most one of key1/key2 should remain after eviction"
         );
         assert!(backend.lookup("key3").is_some(), "key3 must be present");
+    }
+
+    #[test]
+    fn test_cache_eviction_recomputes_candidate_after_expiry_prune() {
+        let backend = MemoryCacheBackend::with_capacity(2);
+        let expired = CachedResponse {
+            response: make_response("expired"),
+            stored_at: Instant::now() - Duration::from_secs(120),
+            ttl: Duration::from_secs(1),
+        };
+        let fresh = CachedResponse {
+            response: make_response("fresh"),
+            stored_at: Instant::now(),
+            ttl: Duration::from_secs(60),
+        };
+
+        backend.entries.insert("expired".to_string(), expired);
+        backend.entries.insert("fresh1".to_string(), fresh.clone());
+        backend.entries.insert("fresh2".to_string(), fresh.clone());
+
+        backend.store("fresh3", &fresh, Duration::from_secs(60));
+
+        assert!(backend.lookup("expired").is_none());
+        assert!(backend.lookup("fresh3").is_some());
+
+        let live_entries = ["fresh1", "fresh2", "fresh3"]
+            .into_iter()
+            .filter(|key| backend.lookup(key).is_some())
+            .count();
+        assert_eq!(live_entries, 2, "cache must remain within capacity");
+    }
+
+    #[test]
+    fn test_zero_capacity_does_not_store_entries() {
+        let backend = MemoryCacheBackend::with_capacity(0);
+        let resp = CachedResponse {
+            response: make_response("r1"),
+            stored_at: Instant::now(),
+            ttl: Duration::from_secs(60),
+        };
+
+        backend.store("key1", &resp, Duration::from_secs(60));
+
+        assert!(backend.lookup("key1").is_none());
     }
 
     #[test]

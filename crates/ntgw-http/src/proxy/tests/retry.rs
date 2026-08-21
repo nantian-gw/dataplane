@@ -136,13 +136,14 @@ fn snapshot_with_circuit_breaker_syncs_per_backend_limit() {
         circuit_breaker: Some(CircuitBreakerConfig {
             max_inflight_requests: 3,
         }),
+        security_policy: None,
         ..Default::default()
     });
     snapshot.backends.push(BackendCluster {
         name: "unlimited-svc".to_string().into(),
         namespace: "default".to_string().into(),
         circuit_breaker: None,
-                security_policy: None,
+        security_policy: None,
         ..Default::default()
     });
 
@@ -195,6 +196,7 @@ fn proto_snapshot_with_cb_config_enforces_per_backend_limit() {
             circuit_breaker: Some(CircuitBreakerConfig {
                 max_inflight_requests: 5,
             }),
+            security_policy: None,
             ..Default::default()
         }],
         ..Default::default()

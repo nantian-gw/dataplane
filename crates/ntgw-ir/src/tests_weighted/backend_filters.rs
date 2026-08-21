@@ -30,7 +30,6 @@ fn select_http_backend_merges_backend_ref_filters() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
-        security_policy: None,
         backends: vec![BackendCluster {
             name: "users:8080".to_string().into(),
             namespace: "default".to_string().into(),
@@ -43,8 +42,12 @@ fn select_http_backend_merges_backend_ref_filters() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        
-                circuit_breaker: None,}],
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                }],
         ..Snapshot::default()
     };
 

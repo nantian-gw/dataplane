@@ -8,9 +8,9 @@ use std::{
 };
 
 use ntgw_ir::{
-    BackendCluster, BackendEndpoint, CookieConfig, CorsFilter, Filter, HttpRoute, HttpRule,
-    MatchedHttpPath, PASSIVE_EJECTION_CONSECUTIVE_FAILURES, RequestMeta, RetryPolicy, RouteKind,
-    SelectedBackend, SessionPersistence, Snapshot,
+    BackendCluster, BackendEndpoint, CookieConfig, Filter, HttpRoute, HttpRule, MatchedHttpPath,
+    PASSIVE_EJECTION_CONSECUTIVE_FAILURES, RequestMeta, RetryPolicy, RouteKind, SelectedBackend,
+    SessionPersistence, Snapshot,
 };
 use ntgw_observability::{SharedTrafficStats, upstream_connect_latency_ms_bucket_index};
 use opentelemetry::trace::TracerProvider;
@@ -23,12 +23,11 @@ use super::super::context::{
 };
 use super::super::request::{
     RequestView, build_request_meta_from_header,
-    build_selection_request_meta_from_header_with_port, cache_request_headers_if_needed,
-    capture_request_context, capture_request_context_from_view,
-    capture_request_context_from_view_for_features, capture_request_context_from_view_for_limits,
-    effective_http_protocol, inject_request_span_context, normalize_ip,
-    request_header_bytes_for_limit, request_id_from_headers, start_request_span,
-    start_request_span_if_enabled,
+    build_selection_request_meta_from_header_with_port, capture_request_context,
+    capture_request_context_from_view, capture_request_context_from_view_for_features,
+    capture_request_context_from_view_for_limits, effective_http_protocol,
+    inject_request_span_context, normalize_ip, request_header_bytes_for_limit,
+    request_id_from_headers, start_request_span, start_request_span_if_enabled,
 };
 use super::super::retry::{response_is_retryable, retry_backoff, retry_completed_successfully};
 use super::super::{
@@ -94,7 +93,7 @@ fn sample_runtime_snapshot() -> Snapshot {
             wasm_plugin: None,
 
             circuit_breaker: None,
-                security_policy: None,
+            security_policy: None,
         }],
         ..Snapshot::default()
     };

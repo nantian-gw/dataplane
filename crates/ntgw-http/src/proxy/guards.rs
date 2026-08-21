@@ -264,36 +264,33 @@ impl GatewayProxy {
         match limited {
             Ok(applied) => {
                 ctx.rate_limit_applied |= applied;
-                if self.rate_limit.backend_scope_enabled() {
-                    if let Some(backend_key) = route.backend_name.as_deref() {
-                        match self.rate_limit.try_acquire_backend(backend_key) {
-                            Ok(backend_applied) => {
-                                ctx.rate_limit_applied |= backend_applied;
-                            }
-                            Err(_) => {
-                                assign_ctx_string(&mut ctx.route_kind, "Http");
-                                assign_ctx_string(&mut ctx.route_name, route.route_name.as_str());
-                                assign_ctx_string(
-                                    &mut ctx.route_namespace,
-                                    route.route_namespace.as_str(),
-                                );
-                                cache_route_annotations(
-                                    ctx,
-                                    &self.access_log,
-                                    &route.route_annotations,
-                                );
-                                assign_ctx_string(
-                                    &mut ctx.listener_name,
-                                    route.listener_name.as_str(),
-                                );
-                                assign_ctx_string(
-                                    &mut ctx.listener_protocol,
-                                    route.listener_protocol.as_str(),
-                                );
-                                assign_ctx_string(&mut ctx.backend, backend_key);
-                                respond_rate_limited(session, ctx).await?;
-                                return Ok(false);
-                            }
+                if self.rate_limit.backend_scope_enabled()
+                    && let Some(backend_key) = route.backend_name.as_deref()
+                {
+                    match self.rate_limit.try_acquire_backend(backend_key) {
+                        Ok(backend_applied) => {
+                            ctx.rate_limit_applied |= backend_applied;
+                        }
+                        Err(_) => {
+                            assign_ctx_string(&mut ctx.route_kind, "Http");
+                            assign_ctx_string(&mut ctx.route_name, route.route_name.as_str());
+                            assign_ctx_string(
+                                &mut ctx.route_namespace,
+                                route.route_namespace.as_str(),
+                            );
+                            cache_route_annotations(
+                                ctx,
+                                &self.access_log,
+                                &route.route_annotations,
+                            );
+                            assign_ctx_string(&mut ctx.listener_name, route.listener_name.as_str());
+                            assign_ctx_string(
+                                &mut ctx.listener_protocol,
+                                route.listener_protocol.as_str(),
+                            );
+                            assign_ctx_string(&mut ctx.backend, backend_key);
+                            respond_rate_limited(session, ctx).await?;
+                            return Ok(false);
                         }
                     }
                 }

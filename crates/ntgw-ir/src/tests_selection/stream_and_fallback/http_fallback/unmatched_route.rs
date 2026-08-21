@@ -25,7 +25,6 @@ fn returns_none_when_routes_exist_but_request_does_not_match() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
-        security_policy: None,
         backends: vec![BackendCluster {
             name: "users:8080".to_string().into(),
             namespace: "default".to_string().into(),
@@ -38,8 +37,12 @@ fn returns_none_when_routes_exist_but_request_does_not_match() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        
-                circuit_breaker: None,}],
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                }],
         ..Snapshot::default()
     };
 

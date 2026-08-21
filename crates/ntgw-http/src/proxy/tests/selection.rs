@@ -59,7 +59,7 @@ fn selected_backend_from_http_route_preserves_success_fields() {
         session_persistence: None,
         backend_tls: None,
         route_policy: None,
-            security_policy: None,
+        security_policy: None,
     };
 
     let selected = selected_backend_from_http_route(route, true)
@@ -105,7 +105,7 @@ fn selected_backend_from_http_route_drops_annotations_when_access_log_disabled()
         session_persistence: None,
         backend_tls: None,
         route_policy: None,
-            security_policy: None,
+        security_policy: None,
     };
 
     let selected = selected_backend_from_http_route(route, false)
@@ -134,7 +134,7 @@ fn selected_backend_from_http_route_forwards_backend_error() {
         session_persistence: None,
         backend_tls: None,
         route_policy: None,
-            security_policy: None,
+        security_policy: None,
     };
 
     let err = selected_backend_from_http_route(route, true).expect_err("backend error");

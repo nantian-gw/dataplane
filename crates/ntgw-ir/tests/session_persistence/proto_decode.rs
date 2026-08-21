@@ -27,7 +27,6 @@ fn decodes_http_session_persistence_from_proto() {
             }],
             ..Default::default()
         }],
-        security_policy: None,
         ..Default::default()
     });
 
@@ -69,7 +68,6 @@ fn decodes_backend_session_persistence_from_proto() {
             token_policy: None,
             ..Default::default()
         }],
-        security_policy: None,
         ..Default::default()
     });
 

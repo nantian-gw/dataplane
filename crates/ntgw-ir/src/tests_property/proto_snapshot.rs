@@ -20,7 +20,6 @@ proptest! {
                 attached_routes: vec![format!("default/{route_name}")],
                 ..proto::Listener::default()
             }],
-            security_policy: None,
             http_routes: vec![proto::HttpRoute {
                 name: route_name.clone(),
                 namespace: "default".to_string(),
@@ -65,7 +64,6 @@ proptest! {
                 wasm_plugin: None,
                 ..proto::BackendCluster::default()
             }],
-            security_policy: None,
             ..proto::ConfigSnapshot::default()
         });
 

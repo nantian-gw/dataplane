@@ -24,7 +24,6 @@ fn selects_http_backend_refs_by_weighted_round_robin_with_rule_filters() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
-        security_policy: None,
         backends: vec![
             BackendCluster {
                 name: "users:8080".to_string().into(),
@@ -38,9 +37,12 @@ fn selects_http_backend_refs_by_weighted_round_robin_with_rule_filters() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            
-                circuit_breaker: None,},
-            security_policy: None,
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                },
             BackendCluster {
                 name: "orders:8081".to_string().into(),
                 namespace: "default".to_string().into(),
@@ -53,8 +55,12 @@ fn selects_http_backend_refs_by_weighted_round_robin_with_rule_filters() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            
-                circuit_breaker: None,},
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                },
         ],
         ..Snapshot::default()
     };

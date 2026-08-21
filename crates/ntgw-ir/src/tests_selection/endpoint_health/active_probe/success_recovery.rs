@@ -18,7 +18,6 @@ fn active_probe_success_recovers_passively_ejected_endpoint() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
-        security_policy: None,
         backends: vec![BackendCluster {
             name: "echo:8080".to_string().into(),
             namespace: "default".to_string().into(),
@@ -38,8 +37,12 @@ fn active_probe_success_recovers_passively_ejected_endpoint() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        
-                circuit_breaker: None,}],
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                }],
         ..Snapshot::default()
     };
     let request = RequestMeta::new(

@@ -26,7 +26,6 @@ fn marks_invalid_backend_refs_as_route_errors() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
-        security_policy: None,
         backends: vec![backend_cluster("default", "infra-backend-v1", true)],
         ..Snapshot::default()
     };

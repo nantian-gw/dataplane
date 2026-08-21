@@ -10,7 +10,6 @@ fn listener_updates_restart_only_changed_listener() {
                 bind: "127.0.0.1:9000".to_string(),
                 protocol: StreamProtocol::Tcp,
             },
-        security_policy: None,
         ),
         (
             "default/gw/udp".to_string(),
@@ -19,7 +18,6 @@ fn listener_updates_restart_only_changed_listener() {
                 bind: "127.0.0.1:5353".to_string(),
                 protocol: StreamProtocol::Udp,
             },
-        security_policy: None,
         ),
     ]);
     let desired = ListenerPlan {
@@ -29,7 +27,6 @@ fn listener_updates_restart_only_changed_listener() {
                 bind: "127.0.0.1:9000".to_string(),
                 protocol: StreamProtocol::Tcp,
             },
-            security_policy: None,
             PlannedListener {
                 name: "default/gw/udp".to_string(),
                 bind: "127.0.0.1:5454".to_string(),
@@ -48,7 +45,6 @@ fn listener_updates_restart_only_changed_listener() {
                 bind: "127.0.0.1:5454".to_string(),
                 protocol: StreamProtocol::Udp,
             }],
-            security_policy: None,
             stop: vec!["default/gw/udp".to_string()],
         }
     );
@@ -61,7 +57,6 @@ fn listener_updates_restart_finished_listener_without_touching_others() {
         bind: "127.0.0.1:9000".to_string(),
         protocol: StreamProtocol::Tcp,
     };
-    security_policy: None,
     let active = BTreeMap::from([("default/gw/tcp".to_string(), listener.clone())]);
     let desired = ListenerPlan {
         listeners: vec![listener.clone()],
@@ -86,7 +81,6 @@ fn listener_updates_force_reload_restarts_running_listener_without_topology_chan
         bind: "127.0.0.1:9000".to_string(),
         protocol: StreamProtocol::Tcp,
     };
-    security_policy: None,
     let active = BTreeMap::from([("default/gw/tcp".to_string(), listener.clone())]);
     let desired = ListenerPlan {
         listeners: vec![listener.clone()],

@@ -151,18 +151,18 @@ pub(super) fn security_policy_from_proto(
     let mut out = SecurityPolicyConfig::default();
     if let Some(authn) = proto.authn {
         let mut a = SecurityAuthNConfig::default();
-        if let Some(jwt) = authn.jwt {
-            if let Some(issuer) = jwt.issuers.into_iter().next() {
-                a.jwt = Some(JwtAuthConfig {
-                    issuer: issuer.issuer,
-                    jwks_url: issuer.jwks_url,
-                    audience: issuer.audience,
-                    header_name: issuer.header_name,
-                    token_prefix: issuer.token_prefix,
-                    claims_to_headers: issuer.claims_to_headers.into_iter().collect(),
-                    cache_ttl_secs: issuer.cache_ttl_secs,
-                });
-            }
+        if let Some(jwt) = authn.jwt
+            && let Some(issuer) = jwt.issuers.into_iter().next()
+        {
+            a.jwt = Some(JwtAuthConfig {
+                issuer: issuer.issuer,
+                jwks_url: issuer.jwks_url,
+                audience: issuer.audience,
+                header_name: issuer.header_name,
+                token_prefix: issuer.token_prefix,
+                claims_to_headers: issuer.claims_to_headers.into_iter().collect(),
+                cache_ttl_secs: issuer.cache_ttl_secs,
+            });
         }
         if let Some(oidc) = authn.oidc {
             a.oidc = Some(OidcAuthConfig {
@@ -189,32 +189,32 @@ pub(super) fn security_policy_from_proto(
         }
         out.authn = Some(a);
     }
-    if let Some(authz) = proto.authz {
-        if let Some(ext) = authz.external {
-            out.authz = Some(SecurityAuthZConfig {
-                external: Some(ExternalAuthConfig {
-                    protocol: match ext.protocol() {
-                        proto::ExternalAuthTransport::Http => "HTTP".to_string(),
-                        proto::ExternalAuthTransport::Grpc => "GRPC".to_string(),
-                        _ => String::new(),
-                    },
-                    backend_ref: ext.backend_ref.map(|br| BackendRef {
-                        namespace: br.namespace,
-                        name: br.name,
-                        port: br.port,
-                        ..Default::default()
-                    }),
-                    http: ext.http.map(|h| ExternalHttpAuth {
-                        path_prefix: h.path_prefix,
-                        headers_to_add: h.headers_to_add,
-                    }),
-                    grpc: ext.grpc.map(|g| ExternalGrpcAuth {
-                        grpc_service: g.grpc_service,
-                    }),
-                    forward_body_max_size: ext.forward_body_max_size,
+    if let Some(authz) = proto.authz
+        && let Some(ext) = authz.external
+    {
+        out.authz = Some(SecurityAuthZConfig {
+            external: Some(ExternalAuthConfig {
+                protocol: match ext.protocol() {
+                    proto::ExternalAuthTransport::Http => "HTTP".to_string(),
+                    proto::ExternalAuthTransport::Grpc => "GRPC".to_string(),
+                    _ => String::new(),
+                },
+                backend_ref: ext.backend_ref.map(|br| BackendRef {
+                    namespace: br.namespace,
+                    name: br.name,
+                    port: br.port,
+                    ..Default::default()
                 }),
-            });
-        }
+                http: ext.http.map(|h| ExternalHttpAuth {
+                    path_prefix: h.path_prefix,
+                    headers_to_add: h.headers_to_add,
+                }),
+                grpc: ext.grpc.map(|g| ExternalGrpcAuth {
+                    grpc_service: g.grpc_service,
+                }),
+                forward_body_max_size: ext.forward_body_max_size,
+            }),
+        });
     }
     if let Some(cors) = proto.cors {
         out.cors = Some(SecurityCorsConfig {

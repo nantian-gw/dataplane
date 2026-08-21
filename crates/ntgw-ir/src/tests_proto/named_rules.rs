@@ -10,7 +10,6 @@ fn decodes_named_rules_from_proto() {
             }],
             ..Default::default()
         }],
-        security_policy: None,
         grpc_routes: vec![proto::GrpcRoute {
             name: "grpc".to_string(),
             namespace: "default".to_string(),
@@ -30,7 +29,6 @@ fn decodes_named_rules_from_proto() {
             }],
             ..Default::default()
         }],
-        security_policy: None,
         ..Default::default()
     });
 

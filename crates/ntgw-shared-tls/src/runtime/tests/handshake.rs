@@ -495,13 +495,17 @@ fn shared_tls_frontend_validation_snapshot(
                 healthy: true,
             }],
             wasm_plugin: None,
-        
-                circuit_breaker: None,}],
+
+            circuit_breaker: None,
+            security_policy: None,
+        }],
         secrets: vec![SecretMaterial {
             namespace: "default".to_string(),
             name: "example-cert".to_string(),
             cert_pem: SERVER_CERT_PEM.to_string(),
             key_pem: SERVER_KEY_PEM.to_string(),
+            htpasswd: String::new(),
+            oidc_client_secret: String::new(),
         }],
         ..Snapshot::default()
     }));
@@ -670,8 +674,10 @@ fn shared_tls_misdirected_snapshot(
                     healthy: true,
                 }],
                 wasm_plugin: None,
-            
-                circuit_breaker: None,},
+
+                circuit_breaker: None,
+                security_policy: None,
+            },
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
@@ -684,14 +690,18 @@ fn shared_tls_misdirected_snapshot(
                     healthy: true,
                 }],
                 wasm_plugin: None,
-            
-                circuit_breaker: None,},
+
+                circuit_breaker: None,
+                security_policy: None,
+            },
         ],
         secrets: vec![SecretMaterial {
             namespace: "default".to_string(),
             name: "example-cert".to_string(),
             cert_pem: SERVER_CERT_PEM.to_string(),
             key_pem: SERVER_KEY_PEM.to_string(),
+            htpasswd: String::new(),
+            oidc_client_secret: String::new(),
         }],
         ..Snapshot::default()
     }));

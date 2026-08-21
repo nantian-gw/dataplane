@@ -8,6 +8,7 @@ fn decodes_external_auth_http_filter_from_proto() {
         listeners: vec![],
         http_routes: vec![proto::HttpRoute {
             route_policy: None,
+            security_policy: None,
             name: "orders".to_string(),
             namespace: "default".to_string(),
             hostnames: vec!["example.com".to_string()],
@@ -81,7 +82,6 @@ fn decodes_external_auth_http_filter_from_proto() {
             labels: HashMap::new(),
             annotations: HashMap::new(),
         }],
-        security_policy: None,
         grpc_routes: vec![],
         stream_routes: vec![],
         backends: vec![],
@@ -117,6 +117,7 @@ fn decodes_external_auth_grpc_filter_from_proto() {
         listeners: vec![],
         http_routes: vec![proto::HttpRoute {
             route_policy: None,
+            security_policy: None,
             name: "orders".to_string(),
             namespace: "default".to_string(),
             hostnames: vec!["example.com".to_string()],
@@ -172,7 +173,6 @@ fn decodes_external_auth_grpc_filter_from_proto() {
             labels: HashMap::new(),
             annotations: HashMap::new(),
         }],
-        security_policy: None,
         grpc_routes: vec![],
         stream_routes: vec![],
         backends: vec![],
@@ -202,6 +202,7 @@ fn decodes_external_auth_backend_with_tls_validation_from_proto() {
         listeners: vec![],
         http_routes: vec![proto::HttpRoute {
             route_policy: None,
+            security_policy: None,
             name: "orders".to_string(),
             namespace: "default".to_string(),
             hostnames: vec!["example.com".to_string()],
@@ -265,7 +266,6 @@ fn decodes_external_auth_backend_with_tls_validation_from_proto() {
             labels: HashMap::new(),
             annotations: HashMap::new(),
         }],
-        security_policy: None,
         grpc_routes: vec![],
         stream_routes: vec![],
         backends: vec![proto::BackendCluster {
@@ -285,7 +285,6 @@ fn decodes_external_auth_backend_with_tls_validation_from_proto() {
             token_policy: None,
             ..Default::default()
         }],
-        security_policy: None,
         secrets: vec![],
         extensions: None,
         required_features: vec![],

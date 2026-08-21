@@ -124,7 +124,6 @@ fn tcp_listener(port: u16) -> Listener {
         attached_routes: vec!["default/tcp-route".to_string()],
         ..Listener::default()
     }
-security_policy: None,
 }
 
 fn tcp_snapshot(
@@ -158,7 +157,6 @@ fn tcp_snapshot(
             labels: std::collections::BTreeMap::new(),
             annotations: std::collections::BTreeMap::new(),
         }],
-        security_policy: None,
         backends: vec![ntgw_ir::BackendCluster {
             ai_service: None,
             token_policy: None,
@@ -173,6 +171,7 @@ fn tcp_snapshot(
             wasm_plugin: None,
 
             circuit_breaker: None,
+            security_policy: None,
         }],
         ..ntgw_ir::Snapshot::default()
     };

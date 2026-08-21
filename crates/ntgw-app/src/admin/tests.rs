@@ -116,6 +116,7 @@ fn fixture_snapshot() -> Snapshot {
                 wasm_plugin: None,
 
                 circuit_breaker: None,
+                security_policy: None,
             },
             BackendCluster {
                 ai_service: None,
@@ -131,6 +132,7 @@ fn fixture_snapshot() -> Snapshot {
                 wasm_plugin: None,
 
                 circuit_breaker: None,
+                security_policy: None,
             },
             BackendCluster {
                 ai_service: None,
@@ -146,6 +148,7 @@ fn fixture_snapshot() -> Snapshot {
                 wasm_plugin: None,
 
                 circuit_breaker: None,
+                security_policy: None,
             },
         ],
         secrets: vec![Default::default()],

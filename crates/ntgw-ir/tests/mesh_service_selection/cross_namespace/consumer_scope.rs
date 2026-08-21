@@ -40,7 +40,6 @@ fn cross_namespace_mesh_route_only_matches_consumer_workload() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
-        security_policy: None,
         backends: vec![BackendCluster {
             name: "echo-v1:80".into(),
             namespace: "gateway-conformance-mesh".into(),
@@ -53,8 +52,12 @@ fn cross_namespace_mesh_route_only_matches_consumer_workload() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        
-                circuit_breaker: None,}],
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                }],
         workloads: vec![
             Workload {
                 namespace: "gateway-conformance-mesh-consumer".to_string(),

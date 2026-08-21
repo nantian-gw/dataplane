@@ -23,7 +23,6 @@ fn select_http_backend_preserves_route_timeouts() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
-        security_policy: None,
         backends: vec![BackendCluster {
             name: "users:8080".to_string().into(),
             namespace: "default".to_string().into(),
@@ -36,8 +35,12 @@ fn select_http_backend_preserves_route_timeouts() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        
-                circuit_breaker: None,}],
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                }],
         ..Snapshot::default()
     };
 
@@ -79,7 +82,6 @@ fn skips_zero_weight_backend_refs() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
-        security_policy: None,
         backends: vec![
             BackendCluster {
                 name: "disabled:8080".to_string().into(),
@@ -93,9 +95,12 @@ fn skips_zero_weight_backend_refs() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            
-                circuit_breaker: None,},
-            security_policy: None,
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                },
             BackendCluster {
                 name: "active:8081".to_string().into(),
                 namespace: "default".to_string().into(),
@@ -108,8 +113,12 @@ fn skips_zero_weight_backend_refs() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            
-                circuit_breaker: None,},
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                },
         ],
         ..Snapshot::default()
     };

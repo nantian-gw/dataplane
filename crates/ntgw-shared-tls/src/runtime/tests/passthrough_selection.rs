@@ -357,5 +357,6 @@ fn stream_backend(name: &str) -> ntgw_ir::BackendCluster {
         }],
         wasm_plugin: None,
         circuit_breaker: None,
+        security_policy: None,
     }
 }

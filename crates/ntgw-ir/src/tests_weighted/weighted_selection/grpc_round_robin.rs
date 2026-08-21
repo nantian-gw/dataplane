@@ -13,7 +13,6 @@ fn selects_grpc_backend_refs_by_weighted_round_robin() {
             backend_tls: None,
             metadata: BTreeMap::new(),
         }],
-        security_policy: None,
         grpc_routes: vec![GrpcRoute {
             name: "weighted".to_string(),
             namespace: "default".to_string(),
@@ -45,9 +44,12 @@ fn selects_grpc_backend_refs_by_weighted_round_robin() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            
-                circuit_breaker: None,},
-            security_policy: None,
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                },
             BackendCluster {
                 name: "orders:7071".to_string().into(),
                 namespace: "default".to_string().into(),
@@ -60,8 +62,12 @@ fn selects_grpc_backend_refs_by_weighted_round_robin() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            
-                circuit_breaker: None,},
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                },
         ],
         ..Snapshot::default()
     };

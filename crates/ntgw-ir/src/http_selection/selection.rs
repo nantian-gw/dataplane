@@ -127,6 +127,11 @@ pub(super) fn select_http_route(
                 .as_ref()
                 .and_then(|item| item.session_persistence.clone())
         });
+        let security_policy = backend_name
+            .as_deref()
+            .and_then(|name| snapshot.backend_index.get(name))
+            .and_then(|index| snapshot.backends.get(*index))
+            .and_then(|backend| backend.security_policy.clone());
 
         SelectedHttpRoute {
             route_name: candidate.route.name.clone(),
@@ -153,7 +158,7 @@ pub(super) fn select_http_route(
                 .listener_match
                 .and_then(|item| item.listener.backend_tls.clone()),
             route_policy: None,
-            security_policy: None,
+            security_policy,
         }
     })
 }

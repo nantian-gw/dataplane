@@ -18,7 +18,6 @@ fn test_listener(name: &str, port: u32) -> Listener {
         backend_tls: None,
         metadata: BTreeMap::new(),
     }
-security_policy: None,
 }
 
 fn test_snapshot(listener: Listener, upstream_addr: std::net::SocketAddr) -> SharedSnapshot {
@@ -43,7 +42,6 @@ fn test_snapshot(listener: Listener, upstream_addr: std::net::SocketAddr) -> Sha
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
-        security_policy: None,
         backends: vec![BackendCluster {
             ai_service: None,
             token_policy: None,
@@ -56,8 +54,10 @@ fn test_snapshot(listener: Listener, upstream_addr: std::net::SocketAddr) -> Sha
                 healthy: true,
             }],
             wasm_plugin: None,
-        
-                circuit_breaker: None,}],
+
+            circuit_breaker: None,
+            security_policy: None,
+        }],
         ..Snapshot::default()
     }));
     shared

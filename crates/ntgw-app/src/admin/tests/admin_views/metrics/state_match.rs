@@ -124,6 +124,8 @@ async fn metrics_view_matches_management_endpoint_state() {
             listener_burst: 2,
             route_requests_per_second: 1,
             route_burst: 1,
+            backend_requests_per_second: 0,
+            backend_burst: 0,
         },
     );
     assert!(with_rate_limit(&state, |controller| {

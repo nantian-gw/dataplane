@@ -18,7 +18,6 @@ fn selects_http_backend_with_wildcard_hostname() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
-        security_policy: None,
         backends: vec![BackendCluster {
             name: "wild:8080".to_string().into(),
             namespace: "default".to_string().into(),
@@ -31,8 +30,12 @@ fn selects_http_backend_with_wildcard_hostname() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        
-                circuit_breaker: None,}],
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                }],
         ..Snapshot::default()
     };
 

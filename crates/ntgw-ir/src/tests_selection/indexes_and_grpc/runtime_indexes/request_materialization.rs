@@ -19,7 +19,6 @@ fn runtime_indexes_precompute_request_header_materialization_requirements() {
             }],
             ..HttpRoute::default()
         }],
-        security_policy: None,
         grpc_routes: vec![GrpcRoute {
             name: "grpc".to_string(),
             namespace: "default".to_string(),

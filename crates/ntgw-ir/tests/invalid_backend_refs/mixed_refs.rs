@@ -34,7 +34,6 @@ fn keeps_valid_backends_when_rule_contains_mixed_refs() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
-        security_policy: None,
         backends: vec![
             backend_cluster("default", "infra-backend-v1", true),
             backend_cluster("default", "infra-backend-v2", true),

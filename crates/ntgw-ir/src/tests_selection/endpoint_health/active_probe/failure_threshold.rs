@@ -18,7 +18,6 @@ fn active_probe_failure_threshold_temporarily_removes_endpoint_from_rotation() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
-        security_policy: None,
         backends: vec![BackendCluster {
             name: "echo:8080".to_string().into(),
             namespace: "default".to_string().into(),
@@ -38,8 +37,12 @@ fn active_probe_failure_threshold_temporarily_removes_endpoint_from_rotation() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        
-                circuit_breaker: None,}],
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                }],
         ..Snapshot::default()
     };
     let request = RequestMeta::new(
@@ -102,7 +105,6 @@ fn active_probe_flapping_below_threshold_keeps_endpoint_in_rotation() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
-        security_policy: None,
         backends: vec![BackendCluster {
             name: "echo:8080".to_string().into(),
             namespace: "default".to_string().into(),
@@ -122,8 +124,12 @@ fn active_probe_flapping_below_threshold_keeps_endpoint_in_rotation() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        
-                circuit_breaker: None,}],
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                }],
         ..Snapshot::default()
     };
     let request = RequestMeta::new(
@@ -184,7 +190,6 @@ fn all_active_unhealthy_endpoints_return_after_probe_recovery() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
-        security_policy: None,
         backends: vec![BackendCluster {
             name: "echo:8080".to_string().into(),
             namespace: "default".to_string().into(),
@@ -204,8 +209,12 @@ fn all_active_unhealthy_endpoints_return_after_probe_recovery() {
             wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-        
-                circuit_breaker: None,}],
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                }],
         ..Snapshot::default()
     };
     let request = RequestMeta::new(

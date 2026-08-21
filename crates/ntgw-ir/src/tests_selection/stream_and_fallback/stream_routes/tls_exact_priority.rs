@@ -16,7 +16,6 @@ fn prefers_exact_tls_sni_match_over_wildcard() {
             backend_tls: None,
             metadata: BTreeMap::new(),
         }],
-        security_policy: None,
         stream_routes: vec![
             StreamRoute {
                 name: "wildcard-route".to_string(),
@@ -35,7 +34,6 @@ fn prefers_exact_tls_sni_match_over_wildcard() {
                 labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
             },
-            security_policy: None,
             StreamRoute {
                 name: "exact-route".to_string(),
                 namespace: "default".to_string(),
@@ -67,9 +65,12 @@ fn prefers_exact_tls_sni_match_over_wildcard() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            
-                circuit_breaker: None,},
-            security_policy: None,
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                },
             BackendCluster {
                 name: "exact-upstream:9443".to_string().into(),
                 namespace: "default".to_string().into(),
@@ -82,8 +83,12 @@ fn prefers_exact_tls_sni_match_over_wildcard() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            
-                circuit_breaker: None,},
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                },
         ],
         ..Snapshot::default()
     };

@@ -38,7 +38,6 @@ fn selects_http_route_with_direct_response_without_backend() {
             }],
             ..HttpRoute::default()
         }],
-        security_policy: None,
         ..Snapshot::default()
     };
 

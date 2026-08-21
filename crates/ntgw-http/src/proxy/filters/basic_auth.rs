@@ -10,7 +10,7 @@ use super::super::{GatewayProxy, RequestContext, SelectedHttpRoute};
 pub(super) async fn handle_basic_auth(
     proxy: &GatewayProxy,
     session: &mut Session,
-    ctx: &mut RequestContext,
+    _ctx: &mut RequestContext,
     route: &SelectedHttpRoute,
 ) -> pingora::Result<bool> {
     let auth_config = match route
@@ -86,12 +86,12 @@ pub(super) async fn handle_basic_auth(
         if line.is_empty() || line.starts_with('#') {
             continue;
         }
-        if let Some((stored_user, stored_hash)) = line.split_once(':') {
-            if stored_user == user {
-                match bcrypt::verify(password, stored_hash) {
-                    Ok(true) => return Ok(false),
-                    _ => continue,
-                }
+        if let Some((stored_user, stored_hash)) = line.split_once(':')
+            && stored_user == user
+        {
+            match bcrypt::verify(password, stored_hash) {
+                Ok(true) => return Ok(false),
+                _ => continue,
             }
         }
     }

@@ -52,8 +52,8 @@ fn backend_cluster(namespace: &str, name: &str, address: &str) -> BackendCluster
         ai_service: None,
         token_policy: None,
         circuit_breaker: None,
+        security_policy: None,
     }
-security_policy: None,
 }
 
 fn listener_with_hostnames(name: &str, hostnames: &[&str], attached_routes: &[&str]) -> Listener {
@@ -72,7 +72,6 @@ fn listener_with_hostnames(name: &str, hostnames: &[&str], attached_routes: &[&s
         backend_tls: None,
         metadata: BTreeMap::new(),
     }
-security_policy: None,
 }
 
 fn headers(values: &[(&str, &str)]) -> BTreeMap<String, Vec<String>> {

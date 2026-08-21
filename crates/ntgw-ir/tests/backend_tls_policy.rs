@@ -30,7 +30,6 @@ fn decodes_backend_tls_validation_from_proto() {
             token_policy: None,
             ..Default::default()
         }],
-        security_policy: None,
         ..Default::default()
     });
 

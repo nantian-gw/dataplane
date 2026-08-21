@@ -14,7 +14,6 @@ fn selects_tcp_backend_by_listener_port_isolation() {
                 backend_tls: None,
                 metadata: BTreeMap::new(),
             },
-            security_policy: None,
             Listener {
                 name: "default/gw/tcp-9001".to_string(),
                 address: "0.0.0.0".to_string(),
@@ -46,7 +45,6 @@ fn selects_tcp_backend_by_listener_port_isolation() {
                 labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
             },
-            security_policy: None,
             StreamRoute {
                 name: "tcp-b".to_string(),
                 namespace: "default".to_string(),
@@ -78,9 +76,12 @@ fn selects_tcp_backend_by_listener_port_isolation() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            
-                circuit_breaker: None,},
-            security_policy: None,
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                },
             BackendCluster {
                 name: "tcp-b:7001".to_string().into(),
                 namespace: "default".to_string().into(),
@@ -93,8 +94,12 @@ fn selects_tcp_backend_by_listener_port_isolation() {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            
-                circuit_breaker: None,},
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                },
         ],
         ..Snapshot::default()
     };

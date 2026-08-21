@@ -39,7 +39,6 @@ fn falls_back_to_service_backend_for_excluded_mesh_port_when_same_service_has_ro
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
-        security_policy: None,
         backends: vec![
             BackendCluster {
                 name: "echo:80".into(),
@@ -53,9 +52,12 @@ fn falls_back_to_service_backend_for_excluded_mesh_port_when_same_service_has_ro
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            
-                circuit_breaker: None,},
-            security_policy: None,
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                },
             BackendCluster {
                 name: "echo:8080".into(),
                 namespace: "default".into(),
@@ -68,8 +70,12 @@ fn falls_back_to_service_backend_for_excluded_mesh_port_when_same_service_has_ro
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            
-                circuit_breaker: None,},
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                },
         ],
         ..Snapshot::default()
     };

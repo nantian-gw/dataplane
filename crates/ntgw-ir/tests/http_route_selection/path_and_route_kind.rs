@@ -18,7 +18,6 @@ fn selects_exact_path_before_prefix_match() {
                 labels: BTreeMap::new(),
                 annotations: BTreeMap::new(),
             },
-            security_policy: None,
             HttpRoute {
                 name: "exact-route".to_string(),
                 namespace: "default".to_string(),
@@ -90,7 +89,6 @@ fn http_and_grpc_routes_on_same_listener_are_selected_by_request_type() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
-        security_policy: None,
         grpc_routes: vec![GrpcRoute {
             name: "grpc-route".to_string(),
             namespace: "default".to_string(),

@@ -34,7 +34,6 @@ fn rebuild_runtime_indexes_precompiles_regex_matchers() {
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
         }],
-        security_policy: None,
         grpc_routes: vec![GrpcRoute {
             name: "regex-grpc".to_string(),
             namespace: "default".to_string(),

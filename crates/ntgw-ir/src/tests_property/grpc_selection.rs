@@ -34,7 +34,6 @@ proptest! {
                 labels: std::collections::BTreeMap::new(),
                 annotations: std::collections::BTreeMap::new(),
             }],
-            security_policy: None,
             backends: vec![BackendCluster {
                 name: "generated:8080".to_string().into(),
                 namespace: "default".to_string().into(),
@@ -47,8 +46,12 @@ proptest! {
                 wasm_plugin: None,
                 ai_service: None,
                 token_policy: None,
-            
-                circuit_breaker: None,}],
+
+                circuit_breaker: None,
+
+                security_policy: None,
+
+                }],
             ..Snapshot::default()
         };
         let mut headers = std::collections::BTreeMap::from([(
