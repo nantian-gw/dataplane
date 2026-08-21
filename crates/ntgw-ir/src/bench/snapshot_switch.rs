@@ -144,7 +144,6 @@ pub fn build_snapshot_switch_fixture(config: SnapshotBenchConfig) -> SnapshotSwi
                 }],
                 labels: BTreeMap::new(),
                 annotations: BTreeMap::new(),
-                security_policy: None,
             };
             current.http_routes.push(route.clone());
             next.http_routes.push(route);

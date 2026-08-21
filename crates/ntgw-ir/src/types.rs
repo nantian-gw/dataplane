@@ -498,7 +498,6 @@ pub struct Listener {
     pub tls: Option<TlsConfig>,
     pub backend_tls: Option<BackendTlsConfig>,
     pub metadata: BTreeMap<String, String>,
-    pub security_policy: Option<SecurityPolicyConfig>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -552,7 +551,6 @@ pub struct HttpRoute {
     pub rules: Vec<HttpRule>,
     pub labels: BTreeMap<String, String>,
     pub annotations: BTreeMap<String, String>,
-    pub security_policy: Option<SecurityPolicyConfig>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -591,7 +589,6 @@ pub struct GrpcRoute {
     pub rules: Vec<GrpcRule>,
     pub labels: BTreeMap<String, String>,
     pub annotations: BTreeMap<String, String>,
-    pub security_policy: Option<SecurityPolicyConfig>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -630,7 +627,6 @@ pub struct StreamRoute {
     pub rules: Vec<StreamRule>,
     pub labels: BTreeMap<String, String>,
     pub annotations: BTreeMap<String, String>,
-    pub security_policy: Option<SecurityPolicyConfig>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

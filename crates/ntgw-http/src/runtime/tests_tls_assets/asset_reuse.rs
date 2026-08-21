@@ -15,7 +15,6 @@ fn materialized_tls_assets_are_reused_for_identical_material() {
                 }),
                 ..Listener::default()
             },
-            security_policy: None,
             Listener {
                 name: "default/gw/https-b".to_string(),
                 address: "127.0.0.1".to_string(),
@@ -68,7 +67,6 @@ fn materialized_tls_assets_are_reused_across_separate_listener_starts() {
                 }),
                 ..Listener::default()
             },
-            security_policy: None,
             Listener {
                 name: "default/gw/https-b".to_string(),
                 address: "127.0.0.1".to_string(),

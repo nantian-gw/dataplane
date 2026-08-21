@@ -18,7 +18,6 @@ fn skips_malformed_tls_secret_and_keeps_later_valid_listener_on_same_bind() {
                 }),
                 ..Listener::default()
             },
-            security_policy: None,
             Listener {
                 name: "default/gw/good-https".to_string(),
                 address: "0.0.0.0".to_string(),
@@ -71,7 +70,6 @@ fn skips_https_listener_when_tls_passthrough_uses_same_bind() {
                 protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 ..Listener::default()
             },
-            security_policy: None,
             Listener {
                 name: "default/gw/https".to_string(),
                 address: "0.0.0.0".to_string(),
@@ -104,7 +102,6 @@ fn skips_https_listener_when_tls_passthrough_uses_same_bind() {
                 }),
                 ..Listener::default()
             },
-        security_policy: None,
         ],
         secrets: vec![example_secret_material()],
         ..Snapshot::default()
@@ -139,7 +136,6 @@ fn runtime_ignores_https_listener_bind_that_shared_tls_owns() {
             }),
             ..Listener::default()
         }],
-        security_policy: None,
         secrets: vec![example_secret_material()],
         ..Snapshot::default()
     };

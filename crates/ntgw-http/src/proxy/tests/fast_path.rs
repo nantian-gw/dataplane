@@ -363,6 +363,7 @@ fn sample_fast_path_snapshot() -> Snapshot {
             wasm_plugin: None,
 
             circuit_breaker: None,
+                security_policy: None,
         }],
         ..Snapshot::default()
     }

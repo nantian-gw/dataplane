@@ -21,7 +21,6 @@ fn materialize_tls_assets_cleans_up_stale_temp_files() {
                 None,
             )),
         }],
-    security_policy: None,
     };
 
     super::listener_plan::materialize_tls_assets_in_dir(&plan, &asset_dir)

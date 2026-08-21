@@ -114,8 +114,8 @@ fn selected_backend_config_precomputes_peer_runtime_metadata() {
             }],
             wasm_plugin: None,
         
-                security_policy: None,
-                circuit_breaker: None,}],
+                circuit_breaker: None,
+                security_policy: None,}],
         backend_policies: BTreeMap::from([(
             "default/orders:8443".to_string(),
             BackendPolicy {
@@ -222,8 +222,8 @@ fn selected_backend_config_precomputes_resource_runtime_ids() {
             }],
             wasm_plugin: None,
         
-                security_policy: None,
-                circuit_breaker: None,}],
+                circuit_breaker: None,
+                security_policy: None,}],
         ..Snapshot::default()
     };
     snapshot.rebuild_runtime_indexes();
@@ -301,8 +301,8 @@ fn selected_backend_config_cache_reuses_config_for_snapshot_runtime_ids() {
             }],
             wasm_plugin: None,
         
-                security_policy: None,
-                circuit_breaker: None,}],
+                circuit_breaker: None,
+                security_policy: None,}],
         ..Snapshot::default()
     };
     snapshot.rebuild_runtime_indexes();
@@ -365,8 +365,8 @@ fn selected_backend_config_cached_for_fast_path_uses_compiled_runtime_ids() {
             }],
             wasm_plugin: None,
         
-                security_policy: None,
-                circuit_breaker: None,}],
+                circuit_breaker: None,
+                security_policy: None,}],
         ..Snapshot::default()
     };
     snapshot.rebuild_runtime_indexes();
@@ -429,8 +429,8 @@ fn selected_backend_config_cache_invalidates_when_snapshot_id_changes() {
             }],
             wasm_plugin: None,
         
-                security_policy: None,
-                circuit_breaker: None,}],
+                circuit_breaker: None,
+                security_policy: None,}],
         ..Snapshot::default()
     };
     snapshot.rebuild_runtime_indexes();
@@ -514,8 +514,8 @@ fn selected_backend_config_precomputes_tls_validation_and_client_cert_handles() 
             }],
             wasm_plugin: None,
         
-                security_policy: None,
-                circuit_breaker: None,}],
+                circuit_breaker: None,
+                security_policy: None,}],
         backend_policies: BTreeMap::from([(
             "default/orders:8443".to_string(),
             BackendPolicy {

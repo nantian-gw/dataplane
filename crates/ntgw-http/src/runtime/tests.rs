@@ -113,7 +113,6 @@ fn http_runtime_records_listener_plan_and_tls_asset_reload_stages() -> anyhow::R
             protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
             ..Listener::default()
         }],
-        security_policy: None,
         ..Snapshot::default()
     }));
     let updates = SnapshotSignal::shared();

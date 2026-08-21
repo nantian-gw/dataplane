@@ -20,7 +20,6 @@ fn orders_multi_certificate_identities_by_sni_match_then_fallback_order() {
             }),
             ..Listener::default()
         }],
-        security_policy: None,
         secrets: vec![
             SecretMaterial {
                 namespace: "default".to_string(),

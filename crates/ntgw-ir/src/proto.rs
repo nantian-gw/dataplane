@@ -65,7 +65,6 @@ impl Snapshot {
                         tls: item.tls.map(tls_from_proto),
                         backend_tls: item.backend_tls.map(backend_tls_from_proto),
                         metadata: item.metadata.into_iter().collect(),
-                        security_policy: item.security_policy.map(security_policy_from_proto),
                     }
                 })
                 .collect(),
@@ -84,7 +83,6 @@ impl Snapshot {
                     rules: item.rules.into_iter().map(http_rule_from_proto).collect(),
                     labels: item.labels.into_iter().collect(),
                     annotations: item.annotations.into_iter().collect(),
-                    security_policy: item.security_policy.map(security_policy_from_proto),
                 })
                 .collect(),
             grpc_routes: value
@@ -102,7 +100,6 @@ impl Snapshot {
                     rules: item.rules.into_iter().map(grpc_rule_from_proto).collect(),
                     labels: item.labels.into_iter().collect(),
                     annotations: item.annotations.into_iter().collect(),
-                    security_policy: item.security_policy.map(security_policy_from_proto),
                 })
                 .collect(),
             stream_routes: value
@@ -122,7 +119,6 @@ impl Snapshot {
                         rules: item.rules.into_iter().map(stream_rule_from_proto).collect(),
                         labels: item.labels.into_iter().collect(),
                         annotations: item.annotations.into_iter().collect(),
-                        security_policy: None,
                     }
                 })
                 .collect(),

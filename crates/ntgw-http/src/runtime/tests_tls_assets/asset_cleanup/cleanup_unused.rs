@@ -15,7 +15,6 @@ fn cleanup_unused_tls_assets_removes_temp_files_but_keeps_referenced_assets() {
                 None,
             )),
         }],
-    security_policy: None,
     };
 
     super::listener_plan::materialize_tls_assets_in_dir(&plan, &asset_dir)

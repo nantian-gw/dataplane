@@ -16,7 +16,6 @@ fn materialized_tls_assets_prune_stale_files_after_rotation() {
                 Some("CA-OLD"),
             )),
         }],
-    security_policy: None,
     };
     let rotated = ListenerPlan {
         listeners: vec![PlannedListener {
@@ -29,7 +28,6 @@ fn materialized_tls_assets_prune_stale_files_after_rotation() {
                 None,
             )),
         }],
-    security_policy: None,
     };
 
     super::listener_plan::materialize_tls_assets_in_dir(&original, &asset_dir)

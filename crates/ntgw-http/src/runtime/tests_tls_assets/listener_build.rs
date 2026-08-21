@@ -19,7 +19,6 @@ fn builds_https_listener_from_snapshot_secret() {
             }),
             ..Listener::default()
         }],
-        security_policy: None,
         secrets: vec![example_secret_material()],
         ..Snapshot::default()
     };
@@ -56,7 +55,6 @@ fn builds_https_listener_with_frontend_validation_bundle() {
             }),
             ..Listener::default()
         }],
-        security_policy: None,
         secrets: vec![example_secret_material()],
         ..Snapshot::default()
     };
@@ -92,7 +90,6 @@ fn tls_asset_paths_do_not_collide_when_client_ca_bundle_differs() {
                 }),
                 ..Listener::default()
             },
-            security_policy: None,
             Listener {
                 name: "default/gw/https-b".to_string(),
                 address: "127.0.0.1".to_string(),
@@ -172,7 +169,6 @@ fn builds_https_listener_with_insecure_frontend_validation_mode() {
             }),
             ..Listener::default()
         }],
-        security_policy: None,
         secrets: vec![example_secret_material()],
         ..Snapshot::default()
     };

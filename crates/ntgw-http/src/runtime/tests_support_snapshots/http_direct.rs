@@ -10,7 +10,6 @@ fn direct_response_snapshot(listener_port: u16, path: &str) -> ntgw_ir::SharedSn
             attached_routes: vec!["default/route".to_string()],
             ..Listener::default()
         }],
-        security_policy: None,
         http_routes: vec![HttpRoute {
             name: "route".to_string(),
             namespace: "default".to_string(),
@@ -65,7 +64,6 @@ fn direct_response_snapshot(listener_port: u16, path: &str) -> ntgw_ir::SharedSn
             }],
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
-        security_policy: None,
         }],
         ..Snapshot::default()
     }));

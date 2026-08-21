@@ -56,9 +56,7 @@ fn external_auth_http_snapshot(
             attached_routes: vec!["default/route".to_string()],
             ..Listener::default()
         }],
-        security_policy: None,
         http_routes: vec![HttpRoute {
-            security_policy: None,
             name: "route".to_string(),
             namespace: "default".to_string(),
             hostnames: Vec::new(),
@@ -115,7 +113,6 @@ fn external_auth_http_snapshot(
         }],
         backends: vec![
             BackendCluster {
-                security_policy: None,
                 ai_service: None,
                 token_policy: None,
                 name: format!("backend:{backend_port}").into(),
@@ -128,9 +125,9 @@ fn external_auth_http_snapshot(
                 }],
                 wasm_plugin: None,
             
-                circuit_breaker: None,},
+                circuit_breaker: None,
+                security_policy: None,},
             BackendCluster {
-                security_policy: None,
                 ai_service: None,
                 token_policy: None,
                 name: format!("auth:{auth_port}").into(),
@@ -143,7 +140,8 @@ fn external_auth_http_snapshot(
                 }],
                 wasm_plugin: None,
             
-                circuit_breaker: None,},
+                circuit_breaker: None,
+                security_policy: None,},
         ],
         ..Snapshot::default()
     }));
@@ -170,9 +168,7 @@ fn external_auth_grpc_snapshot(
             attached_routes: vec!["default/route".to_string()],
             ..Listener::default()
         }],
-        security_policy: None,
         http_routes: vec![HttpRoute {
-            security_policy: None,
             name: "route".to_string(),
             namespace: "default".to_string(),
             hostnames: Vec::new(),
@@ -222,7 +218,6 @@ fn external_auth_grpc_snapshot(
         }],
         backends: vec![
             BackendCluster {
-                security_policy: None,
                 ai_service: None,
                 token_policy: None,
                 name: format!("app:{backend_port}").into(),
@@ -235,9 +230,9 @@ fn external_auth_grpc_snapshot(
                 }],
                 wasm_plugin: None,
             
-                circuit_breaker: None,},
+                circuit_breaker: None,
+                security_policy: None,},
             BackendCluster {
-                security_policy: None,
                 ai_service: None,
                 token_policy: None,
                 name: format!("auth:{auth_port}").into(),
@@ -250,7 +245,8 @@ fn external_auth_grpc_snapshot(
                 }],
                 wasm_plugin: None,
             
-                circuit_breaker: None,},
+                circuit_breaker: None,
+                security_policy: None,},
         ],
         ..Snapshot::default()
     }));
@@ -1220,7 +1216,6 @@ fn external_auth_backend_tls_validation_in_snapshot() {
     let auth_port: u32 = 8443;
     let snapshot = Snapshot {
         backends: vec![ntgw_ir::BackendCluster {
-            security_policy: None,
             ai_service: None,
             token_policy: None,
             name: format!("auth:{auth_port}").into(),
@@ -1233,7 +1228,8 @@ fn external_auth_backend_tls_validation_in_snapshot() {
             }],
             wasm_plugin: None,
         
-                circuit_breaker: None,}],
+                circuit_breaker: None,
+                security_policy: None,}],
         backend_policies: {
             let mut m = std::collections::BTreeMap::new();
             m.insert(
@@ -1277,7 +1273,6 @@ fn external_auth_with_backend_tls_and_session_persistence_combo_snapshot() {
     let snapshot = Snapshot {
         backends: vec![
             ntgw_ir::BackendCluster {
-                security_policy: None,
                 ai_service: None,
                 token_policy: None,
                 name: "backend:8080".to_string().into(),
@@ -1290,9 +1285,9 @@ fn external_auth_with_backend_tls_and_session_persistence_combo_snapshot() {
                 }],
                 wasm_plugin: None,
             
-                circuit_breaker: None,},
+                circuit_breaker: None,
+                security_policy: None,},
             ntgw_ir::BackendCluster {
-                security_policy: None,
                 ai_service: None,
                 token_policy: None,
                 name: "auth:8443".to_string().into(),
@@ -1305,7 +1300,8 @@ fn external_auth_with_backend_tls_and_session_persistence_combo_snapshot() {
                 }],
                 wasm_plugin: None,
             
-                circuit_breaker: None,},
+                circuit_breaker: None,
+                security_policy: None,},
         ],
         backend_policies: {
             let mut m = std::collections::BTreeMap::new();

@@ -153,7 +153,7 @@ pub(super) fn select_http_route(
                 .listener_match
                 .and_then(|item| item.listener.backend_tls.clone()),
             route_policy: None,
-            security_policy: candidate.route.security_policy.clone(),
+            security_policy: None,
         }
     })
 }

@@ -14,7 +14,6 @@ fn weighted_grpc_h2c_snapshot(
             attached_routes: vec!["default/grpc-route".to_string()],
             ..Listener::default()
         }],
-        security_policy: None,
         grpc_routes: vec![GrpcRoute {
             name: "grpc-route".to_string(),
             namespace: "default".to_string(),
@@ -53,7 +52,6 @@ fn weighted_grpc_h2c_snapshot(
             }],
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
-        security_policy: None,
         }],
         backends: vec![
             BackendCluster {
@@ -69,8 +67,8 @@ fn weighted_grpc_h2c_snapshot(
                 }],
                 wasm_plugin: None,
             
-                security_policy: None,
-                circuit_breaker: None,},
+                circuit_breaker: None,
+                security_policy: None,},
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
@@ -84,8 +82,8 @@ fn weighted_grpc_h2c_snapshot(
                 }],
                 wasm_plugin: None,
             
-                security_policy: None,
-                circuit_breaker: None,},
+                circuit_breaker: None,
+                security_policy: None,},
         ],
         ..Snapshot::default()
     }));
@@ -138,7 +136,6 @@ fn weighted_mesh_grpc_h2c_snapshot_with_addresses(
             ]),
             ..Listener::default()
         }],
-        security_policy: None,
         grpc_routes: vec![GrpcRoute {
             name: "mesh-grpc-route".to_string(),
             namespace: "default".to_string(),
@@ -172,7 +169,6 @@ fn weighted_mesh_grpc_h2c_snapshot_with_addresses(
             }],
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
-        security_policy: None,
         }],
         backends: vec![
             BackendCluster {
@@ -188,8 +184,8 @@ fn weighted_mesh_grpc_h2c_snapshot_with_addresses(
                 }],
                 wasm_plugin: None,
             
-                security_policy: None,
-                circuit_breaker: None,},
+                circuit_breaker: None,
+                security_policy: None,},
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
@@ -203,8 +199,8 @@ fn weighted_mesh_grpc_h2c_snapshot_with_addresses(
                 }],
                 wasm_plugin: None,
             
-                security_policy: None,
-                circuit_breaker: None,},
+                circuit_breaker: None,
+                security_policy: None,},
         ],
         ..Snapshot::default()
     }));

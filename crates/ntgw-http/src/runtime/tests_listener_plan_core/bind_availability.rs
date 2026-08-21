@@ -8,7 +8,6 @@ fn skips_http3_listener_when_runtime_has_no_support() {
             protocol: "LISTENER_PROTOCOL_HTTP3".to_string(),
             ..Listener::default()
         }],
-        security_policy: None,
         ..Snapshot::default()
     };
 
@@ -47,7 +46,6 @@ fn skips_unbindable_listener_addresses_without_dropping_other_listeners() {
                 protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
                 ..Listener::default()
             },
-            security_policy: None,
             Listener {
                 name: "default/gw/http-8080".to_string(),
                 address: "203.0.113.13".to_string(),
@@ -90,7 +88,6 @@ fn drops_listener_plan_when_all_addresses_are_unbindable() {
             protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
             ..Listener::default()
         }],
-        security_policy: None,
         ..Snapshot::default()
     };
 
@@ -119,7 +116,6 @@ fn keeps_active_listener_binds_without_reprobing_them() {
             protocol: "LISTENER_PROTOCOL_HTTP".to_string(),
             ..Listener::default()
         }],
-        security_policy: None,
         ..Snapshot::default()
     };
     let active = ListenerPlan {
@@ -129,7 +125,6 @@ fn keeps_active_listener_binds_without_reprobing_them() {
                 bind: "0.0.0.0:80".to_string(),
                 protocol: ListenerProtocol::Plain,
             },
-            security_policy: None,
             PlannedListener {
                 name: "default/gw/http".to_string(),
                 bind: "[::]:80".to_string(),
@@ -167,7 +162,6 @@ fn force_reload_uses_active_listener_binds_for_plan_availability() {
                 bind: "0.0.0.0:80".to_string(),
                 protocol: ListenerProtocol::Plain,
             },
-            security_policy: None,
             PlannedListener {
                 name: "default/gw/http".to_string(),
                 bind: "[::]:80".to_string(),

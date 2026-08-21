@@ -341,7 +341,7 @@ mod tests {
                 wasm_plugin: None,
 
                 circuit_breaker: None,
-            security_policy: None,
+                security_policy: None,
             }],
             ..Snapshot::default()
         };
@@ -445,7 +445,7 @@ mod tests {
                 wasm_plugin: None,
 
                 circuit_breaker: None,
-            security_policy: None,
+                security_policy: None,
             }],
             ..Snapshot::default()
         };
@@ -606,7 +606,7 @@ mod tests {
                 wasm_plugin: None,
 
                 circuit_breaker: None,
-            security_policy: None,
+                security_policy: None,
             }],
             ..Snapshot::default()
         };

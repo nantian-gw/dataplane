@@ -174,7 +174,6 @@ fn https_misdirected_snapshot(
         ],
         http_routes: vec![
             HttpRoute {
-                security_policy: None,
                 name: "example".to_string(),
                 namespace: "default".to_string(),
                 hostnames: vec!["example.org".to_string()],
@@ -190,7 +189,6 @@ fn https_misdirected_snapshot(
                 annotations: BTreeMap::new(),
             },
             HttpRoute {
-                security_policy: None,
                 name: "second".to_string(),
                 namespace: "default".to_string(),
                 hostnames: Vec::new(),
@@ -242,7 +240,6 @@ fn https_misdirected_listener(name: &str, port: u16, hostnames: Vec<&str>) -> Li
         }),
         ..Listener::default()
     }
-security_policy: None,
 }
 
 fn https_misdirected_rule(backend_port: u32) -> HttpRule {
@@ -265,7 +262,6 @@ fn https_misdirected_rule(backend_port: u32) -> HttpRule {
 
 fn https_misdirected_backend(port: u32) -> BackendCluster {
     BackendCluster {
-        security_policy: None,
         ai_service: None,
         token_policy: None,
         name: format!("backend:{port}").into(),
@@ -278,5 +274,6 @@ fn https_misdirected_backend(port: u32) -> BackendCluster {
         }],
         wasm_plugin: None,
         circuit_breaker: None,
+                security_policy: None,
     }
 }

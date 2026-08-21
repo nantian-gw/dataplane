@@ -367,7 +367,6 @@ fn unhealthy_backend_http_snapshot(
             attached_routes: vec!["default/route".to_string()],
             ..Listener::default()
         }],
-        security_policy: None,
         http_routes: vec![HttpRoute {
             name: "route".to_string(),
             namespace: "default".to_string(),
@@ -396,7 +395,6 @@ fn unhealthy_backend_http_snapshot(
             }],
             labels: BTreeMap::new(),
             annotations: BTreeMap::new(),
-        security_policy: None,
         }],
         backends: vec![BackendCluster {
             ai_service: None,
@@ -411,8 +409,8 @@ fn unhealthy_backend_http_snapshot(
             }],
             wasm_plugin: None,
         
-                security_policy: None,
-                circuit_breaker: None,}],
+                circuit_breaker: None,
+                security_policy: None,}],
         ..Snapshot::default()
     }));
     let mut s = (**shared.load()).clone();
