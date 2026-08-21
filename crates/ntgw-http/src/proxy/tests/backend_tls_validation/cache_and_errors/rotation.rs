@@ -45,6 +45,8 @@ fn build_upstream_peer_reloads_backend_tls_validation_after_snapshot_rotation() 
         }),
         session_persistence: None,
         load_balancing: None,
+        health_check: None,
+        outlier_detection: None,
     };
     let second_policy = BackendPolicy {
         connect_timeout: None,
@@ -62,6 +64,8 @@ fn build_upstream_peer_reloads_backend_tls_validation_after_snapshot_rotation() 
         }),
         session_persistence: None,
         load_balancing: None,
+        health_check: None,
+        outlier_detection: None,
     };
 
     let first_peer = build_upstream_peer(

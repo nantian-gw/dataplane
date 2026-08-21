@@ -23,9 +23,10 @@ pub use types::{
     AIServiceAuthConfig, AIServiceConfig, BackendCluster, BackendEndpoint, BackendPolicy,
     BackendRef, BackendServiceIndex, BackendSubjectAltName, BackendTlsConfig, BackendTlsValidation,
     CircuitBreakerConfig, ConsistentHashPolicy, FrontendClientCertificateRequirement,
-    FrontendValidation, GrpcMatch, GrpcRoute, GrpcRule, HeaderMatch, HostnameRouteIndex, HttpMatch,
-    HttpRoute, HttpRule, Listener, LoadBalancingPolicy, QueryMatch, RequestMaterializationHints,
-    RequestMeta, RetryPolicy, RouteAttachmentListenerIndex, SecretMaterial, Snapshot, StreamMatch,
+    FrontendValidation, GrpcMatch, GrpcRoute, GrpcRule, HeaderMatch, HealthCheckConfig,
+    HostnameRouteIndex, HttpMatch, HttpRoute, HttpRule, Listener, LoadBalancingPolicy,
+    OutlierDetectionConfig, QueryMatch, RequestMaterializationHints, RequestMeta, RetryPolicy,
+    RouteAttachmentListenerIndex, SecretMaterial, SlowStartConfig, Snapshot, StreamMatch,
     StreamRoute, StreamRule, TlsConfig, TlsRouteMode, TokenPolicyConfig, WasmPluginConfig,
     WasmSandboxConfig,
 };

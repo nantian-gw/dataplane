@@ -513,6 +513,9 @@ pub struct LoadBalancingPolicy {
     /// Consistent-hash settings (required when type is CONSISTENT_HASH).
     #[prost(message, optional, tag="2")]
     pub consistent_hash: ::core::option::Option<ConsistentHashPolicy>,
+    /// Gradual weight ramp-up for new endpoints.
+    #[prost(message, optional, tag="3")]
+    pub slow_start: ::core::option::Option<SlowStartConfig>,
 }
 /// GrpcRoute defines gRPC-level routing rules. It is the xDS representation
 /// of a Kubernetes GRPCRoute resource.
@@ -731,6 +734,12 @@ pub struct BackendCluster {
     /// Per-backend circuit breaker configuration.
     #[prost(message, optional, tag="14")]
     pub circuit_breaker: ::core::option::Option<CircuitBreakerConfig>,
+    /// Per-backend active health check configuration.
+    #[prost(message, optional, tag="15")]
+    pub health_check: ::core::option::Option<HealthCheckConfig>,
+    /// Per-backend outlier detection configuration.
+    #[prost(message, optional, tag="16")]
+    pub outlier_detection: ::core::option::Option<OutlierDetectionConfig>,
 }
 /// CircuitBreakerConfig defines per-backend circuit breaker thresholds.
 /// When not set, the data plane uses its default circuit breaker settings.
@@ -741,6 +750,56 @@ pub struct CircuitBreakerConfig {
     /// Set to 0 to disable circuit breaking for this backend.
     #[prost(uint32, tag="1")]
     pub max_inflight_requests: u32,
+}
+/// HealthCheckConfig defines active health checking for a backend cluster.
+/// When unset, the data plane uses its global health check settings.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct HealthCheckConfig {
+    /// Health check type: TCP, HTTP, or GRPC.
+    #[prost(string, tag="1")]
+    pub r#type: ::prost::alloc::string::String,
+    /// HTTP/gRPC probe path (required when type is HTTP or GRPC).
+    #[prost(string, tag="2")]
+    pub path: ::prost::alloc::string::String,
+    /// HTTP status considered healthy (required when type is HTTP).
+    #[prost(int32, tag="3")]
+    pub expected_status: i32,
+    /// Interval between probes.
+    #[prost(message, optional, tag="4")]
+    pub interval: ::core::option::Option<::prost_types::Duration>,
+    /// Per-probe timeout.
+    #[prost(message, optional, tag="5")]
+    pub timeout: ::core::option::Option<::prost_types::Duration>,
+    /// Consecutive successes required to mark a backend healthy.
+    #[prost(uint32, tag="6")]
+    pub healthy_threshold: u32,
+    /// Consecutive failures required to mark a backend unhealthy.
+    #[prost(uint32, tag="7")]
+    pub unhealthy_threshold: u32,
+}
+/// OutlierDetectionConfig defines passive health checking (outlier detection).
+/// When unset, the data plane uses its built-in defaults.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct OutlierDetectionConfig {
+    /// Consecutive 5xx failures before a backend is ejected.
+    #[prost(uint32, tag="1")]
+    pub consecutive_5xx: u32,
+    /// How often to run the ejection sweep.
+    #[prost(message, optional, tag="2")]
+    pub interval: ::core::option::Option<::prost_types::Duration>,
+    /// Base ejection duration; ejected backends stay out for this long.
+    #[prost(message, optional, tag="3")]
+    pub base_ejection_time: ::core::option::Option<::prost_types::Duration>,
+    /// Maximum percentage of endpoints in a cluster that can be ejected.
+    #[prost(uint32, tag="4")]
+    pub max_ejection_percent: u32,
+}
+/// SlowStartConfig configures gradual weight ramp-up for new endpoints.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct SlowStartConfig {
+    /// Window duration over which endpoint weight ramps from 0 to full.
+    #[prost(message, optional, tag="1")]
+    pub window: ::core::option::Option<::prost_types::Duration>,
 }
 /// BackendEndpoint represents a single backend instance discovered by the control plane.
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
@@ -1057,6 +1116,10 @@ pub enum LoadBalancingPolicyType {
     LoadBalancingRoundRobin = 1,
     /// Hash requests to consistently map the same client to the same backend.
     LoadBalancingConsistentHash = 2,
+    /// Distribute requests to the backend with the fewest active requests.
+    LoadBalancingLeastRequest = 3,
+    /// Select a healthy backend uniformly at random.
+    LoadBalancingRandom = 4,
 }
 impl LoadBalancingPolicyType {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -1068,6 +1131,8 @@ impl LoadBalancingPolicyType {
             Self::LoadBalancingUnspecified => "LOAD_BALANCING_UNSPECIFIED",
             Self::LoadBalancingRoundRobin => "LOAD_BALANCING_ROUND_ROBIN",
             Self::LoadBalancingConsistentHash => "LOAD_BALANCING_CONSISTENT_HASH",
+            Self::LoadBalancingLeastRequest => "LOAD_BALANCING_LEAST_REQUEST",
+            Self::LoadBalancingRandom => "LOAD_BALANCING_RANDOM",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -1076,6 +1141,8 @@ impl LoadBalancingPolicyType {
             "LOAD_BALANCING_UNSPECIFIED" => Some(Self::LoadBalancingUnspecified),
             "LOAD_BALANCING_ROUND_ROBIN" => Some(Self::LoadBalancingRoundRobin),
             "LOAD_BALANCING_CONSISTENT_HASH" => Some(Self::LoadBalancingConsistentHash),
+            "LOAD_BALANCING_LEAST_REQUEST" => Some(Self::LoadBalancingLeastRequest),
+            "LOAD_BALANCING_RANDOM" => Some(Self::LoadBalancingRandom),
             _ => None,
         }
     }

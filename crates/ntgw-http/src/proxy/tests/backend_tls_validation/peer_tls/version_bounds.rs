@@ -42,6 +42,8 @@ fn build_upstream_peer_rejects_backend_tls_version_bounds() {
             }),
             session_persistence: None,
             load_balancing: None,
+            health_check: None,
+            outlier_detection: None,
         }),
     )
     .expect_err("backend TLS version bounds should be rejected");

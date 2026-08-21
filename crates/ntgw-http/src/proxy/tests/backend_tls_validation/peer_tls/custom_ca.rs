@@ -42,6 +42,8 @@ fn build_upstream_peer_accepts_custom_backend_tls_validation() {
             }),
             session_persistence: None,
             load_balancing: None,
+            health_check: None,
+            outlier_detection: None,
         }),
     )
     .expect("custom CA validation should be accepted");

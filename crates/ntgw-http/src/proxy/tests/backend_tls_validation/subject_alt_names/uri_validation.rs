@@ -45,6 +45,8 @@ fn build_upstream_peer_accepts_uri_subject_alt_name_validation() {
             }),
             session_persistence: None,
             load_balancing: None,
+            health_check: None,
+            outlier_detection: None,
         }),
     )
     .expect("URI SAN validation should configure post-handshake verification");

@@ -37,6 +37,7 @@ fn runtime_indexes_precompute_request_header_materialization_requirements() {
             "default/backend:8080".to_string(),
             crate::BackendPolicy {
                 load_balancing: Some(crate::LoadBalancingPolicy {
+                    slow_start: None,
                     policy_type: "ConsistentHash".to_string(),
                     consistent_hash: Some(crate::ConsistentHashPolicy {
                         key_type: "Header".to_string(),
@@ -65,6 +66,7 @@ fn runtime_indexes_precompute_source_ip_materialization_for_source_hash() {
             "default/backend:8080".to_string(),
             crate::BackendPolicy {
                 load_balancing: Some(crate::LoadBalancingPolicy {
+                    slow_start: None,
                     policy_type: "ConsistentHash".to_string(),
                     consistent_hash: Some(crate::ConsistentHashPolicy {
                         key_type: "SourceIP".to_string(),

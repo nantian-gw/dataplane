@@ -767,18 +767,45 @@ pub struct BackendPolicy {
     pub tls_validation: Option<BackendTlsValidation>,
     pub session_persistence: Option<SessionPersistence>,
     pub load_balancing: Option<LoadBalancingPolicy>,
+    pub health_check: Option<HealthCheckConfig>,
+    pub outlier_detection: Option<OutlierDetectionConfig>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
 pub struct LoadBalancingPolicy {
     pub policy_type: String,
     pub consistent_hash: Option<ConsistentHashPolicy>,
+    pub slow_start: Option<SlowStartConfig>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ConsistentHashPolicy {
     pub key_type: String,
     pub header_name: String,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SlowStartConfig {
+    pub window: Option<std::time::Duration>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+pub struct HealthCheckConfig {
+    pub r#type: String,
+    pub path: String,
+    pub expected_status: i32,
+    pub interval: Option<std::time::Duration>,
+    pub timeout: Option<std::time::Duration>,
+    pub healthy_threshold: u32,
+    pub unhealthy_threshold: u32,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+pub struct OutlierDetectionConfig {
+    pub consecutive_5xx: u32,
+    pub interval: Option<std::time::Duration>,
+    pub base_ejection_time: Option<std::time::Duration>,
+    pub max_ejection_percent: u32,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

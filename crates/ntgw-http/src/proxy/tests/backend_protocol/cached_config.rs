@@ -34,6 +34,8 @@ fn build_upstream_peer_with_cached_config_uses_policy_and_protocol_without_snaps
         tls_validation: None,
         session_persistence: None,
         load_balancing: None,
+        health_check: None,
+        outlier_detection: None,
     };
     let config =
         selected_backend_config_with_overrides(&snapshot, &selected, Some("H2C"), Some(&policy))
@@ -83,6 +85,8 @@ fn selected_backend_config_debug_exposes_precomputed_policy_fields_only() {
         tls_validation: None,
         session_persistence: None,
         load_balancing: None,
+        health_check: None,
+        outlier_detection: None,
     };
     let config =
         selected_backend_config_with_overrides(&snapshot, &selected, Some("HTTP"), Some(&policy))
@@ -130,6 +134,8 @@ fn selected_backend_config_precomputes_peer_runtime_metadata() {
                 }),
                 session_persistence: None,
                 load_balancing: None,
+                health_check: None,
+                outlier_detection: None,
             },
         )]),
         ..Snapshot::default()
@@ -525,6 +531,8 @@ fn selected_backend_config_precomputes_tls_validation_and_client_cert_handles() 
                 }),
                 session_persistence: None,
                 load_balancing: None,
+                health_check: None,
+                outlier_detection: None,
             },
         )]),
         secrets: vec![ntgw_ir::SecretMaterial {
@@ -620,6 +628,8 @@ fn selected_backend_config_isolated_for_same_backend_across_route_overrides() {
         tls_validation: None,
         session_persistence: None,
         load_balancing: None,
+        health_check: None,
+        outlier_detection: None,
     };
     let secure_policy = BackendPolicy {
         connect_timeout: Some(std::time::Duration::from_secs(9)),
@@ -634,6 +644,8 @@ fn selected_backend_config_isolated_for_same_backend_across_route_overrides() {
         }),
         session_persistence: None,
         load_balancing: None,
+        health_check: None,
+        outlier_detection: None,
     };
 
     let plain_config = selected_backend_config_with_overrides(
