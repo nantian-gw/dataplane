@@ -1,10 +1,12 @@
 use std::sync::Arc;
 
+use ntgw_ai::error::AIError;
 use ntgw_ai::filter::{AIGatewayFilter, AIGatewayFilterBuilder, parse_sse_chunks};
 use ntgw_ai::format::AdapterRegistry;
 use ntgw_ai::format::anthropic::AnthropicAdapter;
 use ntgw_ai::format::openai::OpenAIAdapter;
 use ntgw_ai::observability::metrics::AIMetrics;
+use ntgw_ai::ratelimit::{RateLimitConfig, TokenRateLimiter};
 use prometheus::Registry;
 
 fn test_filter() -> (AIGatewayFilter, Registry) {
@@ -43,6 +45,16 @@ fn labels_match(got: &[prometheus::proto::LabelPair], want: &[(&str, &str)]) -> 
         }
     }
     true
+}
+
+fn test_filter_with_rate_limiter(config: RateLimitConfig) -> AIGatewayFilter {
+    let registry = Registry::new();
+    let metrics = AIMetrics::new(&registry).unwrap();
+    let mut adapters = AdapterRegistry::new();
+    adapters.register("openai", Arc::new(OpenAIAdapter));
+    AIGatewayFilterBuilder::new(Arc::new(adapters), Arc::new(metrics))
+        .rate_limiter(TokenRateLimiter::new(config))
+        .build()
 }
 
 #[tokio::test]
@@ -85,6 +97,55 @@ async fn test_openai_non_stream_roundtrip() {
     assert_eq!(parsed["model"], "gpt-4o");
     assert_eq!(parsed["choices"][0]["message"]["role"], "assistant");
     assert_eq!(parsed["choices"][0]["message"]["content"], "Hello!");
+}
+
+#[tokio::test]
+async fn test_rate_limit_usage_is_recorded_against_api_key_scope() {
+    let filter = test_filter_with_rate_limiter(RateLimitConfig {
+        tokens_per_minute: 50,
+        scope: "apiKey".to_string(),
+        burst: 1.0,
+        ..Default::default()
+    });
+
+    let request_body =
+        br#"{"model": "gpt-4o", "messages": [{"role": "user", "content": "hello"}]}"#;
+    let ctx = filter
+        .pre_process("/v1/chat/completions", request_body, Some("tenant-a-key"))
+        .await
+        .expect("first request should pass");
+    assert_eq!(ctx.rate_limit_key.as_deref(), Some("tenant-a-key"));
+
+    let response_body = br#"{
+        "id": "chatcmpl-limit",
+        "object": "chat.completion",
+        "model": "gpt-4o",
+        "created": 1700000000,
+        "choices": [{
+            "index": 0,
+            "message": {"role": "assistant", "content": "Hello"},
+            "finish_reason": "stop"
+        }],
+        "usage": {"prompt_tokens": 25, "completion_tokens": 25, "total_tokens": 50}
+    }"#;
+
+    filter
+        .post_process(ctx, response_body, 200)
+        .await
+        .expect("post_process should record usage");
+
+    let same_key_result = filter
+        .pre_process("/v1/chat/completions", request_body, Some("tenant-a-key"))
+        .await;
+    assert!(matches!(
+        same_key_result,
+        Err(AIError::RateLimitExceeded { .. })
+    ));
+
+    filter
+        .pre_process("/v1/chat/completions", request_body, Some("tenant-b-key"))
+        .await
+        .expect("different API key should use an independent rate-limit window");
 }
 
 #[tokio::test]

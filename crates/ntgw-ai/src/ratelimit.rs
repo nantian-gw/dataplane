@@ -47,6 +47,10 @@ struct SlidingWindow {
     hour_tokens: VecDeque<(Instant, u64)>,
 }
 
+fn min_enabled_remaining(values: impl IntoIterator<Item = Option<u64>>) -> u64 {
+    values.into_iter().flatten().min().unwrap_or(u64::MAX)
+}
+
 impl SlidingWindow {
     fn new(config: &RateLimitConfig) -> Self {
         let burst = config.burst.max(1.0);
@@ -108,10 +112,7 @@ impl SlidingWindow {
         // Check request limit
         if self.minute_req_limit > 0 && self.requests.len() >= self.minute_req_limit as usize {
             let oldest = self.requests.front().copied().unwrap_or(now);
-            let secs = oldest
-                .duration_since(now)
-                .checked_add(window)
-                .unwrap_or(window);
+            let secs = window.saturating_sub(now.saturating_duration_since(oldest));
             return RateLimitResult::Limited {
                 retry_after_secs: secs.as_secs().max(1),
             };
@@ -119,10 +120,16 @@ impl SlidingWindow {
 
         self.requests.push_back(now);
         RateLimitResult::Allowed {
-            remaining: self.minute_token_limit.saturating_sub(minute_used).min(
-                self.minute_req_limit
-                    .saturating_sub(self.requests.len() as u64),
-            ),
+            remaining: min_enabled_remaining([
+                (self.minute_token_limit > 0)
+                    .then(|| self.minute_token_limit.saturating_sub(minute_used)),
+                (self.hour_token_limit > 0)
+                    .then(|| self.hour_token_limit.saturating_sub(hour_used)),
+                (self.minute_req_limit > 0).then(|| {
+                    self.minute_req_limit
+                        .saturating_sub(self.requests.len() as u64)
+                }),
+            ]),
         }
     }
 
@@ -165,8 +172,14 @@ impl SlidingWindow {
         self.hour_tokens.push_back((now, tokens));
 
         let new_minute_sum = minute_sum + tokens;
+        let new_hour_sum = hour_sum + tokens;
         RateLimitResult::Allowed {
-            remaining: self.minute_token_limit.saturating_sub(new_minute_sum),
+            remaining: min_enabled_remaining([
+                (self.minute_token_limit > 0)
+                    .then(|| self.minute_token_limit.saturating_sub(new_minute_sum)),
+                (self.hour_token_limit > 0)
+                    .then(|| self.hour_token_limit.saturating_sub(new_hour_sum)),
+            ]),
         }
     }
 }

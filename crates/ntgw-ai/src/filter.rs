@@ -33,6 +33,7 @@ pub struct AIContext {
     pub start_time: Instant,
     pub raw_request: Vec<u8>,
     pub cache_key: Option<String>,
+    pub rate_limit_key: Option<String>,
     pub complexity: Option<Complexity>,
     /// OTel span tracking the upstream inference call. Created in
     /// process_with_fallback before the upstream call and ended in
@@ -428,7 +429,7 @@ impl AIGatewayFilter {
         }
 
         // 3. Rate limit check (pre-request)
-        if let Some(ref rl) = self.rate_limiter {
+        let rate_limit_key = if let Some(ref rl) = self.rate_limiter {
             let rl_key = rate_limit_key(
                 &rl.config.scope,
                 api_key,
@@ -469,7 +470,10 @@ impl AIGatewayFilter {
                 }
                 RateLimitResult::Allowed { .. } => {}
             }
-        }
+            Some(rl_key)
+        } else {
+            None
+        };
 
         // 3b. Tenant checks: resolve, quota, model access
         if let (Some(api_key), Some(tm)) = (api_key, &self.tenant_manager) {
@@ -510,6 +514,7 @@ impl AIGatewayFilter {
             start_time: Instant::now(),
             raw_request: masked_body,
             cache_key,
+            rate_limit_key,
             complexity,
             ai_span: std::sync::Arc::new(parking_lot::Mutex::new(None)),
         })
@@ -615,16 +620,9 @@ impl AIGatewayFilter {
         }
 
         // Record rate limit token usage (post-response)
-        if let Some(ref rl) = self.rate_limiter {
+        if let (Some(rl), Some(rl_key)) = (&self.rate_limiter, &ctx.rate_limit_key) {
             let total_tokens = usage.as_ref().map(|u| u.total_tokens).unwrap_or(0);
-            let rl_key = rate_limit_key(
-                &rl.config.scope,
-                None,
-                &model,
-                "",
-                ctx.request.user.as_deref().unwrap_or(""),
-            );
-            if let RateLimitResult::Limited { .. } = rl.record_usage(&rl_key, total_tokens) {
+            if let RateLimitResult::Limited { .. } = rl.record_usage(rl_key, total_tokens) {
                 self.metrics.record_rate_limit_hit(&model, &rl.config.scope);
             }
         }

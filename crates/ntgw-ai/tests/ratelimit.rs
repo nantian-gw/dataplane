@@ -25,6 +25,38 @@ fn test_request_limit_exceeded() {
 }
 
 #[test]
+fn test_request_limit_remaining_ignores_disabled_token_limits() {
+    let config = RateLimitConfig {
+        requests_per_minute: 2,
+        burst: 1.0,
+        ..Default::default()
+    };
+    let rl = TokenRateLimiter::new(config);
+
+    assert_eq!(rl.check("key1"), RateLimitResult::Allowed { remaining: 1 });
+    assert_eq!(rl.check("key1"), RateLimitResult::Allowed { remaining: 0 });
+}
+
+#[test]
+fn test_limited_retry_after_does_not_panic() {
+    let config = RateLimitConfig {
+        requests_per_minute: 1,
+        burst: 1.0,
+        ..Default::default()
+    };
+    let rl = TokenRateLimiter::new(config);
+
+    assert!(matches!(rl.check("key1"), RateLimitResult::Allowed { .. }));
+    let limited = rl.check("key1");
+    assert!(matches!(
+        limited,
+        RateLimitResult::Limited {
+            retry_after_secs: 1..=60
+        }
+    ));
+}
+
+#[test]
 fn test_token_limit_exceeded() {
     let config = RateLimitConfig {
         tokens_per_minute: 100,
@@ -82,6 +114,21 @@ fn test_hour_token_limit() {
     rl.check("key1");
     let result = rl.record_usage("key1", 250);
     assert!(matches!(result, RateLimitResult::Limited { .. }));
+}
+
+#[test]
+fn test_hour_only_remaining_ignores_disabled_minute_limit() {
+    let config = RateLimitConfig {
+        tokens_per_hour: 200,
+        burst: 1.0,
+        ..Default::default()
+    };
+    let rl = TokenRateLimiter::new(config);
+
+    assert_eq!(
+        rl.record_usage("key1", 75),
+        RateLimitResult::Allowed { remaining: 125 }
+    );
 }
 
 #[test]
