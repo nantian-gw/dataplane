@@ -382,7 +382,9 @@ impl AIGatewayFilter {
         let mut request = adapter.parse_request(&masked_body)?;
 
         // 2a. Wasm plugin pre-processing (before rate limiting, after format detection)
-        if let Some(ref wf) = self.wasm_filter {
+        if let Some(ref wf) = self.wasm_filter
+            && wf.has_on_request()
+        {
             let mut headers = HashMap::new();
             if let Some(ref key) = api_key {
                 headers.insert("x-api-key".to_string(), key.to_string());
@@ -558,7 +560,9 @@ impl AIGatewayFilter {
         let format = ctx.format.clone();
 
         // Wasm plugin on_response hook
-        if let Some(ref wf) = self.wasm_filter {
+        if let Some(ref wf) = self.wasm_filter
+            && wf.has_on_response()
+        {
             wf.post_process(HashMap::new(), response_body.to_vec())
                 .await
                 .map_err(|e| {

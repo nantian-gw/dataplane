@@ -14,6 +14,8 @@ pub struct WasmPluginFilter {
     pub plugin_manager: Arc<PluginManager>,
     pub plugin_names: Vec<String>,
     concurrency_limit: Arc<Semaphore>,
+    on_request_plugin_names: Vec<String>,
+    on_response_plugin_names: Vec<String>,
 }
 
 impl WasmPluginFilter {
@@ -22,11 +24,57 @@ impl WasmPluginFilter {
         plugin_names: Vec<String>,
         max_concurrency: usize,
     ) -> Self {
+        Self::new_with_hooks(plugin_manager, plugin_names, max_concurrency, true, true)
+    }
+
+    pub fn new_with_hooks(
+        plugin_manager: Arc<PluginManager>,
+        plugin_names: Vec<String>,
+        max_concurrency: usize,
+        has_on_request: bool,
+        has_on_response: bool,
+    ) -> Self {
+        let on_request_plugin_names = if has_on_request {
+            plugin_names.clone()
+        } else {
+            Vec::new()
+        };
+        let on_response_plugin_names = if has_on_response {
+            plugin_names.clone()
+        } else {
+            Vec::new()
+        };
+        Self::new_with_hook_plugins(
+            plugin_manager,
+            plugin_names,
+            max_concurrency,
+            on_request_plugin_names,
+            on_response_plugin_names,
+        )
+    }
+
+    pub fn new_with_hook_plugins(
+        plugin_manager: Arc<PluginManager>,
+        plugin_names: Vec<String>,
+        max_concurrency: usize,
+        on_request_plugin_names: Vec<String>,
+        on_response_plugin_names: Vec<String>,
+    ) -> Self {
         Self {
             plugin_manager,
             plugin_names,
             concurrency_limit: Arc::new(Semaphore::new(max_concurrency)),
+            on_request_plugin_names,
+            on_response_plugin_names,
         }
+    }
+
+    pub fn has_on_request(&self) -> bool {
+        !self.on_request_plugin_names.is_empty()
+    }
+
+    pub fn has_on_response(&self) -> bool {
+        !self.on_response_plugin_names.is_empty()
     }
 
     /// Pre-request: execute all plugins' on_request hook.
@@ -41,6 +89,10 @@ impl WasmPluginFilter {
         request_headers: HashMap<String, String>,
         body: Vec<u8>,
     ) -> Result<HashMap<String, String>, WasmError> {
+        if !self.has_on_request() {
+            return Ok(HashMap::new());
+        }
+
         let _permit = match self.concurrency_limit.clone().try_acquire_owned() {
             Ok(permit) => permit,
             Err(TryAcquireError::NoPermits) => {
@@ -60,7 +112,7 @@ impl WasmPluginFilter {
         let headers = Arc::new(request_headers);
         let body = Arc::new(body);
         let mut all_response_headers: HashMap<String, String> = HashMap::new();
-        for name in &self.plugin_names {
+        for name in &self.on_request_plugin_names {
             tracing::debug!(
                 target: "wasm_filter",
                 plugin = %name,
@@ -108,6 +160,10 @@ impl WasmPluginFilter {
         request_headers: HashMap<String, String>,
         response_body: Vec<u8>,
     ) -> Result<HashMap<String, String>, WasmError> {
+        if !self.has_on_response() {
+            return Ok(HashMap::new());
+        }
+
         let _permit = match self.concurrency_limit.clone().try_acquire_owned() {
             Ok(permit) => permit,
             Err(TryAcquireError::NoPermits) => {
@@ -127,7 +183,7 @@ impl WasmPluginFilter {
         let headers = Arc::new(request_headers);
         let body = Arc::new(response_body);
         let mut all_response_headers: HashMap<String, String> = HashMap::new();
-        for name in &self.plugin_names {
+        for name in &self.on_response_plugin_names {
             tracing::debug!(
                 target: "wasm_filter",
                 plugin = %name,
@@ -164,5 +220,76 @@ impl WasmPluginFilter {
         }
 
         Ok(all_response_headers)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn test_filter(has_on_request: bool, has_on_response: bool) -> WasmPluginFilter {
+        let engine = ntgw_wasm::engine::create_engine().expect("engine");
+        let manager = Arc::new(PluginManager::new(engine).expect("manager"));
+        WasmPluginFilter::new_with_hooks(
+            manager,
+            vec!["plugin".to_string()],
+            1,
+            has_on_request,
+            has_on_response,
+        )
+    }
+
+    #[test]
+    fn hook_capabilities_are_exposed() {
+        let filter = test_filter(true, false);
+
+        assert!(filter.has_on_request());
+        assert!(!filter.has_on_response());
+    }
+
+    #[test]
+    fn hook_specific_plugin_lists_drive_capabilities() {
+        let engine = ntgw_wasm::engine::create_engine().expect("engine");
+        let manager = Arc::new(PluginManager::new(engine).expect("manager"));
+        let filter = WasmPluginFilter::new_with_hook_plugins(
+            manager,
+            vec!["request-plugin".to_string(), "response-plugin".to_string()],
+            1,
+            vec!["request-plugin".to_string()],
+            Vec::new(),
+        );
+
+        assert!(filter.has_on_request());
+        assert!(!filter.has_on_response());
+    }
+
+    #[tokio::test]
+    async fn pre_process_skips_without_request_hook() {
+        let filter = test_filter(false, true);
+
+        let response_headers = filter
+            .pre_process(
+                HashMap::from([("x-test".to_string(), "1".to_string())]),
+                vec![1],
+            )
+            .await
+            .expect("skip without on_request hook");
+
+        assert!(response_headers.is_empty());
+    }
+
+    #[tokio::test]
+    async fn post_process_skips_without_response_hook() {
+        let filter = test_filter(true, false);
+
+        let response_headers = filter
+            .post_process(
+                HashMap::from([("x-test".to_string(), "1".to_string())]),
+                vec![1],
+            )
+            .await
+            .expect("skip without on_response hook");
+
+        assert!(response_headers.is_empty());
     }
 }

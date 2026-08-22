@@ -126,3 +126,10 @@ pub(crate) fn cache_response_body_limit_exceeded(
 ) -> bool {
     limit > 0 && current_len.saturating_add(chunk_len) > limit
 }
+
+pub(crate) fn response_body_filter_should_buffer(
+    cache_active: bool,
+    ai_post_process_active: bool,
+) -> bool {
+    cache_active || ai_post_process_active
+}

@@ -759,7 +759,9 @@ pub(crate) async fn do_request_filter(
         Err(err) => return Err(error_for_backend_selection(err)),
     }
 
-    if let Some(ref wasm) = proxy.wasm_filter {
+    if let Some(ref wasm) = proxy.wasm_filter
+        && wasm.has_on_request()
+    {
         let request_headers: HashMap<String, String> = session
             .req_header()
             .headers

@@ -687,7 +687,9 @@ impl ProxyHttp for GatewayProxy {
         }
 
         // Execute wasm on_response hook.
-        if let Some(ref wasm) = self.wasm_filter {
+        if let Some(ref wasm) = self.wasm_filter
+            && wasm.has_on_response()
+        {
             let request_headers: HashMap<String, String> = ctx
                 .request_headers
                 .as_ref()
@@ -756,8 +758,9 @@ impl ProxyHttp for GatewayProxy {
     where
         Self::CTX: Send + Sync,
     {
-        let ai_filter_active = self.ai_filter.is_some();
-        let should_buffer = ctx.http_cache.is_some() || ai_filter_active;
+        let ai_post_process_active = self.ai_filter.is_some() && ctx.ai_context.is_some();
+        let should_buffer =
+            response_body_filter_should_buffer(ctx.http_cache.is_some(), ai_post_process_active);
 
         if should_buffer && let Some(chunk) = body {
             if cache_response_body_limit_exceeded(
@@ -776,7 +779,7 @@ impl ProxyHttp for GatewayProxy {
                     ctx.cached_response_body_bytes.saturating_add(chunk.len());
                 ctx.cached_response_body.push(chunk.clone());
             }
-            if ai_filter_active {
+            if ai_post_process_active {
                 *body = None;
             }
         }

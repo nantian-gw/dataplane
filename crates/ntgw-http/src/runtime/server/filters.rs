@@ -1,5 +1,5 @@
 use super::*;
-use std::sync::Arc;
+use std::{collections::HashSet, sync::Arc};
 
 pub(super) fn build_ai_filter(
     snapshot: &SharedSnapshot,
@@ -162,6 +162,9 @@ pub(super) fn build_wasm_filter(
         return None;
     }
 
+    let on_request_plugin_names = plugin_names_for_hook(&desired, WasmHook::OnRequest);
+    let on_response_plugin_names = plugin_names_for_hook(&desired, WasmHook::OnResponse);
+
     let (loaded, updated, skipped, unloaded) = pm.diff_and_apply(&desired);
     tracing::info!(
         target: "wasm",
@@ -177,9 +180,25 @@ pub(super) fn build_wasm_filter(
         return None;
     }
 
-    Some(Arc::new(WasmPluginFilter::new(
+    Some(Arc::new(WasmPluginFilter::new_with_hook_plugins(
         pm,
         plugin_names,
         max_concurrency,
+        on_request_plugin_names,
+        on_response_plugin_names,
     )))
+}
+
+fn plugin_names_for_hook(
+    desired: &[ntgw_wasm::plugin::WasmPluginSpec],
+    hook: ntgw_wasm::plugin::WasmHook,
+) -> Vec<String> {
+    let mut seen = HashSet::new();
+    let mut names = Vec::new();
+    for (name, _, _, hooks, _, _) in desired {
+        if hooks.contains(&hook) && seen.insert(name.as_str()) {
+            names.push(name.clone());
+        }
+    }
+    names
 }
