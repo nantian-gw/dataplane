@@ -35,9 +35,9 @@ fn selects_stream_backend_refs_by_weighted_round_robin() {
         }],
         backends: vec![
             BackendCluster {
-                name: "tcp-a:9001".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "TCP".to_string().into(),
+                name: "tcp-a:9001".to_string(),
+                namespace: "default".to_string(),
+                protocol: "TCP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.40".to_string(),
                     port: 9001,
@@ -53,9 +53,9 @@ fn selects_stream_backend_refs_by_weighted_round_robin() {
 
                 },
             BackendCluster {
-                name: "tcp-b:9002".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "TCP".to_string().into(),
+                name: "tcp-b:9002".to_string(),
+                namespace: "default".to_string(),
+                protocol: "TCP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.41".to_string(),
                     port: 9002,

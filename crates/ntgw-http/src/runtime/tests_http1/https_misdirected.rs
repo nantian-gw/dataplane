@@ -264,9 +264,9 @@ fn https_misdirected_backend(port: u32) -> BackendCluster {
     BackendCluster {
         ai_service: None,
         token_policy: None,
-        name: format!("backend:{port}").into(),
-        namespace: "default".to_string().into(),
-        protocol: "HTTP".to_string().into(),
+        name: format!("backend:{port}"),
+        namespace: "default".to_string(),
+        protocol: "HTTP".to_string(),
         endpoints: vec![BackendEndpoint {
             address: "127.0.0.1".to_string(),
             port,

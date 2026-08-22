@@ -33,9 +33,9 @@ fn spreads_large_weighted_grpc_backends_across_short_request_batches() {
         }],
         backends: vec![
             BackendCluster {
-                name: "echo-v1:7070".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "GRPC".to_string().into(),
+                name: "echo-v1:7070".to_string(),
+                namespace: "default".to_string(),
+                protocol: "GRPC".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.10".to_string(),
                     port: 7070,
@@ -51,9 +51,9 @@ fn spreads_large_weighted_grpc_backends_across_short_request_batches() {
 
                 },
             BackendCluster {
-                name: "echo-v2:7070".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "GRPC".to_string().into(),
+                name: "echo-v2:7070".to_string(),
+                namespace: "default".to_string(),
+                protocol: "GRPC".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.11".to_string(),
                     port: 7070,

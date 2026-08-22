@@ -45,9 +45,9 @@ fn test_snapshot(listener: Listener, upstream_addr: std::net::SocketAddr) -> Sha
         backends: vec![BackendCluster {
             ai_service: None,
             token_policy: None,
-            name: format!("dns:{}", upstream_addr.port()).into(),
-            namespace: "default".to_string().into(),
-            protocol: "UDP".to_string().into(),
+            name: format!("dns:{}", upstream_addr.port()),
+            namespace: "default".to_string(),
+            protocol: "UDP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: upstream_addr.ip().to_string(),
                 port: upstream_addr.port() as u32,

@@ -486,9 +486,9 @@ fn shared_tls_frontend_validation_snapshot(
         backends: vec![BackendCluster {
             ai_service: None,
             token_policy: None,
-            name: format!("http-backend:{http_backend_port}").into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            name: format!("http-backend:{http_backend_port}"),
+            namespace: "default".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "127.0.0.1".to_string(),
                 port: http_backend_port as u32,
@@ -665,9 +665,9 @@ fn shared_tls_misdirected_snapshot(
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: format!("http-backend:{http_backend_port}").into(),
-                namespace: "default".to_string().into(),
-                protocol: "HTTP".to_string().into(),
+                name: format!("http-backend:{http_backend_port}"),
+                namespace: "default".to_string(),
+                protocol: "HTTP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "127.0.0.1".to_string(),
                     port: http_backend_port as u32,
@@ -681,9 +681,9 @@ fn shared_tls_misdirected_snapshot(
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: format!("stream-backend:{stream_backend_port}").into(),
-                namespace: "default".to_string().into(),
-                protocol: "TCP".to_string().into(),
+                name: format!("stream-backend:{stream_backend_port}"),
+                namespace: "default".to_string(),
+                protocol: "TCP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "127.0.0.1".to_string(),
                     port: stream_backend_port as u32,

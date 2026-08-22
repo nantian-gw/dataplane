@@ -24,9 +24,9 @@ fn select_http_backend_preserves_route_timeouts() {
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
-            name: "users:8080".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            name: "users:8080".to_string(),
+            namespace: "default".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.70".to_string(),
                 port: 8080,
@@ -84,9 +84,9 @@ fn skips_zero_weight_backend_refs() {
         }],
         backends: vec![
             BackendCluster {
-                name: "disabled:8080".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "HTTP".to_string().into(),
+                name: "disabled:8080".to_string(),
+                namespace: "default".to_string(),
+                protocol: "HTTP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.20".to_string(),
                     port: 8080,
@@ -102,9 +102,9 @@ fn skips_zero_weight_backend_refs() {
 
                 },
             BackendCluster {
-                name: "active:8081".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "HTTP".to_string().into(),
+                name: "active:8081".to_string(),
+                namespace: "default".to_string(),
+                protocol: "HTTP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.21".to_string(),
                     port: 8081,

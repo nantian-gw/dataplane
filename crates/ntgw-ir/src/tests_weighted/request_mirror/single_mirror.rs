@@ -2,9 +2,9 @@
 fn selects_request_mirror_backend_and_strips_mirror_filter() {
     let snapshot = Snapshot {
         backends: vec![BackendCluster {
-            name: "shadow:8081".to_string().into(),
-            namespace: "observability".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            name: "shadow:8081".to_string(),
+            namespace: "observability".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.60".to_string(),
                 port: 8081,

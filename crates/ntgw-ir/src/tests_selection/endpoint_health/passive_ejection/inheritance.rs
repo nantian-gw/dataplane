@@ -19,9 +19,9 @@ fn inherited_runtime_state_preserves_passive_endpoint_ejection() {
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
-            name: "echo:8080".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            name: "echo:8080".to_string(),
+            namespace: "default".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![
                 BackendEndpoint {
                     address: "10.0.0.10".to_string(),

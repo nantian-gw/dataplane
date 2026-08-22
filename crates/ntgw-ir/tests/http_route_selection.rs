@@ -40,9 +40,9 @@ fn backend_ref(namespace: &str, name: &str, port: u32) -> BackendRef {
 
 fn backend_cluster(namespace: &str, name: &str, address: &str) -> BackendCluster {
     BackendCluster {
-        name: format!("{name}:8080").into(),
-        namespace: namespace.to_string().into(),
-        protocol: "HTTP".to_string().into(),
+        name: format!("{name}:8080"),
+        namespace: namespace.to_string(),
+        protocol: "HTTP".to_string(),
         endpoints: vec![BackendEndpoint {
             address: address.to_string(),
             port: 8080,

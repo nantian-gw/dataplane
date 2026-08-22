@@ -36,9 +36,9 @@ fn selects_http_backend_by_host_path_method_header_and_query() {
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
-            name: "users:8080".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            name: "users:8080".to_string(),
+            namespace: "default".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8080,

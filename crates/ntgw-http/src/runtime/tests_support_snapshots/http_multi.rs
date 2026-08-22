@@ -54,9 +54,9 @@ fn multi_backend_http_snapshot(
             .map(|(name, port, protocol, _)| BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: format!("{name}:{port}").into(),
-                namespace: "default".to_string().into(),
-                protocol: (*protocol).to_string().into(),
+                name: format!("{name}:{port}"),
+                namespace: "default".to_string(),
+                protocol: (*protocol).to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "127.0.0.1".to_string(),
                     port: *port,

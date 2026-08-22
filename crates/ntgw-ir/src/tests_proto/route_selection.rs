@@ -178,9 +178,9 @@ fn select_http_route_preserves_rule_then_backend_filter_order() {
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
-            name: "echo:8080".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            name: "echo:8080".to_string(),
+            namespace: "default".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "127.0.0.1".to_string(),
                 port: 8080,

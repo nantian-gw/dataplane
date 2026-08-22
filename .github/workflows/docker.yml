@@ -71,9 +71,11 @@ jobs:
       - name: Smoke test (catch glibc mismatch)
         run: |
           TAG=$(echo "${{ steps.meta.outputs.tags }}" | head -1)
-          # Pull the image first since buildx push doesn't load it locally
-          docker pull "$TAG" || echo "smoke test skipped (image not available for pull)"
-          docker run --rm "$TAG" --help 2>/dev/null || echo "smoke test skipped (non-fatal)"
+          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
+            # buildx push does not load the image into the local daemon.
+            docker pull "$TAG"
+          fi
+          docker run --rm "$TAG" --help
 
   manifest:
     name: Create multi-arch manifest
@@ -99,6 +101,7 @@ jobs:
             ghcr.io/${{ github.repository }}:sha-${SHORT_SHA}-arm64
 
       - name: Create multi-arch manifest (latest)
+        if: github.ref == 'refs/heads/main'
         run: |
           docker buildx imagetools create \
             -t ghcr.io/${{ github.repository }}:latest \

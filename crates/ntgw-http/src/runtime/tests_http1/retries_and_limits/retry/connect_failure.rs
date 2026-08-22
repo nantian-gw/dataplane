@@ -399,9 +399,9 @@ fn unhealthy_backend_http_snapshot(
         backends: vec![BackendCluster {
             ai_service: None,
             token_policy: None,
-            name: format!("backend:{backend_port}").into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            name: format!("backend:{backend_port}"),
+            namespace: "default".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "127.0.0.1".to_string(),
                 port: backend_port,

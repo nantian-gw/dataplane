@@ -47,9 +47,9 @@ fn simple_http_snapshot(
         backends: vec![BackendCluster {
             ai_service: None,
             token_policy: None,
-            name: format!("backend:{backend_port}").into(),
-            namespace: "default".to_string().into(),
-            protocol: protocol.to_string().into(),
+            name: format!("backend:{backend_port}"),
+            namespace: "default".to_string(),
+            protocol: protocol.to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "127.0.0.1".to_string(),
                 port: backend_port,
@@ -131,9 +131,9 @@ fn cors_http_snapshot(
         backends: vec![BackendCluster {
             ai_service: None,
             token_policy: None,
-            name: format!("backend:{backend_port}").into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            name: format!("backend:{backend_port}"),
+            namespace: "default".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "127.0.0.1".to_string(),
                 port: backend_port,
@@ -236,9 +236,9 @@ fn dual_protocol_snapshot(
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: format!("http-backend:{http_backend_port}").into(),
-                namespace: "default".to_string().into(),
-                protocol: "HTTP".to_string().into(),
+                name: format!("http-backend:{http_backend_port}"),
+                namespace: "default".to_string(),
+                protocol: "HTTP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "127.0.0.1".to_string(),
                     port: http_backend_port,
@@ -251,9 +251,9 @@ fn dual_protocol_snapshot(
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: format!("h2c-backend:{h2c_backend_port}").into(),
-                namespace: "default".to_string().into(),
-                protocol: "H2C".to_string().into(),
+                name: format!("h2c-backend:{h2c_backend_port}"),
+                namespace: "default".to_string(),
+                protocol: "H2C".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "127.0.0.1".to_string(),
                     port: h2c_backend_port,

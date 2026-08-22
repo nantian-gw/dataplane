@@ -54,9 +54,9 @@ fn prefers_exact_tls_sni_match_over_wildcard() {
         ],
         backends: vec![
             BackendCluster {
-                name: "wildcard-upstream:8443".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "TCP".to_string().into(),
+                name: "wildcard-upstream:8443".to_string(),
+                namespace: "default".to_string(),
+                protocol: "TCP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.41".to_string(),
                     port: 8443,
@@ -72,9 +72,9 @@ fn prefers_exact_tls_sni_match_over_wildcard() {
 
                 },
             BackendCluster {
-                name: "exact-upstream:9443".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "TCP".to_string().into(),
+                name: "exact-upstream:9443".to_string(),
+                namespace: "default".to_string(),
+                protocol: "TCP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.42".to_string(),
                     port: 9443,

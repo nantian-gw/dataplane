@@ -352,9 +352,9 @@ fn sample_fast_path_snapshot() -> Snapshot {
         backends: vec![BackendCluster {
             ai_service: None,
             token_policy: None,
-            namespace: "default".to_string().into(),
-            name: "orders:8080".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            namespace: "default".to_string(),
+            name: "orders:8080".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8080,

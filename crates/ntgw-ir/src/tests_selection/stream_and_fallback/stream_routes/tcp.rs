@@ -40,9 +40,9 @@ fn tcproute_route(
 
 fn tcproute_backend(name: &str, port: u32, endpoints: Vec<BackendEndpoint>) -> BackendCluster {
     BackendCluster {
-        name: format!("{name}:{port}").into(),
-        namespace: "default".to_string().into(),
-        protocol: "TCP".to_string().into(),
+        name: format!("{name}:{port}"),
+        namespace: "default".to_string(),
+        protocol: "TCP".to_string(),
         endpoints,
         wasm_plugin: None,
         ai_service: None,

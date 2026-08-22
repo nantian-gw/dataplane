@@ -19,9 +19,9 @@ fn rotates_healthy_endpoints_within_cluster() {
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
-            name: "users:8080".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            name: "users:8080".to_string(),
+            namespace: "default".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![
                 BackendEndpoint {
                     address: "10.0.0.30".to_string(),

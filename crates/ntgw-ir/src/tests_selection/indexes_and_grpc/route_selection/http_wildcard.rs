@@ -19,9 +19,9 @@ fn selects_http_backend_with_wildcard_hostname() {
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
-            name: "wild:8080".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            name: "wild:8080".to_string(),
+            namespace: "default".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.20".to_string(),
                 port: 8080,

@@ -42,9 +42,9 @@ fn grpc_h2c_snapshot(listener_port: u16, backend_port: u32) -> ntgw_ir::SharedSn
         backends: vec![BackendCluster {
             ai_service: None,
             token_policy: None,
-            name: format!("grpc-backend:{backend_port}").into(),
-            namespace: "default".to_string().into(),
-            protocol: "GRPC".to_string().into(),
+            name: format!("grpc-backend:{backend_port}"),
+            namespace: "default".to_string(),
+            protocol: "GRPC".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "127.0.0.1".to_string(),
                 port: backend_port,

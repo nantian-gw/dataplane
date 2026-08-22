@@ -72,9 +72,9 @@ async fn tls_passthrough_prefers_exact_sni_match_over_wildcard() -> Result<()> {
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: format!("wildcard-upstream:{}", wildcard_addr.port()).into(),
-                namespace: "default".to_string().into(),
-                protocol: "TCP".to_string().into(),
+                name: format!("wildcard-upstream:{}", wildcard_addr.port()),
+                namespace: "default".to_string(),
+                protocol: "TCP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: wildcard_addr.ip().to_string(),
                     port: wildcard_addr.port() as u32,
@@ -88,9 +88,9 @@ async fn tls_passthrough_prefers_exact_sni_match_over_wildcard() -> Result<()> {
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: format!("exact-upstream:{}", exact_addr.port()).into(),
-                namespace: "default".to_string().into(),
-                protocol: "TCP".to_string().into(),
+                name: format!("exact-upstream:{}", exact_addr.port()),
+                namespace: "default".to_string(),
+                protocol: "TCP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: exact_addr.ip().to_string(),
                     port: exact_addr.port() as u32,

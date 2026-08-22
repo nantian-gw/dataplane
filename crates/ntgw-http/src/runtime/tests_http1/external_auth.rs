@@ -115,9 +115,9 @@ fn external_auth_http_snapshot(
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: format!("backend:{backend_port}").into(),
-                namespace: "default".to_string().into(),
-                protocol: "HTTP".to_string().into(),
+                name: format!("backend:{backend_port}"),
+                namespace: "default".to_string(),
+                protocol: "HTTP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "127.0.0.1".to_string(),
                     port: backend_port,
@@ -130,9 +130,9 @@ fn external_auth_http_snapshot(
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: format!("auth:{auth_port}").into(),
-                namespace: "default".to_string().into(),
-                protocol: "HTTP".to_string().into(),
+                name: format!("auth:{auth_port}"),
+                namespace: "default".to_string(),
+                protocol: "HTTP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "127.0.0.1".to_string(),
                     port: auth_port,
@@ -220,9 +220,9 @@ fn external_auth_grpc_snapshot(
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: format!("app:{backend_port}").into(),
-                namespace: "default".to_string().into(),
-                protocol: "HTTP".to_string().into(),
+                name: format!("app:{backend_port}"),
+                namespace: "default".to_string(),
+                protocol: "HTTP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "127.0.0.1".to_string(),
                     port: backend_port,
@@ -235,9 +235,9 @@ fn external_auth_grpc_snapshot(
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: format!("auth:{auth_port}").into(),
-                namespace: "default".to_string().into(),
-                protocol: "HTTP".to_string().into(),
+                name: format!("auth:{auth_port}"),
+                namespace: "default".to_string(),
+                protocol: "HTTP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "127.0.0.1".to_string(),
                     port: auth_port,
@@ -1218,9 +1218,9 @@ fn external_auth_backend_tls_validation_in_snapshot() {
         backends: vec![ntgw_ir::BackendCluster {
             ai_service: None,
             token_policy: None,
-            name: format!("auth:{auth_port}").into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTPS".to_string().into(),
+            name: format!("auth:{auth_port}"),
+            namespace: "default".to_string(),
+            protocol: "HTTPS".to_string(),
             endpoints: vec![ntgw_ir::BackendEndpoint {
                 address: "127.0.0.1".to_string(),
                 port: auth_port,
@@ -1275,9 +1275,9 @@ fn external_auth_with_backend_tls_and_session_persistence_combo_snapshot() {
             ntgw_ir::BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: "backend:8080".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "HTTP".to_string().into(),
+                name: "backend:8080".to_string(),
+                namespace: "default".to_string(),
+                protocol: "HTTP".to_string(),
                 endpoints: vec![ntgw_ir::BackendEndpoint {
                     address: "10.0.0.1".to_string(),
                     port: 8080,
@@ -1290,9 +1290,9 @@ fn external_auth_with_backend_tls_and_session_persistence_combo_snapshot() {
             ntgw_ir::BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: "auth:8443".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "HTTPS".to_string().into(),
+                name: "auth:8443".to_string(),
+                namespace: "default".to_string(),
+                protocol: "HTTPS".to_string(),
                 endpoints: vec![ntgw_ir::BackendEndpoint {
                     address: "127.0.0.1".to_string(),
                     port: 8443,

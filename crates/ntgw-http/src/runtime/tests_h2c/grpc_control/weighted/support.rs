@@ -57,9 +57,9 @@ fn weighted_grpc_h2c_snapshot(
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: format!("grpc-backend-a:{backend_a_port}").into(),
-                namespace: "default".to_string().into(),
-                protocol: "GRPC".to_string().into(),
+                name: format!("grpc-backend-a:{backend_a_port}"),
+                namespace: "default".to_string(),
+                protocol: "GRPC".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "127.0.0.1".to_string(),
                     port: backend_a_port,
@@ -72,9 +72,9 @@ fn weighted_grpc_h2c_snapshot(
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: format!("grpc-backend-b:{backend_b_port}").into(),
-                namespace: "default".to_string().into(),
-                protocol: "GRPC".to_string().into(),
+                name: format!("grpc-backend-b:{backend_b_port}"),
+                namespace: "default".to_string(),
+                protocol: "GRPC".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "127.0.0.1".to_string(),
                     port: backend_b_port,
@@ -174,9 +174,9 @@ fn weighted_mesh_grpc_h2c_snapshot_with_addresses(
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: format!("echo-v1:{}", backend_a.1).into(),
-                namespace: "default".to_string().into(),
-                protocol: "GRPC".to_string().into(),
+                name: format!("echo-v1:{}", backend_a.1),
+                namespace: "default".to_string(),
+                protocol: "GRPC".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: backend_a.0.to_string(),
                     port: backend_a.1,
@@ -189,9 +189,9 @@ fn weighted_mesh_grpc_h2c_snapshot_with_addresses(
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: format!("echo-v2:{}", backend_b.1).into(),
-                namespace: "default".to_string().into(),
-                protocol: "GRPC".to_string().into(),
+                name: format!("echo-v2:{}", backend_b.1),
+                namespace: "default".to_string(),
+                protocol: "GRPC".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: backend_b.0.to_string(),
                     port: backend_b.1,

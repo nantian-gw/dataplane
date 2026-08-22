@@ -3,9 +3,9 @@ fn selects_all_request_mirrors_and_strips_mirror_filters() {
     let snapshot = Snapshot {
         backends: vec![
             BackendCluster {
-                name: "shadow-a:8081".to_string().into(),
-                namespace: "observability".to_string().into(),
-                protocol: "HTTP".to_string().into(),
+                name: "shadow-a:8081".to_string(),
+                namespace: "observability".to_string(),
+                protocol: "HTTP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.60".to_string(),
                     port: 8081,
@@ -21,9 +21,9 @@ fn selects_all_request_mirrors_and_strips_mirror_filters() {
 
                 },
             BackendCluster {
-                name: "shadow-b:8082".to_string().into(),
-                namespace: "observability".to_string().into(),
-                protocol: "HTTP".to_string().into(),
+                name: "shadow-b:8082".to_string(),
+                namespace: "observability".to_string(),
+                protocol: "HTTP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.61".to_string(),
                     port: 8082,
@@ -98,9 +98,9 @@ fn request_mirror_visitor_stops_after_first_selected_mirror() {
     let snapshot = Snapshot {
         backends: vec![
             BackendCluster {
-                name: "shadow-a:8081".to_string().into(),
-                namespace: "observability".to_string().into(),
-                protocol: "HTTP".to_string().into(),
+                name: "shadow-a:8081".to_string(),
+                namespace: "observability".to_string(),
+                protocol: "HTTP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.60".to_string(),
                     port: 8081,
@@ -116,9 +116,9 @@ fn request_mirror_visitor_stops_after_first_selected_mirror() {
 
                 },
             BackendCluster {
-                name: "shadow-b:8082".to_string().into(),
-                namespace: "observability".to_string().into(),
-                protocol: "HTTP".to_string().into(),
+                name: "shadow-b:8082".to_string(),
+                namespace: "observability".to_string(),
+                protocol: "HTTP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.61".to_string(),
                     port: 8082,

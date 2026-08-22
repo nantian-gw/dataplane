@@ -347,9 +347,9 @@ fn stream_backend(name: &str) -> ntgw_ir::BackendCluster {
     ntgw_ir::BackendCluster {
         ai_service: None,
         token_policy: None,
-        name: format!("{name}:443").into(),
-        namespace: "default".to_string().into(),
-        protocol: "TCP".to_string().into(),
+        name: format!("{name}:443"),
+        namespace: "default".to_string(),
+        protocol: "TCP".to_string(),
         endpoints: vec![ntgw_ir::BackendEndpoint {
             address: "10.0.0.10".to_string(),
             port: 443,

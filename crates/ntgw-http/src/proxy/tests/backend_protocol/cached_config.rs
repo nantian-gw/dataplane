@@ -108,9 +108,9 @@ fn selected_backend_config_precomputes_peer_runtime_metadata() {
         backends: vec![BackendCluster {
             ai_service: None,
             token_policy: None,
-            name: "orders:8443".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "GRPCS".to_string().into(),
+            name: "orders:8443".to_string(),
+            namespace: "default".to_string(),
+            protocol: "GRPCS".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8443,
@@ -218,9 +218,9 @@ fn selected_backend_config_precomputes_resource_runtime_ids() {
         backends: vec![BackendCluster {
             ai_service: None,
             token_policy: None,
-            name: "orders:8080".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            name: "orders:8080".to_string(),
+            namespace: "default".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8080,
@@ -297,9 +297,9 @@ fn selected_backend_config_cache_reuses_config_for_snapshot_runtime_ids() {
         backends: vec![BackendCluster {
             ai_service: None,
             token_policy: None,
-            name: "orders:8080".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            name: "orders:8080".to_string(),
+            namespace: "default".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8080,
@@ -361,9 +361,9 @@ fn selected_backend_config_cached_for_fast_path_uses_compiled_runtime_ids() {
         backends: vec![BackendCluster {
             ai_service: None,
             token_policy: None,
-            name: "orders:8080".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            name: "orders:8080".to_string(),
+            namespace: "default".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8080,
@@ -425,9 +425,9 @@ fn selected_backend_config_cache_invalidates_when_snapshot_id_changes() {
         backends: vec![BackendCluster {
             ai_service: None,
             token_policy: None,
-            name: "orders:8080".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            name: "orders:8080".to_string(),
+            namespace: "default".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8080,
@@ -510,9 +510,9 @@ fn selected_backend_config_precomputes_tls_validation_and_client_cert_handles() 
         backends: vec![BackendCluster {
             ai_service: None,
             token_policy: None,
-            name: "orders:8443".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTPS".to_string().into(),
+            name: "orders:8443".to_string(),
+            namespace: "default".to_string(),
+            protocol: "HTTPS".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "127.0.0.1".to_string(),
                 port: 8443,
