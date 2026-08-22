@@ -232,6 +232,23 @@ impl AIGatewayFilterBuilder {
 }
 
 impl AIGatewayFilter {
+    fn scoped_rate_limit_key(
+        &self,
+        path: &str,
+        api_key: Option<&str>,
+        request: &AIRequest,
+    ) -> Option<String> {
+        self.rate_limiter.as_ref().map(|rl| {
+            rate_limit_key(
+                &rl.config.scope,
+                api_key,
+                &request.model,
+                path,
+                request.user.as_deref().unwrap_or(""),
+            )
+        })
+    }
+
     /// Single-pass security scan: combines prompt guard and content safety checks
     /// into one loop over request messages.
     fn scan_security(&self, request: &AIRequest) -> Result<(), AIError> {
@@ -429,15 +446,9 @@ impl AIGatewayFilter {
         }
 
         // 3. Rate limit check (pre-request)
-        let rate_limit_key = if let Some(ref rl) = self.rate_limiter {
-            let rl_key = rate_limit_key(
-                &rl.config.scope,
-                api_key,
-                &request.model,
-                path,
-                request.user.as_deref().unwrap_or(""),
-            );
-            match rl.check(&rl_key) {
+        let rate_limit_key = self.scoped_rate_limit_key(path, api_key, &request);
+        if let (Some(rl), Some(rl_key)) = (&self.rate_limiter, &rate_limit_key) {
+            match rl.check(rl_key) {
                 RateLimitResult::Limited { retry_after_secs } => {
                     self.metrics
                         .record_rate_limit_hit(&request.model, &rl.config.scope);
@@ -446,7 +457,7 @@ impl AIGatewayFilter {
                             // Queue mode: sleep and retry once
                             tokio::time::sleep(Duration::from_secs(retry_after_secs.min(5))).await;
                             // Re-check after waiting
-                            match rl.check(&rl_key) {
+                            match rl.check(rl_key) {
                                 RateLimitResult::Limited { .. } => {
                                     return Err(AIError::RateLimitExceeded { retry_after_secs });
                                 }
@@ -470,10 +481,7 @@ impl AIGatewayFilter {
                 }
                 RateLimitResult::Allowed { .. } => {}
             }
-            Some(rl_key)
-        } else {
-            None
-        };
+        }
 
         // 3b. Tenant checks: resolve, quota, model access
         if let (Some(api_key), Some(tm)) = (api_key, &self.tenant_manager) {
@@ -809,6 +817,7 @@ impl AIGatewayFilter {
             // Rebuild context for the next attempt with fallback model
             let mut new_ctx = self.pre_process(path, body, api_key).await?;
             new_ctx.request.model = next_model.to_string();
+            new_ctx.rate_limit_key = self.scoped_rate_limit_key(path, api_key, &new_ctx.request);
             ctx = new_ctx;
             attempt += 1;
         }

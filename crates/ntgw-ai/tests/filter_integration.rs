@@ -1,6 +1,10 @@
-use std::sync::Arc;
+use std::sync::{
+    Arc,
+    atomic::{AtomicUsize, Ordering},
+};
 
 use ntgw_ai::error::AIError;
+use ntgw_ai::fallback::{FallbackChain, FallbackEntry, ModelFallback};
 use ntgw_ai::filter::{AIGatewayFilter, AIGatewayFilterBuilder, parse_sse_chunks};
 use ntgw_ai::format::AdapterRegistry;
 use ntgw_ai::format::anthropic::AnthropicAdapter;
@@ -54,6 +58,29 @@ fn test_filter_with_rate_limiter(config: RateLimitConfig) -> AIGatewayFilter {
     adapters.register("openai", Arc::new(OpenAIAdapter));
     AIGatewayFilterBuilder::new(Arc::new(adapters), Arc::new(metrics))
         .rate_limiter(TokenRateLimiter::new(config))
+        .build()
+}
+
+fn test_filter_with_rate_limiter_and_fallback(config: RateLimitConfig) -> AIGatewayFilter {
+    let registry = Registry::new();
+    let metrics = AIMetrics::new(&registry).unwrap();
+    let mut adapters = AdapterRegistry::new();
+    adapters.register("openai", Arc::new(OpenAIAdapter));
+
+    let mut fallback = ModelFallback::new();
+    fallback.add_chain(FallbackChain {
+        primary: "gpt-4o".to_string(),
+        fallbacks: vec![FallbackEntry {
+            model: "gpt-4o-mini".to_string(),
+            on_status: vec![500],
+            on_timeout: false,
+            max_retries: 1,
+        }],
+    });
+
+    AIGatewayFilterBuilder::new(Arc::new(adapters), Arc::new(metrics))
+        .rate_limiter(TokenRateLimiter::new(config))
+        .fallback(fallback)
         .build()
 }
 
@@ -146,6 +173,81 @@ async fn test_rate_limit_usage_is_recorded_against_api_key_scope() {
         .pre_process("/v1/chat/completions", request_body, Some("tenant-b-key"))
         .await
         .expect("different API key should use an independent rate-limit window");
+}
+
+#[tokio::test]
+async fn test_fallback_updates_model_scoped_rate_limit_usage_key() {
+    let filter = test_filter_with_rate_limiter_and_fallback(RateLimitConfig {
+        tokens_per_minute: 50,
+        scope: "model".to_string(),
+        burst: 1.0,
+        ..Default::default()
+    });
+
+    let request_body =
+        br#"{"model": "gpt-4o", "messages": [{"role": "user", "content": "hello"}]}"#;
+    let attempts = Arc::new(AtomicUsize::new(0));
+    let attempts_for_call = Arc::clone(&attempts);
+
+    let output = filter
+        .process_with_fallback(
+            "/v1/chat/completions",
+            request_body,
+            None,
+            move |request, _body| {
+                let attempts = Arc::clone(&attempts_for_call);
+                let model = request.model.clone();
+                async move {
+                    match attempts.fetch_add(1, Ordering::SeqCst) {
+                        0 => Ok((br#"{"error":"upstream unavailable"}"#.to_vec(), 500)),
+                        _ => {
+                            assert_eq!(model, "gpt-4o-mini");
+                            Ok((
+                                br#"{
+                                    "id": "chatcmpl-fallback",
+                                    "object": "chat.completion",
+                                    "model": "gpt-4o-mini",
+                                    "created": 1700000000,
+                                    "choices": [{
+                                        "index": 0,
+                                        "message": {"role": "assistant", "content": "fallback"},
+                                        "finish_reason": "stop"
+                                    }],
+                                    "usage": {"prompt_tokens": 25, "completion_tokens": 25, "total_tokens": 50}
+                                }"#
+                                .to_vec(),
+                                200,
+                            ))
+                        }
+                    }
+                }
+            },
+        )
+        .await
+        .expect("fallback request should succeed");
+
+    let parsed: serde_json::Value =
+        serde_json::from_slice(&output).expect("fallback output should be valid JSON");
+    assert_eq!(
+        parsed["choices"][0]["message"]["content"],
+        serde_json::Value::String("fallback".to_string())
+    );
+    assert_eq!(attempts.load(Ordering::SeqCst), 2);
+
+    let mini_request =
+        br#"{"model": "gpt-4o-mini", "messages": [{"role": "user", "content": "hello"}]}"#;
+    let mini_result = filter
+        .pre_process("/v1/chat/completions", mini_request, None)
+        .await;
+    assert!(matches!(
+        mini_result,
+        Err(AIError::RateLimitExceeded { .. })
+    ));
+
+    filter
+        .pre_process("/v1/chat/completions", request_body, None)
+        .await
+        .expect("primary model should not be charged for fallback completion tokens");
 }
 
 #[tokio::test]
