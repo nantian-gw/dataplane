@@ -65,9 +65,9 @@ fn selects_tcp_backend_by_listener_port_isolation() {
         ],
         backends: vec![
             BackendCluster {
-                name: "tcp-a:7000".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "TCP".to_string().into(),
+                name: "tcp-a:7000".to_string(),
+                namespace: "default".to_string(),
+                protocol: "TCP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.50".to_string(),
                     port: 7000,
@@ -83,9 +83,9 @@ fn selects_tcp_backend_by_listener_port_isolation() {
 
                 },
             BackendCluster {
-                name: "tcp-b:7001".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "TCP".to_string().into(),
+                name: "tcp-b:7001".to_string(),
+                namespace: "default".to_string(),
+                protocol: "TCP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.51".to_string(),
                     port: 7001,

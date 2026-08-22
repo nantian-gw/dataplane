@@ -26,9 +26,9 @@ fn http_fast_path_marks_simple_http_route_eligible() {
             ..HttpRoute::default()
         }],
         backends: vec![BackendCluster {
-            name: "orders:8080".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            name: "orders:8080".to_string(),
+            namespace: "default".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8080,
@@ -145,9 +145,9 @@ fn http_fast_path_rejects_routes_that_need_headers_or_filters() {
             },
         ],
         backends: vec![BackendCluster {
-            name: "orders:8080".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            name: "orders:8080".to_string(),
+            namespace: "default".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8080,
@@ -239,9 +239,9 @@ fn http_fast_path_selects_same_simple_backend_as_generic_http_selection() {
             ..HttpRoute::default()
         }],
         backends: vec![BackendCluster {
-            name: "orders:8080".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            name: "orders:8080".to_string(),
+            namespace: "default".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8080,
@@ -311,9 +311,9 @@ fn http_fast_path_does_not_select_grpc_requests() {
             ..HttpRoute::default()
         }],
         backends: vec![BackendCluster {
-            name: "orders:8080".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            name: "orders:8080".to_string(),
+            namespace: "default".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8080,
@@ -401,9 +401,9 @@ fn http_fast_path_falls_back_when_best_match_needs_listener_backend_tls() {
         ],
         backends: vec![
             BackendCluster {
-                name: "orders:8080".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "HTTP".to_string().into(),
+                name: "orders:8080".to_string(),
+                namespace: "default".to_string(),
+                protocol: "HTTP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.10".to_string(),
                     port: 8080,
@@ -419,9 +419,9 @@ fn http_fast_path_falls_back_when_best_match_needs_listener_backend_tls() {
 
                 },
             BackendCluster {
-                name: "fallback:8081".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "HTTP".to_string().into(),
+                name: "fallback:8081".to_string(),
+                namespace: "default".to_string(),
+                protocol: "HTTP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.11".to_string(),
                     port: 8081,

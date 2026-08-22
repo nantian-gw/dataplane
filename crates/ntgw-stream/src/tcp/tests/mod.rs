@@ -138,9 +138,9 @@ fn test_snapshot(
         backends: vec![BackendCluster {
             ai_service: None,
             token_policy: None,
-            name: format!("upstream:{}", upstream_addr.port()).into(),
-            namespace: "default".to_string().into(),
-            protocol: "TCP".to_string().into(),
+            name: format!("upstream:{}", upstream_addr.port()),
+            namespace: "default".to_string(),
+            protocol: "TCP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: upstream_addr.ip().to_string(),
                 port: upstream_addr.port() as u32,

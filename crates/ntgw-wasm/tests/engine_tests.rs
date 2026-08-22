@@ -1,31 +1,35 @@
 use std::sync::Arc;
 
 use anyhow::Result;
-use ntgw_wasm::engine::WasmEngine;
+use ntgw_wasm::engine::{PluginContext, WasmEngine};
 use ntgw_wasm::engine::{create_engine, create_linker, global_engine};
+use wasmtime::{Module, Store};
 
 #[test]
 fn test_create_engine() -> Result<()> {
-    let _engine = create_engine()?;
-    // Verify engine is functional - it should be not null
-    assert!(true);
+    let engine = create_engine()?;
+    let module = Module::new(&engine, "(module)")?;
+    assert_eq!(module.imports().len(), 0);
     Ok(())
 }
 
 #[test]
 fn test_create_linker() -> Result<()> {
     let engine = create_engine()?;
-    let _linker = create_linker(&engine)?;
-    // Linker was created without errors
-    assert!(true);
+    let linker = create_linker(&engine)?;
+    let module = Module::new(&engine, "(module)")?;
+    let mut store = Store::new(&engine, PluginContext::default());
+    let instance = linker.instantiate(&mut store, &module)?;
+    assert_eq!(instance.exports(&mut store).len(), 0);
     Ok(())
 }
 
 #[test]
 fn test_engine_clone() -> Result<()> {
     let engine = create_engine()?;
-    let _engine2 = engine.clone();
-    assert!(true);
+    let engine2 = engine.clone();
+    let module = Module::new(&engine2, "(module)")?;
+    assert_eq!(module.imports().len(), 0);
     Ok(())
 }
 

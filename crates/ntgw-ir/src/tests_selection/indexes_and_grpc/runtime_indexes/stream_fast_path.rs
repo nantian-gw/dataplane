@@ -23,9 +23,9 @@ fn stream_fast_path_precompiles_backend_refs_for_attached_routes() {
             ..StreamRoute::default()
         }],
         backends: vec![BackendCluster {
-            name: "orders:8080".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "TCP".to_string().into(),
+            name: "orders:8080".to_string(),
+            namespace: "default".to_string(),
+            protocol: "TCP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8080,
@@ -103,9 +103,9 @@ fn stream_fast_path_skips_unavailable_compiled_backend_and_keeps_searching() {
         ],
         backends: vec![
             BackendCluster {
-                name: "unavailable:8080".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "TCP".to_string().into(),
+                name: "unavailable:8080".to_string(),
+                namespace: "default".to_string(),
+                protocol: "TCP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.10".to_string(),
                     port: 8080,
@@ -121,9 +121,9 @@ fn stream_fast_path_skips_unavailable_compiled_backend_and_keeps_searching() {
 
                 },
             BackendCluster {
-                name: "available:8080".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "TCP".to_string().into(),
+                name: "available:8080".to_string(),
+                namespace: "default".to_string(),
+                protocol: "TCP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.20".to_string(),
                     port: 8080,
@@ -163,9 +163,9 @@ fn stream_fast_path_falls_back_to_default_service_backend_when_no_route_matches(
             ..Listener::default()
         }],
         backends: vec![BackendCluster {
-            name: "orders:8080".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "TCP".to_string().into(),
+            name: "orders:8080".to_string(),
+            namespace: "default".to_string(),
+            protocol: "TCP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.30".to_string(),
                 port: 8080,

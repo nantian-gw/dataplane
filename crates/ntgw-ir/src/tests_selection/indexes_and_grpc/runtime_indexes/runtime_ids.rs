@@ -102,9 +102,9 @@ fn selected_stream_backend_runtime_ids_normalize_proto_route_kind() {
             ..StreamRoute::default()
         }],
         backends: vec![BackendCluster {
-            name: "orders:8080".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "TCP".to_string().into(),
+            name: "orders:8080".to_string(),
+            namespace: "default".to_string(),
+            protocol: "TCP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8080,
@@ -273,9 +273,9 @@ fn runtime_id_test_snapshot(reordered: bool) -> Snapshot {
     ];
     let mut backends = vec![
         BackendCluster {
-            name: "orders:8080".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            name: "orders:8080".to_string(),
+            namespace: "default".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![
                 BackendEndpoint {
                     address: "10.0.0.10".to_string(),
@@ -298,9 +298,9 @@ fn runtime_id_test_snapshot(reordered: bool) -> Snapshot {
 
                 },
         BackendCluster {
-            name: "payments:8080".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            name: "payments:8080".to_string(),
+            namespace: "default".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.20".to_string(),
                 port: 8080,

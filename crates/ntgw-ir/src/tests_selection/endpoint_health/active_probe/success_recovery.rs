@@ -19,9 +19,9 @@ fn active_probe_success_recovers_passively_ejected_endpoint() {
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
-            name: "echo:8080".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            name: "echo:8080".to_string(),
+            namespace: "default".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![
                 BackendEndpoint {
                     address: "10.0.0.10".to_string(),

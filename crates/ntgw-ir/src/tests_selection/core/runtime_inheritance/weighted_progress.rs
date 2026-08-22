@@ -21,9 +21,9 @@ fn inherited_runtime_state_keeps_weighted_selection_progress() {
         }],
         backends: vec![
             BackendCluster {
-                name: "echo-v1:7070".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "GRPC".to_string().into(),
+                name: "echo-v1:7070".to_string(),
+                namespace: "default".to_string(),
+                protocol: "GRPC".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.1".to_string(),
                     port: 7070,
@@ -39,9 +39,9 @@ fn inherited_runtime_state_keeps_weighted_selection_progress() {
 
                 },
             BackendCluster {
-                name: "echo-v2:7070".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "GRPC".to_string().into(),
+                name: "echo-v2:7070".to_string(),
+                namespace: "default".to_string(),
+                protocol: "GRPC".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.2".to_string(),
                     port: 7070,

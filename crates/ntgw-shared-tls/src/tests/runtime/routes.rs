@@ -354,9 +354,9 @@ fn tlsroute_terminate_snapshot(
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: format!("terminated-backend:{terminated_backend_port}").into(),
-                namespace: "default".to_string().into(),
-                protocol: "TCP".to_string().into(),
+                name: format!("terminated-backend:{terminated_backend_port}"),
+                namespace: "default".to_string(),
+                protocol: "TCP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "127.0.0.1".to_string(),
                     port: terminated_backend_port as u32,
@@ -370,9 +370,9 @@ fn tlsroute_terminate_snapshot(
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: format!("passthrough-backend:{passthrough_backend_port}").into(),
-                namespace: "default".to_string().into(),
-                protocol: "TCP".to_string().into(),
+                name: format!("passthrough-backend:{passthrough_backend_port}"),
+                namespace: "default".to_string(),
+                protocol: "TCP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "127.0.0.1".to_string(),
                     port: passthrough_backend_port as u32,

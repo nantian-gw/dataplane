@@ -160,9 +160,9 @@ fn tcp_snapshot(
         backends: vec![ntgw_ir::BackendCluster {
             ai_service: None,
             token_policy: None,
-            name: format!("{backend_name}:{}", upstream_addr.port()).into(),
-            namespace: "default".to_string().into(),
-            protocol: "TCP".to_string().into(),
+            name: format!("{backend_name}:{}", upstream_addr.port()),
+            namespace: "default".to_string(),
+            protocol: "TCP".to_string(),
             endpoints: vec![ntgw_ir::BackendEndpoint {
                 address: upstream_addr.ip().to_string(),
                 port: upstream_addr.port() as u32,

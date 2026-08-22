@@ -271,9 +271,13 @@ impl PluginManager {
             let cache_dir = cache_dir();
             let cache_path = cache_dir.join(format!("{sha}.wasmbin"));
             if let Ok(cached_bytes) = std::fs::read(&cache_path) {
-                // SAFETY: Module::deserialize is unsafe because deserialized modules
-                // are only valid for the same CPU architecture and wasmtime version.
-                // The cache path is namespaced by SHA256, so only our own output is read.
+                // SAFETY: `Module::deserialize` is only safe for unmodified
+                // bytes that came from `Module::serialize` or
+                // `Engine::precompile_module`. This cache only reads files
+                // written below from `Module::serialize` after compiling the
+                // same plugin bytes. Incompatible Wasmtime versions or engine
+                // settings are rejected by Wasmtime's embedded compatibility
+                // metadata and fall back to recompilation.
                 #[allow(unsafe_code)]
                 unsafe {
                     match Module::deserialize(&self.engine, &cached_bytes) {

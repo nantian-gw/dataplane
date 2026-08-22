@@ -231,9 +231,9 @@ fn unbuilt_route_attachment_index_does_not_override_slow_path_route_attachment_l
             ..HttpRoute::default()
         }],
         backends: vec![BackendCluster {
-            name: "orders:8080".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            name: "orders:8080".to_string(),
+            namespace: "default".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8080,
@@ -382,9 +382,9 @@ fn runtime_indexes_precompute_service_frontend_attachment_lookup() {
             },
         ],
         backends: vec![BackendCluster {
-            name: "orders:8080".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            name: "orders:8080".to_string(),
+            namespace: "default".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8080,
@@ -430,9 +430,9 @@ fn unbuilt_service_frontend_attachment_index_does_not_override_slow_path_lookup(
             ..Listener::default()
         }],
         backends: vec![BackendCluster {
-            name: "orders:8080".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            name: "orders:8080".to_string(),
+            namespace: "default".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8080,
@@ -528,9 +528,9 @@ fn runtime_indexes_precompute_service_frontend_port_lookup() {
             },
         ],
         backends: vec![BackendCluster {
-            name: "orders:8080".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            name: "orders:8080".to_string(),
+            namespace: "default".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8080,
@@ -592,9 +592,9 @@ fn unbuilt_service_frontend_port_index_does_not_override_slow_path_lookup() {
             },
         ],
         backends: vec![BackendCluster {
-            name: "orders:8080".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            name: "orders:8080".to_string(),
+            namespace: "default".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8080,

@@ -170,7 +170,6 @@ jobs:
           echo "minor=${MAJOR}.${MINOR}" >> "$GITHUB_OUTPUT"
 
       - name: Create multi-arch manifest (exact tag)
-        continue-on-error: true
         run: |
           docker buildx imagetools create \
             --tag "ghcr.io/${{ github.repository }}:${{ github.ref_name }}" \
@@ -178,7 +177,6 @@ jobs:
             "ghcr.io/${{ github.repository }}:${{ github.ref_name }}-arm64"
 
       - name: Create multi-arch manifest (major.minor)
-        continue-on-error: true
         run: |
           docker buildx imagetools create \
             --tag "ghcr.io/${{ github.repository }}:${{ steps.semver.outputs.minor }}" \
@@ -186,7 +184,6 @@ jobs:
             "ghcr.io/${{ github.repository }}:${{ github.ref_name }}-arm64"
 
       - name: Create multi-arch manifest (major)
-        continue-on-error: true
         run: |
           docker buildx imagetools create \
             --tag "ghcr.io/${{ github.repository }}:${{ steps.semver.outputs.major }}" \
@@ -212,7 +209,11 @@ jobs:
         run: |
           MANIFEST_DIGEST="$(docker buildx imagetools inspect \
             "ghcr.io/${{ github.repository }}:${{ github.ref_name }}" \
-            --format '{{ .Manifest.Digest }}' 2>/dev/null || echo unknown)"
+            --format '{{ .Manifest.Digest }}')"
+          if [[ -z "${MANIFEST_DIGEST}" || "${MANIFEST_DIGEST}" == "unknown" ]]; then
+            echo "failed to resolve multi-arch manifest digest for ${{ github.ref_name }}" >&2
+            exit 1
+          fi
           {
             echo "## Provenance"
             echo

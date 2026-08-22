@@ -17,9 +17,9 @@ fn selects_grpc_backend_for_catch_all_rule_without_parseable_grpc_path() {
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
-            name: "greeter:9090".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "GRPC".to_string().into(),
+            name: "greeter:9090".to_string(),
+            namespace: "default".to_string(),
+            protocol: "GRPC".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.30".to_string(),
                 port: 9090,
@@ -77,9 +77,9 @@ fn selects_grpc_backend_for_header_only_match_without_parseable_grpc_path() {
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
-            name: "greeter:9090".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "GRPC".to_string().into(),
+            name: "greeter:9090".to_string(),
+            namespace: "default".to_string(),
+            protocol: "GRPC".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.30".to_string(),
                 port: 9090,

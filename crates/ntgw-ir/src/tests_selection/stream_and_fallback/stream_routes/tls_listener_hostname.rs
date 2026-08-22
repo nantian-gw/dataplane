@@ -31,9 +31,9 @@ fn rejects_tls_sni_outside_listener_hostname_even_when_route_hostname_matches() 
             annotations: BTreeMap::new(),
         }],
         backends: vec![BackendCluster {
-            name: "tls-upstream:8443".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "TCP".to_string().into(),
+            name: "tls-upstream:8443".to_string(),
+            namespace: "default".to_string(),
+            protocol: "TCP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.40".to_string(),
                 port: 8443,

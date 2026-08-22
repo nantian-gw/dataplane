@@ -34,9 +34,9 @@ fn observe_selected_backend_success_clears_failure_streak() {
             backends: vec![BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: "echo:8080".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "HTTP".to_string().into(),
+                name: "echo:8080".to_string(),
+                namespace: "default".to_string(),
+                protocol: "HTTP".to_string(),
                 endpoints: vec![
                     BackendEndpoint {
                         address: "10.0.0.10".to_string(),

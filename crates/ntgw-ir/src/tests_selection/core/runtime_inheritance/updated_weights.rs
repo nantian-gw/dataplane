@@ -23,9 +23,9 @@ fn inherited_runtime_state_applies_updated_backend_weights() {
         }],
         backends: vec![
             BackendCluster {
-                name: "users:8080".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "HTTP".to_string().into(),
+                name: "users:8080".to_string(),
+                namespace: "default".to_string(),
+                protocol: "HTTP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.10".to_string(),
                     port: 8080,
@@ -41,9 +41,9 @@ fn inherited_runtime_state_applies_updated_backend_weights() {
 
                 },
             BackendCluster {
-                name: "orders:8081".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "HTTP".to_string().into(),
+                name: "orders:8081".to_string(),
+                namespace: "default".to_string(),
+                protocol: "HTTP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.11".to_string(),
                     port: 8081,

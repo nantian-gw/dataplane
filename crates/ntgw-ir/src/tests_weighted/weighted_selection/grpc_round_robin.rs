@@ -33,9 +33,9 @@ fn selects_grpc_backend_refs_by_weighted_round_robin() {
         }],
         backends: vec![
             BackendCluster {
-                name: "users:7070".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "GRPC".to_string().into(),
+                name: "users:7070".to_string(),
+                namespace: "default".to_string(),
+                protocol: "GRPC".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.10".to_string(),
                     port: 7070,
@@ -51,9 +51,9 @@ fn selects_grpc_backend_refs_by_weighted_round_robin() {
 
                 },
             BackendCluster {
-                name: "orders:7071".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "GRPC".to_string().into(),
+                name: "orders:7071".to_string(),
+                namespace: "default".to_string(),
+                protocol: "GRPC".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.11".to_string(),
                     port: 7071,

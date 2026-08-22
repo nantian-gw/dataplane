@@ -2,9 +2,9 @@
 fn runtime_indexes_accelerate_backend_secret_and_workload_lookups() {
     let mut snapshot = Snapshot {
         backends: vec![BackendCluster {
-            name: "api:8443".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTPS".to_string().into(),
+            name: "api:8443".to_string(),
+            namespace: "default".to_string(),
+            protocol: "HTTPS".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8443,
@@ -66,9 +66,9 @@ fn unbuilt_backend_index_does_not_override_slow_path_backend_lookup() {
         }],
         backends: vec![
             BackendCluster {
-                name: "orders:8080".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "HTTP".to_string().into(),
+                name: "orders:8080".to_string(),
+                namespace: "default".to_string(),
+                protocol: "HTTP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.10".to_string(),
                     port: 8080,
@@ -84,9 +84,9 @@ fn unbuilt_backend_index_does_not_override_slow_path_backend_lookup() {
 
                 },
             BackendCluster {
-                name: "payments:8080".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "HTTPS".to_string().into(),
+                name: "payments:8080".to_string(),
+                namespace: "default".to_string(),
+                protocol: "HTTPS".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.20".to_string(),
                     port: 8080,
@@ -139,9 +139,9 @@ fn runtime_indexes_precompute_backend_lookup_for_backend_refs() {
         }],
         backends: vec![
             BackendCluster {
-                name: "orders:8080".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "HTTP".to_string().into(),
+                name: "orders:8080".to_string(),
+                namespace: "default".to_string(),
+                protocol: "HTTP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.10".to_string(),
                     port: 8080,
@@ -157,9 +157,9 @@ fn runtime_indexes_precompute_backend_lookup_for_backend_refs() {
 
                 },
             BackendCluster {
-                name: "payments:8080".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "HTTPS".to_string().into(),
+                name: "payments:8080".to_string(),
+                namespace: "default".to_string(),
+                protocol: "HTTPS".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.20".to_string(),
                     port: 8080,
@@ -200,9 +200,9 @@ fn runtime_indexes_precompute_backend_lookup_for_backend_refs() {
 fn backend_lookup_requires_an_exact_port_string_match() {
     let snapshot = Snapshot {
         backends: vec![BackendCluster {
-            name: "orders:08080".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            name: "orders:08080".to_string(),
+            namespace: "default".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8080,
@@ -238,9 +238,9 @@ fn backend_ref_lookup_requires_an_exact_port_string_match() {
             ..HttpRoute::default()
         }],
         backends: vec![BackendCluster {
-            name: "orders:08080".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            name: "orders:08080".to_string(),
+            namespace: "default".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8080,
@@ -338,9 +338,9 @@ fn runtime_indexes_precompute_backend_service_namespace_lookup() {
     let mut snapshot = Snapshot {
         backends: vec![
             BackendCluster {
-                name: "orders:8080".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "HTTP".to_string().into(),
+                name: "orders:8080".to_string(),
+                namespace: "default".to_string(),
+                protocol: "HTTP".to_string(),
                 endpoints: vec![],
                 wasm_plugin: None,
                 ai_service: None,
@@ -352,9 +352,9 @@ fn runtime_indexes_precompute_backend_service_namespace_lookup() {
 
                 },
             BackendCluster {
-                name: "payments:9090".to_string().into(),
-                namespace: "tenant-a".to_string().into(),
-                protocol: "HTTP".to_string().into(),
+                name: "payments:9090".to_string(),
+                namespace: "tenant-a".to_string(),
+                protocol: "HTTP".to_string(),
                 endpoints: vec![],
                 wasm_plugin: None,
                 ai_service: None,
@@ -366,9 +366,9 @@ fn runtime_indexes_precompute_backend_service_namespace_lookup() {
 
                 },
             BackendCluster {
-                name: "shared:8080".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "HTTP".to_string().into(),
+                name: "shared:8080".to_string(),
+                namespace: "default".to_string(),
+                protocol: "HTTP".to_string(),
                 endpoints: vec![],
                 wasm_plugin: None,
                 ai_service: None,
@@ -380,9 +380,9 @@ fn runtime_indexes_precompute_backend_service_namespace_lookup() {
 
                 },
             BackendCluster {
-                name: "shared:8080".to_string().into(),
-                namespace: "tenant-b".to_string().into(),
-                protocol: "HTTP".to_string().into(),
+                name: "shared:8080".to_string(),
+                namespace: "tenant-b".to_string(),
+                protocol: "HTTP".to_string(),
                 endpoints: vec![],
                 wasm_plugin: None,
                 ai_service: None,
@@ -394,9 +394,9 @@ fn runtime_indexes_precompute_backend_service_namespace_lookup() {
 
                 },
             BackendCluster {
-                name: "padded:08080".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "HTTP".to_string().into(),
+                name: "padded:08080".to_string(),
+                namespace: "default".to_string(),
+                protocol: "HTTP".to_string(),
                 endpoints: vec![],
                 wasm_plugin: None,
                 ai_service: None,
@@ -462,9 +462,9 @@ fn unbuilt_backend_service_index_does_not_override_slow_path_namespace_lookup() 
 
     let snapshot = Snapshot {
         backends: vec![BackendCluster {
-            name: "orders:8080".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            name: "orders:8080".to_string(),
+            namespace: "default".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![],
             wasm_plugin: None,
                 ai_service: None,

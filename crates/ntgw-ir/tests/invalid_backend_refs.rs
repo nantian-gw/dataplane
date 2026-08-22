@@ -31,9 +31,9 @@ fn listener(name: &str, attached_route: &str) -> Listener {
 
 fn backend_cluster(namespace: &str, name: &str, healthy: bool) -> BackendCluster {
     BackendCluster {
-        name: format!("{name}:8080").into(),
-        namespace: namespace.to_string().into(),
-        protocol: "HTTP".to_string().into(),
+        name: format!("{name}:8080"),
+        namespace: namespace.to_string(),
+        protocol: "HTTP".to_string(),
         endpoints: vec![BackendEndpoint {
             address: if healthy {
                 "10.0.0.2".to_string()

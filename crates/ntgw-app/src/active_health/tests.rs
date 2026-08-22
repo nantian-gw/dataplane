@@ -17,9 +17,9 @@ fn collect_probe_targets_skips_udp_and_statically_unhealthy_endpoints() {
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: "http:8080".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "HTTP".to_string().into(),
+                name: "http:8080".to_string(),
+                namespace: "default".to_string(),
+                protocol: "HTTP".to_string(),
                 endpoints: vec![
                     BackendEndpoint {
                         address: "10.0.0.10".to_string(),
@@ -40,9 +40,9 @@ fn collect_probe_targets_skips_udp_and_statically_unhealthy_endpoints() {
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: "udp:5353".to_string().into(),
-                namespace: "default".to_string().into(),
-                protocol: "UDP".to_string().into(),
+                name: "udp:5353".to_string(),
+                namespace: "default".to_string(),
+                protocol: "UDP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "10.0.0.20".to_string(),
                     port: 5353,
@@ -111,9 +111,9 @@ fn apply_probe_results_updates_snapshot_runtime_health() {
         backends: vec![BackendCluster {
             ai_service: None,
             token_policy: None,
-            name: "echo:8080".to_string().into(),
-            namespace: "default".to_string().into(),
-            protocol: "HTTP".to_string().into(),
+            name: "echo:8080".to_string(),
+            namespace: "default".to_string(),
+            protocol: "HTTP".to_string(),
             endpoints: vec![
                 BackendEndpoint {
                     address: "10.0.0.10".to_string(),

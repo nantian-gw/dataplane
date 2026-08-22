@@ -61,9 +61,9 @@ fn mirrored_http_snapshot(
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: format!("primary:{primary_port}").into(),
-                namespace: "default".to_string().into(),
-                protocol: "HTTP".to_string().into(),
+                name: format!("primary:{primary_port}"),
+                namespace: "default".to_string(),
+                protocol: "HTTP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "127.0.0.1".to_string(),
                     port: primary_port,
@@ -76,9 +76,9 @@ fn mirrored_http_snapshot(
             BackendCluster {
                 ai_service: None,
                 token_policy: None,
-                name: format!("mirror:{mirror_port}").into(),
-                namespace: "default".to_string().into(),
-                protocol: "HTTP".to_string().into(),
+                name: format!("mirror:{mirror_port}"),
+                namespace: "default".to_string(),
+                protocol: "HTTP".to_string(),
                 endpoints: vec![BackendEndpoint {
                     address: "127.0.0.1".to_string(),
                     port: mirror_port,
