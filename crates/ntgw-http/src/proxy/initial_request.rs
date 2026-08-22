@@ -9,11 +9,11 @@ pub(crate) fn unmatched_traffic_topology(listener_name: &str) -> Arc<TrafficTopo
 }
 
 pub(crate) fn fast_path_request_features_are_safe(
-    request_tracing_enabled: bool,
+    _request_tracing_enabled: bool,
     request_headers_required: bool,
     request_source_ip_required: bool,
 ) -> bool {
-    !request_tracing_enabled && !request_headers_required && !request_source_ip_required
+    !request_headers_required && !request_source_ip_required
 }
 
 #[allow(private_interfaces)]

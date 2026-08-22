@@ -43,9 +43,9 @@ fn fast_path_request_from_header_detects_grpc_content_type() {
 }
 
 #[test]
-fn fast_path_is_allowed_only_when_request_features_are_disabled() {
+fn fast_path_is_allowed_with_request_tracing_without_materialization_requirements() {
     assert!(fast_path_request_features_are_safe(false, false, false));
-    assert!(!fast_path_request_features_are_safe(true, false, false));
+    assert!(fast_path_request_features_are_safe(true, false, false));
     assert!(!fast_path_request_features_are_safe(false, true, false));
     assert!(!fast_path_request_features_are_safe(false, false, true));
 }
@@ -108,6 +108,44 @@ fn initial_request_state_keeps_fast_path_selection_when_access_log_is_enabled() 
     assert_eq!(ctx.host, "example.com");
     assert_eq!(ctx.path, "/orders");
     assert!(ctx.request_id.is_empty());
+    assert_eq!(ctx.snapshot_version, "snapshot-1");
+}
+
+#[test]
+fn initial_request_state_keeps_fast_path_selection_when_request_tracing_is_enabled() {
+    let mut snapshot = sample_fast_path_snapshot();
+    snapshot.rebuild_runtime_indexes();
+    let cache = SelectedBackendConfigCache;
+    let mut request = RequestHeader::build("GET", b"/orders?id=123", None).expect("request header");
+    request.insert_header("host", "example.com").expect("host");
+    request
+        .insert_header(
+            "traceparent",
+            "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+        )
+        .expect("traceparent");
+    let mut ctx = RequestContext::default();
+
+    let state = prepare_initial_request_state(
+        &snapshot,
+        &cache,
+        &mut ctx,
+        &request,
+        80,
+        Some("192.0.2.10".to_string()),
+        None,
+        true,
+        false,
+        0,
+        0,
+    )
+    .expect("initial request state");
+
+    assert!(state.fast_path_selected.is_some());
+    assert!(ctx.request_span.is_some());
+    assert_eq!(ctx.client_ip, "192.0.2.10");
+    assert_eq!(ctx.host, "example.com");
+    assert_eq!(ctx.path, "/orders");
     assert_eq!(ctx.snapshot_version, "snapshot-1");
 }
 
