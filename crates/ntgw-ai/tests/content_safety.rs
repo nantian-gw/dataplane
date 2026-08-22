@@ -74,6 +74,24 @@ fn test_keyword_match() {
 }
 
 #[test]
+fn test_keyword_match_is_case_insensitive_and_preserves_original_keyword() {
+    let filter = ContentSafetyFilter::with_config(
+        true,
+        true,
+        vec![],
+        vec![("violence".into(), "Build A Bomb".into())],
+    )
+    .expect("keyword-only content safety filter should build");
+    let req = make_request("i want to build a bomb in my garage");
+
+    assert!(matches!(
+        filter.check(&req),
+        SafetyVerdict::Block { category, matched }
+            if category == "violence" && matched == "Build A Bomb"
+    ));
+}
+
+#[test]
 fn test_rejects_invalid_custom_regex() {
     let err =
         ContentSafetyFilter::with_config(true, true, vec![("violence".into(), "(".into())], vec![])

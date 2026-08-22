@@ -26,9 +26,26 @@ pub enum SafetyVerdict {
 #[derive(Debug)]
 pub struct ContentSafetyFilter {
     pub(crate) patterns: Vec<(String, Regex)>,
-    pub(crate) keywords: Vec<(String, String)>,
+    pub(crate) keywords: Vec<ContentSafetyKeyword>,
     pub(crate) enabled: bool,
     pub(crate) block_mode: bool,
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct ContentSafetyKeyword {
+    pub(crate) category: String,
+    pub(crate) original: String,
+    pub(crate) normalized: String,
+}
+
+impl ContentSafetyKeyword {
+    fn new(category: String, keyword: String) -> Self {
+        Self {
+            category,
+            normalized: keyword.to_lowercase(),
+            original: keyword,
+        }
+    }
 }
 
 impl ContentSafetyFilter {
@@ -57,7 +74,7 @@ impl ContentSafetyFilter {
         let keywords = if custom_keywords.is_empty() {
             Self::default_keywords()
         } else {
-            custom_keywords
+            Self::normalize_keywords(custom_keywords)
         };
         Ok(Self {
             patterns,
@@ -197,8 +214,8 @@ impl ContentSafetyFilter {
     }
 
     /// Default keyword list for the five content safety categories.
-    fn default_keywords() -> Vec<(String, String)> {
-        vec![
+    fn default_keywords() -> Vec<ContentSafetyKeyword> {
+        Self::normalize_keywords(vec![
             ("violence".into(), "how to build a bomb".into()),
             ("violence".into(), "murder instructions".into()),
             ("hate".into(), "ethnic cleansing".into()),
@@ -209,7 +226,14 @@ impl ContentSafetyFilter {
             ("exploitation".into(), "human trafficking manual".into()),
             ("illegal".into(), "how to make meth".into()),
             ("illegal".into(), "phishing tutorial".into()),
-        ]
+        ])
+    }
+
+    fn normalize_keywords(keywords: Vec<(String, String)>) -> Vec<ContentSafetyKeyword> {
+        keywords
+            .into_iter()
+            .map(|(category, keyword)| ContentSafetyKeyword::new(category, keyword))
+            .collect()
     }
 
     /// Scan all messages in an AI request for harmful content.
@@ -249,17 +273,17 @@ impl ContentSafetyFilter {
 
             // Check keywords (case-insensitive substring)
             let lower = text.to_lowercase();
-            for (category, keyword) in &self.keywords {
-                if lower.contains(&keyword.to_lowercase()) {
-                    let matched = keyword.clone();
+            for keyword in &self.keywords {
+                if lower.contains(&keyword.normalized) {
+                    let matched = keyword.original.clone();
                     if self.block_mode {
                         return SafetyVerdict::Block {
-                            category: category.clone(),
+                            category: keyword.category.clone(),
                             matched,
                         };
                     } else {
                         return SafetyVerdict::Flag {
-                            category: category.clone(),
+                            category: keyword.category.clone(),
                             matched,
                         };
                     }

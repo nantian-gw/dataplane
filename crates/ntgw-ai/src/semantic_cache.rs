@@ -77,10 +77,13 @@ impl CacheBackend for MemoryCacheBackend {
     }
 
     fn lookup(&self, key: &str) -> Option<CachedResponse> {
-        self.entries
-            .get(key)
-            .map(|r| r.clone())
-            .filter(|c| !c.is_expired())
+        let entry = self.entries.get(key).map(|r| r.clone())?;
+        if entry.is_expired() {
+            self.entries.remove(key);
+            None
+        } else {
+            Some(entry)
+        }
     }
 
     fn remove(&self, key: &str) {
@@ -321,6 +324,24 @@ mod tests {
         backend.store("key1", &resp, Duration::from_secs(60));
 
         assert!(backend.lookup("key1").is_none());
+    }
+
+    #[test]
+    fn test_lookup_removes_expired_entry() {
+        let backend = MemoryCacheBackend::with_capacity(2);
+        let expired = CachedResponse {
+            response: make_response("expired"),
+            stored_at: Instant::now() - Duration::from_secs(120),
+            ttl: Duration::from_secs(1),
+        };
+
+        backend.entries.insert("expired".to_string(), expired);
+
+        assert!(backend.lookup("expired").is_none());
+        assert!(
+            backend.entries.get("expired").is_none(),
+            "expired cache entries should be removed on lookup"
+        );
     }
 
     #[test]

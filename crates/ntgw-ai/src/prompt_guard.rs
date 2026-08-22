@@ -23,9 +23,24 @@ pub enum GuardResult {
 #[derive(Debug)]
 pub struct PromptGuardFilter {
     pub(crate) patterns: Vec<Regex>,
-    pub(crate) keywords: Vec<String>,
+    pub(crate) keywords: Vec<PromptGuardKeyword>,
     pub(crate) enabled: bool,
     mode: String,
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct PromptGuardKeyword {
+    pub(crate) original: String,
+    pub(crate) normalized: String,
+}
+
+impl PromptGuardKeyword {
+    fn new(keyword: String) -> Self {
+        Self {
+            normalized: keyword.to_lowercase(),
+            original: keyword,
+        }
+    }
 }
 
 impl PromptGuardFilter {
@@ -60,10 +75,14 @@ impl PromptGuardFilter {
         };
         Ok(Self {
             patterns,
-            keywords,
+            keywords: Self::normalize_keywords(keywords),
             enabled,
             mode: mode.into(),
         })
+    }
+
+    fn normalize_keywords(keywords: Vec<String>) -> Vec<PromptGuardKeyword> {
+        keywords.into_iter().map(PromptGuardKeyword::new).collect()
     }
 
     fn compile_builtin_pattern(label: &str, pattern: &str) -> Result<Regex, String> {
@@ -131,11 +150,12 @@ impl PromptGuardFilter {
             }
 
             // Check keywords
+            let text_lower = text.to_lowercase();
             for keyword in &self.keywords {
-                if text.to_lowercase().contains(&keyword.to_lowercase()) {
+                if text_lower.contains(&keyword.normalized) {
                     return GuardResult::Block {
-                        reason: format!("blocked_keyword: {keyword}"),
-                        matched: keyword.clone(),
+                        reason: format!("blocked_keyword: {}", keyword.original),
+                        matched: keyword.original.clone(),
                     };
                 }
             }

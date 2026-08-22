@@ -74,6 +74,26 @@ fn test_token_limit_exceeded() {
 }
 
 #[test]
+fn test_token_totals_accumulate_for_remaining_and_preflight_limit() {
+    let config = RateLimitConfig {
+        tokens_per_minute: 100,
+        burst: 1.0,
+        ..Default::default()
+    };
+    let rl = TokenRateLimiter::new(config);
+
+    assert_eq!(
+        rl.record_usage("key1", 30),
+        RateLimitResult::Allowed { remaining: 70 }
+    );
+    assert_eq!(
+        rl.record_usage("key1", 70),
+        RateLimitResult::Allowed { remaining: 0 }
+    );
+    assert!(matches!(rl.check("key1"), RateLimitResult::Limited { .. }));
+}
+
+#[test]
 fn test_multi_key_independent() {
     let config = RateLimitConfig {
         tokens_per_minute: 100,

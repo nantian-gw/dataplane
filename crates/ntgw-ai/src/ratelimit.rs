@@ -38,6 +38,8 @@ impl Default for RateLimitConfig {
 /// Per-key sliding window state using true sliding-window algorithm.
 /// Maintains deques of timestamps so that rate limits are enforced
 /// continuously rather than on fixed clock boundaries.
+/// Token totals are maintained incrementally so checks do not rescan the full
+/// window on every request.
 struct SlidingWindow {
     minute_req_limit: u64,
     minute_token_limit: u64,
@@ -45,6 +47,8 @@ struct SlidingWindow {
     requests: VecDeque<Instant>,
     minute_tokens: VecDeque<(Instant, u64)>,
     hour_tokens: VecDeque<(Instant, u64)>,
+    minute_token_total: u64,
+    hour_token_total: u64,
 }
 
 fn min_enabled_remaining(values: impl IntoIterator<Item = Option<u64>>) -> u64 {
@@ -61,6 +65,51 @@ impl SlidingWindow {
             requests: VecDeque::new(),
             minute_tokens: VecDeque::new(),
             hour_tokens: VecDeque::new(),
+            minute_token_total: 0,
+            hour_token_total: 0,
+        }
+    }
+
+    fn prune(&mut self, now: Instant) {
+        let minute_window = Duration::from_secs(60);
+
+        while let Some(&t) = self.requests.front() {
+            if now.saturating_duration_since(t) > minute_window {
+                self.requests.pop_front();
+            } else {
+                break;
+            }
+        }
+
+        Self::prune_token_window(
+            &mut self.minute_tokens,
+            &mut self.minute_token_total,
+            now,
+            minute_window,
+        );
+        Self::prune_token_window(
+            &mut self.hour_tokens,
+            &mut self.hour_token_total,
+            now,
+            Duration::from_secs(3600),
+        );
+    }
+
+    fn prune_token_window(
+        tokens: &mut VecDeque<(Instant, u64)>,
+        total: &mut u64,
+        now: Instant,
+        window: Duration,
+    ) {
+        while let Some(&(t, _)) = tokens.front() {
+            if now.saturating_duration_since(t) > window {
+                let Some((_, expired_tokens)) = tokens.pop_front() else {
+                    break;
+                };
+                *total = total.saturating_sub(expired_tokens);
+            } else {
+                break;
+            }
         }
     }
 
@@ -69,40 +118,17 @@ impl SlidingWindow {
     /// are rejected before incurring upstream cost when the budget is exhausted.
     fn check(&mut self) -> RateLimitResult {
         let now = Instant::now();
-        let window = Duration::from_secs(60);
-
-        // Remove requests and tokens outside the sliding window
-        while let Some(&t) = self.requests.front() {
-            if now.duration_since(t) > window {
-                self.requests.pop_front();
-            } else {
-                break;
-            }
-        }
-        while let Some(&(t, _)) = self.minute_tokens.front() {
-            if now.duration_since(t) > window {
-                self.minute_tokens.pop_front();
-            } else {
-                break;
-            }
-        }
-        while let Some(&(t, _)) = self.hour_tokens.front() {
-            if now.duration_since(t) > Duration::from_secs(3600) {
-                self.hour_tokens.pop_front();
-            } else {
-                break;
-            }
-        }
+        self.prune(now);
 
         // Check minute token budget from previous requests
-        let minute_used: u64 = self.minute_tokens.iter().map(|(_, t)| t).sum();
+        let minute_used = self.minute_token_total;
         if self.minute_token_limit > 0 && minute_used >= self.minute_token_limit {
             return RateLimitResult::Limited {
                 retry_after_secs: 1,
             };
         }
         // Check hour token budget from previous requests
-        let hour_used: u64 = self.hour_tokens.iter().map(|(_, t)| t).sum();
+        let hour_used = self.hour_token_total;
         if self.hour_token_limit > 0 && hour_used >= self.hour_token_limit {
             return RateLimitResult::Limited {
                 retry_after_secs: 1,
@@ -112,7 +138,8 @@ impl SlidingWindow {
         // Check request limit
         if self.minute_req_limit > 0 && self.requests.len() >= self.minute_req_limit as usize {
             let oldest = self.requests.front().copied().unwrap_or(now);
-            let secs = window.saturating_sub(now.saturating_duration_since(oldest));
+            let secs =
+                Duration::from_secs(60).saturating_sub(now.saturating_duration_since(oldest));
             return RateLimitResult::Limited {
                 retry_after_secs: secs.as_secs().max(1),
             };
@@ -136,49 +163,39 @@ impl SlidingWindow {
     /// Record tokens after response and check limits.
     fn record_tokens(&mut self, tokens: u64) -> RateLimitResult {
         let now = Instant::now();
+        self.prune(now);
 
-        // Prune minute tokens outside the 60s sliding window
-        while let Some(&(t, _)) = self.minute_tokens.front() {
-            if now.duration_since(t) > Duration::from_secs(60) {
-                self.minute_tokens.pop_front();
-            } else {
-                break;
-            }
-        }
-        // Prune hour tokens outside the 3600s sliding window
-        while let Some(&(t, _)) = self.hour_tokens.front() {
-            if now.duration_since(t) > Duration::from_secs(3600) {
-                self.hour_tokens.pop_front();
-            } else {
-                break;
-            }
-        }
+        let projected_minute_total = self.minute_token_total.saturating_add(tokens);
+        let projected_hour_total = self.hour_token_total.saturating_add(tokens);
 
-        let minute_sum: u64 = self.minute_tokens.iter().map(|(_, t)| t).sum();
-        let hour_sum: u64 = self.hour_tokens.iter().map(|(_, t)| t).sum();
-
-        if self.hour_token_limit > 0 && hour_sum + tokens > self.hour_token_limit {
+        if self.hour_token_limit > 0 && projected_hour_total > self.hour_token_limit {
             return RateLimitResult::Limited {
                 retry_after_secs: 1,
             };
         }
-        if self.minute_token_limit > 0 && minute_sum + tokens > self.minute_token_limit {
+        if self.minute_token_limit > 0 && projected_minute_total > self.minute_token_limit {
             return RateLimitResult::Limited {
                 retry_after_secs: 1,
             };
         }
 
-        self.minute_tokens.push_back((now, tokens));
-        self.hour_tokens.push_back((now, tokens));
+        if self.minute_token_limit > 0 {
+            self.minute_tokens.push_back((now, tokens));
+            self.minute_token_total = projected_minute_total;
+        }
+        if self.hour_token_limit > 0 {
+            self.hour_tokens.push_back((now, tokens));
+            self.hour_token_total = projected_hour_total;
+        }
 
-        let new_minute_sum = minute_sum + tokens;
-        let new_hour_sum = hour_sum + tokens;
         RateLimitResult::Allowed {
             remaining: min_enabled_remaining([
-                (self.minute_token_limit > 0)
-                    .then(|| self.minute_token_limit.saturating_sub(new_minute_sum)),
+                (self.minute_token_limit > 0).then(|| {
+                    self.minute_token_limit
+                        .saturating_sub(self.minute_token_total)
+                }),
                 (self.hour_token_limit > 0)
-                    .then(|| self.hour_token_limit.saturating_sub(new_hour_sum)),
+                    .then(|| self.hour_token_limit.saturating_sub(self.hour_token_total)),
             ]),
         }
     }
@@ -234,5 +251,38 @@ impl TokenRateLimiter {
             .entry(key.to_owned())
             .or_insert_with(|| SlidingWindow::new(&self.config));
         entry.record_tokens(total_tokens)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn prune_tokens_updates_running_totals() {
+        let config = RateLimitConfig {
+            tokens_per_minute: 100,
+            tokens_per_hour: 1_000,
+            ..Default::default()
+        };
+        let mut window = SlidingWindow::new(&config);
+        let now = Instant::now();
+
+        window
+            .minute_tokens
+            .push_back((now - Duration::from_secs(61), 40));
+        window.minute_tokens.push_back((now, 25));
+        window.minute_token_total = 65;
+
+        window
+            .hour_tokens
+            .push_back((now - Duration::from_secs(3601), 400));
+        window.hour_tokens.push_back((now, 125));
+        window.hour_token_total = 525;
+
+        window.prune(now);
+
+        assert_eq!(window.minute_token_total, 25);
+        assert_eq!(window.hour_token_total, 125);
     }
 }

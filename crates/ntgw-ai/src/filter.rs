@@ -285,14 +285,14 @@ impl AIGatewayFilter {
         }
         let text_lower = text.to_lowercase();
         for keyword in &guard.keywords {
-            if text_lower.contains(&keyword.to_lowercase()) {
-                let reason = format!("blocked_keyword: {keyword}");
-                tracing::warn!(reason = %reason, matched = %keyword, %model, "prompt guard blocked request");
+            if text_lower.contains(&keyword.normalized) {
+                let reason = format!("blocked_keyword: {}", keyword.original);
+                tracing::warn!(reason = %reason, matched = %keyword.original, %model, "prompt guard blocked request");
                 self.metrics.record_prompt_guard_block(&reason, model);
                 if guard.mode() == "block" {
                     return Err(AIError::PromptGuardBlocked {
                         reason,
-                        matched: keyword.clone(),
+                        matched: keyword.original.clone(),
                     });
                 }
             }
@@ -323,18 +323,18 @@ impl AIGatewayFilter {
             }
         }
         let text_lower_safety = text.to_lowercase();
-        for (category, keyword) in &safety.keywords {
-            if text_lower_safety.contains(&keyword.to_lowercase()) {
+        for keyword in &safety.keywords {
+            if text_lower_safety.contains(&keyword.normalized) {
                 if safety.block_mode {
                     self.metrics
-                        .record_content_safety_violation(category, model, "block");
+                        .record_content_safety_violation(&keyword.category, model, "block");
                     return Err(AIError::ContentSafetyBlocked {
-                        category: category.clone(),
-                        matched: keyword.clone(),
+                        category: keyword.category.clone(),
+                        matched: keyword.original.clone(),
                     });
                 }
                 self.metrics
-                    .record_content_safety_violation(category, model, "flag");
+                    .record_content_safety_violation(&keyword.category, model, "flag");
             }
         }
         Ok(())

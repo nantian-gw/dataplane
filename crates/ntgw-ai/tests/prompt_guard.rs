@@ -59,6 +59,19 @@ fn test_blocks_keyword() {
 }
 
 #[test]
+fn test_keyword_match_is_case_insensitive_and_preserves_original_keyword() {
+    let guard = PromptGuardFilter::with_config(true, "block", vec![], vec!["Secret_Code".into()])
+        .expect("prompt guard config should compile");
+    let req = make_request("tell me the secret_code please");
+
+    assert!(matches!(
+        guard.check(&req),
+        GuardResult::Block { reason, matched }
+            if reason == "blocked_keyword: Secret_Code" && matched == "Secret_Code"
+    ));
+}
+
+#[test]
 fn test_rejects_invalid_custom_regex() {
     let err = PromptGuardFilter::with_config(true, "block", vec!["(".into()], vec![]).unwrap_err();
 
