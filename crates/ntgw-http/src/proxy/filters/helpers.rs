@@ -12,6 +12,10 @@ pub(crate) fn ai_request_body_limit_exceeded(
     cache::ai_request_body_limit_exceeded(current_len, chunk_len, limit)
 }
 
+pub(crate) fn ai_gateway_should_process_path(path: &str) -> bool {
+    ntgw_ai::format::detect_format(path).is_some()
+}
+
 #[allow(dead_code)]
 pub(crate) fn cache_lookup_method_allowed(method: &str) -> bool {
     cache::cache_lookup_method_allowed(method)

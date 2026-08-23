@@ -571,16 +571,13 @@ impl AIGatewayFilter {
         }
 
         let (usage, output_body) = if is_stream {
-            // Parse SSE chunks, accumulate usage, reformat
+            // Parse provider-specific stream chunks, accumulate usage, reformat.
             let mut counter = if let Some(ref sandbox) = self.ai_sandbox {
                 TokenCounter::with_sandbox(Arc::clone(sandbox))
             } else {
                 TokenCounter::new()
             };
-            let sse_text = std::str::from_utf8(response_body).map_err(|e| {
-                AIError::Internal(anyhow::anyhow!("SSE body is not valid UTF-8: {e}"))
-            })?;
-            let chunks: Vec<AIStreamChunk> = parse_sse_chunks(sse_text)?;
+            let chunks: Vec<AIStreamChunk> = adapter.parse_stream_body(response_body)?;
 
             for chunk in &chunks {
                 counter.record_stream_chunk(chunk);

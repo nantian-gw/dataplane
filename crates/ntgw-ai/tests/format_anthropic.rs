@@ -123,6 +123,37 @@ fn test_stream_final_chunk() {
 }
 
 #[test]
+fn test_parse_stream_body_reads_anthropic_events() {
+    let adapter = AnthropicAdapter;
+    let body = br#"event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"Hello"}}
+
+event: message_delta
+data: {"type":"message_delta","delta":{"stop_reason":"end_turn"},"usage":{"input_tokens":10,"output_tokens":2}}
+
+event: message_stop
+data: {"type":"message_stop"}
+
+"#;
+
+    let chunks = adapter
+        .parse_stream_body(body)
+        .expect("anthropic stream body should parse");
+
+    assert_eq!(chunks.len(), 3);
+    assert_eq!(chunks[0].choices[0].delta.content.as_deref(), Some("Hello"));
+    assert_eq!(
+        chunks[1].choices[0].finish_reason.as_deref(),
+        Some("end_turn")
+    );
+    assert_eq!(
+        chunks[1].usage.as_ref().map(|usage| usage.total_tokens),
+        Some(12)
+    );
+    assert_eq!(chunks[2].choices[0].finish_reason.as_deref(), Some("stop"));
+}
+
+#[test]
 fn test_error_response() {
     let adapter = AnthropicAdapter;
     let body = adapter.error_response(429, "Too many requests").unwrap();

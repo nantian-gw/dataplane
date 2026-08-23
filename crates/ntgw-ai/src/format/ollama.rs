@@ -213,6 +213,49 @@ impl FormatAdapter for OllamaAdapter {
         Ok(buf)
     }
 
+    fn parse_stream_body(&self, body: &[u8]) -> Result<Vec<AIStreamChunk>, AIError> {
+        let stream_text = std::str::from_utf8(body).map_err(|e| AIError::FormatParse {
+            format: "ollama".into(),
+            message: e.to_string(),
+        })?;
+        let mut chunks = Vec::new();
+        for line in stream_text
+            .lines()
+            .map(str::trim)
+            .filter(|line| !line.is_empty())
+        {
+            let resp: OllamaChatResponse =
+                serde_json::from_str(line).map_err(|e| AIError::FormatParse {
+                    format: "ollama".into(),
+                    message: e.to_string(),
+                })?;
+            let usage = match (resp.prompt_eval_count, resp.eval_count) {
+                (Some(prompt), Some(completion)) => Some(AIUsage {
+                    prompt_tokens: prompt,
+                    completion_tokens: completion,
+                    total_tokens: prompt + completion,
+                }),
+                _ => None,
+            };
+            chunks.push(AIStreamChunk {
+                id: String::new(),
+                model: resp.model,
+                choices: vec![AIStreamChoice {
+                    index: 0,
+                    delta: AIStreamDelta {
+                        role: Some(AIRole::Assistant),
+                        content: (!resp.message.content.is_empty()).then_some(resp.message.content),
+                        tool_calls: vec![],
+                    },
+                    finish_reason: resp.done.then(|| "stop".to_string()),
+                }],
+                usage,
+                created: None,
+            });
+        }
+        Ok(chunks)
+    }
+
     fn error_response(&self, _status: u16, message: &str) -> Result<Vec<u8>, AIError> {
         Ok(serialize_ollama_error_body(message))
     }

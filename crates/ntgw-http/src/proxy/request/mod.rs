@@ -33,6 +33,8 @@ pub(crate) use self::view::{RequestView, request_header_bytes_for_limit};
 #[cfg(test)]
 pub(crate) use self::cache::{
     cache_access_log_connection_fields_from_sources_if_needed,
+    cache_access_log_request_headers_from_cached_if_needed,
+    cache_access_log_request_headers_if_needed,
     cache_access_log_sent_response_headers_from_written_response_if_needed,
     cache_access_log_upstream_response_headers_if_needed,
     record_access_log_upstream_status_if_needed,

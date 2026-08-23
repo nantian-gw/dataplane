@@ -106,6 +106,95 @@ fn serialize_message_stop_event() -> Result<String, AIError> {
     })
 }
 
+fn anthropic_parse_error(message: impl ToString) -> AIError {
+    AIError::FormatParse {
+        format: "anthropic".into(),
+        message: message.to_string(),
+    }
+}
+
+fn parse_anthropic_stream_event(data: &str) -> Result<Option<AIStreamChunk>, AIError> {
+    let value: serde_json::Value = serde_json::from_str(data).map_err(anthropic_parse_error)?;
+    match value.get("type").and_then(|value| value.as_str()) {
+        Some("content_block_delta") => {
+            let text = value
+                .get("delta")
+                .and_then(|delta| delta.get("text"))
+                .and_then(|text| text.as_str())
+                .unwrap_or_default();
+            Ok(Some(AIStreamChunk {
+                id: String::new(),
+                model: String::new(),
+                choices: vec![AIStreamChoice {
+                    index: value
+                        .get("index")
+                        .and_then(|index| index.as_u64())
+                        .unwrap_or(0) as u32,
+                    delta: AIStreamDelta {
+                        role: None,
+                        content: (!text.is_empty()).then(|| text.to_string()),
+                        tool_calls: vec![],
+                    },
+                    finish_reason: None,
+                }],
+                usage: None,
+                created: None,
+            }))
+        }
+        Some("message_delta") => {
+            let stop_reason = value
+                .get("delta")
+                .and_then(|delta| delta.get("stop_reason"))
+                .and_then(|reason| reason.as_str())
+                .map(ToOwned::to_owned);
+            let usage = value
+                .get("usage")
+                .map(|usage| serde_json::from_value::<AnthropicUsage>(usage.clone()))
+                .transpose()
+                .map_err(anthropic_parse_error)?
+                .map(|usage| AIUsage {
+                    prompt_tokens: usage.input_tokens,
+                    completion_tokens: usage.output_tokens,
+                    total_tokens: usage.input_tokens + usage.output_tokens,
+                });
+            if stop_reason.is_none() && usage.is_none() {
+                return Ok(None);
+            }
+            Ok(Some(AIStreamChunk {
+                id: String::new(),
+                model: String::new(),
+                choices: vec![AIStreamChoice {
+                    index: 0,
+                    delta: AIStreamDelta {
+                        role: None,
+                        content: None,
+                        tool_calls: vec![],
+                    },
+                    finish_reason: stop_reason,
+                }],
+                usage,
+                created: None,
+            }))
+        }
+        Some("message_stop") => Ok(Some(AIStreamChunk {
+            id: String::new(),
+            model: String::new(),
+            choices: vec![AIStreamChoice {
+                index: 0,
+                delta: AIStreamDelta {
+                    role: None,
+                    content: None,
+                    tool_calls: vec![],
+                },
+                finish_reason: Some("stop".into()),
+            }],
+            usage: None,
+            created: None,
+        })),
+        _ => Ok(None),
+    }
+}
+
 impl From<AnthropicContent> for AIContent {
     fn from(content: AnthropicContent) -> Self {
         match content {
@@ -331,6 +420,33 @@ impl FormatAdapter for AnthropicAdapter {
             buf.push_str("\n\n");
             Ok(buf)
         }
+    }
+
+    fn parse_stream_body(&self, body: &[u8]) -> Result<Vec<AIStreamChunk>, AIError> {
+        let sse_text = std::str::from_utf8(body).map_err(anthropic_parse_error)?;
+        let mut chunks = Vec::new();
+        for event in sse_text.split("\n\n") {
+            let mut data = String::new();
+            for line in event.lines() {
+                let Some(json) = line.strip_prefix("data: ") else {
+                    continue;
+                };
+                if json == "[DONE]" {
+                    continue;
+                }
+                if !data.is_empty() {
+                    data.push('\n');
+                }
+                data.push_str(json);
+            }
+            if data.is_empty() {
+                continue;
+            }
+            if let Some(chunk) = parse_anthropic_stream_event(&data)? {
+                chunks.push(chunk);
+            }
+        }
+        Ok(chunks)
     }
 
     fn error_response(&self, _status: u16, message: &str) -> Result<Vec<u8>, AIError> {

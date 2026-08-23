@@ -1,7 +1,10 @@
+use std::sync::Arc;
+
 use ntgw_observability::AccessLogMode;
 
 use super::super::super::request::{
-    cache_access_log_request_headers_if_needed, cache_request_headers_for_filters_and_access_log,
+    cache_access_log_request_headers_from_cached_if_needed,
+    cache_access_log_request_headers_if_needed,
 };
 
 #[test]
@@ -27,9 +30,9 @@ fn cache_access_log_request_headers_only_captures_named_nginx_headers() {
     assert_eq!(
         ctx.access_log_request_headers,
         BTreeMap::from([
-            ("user-agent".to_string(), "curl/8.7.1".to_string()),
+            (Arc::from("user-agent"), "curl/8.7.1".to_string()),
             (
-                "x-forwarded-for".to_string(),
+                Arc::from("x-forwarded-for"),
                 "203.0.113.10".to_string(),
             ),
         ])
@@ -57,20 +60,13 @@ fn cache_access_log_request_headers_skips_templates_without_http_variables() {
 }
 
 #[test]
-fn cache_request_headers_for_filters_and_access_log_keeps_stores_separate() {
+fn cache_access_log_request_headers_reuses_cached_request_headers() {
     let mut ctx = RequestContext::default();
-    let filters = vec![Filter {
-        filter_type: "CORS".to_string(),
-        cors: Some(CorsFilter {
-            allow_origins: vec!["https://example.com".to_string()],
-            ..CorsFilter::default()
-        }),
-        ..Filter::default()
-    }];
     let headers = BTreeMap::from([
         ("origin".to_string(), vec!["https://example.com".to_string()]),
         ("user-agent".to_string(), vec!["curl/8.7.1".to_string()]),
     ]);
+    ctx.request_headers = Some(headers.clone());
     let access_log = AccessLogOptions {
         enabled: true,
         mode: AccessLogMode::Text,
@@ -78,23 +74,15 @@ fn cache_request_headers_for_filters_and_access_log_keeps_stores_separate() {
         ..AccessLogOptions::default()
     };
 
-    cache_request_headers_for_filters_and_access_log(
+    cache_access_log_request_headers_from_cached_if_needed(
         &mut ctx,
-        &headers,
-        &filters,
         &access_log,
         &BTreeMap::new(),
     );
 
-    assert_eq!(
-        ctx.request_headers,
-        Some(BTreeMap::from([(
-            "origin".to_string(),
-            vec!["https://example.com".to_string()],
-        )]))
-    );
+    assert_eq!(ctx.request_headers, Some(headers));
     assert_eq!(
         ctx.access_log_request_headers,
-        BTreeMap::from([("user-agent".to_string(), "curl/8.7.1".to_string())])
+        BTreeMap::from([(Arc::from("user-agent"), "curl/8.7.1".to_string())])
     );
 }

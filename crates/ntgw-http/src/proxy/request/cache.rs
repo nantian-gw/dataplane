@@ -18,6 +18,7 @@ pub(crate) fn cache_request_headers_if_needed(ctx: &mut RequestContext, session:
     }
 }
 
+#[cfg(test)]
 pub(crate) fn cache_access_log_request_headers_if_needed(
     ctx: &mut RequestContext,
     request_headers: &BTreeMap<String, Vec<String>>,
@@ -65,6 +66,20 @@ pub(crate) fn cache_access_log_request_headers_from_header_if_needed(
     }
 }
 
+pub(crate) fn cache_access_log_request_headers_from_cached_if_needed(
+    ctx: &mut RequestContext,
+    access_log: &AccessLogOptions,
+    route_annotations: &BTreeMap<String, String>,
+) {
+    let Some(headers) = ctx.request_headers.as_ref() else {
+        return;
+    };
+    let captured = capture_access_log_request_header_values(headers, access_log, route_annotations);
+    for (header_name, value) in captured {
+        ctx.access_log_request_headers.insert(header_name, value);
+    }
+}
+
 pub(crate) fn cache_request_headers_for_filters_and_access_log(
     ctx: &mut RequestContext,
     session: &Session,
@@ -72,8 +87,27 @@ pub(crate) fn cache_request_headers_for_filters_and_access_log(
     route_annotations: &BTreeMap<String, String>,
 ) {
     cache_request_headers_if_needed(ctx, session);
-    let headers = request_headers(session.req_header());
-    cache_access_log_request_headers_if_needed(ctx, &headers, access_log, route_annotations);
+    cache_access_log_request_headers_from_cached_if_needed(ctx, access_log, route_annotations);
+}
+
+fn capture_access_log_request_header_values(
+    headers: &BTreeMap<String, Vec<String>>,
+    access_log: &AccessLogOptions,
+    route_annotations: &BTreeMap<String, String>,
+) -> Vec<(Arc<str>, String)> {
+    let Some(required_headers) =
+        access_log_request_header_requirements(access_log, route_annotations)
+    else {
+        return Vec::new();
+    };
+
+    let mut captured = Vec::with_capacity(required_headers.len());
+    for header_name in required_headers {
+        if let Some(value) = headers.get(&header_name).and_then(|values| values.first()) {
+            captured.push((Arc::from(header_name.as_str()), value.clone()));
+        }
+    }
+    captured
 }
 
 pub(crate) fn cache_access_log_connection_fields_if_needed(

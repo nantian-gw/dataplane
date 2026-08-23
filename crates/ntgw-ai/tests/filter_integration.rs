@@ -294,6 +294,35 @@ async fn test_streaming_aggregation() {
 }
 
 #[tokio::test]
+async fn test_anthropic_streaming_post_process_uses_provider_parser() {
+    let (filter, _registry) = test_filter();
+
+    let request_body = br#"{"model":"claude-3","max_tokens":100,"stream":true,"messages":[{"role":"user","content":"hello"}]}"#;
+    let ctx = filter
+        .pre_process("/v1/messages", request_body, None)
+        .await
+        .expect("anthropic pre_process should succeed");
+
+    let sse_body = br#"event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"Hello"}}
+
+event: message_stop
+data: {"type":"message_stop"}
+
+"#;
+
+    let output = filter
+        .post_process(ctx, sse_body, 200)
+        .await
+        .expect("anthropic stream post_process should use adapter parser");
+    let output_str = String::from_utf8_lossy(&output);
+
+    assert!(output_str.contains("event: content_block_delta"));
+    assert!(output_str.contains("Hello"));
+    assert!(output_str.contains("event: message_stop"));
+}
+
+#[tokio::test]
 async fn test_metrics_emission() {
     let (filter, registry) = test_filter();
 

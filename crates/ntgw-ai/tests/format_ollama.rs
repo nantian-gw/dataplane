@@ -128,6 +128,29 @@ fn test_stream_final_chunk() {
 }
 
 #[test]
+fn test_parse_stream_body_reads_ollama_json_lines() {
+    let adapter = OllamaAdapter;
+    let body = br#"{"model":"llama3.2","created_at":"","message":{"role":"assistant","content":"Hel"},"done":false}
+{"model":"llama3.2","created_at":"","message":{"role":"assistant","content":"lo"},"done":false}
+{"model":"llama3.2","created_at":"","message":{"role":"assistant","content":""},"done":true,"prompt_eval_count":10,"eval_count":2}
+"#;
+
+    let chunks = adapter
+        .parse_stream_body(body)
+        .expect("ollama stream body should parse");
+
+    assert_eq!(chunks.len(), 3);
+    assert_eq!(chunks[0].model, "llama3.2");
+    assert_eq!(chunks[0].choices[0].delta.content.as_deref(), Some("Hel"));
+    assert_eq!(chunks[1].choices[0].delta.content.as_deref(), Some("lo"));
+    assert_eq!(chunks[2].choices[0].finish_reason.as_deref(), Some("stop"));
+    assert_eq!(
+        chunks[2].usage.as_ref().map(|usage| usage.total_tokens),
+        Some(12)
+    );
+}
+
+#[test]
 fn test_error_response() {
     let adapter = OllamaAdapter;
     let body = adapter.error_response(500, "Internal error").unwrap();

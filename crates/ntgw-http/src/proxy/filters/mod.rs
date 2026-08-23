@@ -794,6 +794,11 @@ pub(crate) async fn do_request_filter(
 
     // AI Gateway pre-processing
     if let Some(ref ai_filter) = proxy.ai_filter {
+        let ai_path = session.req_header().uri.path().to_string();
+        if !ai_gateway_should_process_path(&ai_path) {
+            return Ok(false);
+        }
+
         session.as_downstream_mut().enable_retry_buffering();
         let mut body = Vec::new();
         loop {
@@ -828,7 +833,7 @@ pub(crate) async fn do_request_filter(
             }
         }
 
-        ctx.path = session.req_header().uri.path().to_string();
+        ctx.path = ai_path;
         // Extract API key from Authorization: Bearer <key> or x-api-key header.
         let api_key: Option<String> = session
             .req_header()
