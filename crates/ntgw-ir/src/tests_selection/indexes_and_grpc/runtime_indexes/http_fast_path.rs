@@ -107,6 +107,126 @@ fn http_fast_path_visits_candidate_listeners_without_index_vectors() {
 }
 
 #[test]
+fn http_fast_path_uses_hostname_index_to_visit_only_candidate_routes() {
+    let mut snapshot = Snapshot {
+        listeners: vec![fast_path_listener(&[
+            "exact",
+            "wildcard",
+            "catch-all",
+            "other",
+            "needs-header",
+        ])],
+        http_routes: vec![
+            fast_path_route("exact", &["api.example.com"], 8080),
+            fast_path_route("wildcard", &["*.example.com"], 8081),
+            fast_path_route("catch-all", &[], 8082),
+            fast_path_route("other", &["other.example.net"], 8083),
+            fast_path_header_route("needs-header", &["*.example.com"], 8084),
+        ],
+        backends: vec![
+            fast_path_backend("exact", 8080, "10.0.0.10"),
+            fast_path_backend("wildcard", 8081, "10.0.0.11"),
+            fast_path_backend("catch-all", 8082, "10.0.0.12"),
+            fast_path_backend("other", 8083, "10.0.0.13"),
+            fast_path_backend("needs-header", 8084, "10.0.0.14"),
+        ],
+        ..Snapshot::default()
+    };
+    snapshot.rebuild_runtime_indexes();
+
+    assert_eq!(snapshot.http_fast_path.route_count(), 4);
+    assert_eq!(
+        snapshot
+            .http_fast_path
+            .candidate_route_indices(&snapshot, Some("api.example.com")),
+        vec![0, 1, 2]
+    );
+    assert_eq!(
+        snapshot
+            .http_fast_path
+            .candidate_route_indices(&snapshot, Some("www.example.com")),
+        vec![1, 2]
+    );
+    assert_eq!(
+        snapshot
+            .http_fast_path
+            .candidate_route_indices(&snapshot, Some("other.example.net")),
+        vec![2, 3]
+    );
+    assert_eq!(
+        snapshot.http_fast_path.candidate_route_indices(&snapshot, None),
+        vec![2]
+    );
+}
+
+#[test]
+fn http_fast_path_selects_indexed_exact_wildcard_and_catch_all_routes() {
+    let mut snapshot = Snapshot {
+        listeners: vec![fast_path_listener(&["catch-all", "exact", "wildcard"])],
+        http_routes: vec![
+            fast_path_route("catch-all", &[], 8080),
+            fast_path_route("exact", &["api.example.com"], 8081),
+            fast_path_route("wildcard", &["*.example.com"], 8082),
+        ],
+        backends: vec![
+            fast_path_backend("catch-all", 8080, "10.0.0.10"),
+            fast_path_backend("exact", 8081, "10.0.0.11"),
+            fast_path_backend("wildcard", 8082, "10.0.0.12"),
+        ],
+        ..Snapshot::default()
+    };
+    snapshot.rebuild_runtime_indexes();
+
+    assert_eq!(
+        fast_path_selected_backend_name(&snapshot, Some("api.example.com")),
+        "default/exact:8081"
+    );
+    assert_eq!(
+        fast_path_selected_backend_name(&snapshot, Some("www.example.com")),
+        "default/wildcard:8082"
+    );
+    assert_eq!(
+        fast_path_selected_backend_name(&snapshot, Some("unmatched.example.net")),
+        "default/catch-all:8080"
+    );
+    assert_eq!(
+        fast_path_selected_backend_name(&snapshot, None),
+        "default/catch-all:8080"
+    );
+}
+
+#[test]
+fn http_fast_path_falls_back_to_full_plan_when_runtime_indexes_unavailable() {
+    let mut snapshot = Snapshot {
+        listeners: vec![fast_path_listener(&["catch-all", "exact", "wildcard"])],
+        http_routes: vec![
+            fast_path_route("catch-all", &[], 8080),
+            fast_path_route("exact", &["api.example.com"], 8081),
+            fast_path_route("wildcard", &["*.example.com"], 8082),
+        ],
+        backends: vec![
+            fast_path_backend("catch-all", 8080, "10.0.0.10"),
+            fast_path_backend("exact", 8081, "10.0.0.11"),
+            fast_path_backend("wildcard", 8082, "10.0.0.12"),
+        ],
+        ..Snapshot::default()
+    };
+    snapshot.rebuild_runtime_indexes();
+    snapshot.runtime_indexes_ready = false;
+
+    assert_eq!(
+        snapshot
+            .http_fast_path
+            .candidate_route_indices(&snapshot, Some("api.example.com")),
+        vec![0, 1, 2]
+    );
+    assert_eq!(
+        fast_path_selected_backend_name(&snapshot, Some("api.example.com")),
+        "default/exact:8081"
+    );
+}
+
+#[test]
 fn http_fast_path_rejects_routes_that_need_headers_or_filters() {
     let mut snapshot = Snapshot {
         http_routes: vec![
@@ -209,6 +329,77 @@ fn http_fast_path_rejects_unresolved_backend_refs_at_compile_time() {
             is_grpc: false,
         })
         .is_none());
+}
+
+fn fast_path_listener(route_names: &[&str]) -> Listener {
+    Listener {
+        name: "default/gw/http".to_string(),
+        port: 80,
+        protocol: "HTTP".to_string(),
+        attached_routes: route_names
+            .iter()
+            .map(|route_name| format!("default/{route_name}"))
+            .collect(),
+        ..Listener::default()
+    }
+}
+
+fn fast_path_route(name: &str, hostnames: &[&str], port: u32) -> HttpRoute {
+    HttpRoute {
+        name: name.to_string(),
+        namespace: "default".to_string(),
+        hostnames: hostnames.iter().map(|hostname| (*hostname).to_string()).collect(),
+        rules: vec![HttpRule {
+            name: String::new(),
+            matches: vec![HttpMatch {
+                path: "/".to_string(),
+                path_type: "PathPrefix".to_string(),
+                method: "GET".to_string(),
+                ..HttpMatch::default()
+            }],
+            backend_refs: vec![backend_ref("default", name, port)],
+            ..HttpRule::default()
+        }],
+        ..HttpRoute::default()
+    }
+}
+
+fn fast_path_header_route(name: &str, hostnames: &[&str], port: u32) -> HttpRoute {
+    let mut route = fast_path_route(name, hostnames, port);
+    route.rules[0].matches[0].headers = vec![HeaderMatch {
+        name: "x-env".to_string(),
+        value: "prod".to_string(),
+        match_type: "Exact".to_string(),
+        ..HeaderMatch::default()
+    }];
+    route
+}
+
+fn fast_path_backend(name: &str, port: u32, address: &str) -> BackendCluster {
+    BackendCluster {
+        name: format!("{name}:{port}"),
+        namespace: "default".to_string(),
+        protocol: "HTTP".to_string(),
+        endpoints: vec![BackendEndpoint {
+            address: address.to_string(),
+            port,
+            healthy: true,
+        }],
+        ..BackendCluster::default()
+    }
+}
+
+fn fast_path_selected_backend_name(snapshot: &Snapshot, host: Option<&str>) -> String {
+    snapshot
+        .select_http_fast_path(crate::HttpFastPathRequest {
+            host,
+            port: 80,
+            path: "/items",
+            method: "GET",
+            is_grpc: false,
+        })
+        .expect("fast path selected backend")
+        .backend_name
 }
 
 #[test]

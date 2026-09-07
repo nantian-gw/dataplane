@@ -33,6 +33,7 @@ pub struct CompiledSelectedHttpBackend {
 #[derive(Debug, Clone, Default)]
 pub struct HttpFastPathPlan {
     routes: Vec<CompiledHttpFastRoute>,
+    route_plan_indices: Vec<Option<usize>>,
     selection_safe: bool,
 }
 
@@ -113,56 +114,58 @@ struct FastCandidate {
 impl HttpFastPathPlan {
     pub fn build(snapshot: &Snapshot) -> Self {
         let mut selection_safe = true;
-        let routes = snapshot
-            .http_routes
-            .iter()
-            .enumerate()
-            .filter_map(|(route_index, route)| {
-                let eligible_rules = route
-                    .rules
-                    .iter()
-                    .enumerate()
-                    .filter_map(|(rule_index, rule)| {
-                        if !http_rule_is_fast_path_selection_safe(rule, snapshot) {
+        let mut routes = Vec::new();
+        let mut route_plan_indices = vec![None; snapshot.http_routes.len()];
+
+        for (route_index, route) in snapshot.http_routes.iter().enumerate() {
+            let eligible_rules = route
+                .rules
+                .iter()
+                .enumerate()
+                .filter_map(|(rule_index, rule)| {
+                    if !http_rule_is_fast_path_selection_safe(rule, snapshot) {
+                        selection_safe = false;
+                        return None;
+                    }
+
+                    let Some(backend_refs) = compile_http_fast_backend_refs(rule, snapshot) else {
+                        if http_rule_has_selectable_backend(rule) {
                             selection_safe = false;
-                            return None;
                         }
+                        return None;
+                    };
 
-                        let Some(backend_refs) = compile_http_fast_backend_refs(rule, snapshot)
-                        else {
-                            if http_rule_has_selectable_backend(rule) {
-                                selection_safe = false;
-                            }
-                            return None;
-                        };
-
-                        Some(CompiledHttpFastRule {
-                            rule_index,
-                            runtime_ids: SelectedBackendRuntimeIds {
-                                route: snapshot
-                                    .http_route_runtime_id(&route.namespace, &route.name),
-                                rule: snapshot.http_rule_runtime_id(
-                                    &route.namespace,
-                                    &route.name,
-                                    rule_index,
-                                ),
-                                ..SelectedBackendRuntimeIds::default()
-                            },
-                            backend_refs,
-                        })
+                    Some(CompiledHttpFastRule {
+                        rule_index,
+                        runtime_ids: SelectedBackendRuntimeIds {
+                            route: snapshot.http_route_runtime_id(&route.namespace, &route.name),
+                            rule: snapshot.http_rule_runtime_id(
+                                &route.namespace,
+                                &route.name,
+                                rule_index,
+                            ),
+                            ..SelectedBackendRuntimeIds::default()
+                        },
+                        backend_refs,
                     })
-                    .collect::<Vec<_>>();
-
-                (!eligible_rules.is_empty()).then_some(CompiledHttpFastRoute {
-                    route_index,
-                    route_annotations: Arc::new(route.annotations.clone()),
-                    eligible_rules,
                 })
-            })
-            .collect();
+                .collect::<Vec<_>>();
+
+            if eligible_rules.is_empty() {
+                continue;
+            }
+
+            route_plan_indices[route_index] = Some(routes.len());
+            routes.push(CompiledHttpFastRoute {
+                route_index,
+                route_annotations: Arc::new(route.annotations.clone()),
+                eligible_rules,
+            });
+        }
 
         Self {
             routes,
+            route_plan_indices,
             selection_safe,
         }
     }
@@ -186,6 +189,20 @@ impl HttpFastPathPlan {
             .sum()
     }
 
+    #[cfg(test)]
+    pub(crate) fn candidate_route_indices(
+        &self,
+        snapshot: &Snapshot,
+        request_host: Option<&str>,
+    ) -> Vec<usize> {
+        let mut indices = Vec::new();
+        let _ = self.visit_candidate_routes(snapshot, request_host, |route| {
+            indices.push(route.route_index);
+            Some(())
+        });
+        indices
+    }
+
     pub fn select(
         &self,
         snapshot: &Snapshot,
@@ -204,12 +221,12 @@ impl HttpFastPathPlan {
         let listeners = fast_matched_listeners(snapshot, request_host, request.port);
         let mut best: Option<FastCandidate> = None;
 
-        for compiled_route in &self.routes {
+        self.visit_candidate_routes(snapshot, request_host, |compiled_route| {
             let route = snapshot.http_routes.get(compiled_route.route_index)?;
             let listener_match =
                 fast_route_listener_match(snapshot, &listeners, &route.namespace, &route.name);
             if listeners.enforce_attachments && listener_match.is_none() {
-                continue;
+                return Some(());
             }
 
             if let Some(listener_match) = listener_match {
@@ -220,13 +237,13 @@ impl HttpFastPathPlan {
                     &route.namespace,
                     listener,
                 ) {
-                    continue;
+                    return Some(());
                 }
             }
 
             let Some(route_host_score) = fast_best_hostname_score(&route.hostnames, request_host)
             else {
-                continue;
+                return Some(());
             };
 
             for compiled_rule in &compiled_route.eligible_rules {
@@ -282,7 +299,8 @@ impl HttpFastPathPlan {
                     score,
                 });
             }
-        }
+            Some(())
+        })?;
 
         best.and_then(|candidate| {
             let route = snapshot.http_routes.get(candidate.route_index)?;
@@ -306,6 +324,38 @@ impl HttpFastPathPlan {
                 runtime_ids: candidate.runtime_ids,
             })
         })
+    }
+
+    fn visit_candidate_routes(
+        &self,
+        snapshot: &Snapshot,
+        request_host: Option<&str>,
+        mut visit: impl FnMut(&CompiledHttpFastRoute) -> Option<()>,
+    ) -> Option<()> {
+        if !snapshot.runtime_indexes_ready {
+            for compiled_route in &self.routes {
+                visit(compiled_route)?;
+            }
+            return Some(());
+        }
+
+        let mut completed = true;
+        snapshot
+            .http_route_hostname_index
+            .visit_candidate_indices(request_host, |route_index| {
+                let Some(route_plan_index) =
+                    self.route_plan_indices.get(route_index).copied().flatten()
+                else {
+                    return true;
+                };
+                let Some(compiled_route) = self.routes.get(route_plan_index) else {
+                    return true;
+                };
+                completed = visit(compiled_route).is_some();
+                completed
+            });
+
+        completed.then_some(())
     }
 }
 
