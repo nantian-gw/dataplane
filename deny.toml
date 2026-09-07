@@ -29,7 +29,9 @@ ignore = [
 ]
 # Removed (resolved):
 #   RUSTSEC-2026-0222: wasmtime 44.0.3 stores mix type indices between engines.
-#     → FIXED: wasmtime upgraded to 46.0.2 (>=46.0.2 patched).
+#     → FIXED: wasmtime upgraded to 46.0.3 (>=46.0.2 patched).
+#   RUSTSEC-2026-0268 / RUSTSEC-2026-0269: wasmtime 46.0.2 vulnerabilities.
+#     → FIXED: wasmtime upgraded to 46.0.3.
 #   RUSTSEC-2026-0173: proc-macro-error2 unmaintained — crate not in dependency tree (stale).
 #   RUSTSEC-2026-0190: anyhow <1.0.103 unsoundness — anyhow is at 1.0.104 (>=1.0.103 patched).
 

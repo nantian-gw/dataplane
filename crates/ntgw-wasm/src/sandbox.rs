@@ -234,11 +234,10 @@ impl AISandbox {
             .map_err(|e| WasmError::Memory(format!("read embedding failed: {e}")))?;
 
         let floats: Vec<f32> = f32_bytes
-            .chunks_exact(4)
-            .map(|chunk| {
-                let arr: [u8; 4] = [chunk[0], chunk[1], chunk[2], chunk[3]];
-                f32::from_le_bytes(arr)
-            })
+            .as_chunks::<4>()
+            .0
+            .iter()
+            .map(|chunk| f32::from_le_bytes(*chunk))
             .collect();
 
         Ok(floats)
