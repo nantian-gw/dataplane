@@ -11,6 +11,7 @@ use ntgw_ai::format::anthropic::AnthropicAdapter;
 use ntgw_ai::format::openai::OpenAIAdapter;
 use ntgw_ai::observability::metrics::AIMetrics;
 use ntgw_ai::ratelimit::{RateLimitConfig, TokenRateLimiter};
+use ntgw_ai::semantic_cache::{CacheConfig, SemanticCache, build_cache_key};
 use prometheus::Registry;
 
 fn test_filter() -> (AIGatewayFilter, Registry) {
@@ -84,6 +85,16 @@ fn test_filter_with_rate_limiter_and_fallback(config: RateLimitConfig) -> AIGate
         .build()
 }
 
+fn test_filter_with_semantic_cache(cache: Arc<SemanticCache>) -> AIGatewayFilter {
+    let registry = Registry::new();
+    let metrics = AIMetrics::new(&registry).unwrap();
+    let mut adapters = AdapterRegistry::new();
+    adapters.register("openai", Arc::new(OpenAIAdapter));
+    AIGatewayFilterBuilder::new(Arc::new(adapters), Arc::new(metrics))
+        .semantic_cache(cache)
+        .build()
+}
+
 #[tokio::test]
 async fn test_openai_non_stream_roundtrip() {
     let (filter, _registry) = test_filter();
@@ -124,6 +135,75 @@ async fn test_openai_non_stream_roundtrip() {
     assert_eq!(parsed["model"], "gpt-4o");
     assert_eq!(parsed["choices"][0]["message"]["role"], "assistant");
     assert_eq!(parsed["choices"][0]["message"]["content"], "Hello!");
+}
+
+#[tokio::test]
+async fn test_pre_process_owned_preserves_raw_request_body() {
+    let (filter, _registry) = test_filter();
+    let request_body =
+        br#"{"model": "gpt-4o", "messages": [{"role": "user", "content": "owned body"}]}"#.to_vec();
+    let expected_body = request_body.clone();
+    let request_body_ptr = request_body.as_ptr();
+    let request_body_capacity = request_body.capacity();
+
+    let ctx = filter
+        .pre_process_owned("/v1/chat/completions", request_body, None)
+        .await
+        .expect("owned pre_process should succeed");
+
+    assert_eq!(ctx.format, "openai");
+    assert_eq!(ctx.raw_request, expected_body);
+    assert_eq!(ctx.raw_request.as_ptr(), request_body_ptr);
+    assert_eq!(ctx.raw_request.capacity(), request_body_capacity);
+    assert_eq!(ctx.request.messages.len(), 1);
+}
+
+#[tokio::test]
+async fn test_semantic_cache_miss_reuses_context_cache_key_for_store() {
+    let cache = Arc::new(SemanticCache::with_memory_backend(CacheConfig::default()));
+    let filter = test_filter_with_semantic_cache(Arc::clone(&cache));
+    let request_body =
+        br#"{"model": "gpt-4o", "messages": [{"role": "user", "content": "cache me"}]}"#.to_vec();
+
+    let ctx = filter
+        .pre_process_owned("/v1/chat/completions", request_body.clone(), None)
+        .await
+        .expect("cache miss should continue to upstream");
+    let cache_key = ctx
+        .cache_key
+        .clone()
+        .expect("cache miss should keep a key for response storage");
+
+    assert_eq!(cache_key, build_cache_key(&ctx.request));
+    assert!(cache.lookup_key(&cache_key).is_none());
+
+    let response_body = br#"{
+        "id": "chatcmpl-cache-store",
+        "object": "chat.completion",
+        "model": "gpt-4o",
+        "created": 1700000000,
+        "choices": [{
+            "index": 0,
+            "message": {"role": "assistant", "content": "cached"},
+            "finish_reason": "stop"
+        }],
+        "usage": {"prompt_tokens": 4, "completion_tokens": 2, "total_tokens": 6}
+    }"#;
+
+    filter
+        .post_process(ctx, response_body, 200)
+        .await
+        .expect("post_process should store semantic cache response");
+
+    let cached = cache
+        .lookup_key(&cache_key)
+        .expect("response should be stored under the precomputed key");
+    assert_eq!(cached.id, "chatcmpl-cache-store");
+
+    let second = filter
+        .pre_process_owned("/v1/chat/completions", request_body, None)
+        .await;
+    assert!(matches!(second, Err(AIError::CacheHit { .. })));
 }
 
 #[tokio::test]

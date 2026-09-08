@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -346,40 +347,40 @@ impl AIGatewayFilter {
         body: &[u8],
         api_key: Option<&str>,
     ) -> Result<AIContext, AIError> {
+        self.pre_process_body(path, Cow::Borrowed(body), api_key)
+            .await
+    }
+
+    /// Pre-process an owned request body without copying it into
+    /// [`AIContext::raw_request`] again.
+    pub async fn pre_process_owned(
+        &self,
+        path: &str,
+        body: Vec<u8>,
+        api_key: Option<&str>,
+    ) -> Result<AIContext, AIError> {
+        self.pre_process_body(path, Cow::Owned(body), api_key).await
+    }
+
+    async fn pre_process_body(
+        &self,
+        path: &str,
+        body: Cow<'_, [u8]>,
+        api_key: Option<&str>,
+    ) -> Result<AIContext, AIError> {
         // 1. Detect format from path
         let fmt =
             detect_format(path).ok_or_else(|| AIError::UnsupportedFormat(path.to_string()))?;
 
         // 1b. Apply PII masking to raw body before parsing (privacy-safe)
-        let masked_body = if let Some(ref masker) = self.pii_masker {
-            let (masked, count, details) = masker.mask(std::str::from_utf8(body).unwrap_or(""));
-            if count > 0 {
-                let mut type_counts: std::collections::HashMap<String, u64> =
-                    std::collections::HashMap::new();
-                for (_, replacement) in &details {
-                    // Extract entity type from replacement like "[email]" or "<phone>"
-                    let entity_type = replacement
-                        .trim_start_matches('[')
-                        .trim_start_matches('<')
-                        .trim_end_matches(']')
-                        .trim_end_matches('>');
-                    *type_counts.entry(entity_type.to_string()).or_insert(0) += 1;
-                }
-                for (entity_type, n) in &type_counts {
-                    self.metrics.record_pii_detected(entity_type, *n);
-                }
-            }
-            masked.into_owned().into_bytes()
-        } else {
-            body.to_vec()
-        };
+        let masked_body = self.prepare_request_body(body);
 
         // 2. Parse request body via adapter
         let adapter = self
             .adapters
             .get(fmt)
             .ok_or_else(|| AIError::AdapterNotFound(fmt.to_string()))?;
-        let mut request = adapter.parse_request(&masked_body)?;
+        let mut request = adapter.parse_request(masked_body.as_ref())?;
 
         // 2a. Wasm plugin pre-processing (before rate limiting, after format detection)
         if let Some(ref wf) = self.wasm_filter
@@ -390,7 +391,7 @@ impl AIGatewayFilter {
                 headers.insert("x-api-key".to_string(), key.to_string());
             }
             headers.insert("x-request-model".to_string(), request.model.clone());
-            wf.pre_process(headers, masked_body.clone())
+            wf.pre_process(headers, masked_body.as_ref().to_vec())
                 .await
                 .map_err(|e| AIError::Internal(anyhow::anyhow!("wasm plugin rejected: {e}")))?;
         }
@@ -506,14 +507,15 @@ impl AIGatewayFilter {
 
         // 4. Semantic cache lookup
         let cache_key = if let Some(ref cache) = self.semantic_cache {
-            if let Some(cached_response) = cache.lookup(&request) {
+            let key = build_cache_key(&request);
+            if let Some(cached_response) = cache.lookup_key(&key) {
                 self.metrics.record_cache_hit(&request.model);
                 return Err(AIError::CacheHit {
                     response: Box::new(cached_response),
                 });
             }
             self.metrics.record_cache_miss(&request.model);
-            Some(build_cache_key(&request))
+            Some(key)
         } else {
             None
         };
@@ -522,12 +524,54 @@ impl AIGatewayFilter {
             format: fmt.to_string(),
             request,
             start_time: Instant::now(),
-            raw_request: masked_body,
+            raw_request: masked_body.into_owned(),
             cache_key,
             rate_limit_key,
             complexity,
             ai_span: std::sync::Arc::new(parking_lot::Mutex::new(None)),
         })
+    }
+
+    fn prepare_request_body<'a>(&self, body: Cow<'a, [u8]>) -> Cow<'a, [u8]> {
+        let Some(masker) = self.pii_masker.as_ref() else {
+            return body;
+        };
+
+        let masked_body = {
+            let text = std::str::from_utf8(body.as_ref()).unwrap_or("");
+            let (masked, count, details) = masker.mask(text);
+            self.record_pii_replacements(&details);
+
+            if count == 0 && text.len() == body.len() {
+                None
+            } else {
+                Some(masked.into_owned().into_bytes())
+            }
+        };
+
+        match masked_body {
+            Some(masked) => Cow::Owned(masked),
+            None => body,
+        }
+    }
+
+    fn record_pii_replacements(&self, details: &[(String, String)]) {
+        if details.is_empty() {
+            return;
+        }
+
+        let mut type_counts: HashMap<&str, u64> = HashMap::new();
+        for (_, replacement) in details {
+            let entity_type = replacement
+                .trim_start_matches('[')
+                .trim_start_matches('<')
+                .trim_end_matches(']')
+                .trim_end_matches('>');
+            *type_counts.entry(entity_type).or_insert(0) += 1;
+        }
+        for (entity_type, n) in type_counts {
+            self.metrics.record_pii_detected(entity_type, n);
+        }
     }
 
     /// Resolve a gateway API key to a backend credential via the configured
@@ -702,19 +746,7 @@ impl AIGatewayFilter {
             let (masked_response, count, details) =
                 masker.mask(std::str::from_utf8(&output_body).unwrap_or(""));
             if count > 0 {
-                let mut type_counts: std::collections::HashMap<String, u64> =
-                    std::collections::HashMap::new();
-                for (_, replacement) in &details {
-                    let entity_type = replacement
-                        .trim_start_matches('[')
-                        .trim_start_matches('<')
-                        .trim_end_matches(']')
-                        .trim_end_matches('>');
-                    *type_counts.entry(entity_type.to_string()).or_insert(0) += 1;
-                }
-                for (entity_type, n) in &type_counts {
-                    self.metrics.record_pii_detected(entity_type, *n);
-                }
+                self.record_pii_replacements(&details);
             }
             masked_response.into_owned().into_bytes()
         } else {

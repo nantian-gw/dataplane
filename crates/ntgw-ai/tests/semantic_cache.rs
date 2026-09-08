@@ -61,6 +61,20 @@ fn test_cache_hit() {
 }
 
 #[test]
+fn test_lookup_key_uses_precomputed_cache_key() {
+    let cache = SemanticCache::with_memory_backend(CacheConfig::default());
+    let req = make_request("What is Rust?");
+    let resp = make_response("1", "Rust is a systems programming language.");
+    let key = build_cache_key(&req);
+
+    cache.store(&key, &resp);
+
+    let result = cache.lookup_key(&key);
+    assert!(result.is_some());
+    assert_eq!(result.unwrap().id, "1");
+}
+
+#[test]
 fn test_cache_miss() {
     let cache = SemanticCache::with_memory_backend(CacheConfig::default());
     let req = make_request("What is Rust?");
@@ -81,6 +95,7 @@ fn test_cache_disabled() {
     let key = build_cache_key(&req);
     cache.store(&key, &resp);
     assert!(cache.lookup(&req).is_none());
+    assert!(cache.lookup_key(&key).is_none());
 }
 
 #[test]
