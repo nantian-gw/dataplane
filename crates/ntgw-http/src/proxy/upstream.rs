@@ -76,14 +76,14 @@ pub(crate) async fn do_upstream_peer(
                     Error::new(ErrorType::new("InternalError"))
                         .more_context("fast path selected backend missing from request context")
                 })?;
-                sync_per_backend_cb_limit(&snap, proxy, &fast.selected.backend_name);
+                sync_per_backend_cb_limit(&snap, proxy, fast.selected.backend_name.as_ref());
                 proxy
                     .circuit_breaker
-                    .try_acquire_backend(fast.selected.backend_name.as_str())
+                    .try_acquire_backend(fast.selected.backend_name.as_ref())
                     .map_err(|_| {
                         Error::new(ErrorType::new("CircuitBreakerOpen")).more_context(format!(
                             "backend circuit breaker rejected request for {}",
-                            fast.selected.backend_name
+                            fast.selected.backend_name.as_ref()
                         ))
                     })?
             };

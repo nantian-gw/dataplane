@@ -60,6 +60,33 @@ fn test_load_and_invoke_plugin() -> Result<()> {
 }
 
 #[test]
+fn repeated_hook_invocation_does_not_exhaust_instance_limit() -> Result<()> {
+    let engine = create_engine()?;
+    let manager = PluginManager::new(engine)?;
+    let wasm_bytes = compile_wat(MINIMAL_PLUGIN_WAT)?;
+
+    manager.load_plugin(
+        "test-plugin",
+        &wasm_bytes,
+        serde_json::json!({}),
+        vec![WasmHook::OnRequest],
+        WasmSandboxConfig::default(),
+    )?;
+
+    for _ in 0..16 {
+        let result = manager.invoke_hook(
+            "test-plugin",
+            &WasmHook::OnRequest,
+            HashMap::new(),
+            Vec::new(),
+        )?;
+        assert!(matches!(result, HookResult::Continue { .. }));
+    }
+
+    Ok(())
+}
+
+#[test]
 fn test_load_twice_overwrites() -> Result<()> {
     let engine = create_engine()?;
     let manager = PluginManager::new(engine)?;

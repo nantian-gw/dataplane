@@ -400,6 +400,7 @@ fn fast_path_selected_backend_name(snapshot: &Snapshot, host: Option<&str>) -> S
         })
         .expect("fast path selected backend")
         .backend_name
+        .to_string()
 }
 
 #[test]
@@ -470,12 +471,15 @@ fn http_fast_path_selects_same_simple_backend_as_generic_http_selection() {
         .expect("fast selected backend");
 
     assert_eq!(fast.route_kind, RouteKind::Http);
-    assert_eq!(fast.route_name.as_str(), generic.route_name.as_str());
-    assert_eq!(fast.route_namespace.as_str(), generic.route_namespace.as_str());
+    assert_eq!(fast.route_name.as_ref(), generic.route_name.as_str());
+    assert_eq!(fast.route_namespace.as_ref(), generic.route_namespace.as_str());
     assert_eq!(fast.rule_index, generic.rule_index);
-    assert_eq!(fast.listener_name.as_str(), generic.listener_name.as_str());
-    assert_eq!(fast.listener_protocol.as_str(), generic.listener_protocol.as_str());
-    assert_eq!(fast.backend_name.as_str(), generic.backend_name.as_str());
+    assert_eq!(fast.listener_name.as_ref(), generic.listener_name.as_str());
+    assert_eq!(
+        fast.listener_protocol.as_ref(),
+        generic.listener_protocol.as_str()
+    );
+    assert_eq!(fast.backend_name.as_ref(), generic.backend_name.as_str());
     assert_eq!(fast.backend.address, generic.backend.address);
     assert_eq!(fast.backend.port, generic.backend.port);
     assert_eq!(

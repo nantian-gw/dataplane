@@ -81,8 +81,16 @@ impl Snapshot {
     }
 
     pub fn endpoint_runtime_handle(&self, selected: &SelectedBackend) -> EndpointRuntimeHandle {
+        self.endpoint_runtime_handle_for_backend(selected.backend_name.as_str(), &selected.backend)
+    }
+
+    pub fn endpoint_runtime_handle_for_backend(
+        &self,
+        backend_name: &str,
+        endpoint: &BackendEndpoint,
+    ) -> EndpointRuntimeHandle {
         self.endpoint_runtime
-            .handle_for_backend(selected.backend_name.as_str(), &selected.backend)
+            .handle_for_backend(backend_name, endpoint)
     }
 
     pub fn record_endpoint_failure(&self, selected: &SelectedBackend) {

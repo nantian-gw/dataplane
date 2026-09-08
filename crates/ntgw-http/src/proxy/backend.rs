@@ -25,7 +25,7 @@ pub(crate) use self::tls_validation::{
     backend_certificate_matches_subject_alt_names, backend_tls_service_name,
 };
 pub(crate) use self::tls_validation::{
-    backend_tls_sni_name, resolve_backend_tls_validation,
+    backend_tls_sni_name, backend_tls_sni_name_for_backend, resolve_backend_tls_validation,
     validate_backend_tls_subject_alt_name_result,
 };
 use super::context::{SelectedBackendConfig, UpstreamPeerAddress};

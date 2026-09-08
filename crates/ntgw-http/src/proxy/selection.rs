@@ -11,9 +11,9 @@ use ntgw_ir::{
 
 use super::{
     backend::{
-        backend_tls_sni_name, effective_request_timeout_with_route_policy,
-        is_http2_backend_protocol, is_tls_backend_protocol, resolve_backend_client_cert_key,
-        resolve_backend_tls_validation,
+        backend_tls_sni_name, backend_tls_sni_name_for_backend,
+        effective_request_timeout_with_route_policy, is_http2_backend_protocol,
+        is_tls_backend_protocol, resolve_backend_client_cert_key, resolve_backend_tls_validation,
     },
     context::{SelectedBackendConfig, UpstreamPeerAddress, route_kind_name},
 };
@@ -156,30 +156,8 @@ pub(crate) fn selected_backend_config_cached_for_fast_path(
         return Ok(config);
     }
 
-    let selected_backend = SelectedBackend {
-        route_kind: selected.route_kind,
-        route_name: selected.route_name.to_string(),
-        route_namespace: selected.route_namespace.to_string(),
-        rule_index: selected.rule_index,
-        route_annotations: BTreeMap::new(),
-        listener_name: selected.listener_name.to_string(),
-        listener_protocol: selected.listener_protocol.to_string(),
-        backend: selected.backend.clone(),
-        backend_name: selected.backend_name.to_string(),
-        filters: Vec::new(),
-        matched_http_path: Some(selected.matched_http_path.clone()),
-        timeouts: None,
-        retry: None,
-        session_persistence: None,
-        backend_tls: None,
-        route_policy: None,
-    };
-    let config = Arc::new(selected_backend_config_with_overrides_and_runtime_ids(
-        current,
-        &selected_backend,
-        current.backend_protocol(&selected.backend_name),
-        current.backend_policy(&selected.backend_name),
-        selected.runtime_ids,
+    let config = Arc::new(selected_backend_config_for_compiled_http_fast_path(
+        current, selected,
     )?);
 
     Ok(match key {
@@ -265,6 +243,46 @@ fn selected_backend_config_with_overrides_and_runtime_ids(
     runtime_ids: SelectedBackendRuntimeIds,
 ) -> pingora::Result<SelectedBackendConfig> {
     selected_backend_config_from_parts(current, selected, protocol, policy, runtime_ids)
+}
+
+fn selected_backend_config_for_compiled_http_fast_path(
+    current: &Snapshot,
+    selected: &ntgw_ir::CompiledSelectedHttpBackend,
+) -> pingora::Result<SelectedBackendConfig> {
+    let backend_name = selected.backend_name.as_ref();
+    let protocol = current.backend_protocol(backend_name);
+    let policy = current.backend_policy(backend_name);
+    let tls_validation = policy.and_then(|item| item.tls_validation.as_ref());
+    let tls_enabled = is_tls_backend_protocol(protocol) || tls_validation.is_some();
+    let sni = if tls_enabled {
+        backend_tls_sni_name_for_backend(backend_name, tls_validation).unwrap_or_default()
+    } else {
+        String::new()
+    };
+    let route_policy: Option<ntgw_config::RoutePolicyConfig> = None;
+    let request_timeout = effective_request_timeout_with_route_policy(&route_policy, policy, None);
+    let backend_tls_validation = resolve_backend_tls_validation(tls_validation)?;
+
+    Ok(SelectedBackendConfig {
+        runtime: current.endpoint_runtime_handle_for_backend(backend_name, &selected.backend),
+        runtime_ids: selected.runtime_ids,
+        peer_address: UpstreamPeerAddress::from_backend_address(&selected.backend.address),
+        peer_port: selected.backend.port as u16,
+        tls_enabled,
+        sni,
+        use_http2: is_http2_backend_protocol(protocol),
+        connect_timeout: policy.and_then(|item| item.connect_timeout),
+        request_timeout,
+        backend_tls_validation,
+        client_cert_key: None,
+        traffic_topology: TrafficTopology::from_parts(
+            selected.listener_name.as_ref(),
+            route_kind_name(&selected.route_kind),
+            selected.route_namespace.as_ref(),
+            selected.route_name.as_ref(),
+            backend_name,
+        ),
+    })
 }
 
 #[cfg(test)]

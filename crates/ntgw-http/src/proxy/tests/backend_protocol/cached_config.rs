@@ -227,9 +227,10 @@ fn selected_backend_config_precomputes_resource_runtime_ids() {
                 healthy: true,
             }],
             wasm_plugin: None,
-        
-                circuit_breaker: None,
-                security_policy: None,}],
+
+            circuit_breaker: None,
+            security_policy: None,
+        }],
         ..Snapshot::default()
     };
     snapshot.rebuild_runtime_indexes();
@@ -306,9 +307,10 @@ fn selected_backend_config_cache_reuses_config_for_snapshot_runtime_ids() {
                 healthy: true,
             }],
             wasm_plugin: None,
-        
-                circuit_breaker: None,
-                security_policy: None,}],
+
+            circuit_breaker: None,
+            security_policy: None,
+        }],
         ..Snapshot::default()
     };
     snapshot.rebuild_runtime_indexes();
@@ -363,16 +365,36 @@ fn selected_backend_config_cached_for_fast_path_uses_compiled_runtime_ids() {
             token_policy: None,
             name: "orders:8080".to_string(),
             namespace: "default".to_string(),
-            protocol: "HTTP".to_string(),
+            protocol: "HTTPS".to_string(),
             endpoints: vec![BackendEndpoint {
                 address: "10.0.0.10".to_string(),
                 port: 8080,
                 healthy: true,
             }],
             wasm_plugin: None,
-        
-                circuit_breaker: None,
-                security_policy: None,}],
+
+            circuit_breaker: None,
+            security_policy: None,
+        }],
+        backend_policies: BTreeMap::from([(
+            "default/orders:8080".to_string(),
+            BackendPolicy {
+                connect_timeout: Some(std::time::Duration::from_millis(250)),
+                request_timeout: Some(std::time::Duration::from_secs(2)),
+                tls_validation: Some(BackendTlsValidation {
+                    hostname: "orders.internal.example".to_string(),
+                    use_system_ca_certificates: true,
+                    ca_pems: Vec::new(),
+                    subject_alt_names: Vec::new(),
+                    min_version: String::new(),
+                    max_version: String::new(),
+                }),
+                session_persistence: None,
+                load_balancing: None,
+                health_check: None,
+                outlier_detection: None,
+            },
+        )]),
         ..Snapshot::default()
     };
     snapshot.rebuild_runtime_indexes();
@@ -392,6 +414,18 @@ fn selected_backend_config_cached_for_fast_path_uses_compiled_runtime_ids() {
 
     assert_eq!(config.runtime_ids, selected.runtime_ids);
     assert_eq!(config.peer_port, selected.backend.port as u16);
+    assert!(config.tls_enabled);
+    assert_eq!(config.sni, "orders.internal.example");
+    assert_eq!(
+        config.connect_timeout,
+        Some(std::time::Duration::from_millis(250))
+    );
+    assert_eq!(
+        config.request_timeout,
+        Some(std::time::Duration::from_secs(2))
+    );
+    assert!(config.backend_tls_validation.is_some());
+    assert!(config.client_cert_key.is_none());
 }
 
 #[test]

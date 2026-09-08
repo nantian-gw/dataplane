@@ -168,8 +168,8 @@ pub(crate) async fn do_request_filter(
             proxy,
             session,
             ctx,
-            route_namespace.as_str(),
-            route_name.as_str(),
+            route_namespace.as_ref(),
+            route_name.as_ref(),
             fast_host.as_str(),
             fast_path.as_str(),
         )

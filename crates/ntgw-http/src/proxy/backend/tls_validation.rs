@@ -113,13 +113,20 @@ pub(crate) fn backend_tls_sni_name(
     endpoint: &SelectedBackend,
     validation: Option<&BackendTlsValidation>,
 ) -> Option<String> {
+    backend_tls_sni_name_for_backend(&endpoint.backend_name, validation)
+}
+
+pub(crate) fn backend_tls_sni_name_for_backend(
+    backend_name: &str,
+    validation: Option<&BackendTlsValidation>,
+) -> Option<String> {
     if let Some(validation) = validation
         && !validation.hostname.is_empty()
     {
         return Some(validation.hostname.clone());
     }
 
-    backend_tls_service_name(&endpoint.backend_name)
+    backend_tls_service_name(backend_name)
 }
 
 pub(crate) fn backend_tls_service_name(backend_name: &str) -> Option<String> {

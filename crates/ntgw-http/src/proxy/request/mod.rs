@@ -23,7 +23,7 @@ pub(crate) use self::context::{
 pub(crate) use self::extract::client_ip;
 pub(crate) use self::meta::{
     build_request_meta, build_request_meta_from_header_with_port, build_request_meta_with_headers,
-    build_selection_request_meta, fast_path_request_from_header,
+    build_selection_request_meta, fast_path_request_from_header, fast_path_request_from_view,
 };
 pub(crate) use self::tracing::{
     inject_request_span_context, record_request_span, server_port, start_request_span_from_header,

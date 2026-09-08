@@ -3,7 +3,9 @@ use super::{
     BackendCandidateVisit, BackendSelectionCandidate, EndpointAvailability,
     EndpointSelectionAvailability, backend_ref_is_routable, spread_weighted_target,
 };
-use crate::http_fast_path::{CompiledHttpFastBackendRef, CompiledHttpFastBackendSelection};
+use crate::http_fast_path::{
+    CompiledHttpFastBackendRef, CompiledHttpFastBackendSelection, CompiledHttpFastEndpoint,
+};
 use std::time::Instant;
 
 impl Snapshot {
@@ -38,10 +40,13 @@ impl Snapshot {
             .copied()?;
         let cluster = self.backends.get(backend_index)?;
         let backend_name = Arc::<str>::from(backend_cluster_name(cluster));
-        let endpoint_runtime_ids = cluster
+        let endpoints = cluster
             .endpoints
             .iter()
-            .map(|endpoint| self.endpoint_runtime_id(backend_name.as_ref(), endpoint))
+            .map(|endpoint| CompiledHttpFastEndpoint {
+                endpoint: Arc::new(endpoint.clone()),
+                runtime_id: self.endpoint_runtime_id(backend_name.as_ref(), endpoint),
+            })
             .collect();
 
         Some(CompiledHttpFastBackendRef {
@@ -49,7 +54,7 @@ impl Snapshot {
             backend_runtime_id: self.backend_runtime_id(backend_name.as_ref()),
             backend_name,
             weight: backend_ref.weight,
-            endpoint_runtime_ids,
+            endpoints,
         })
     }
 
@@ -526,15 +531,12 @@ impl Snapshot {
                 continue;
             }
             if seen == target {
+                let compiled_endpoint = compiled.endpoints.get(endpoint_index)?;
                 return Some(CompiledHttpFastBackendSelection {
-                    endpoint: endpoint.clone(),
+                    endpoint: Arc::clone(&compiled_endpoint.endpoint),
                     backend_name: Arc::clone(&compiled.backend_name),
                     backend_runtime_id: compiled.backend_runtime_id,
-                    endpoint_runtime_id: compiled
-                        .endpoint_runtime_ids
-                        .get(endpoint_index)
-                        .copied()
-                        .flatten(),
+                    endpoint_runtime_id: compiled_endpoint.runtime_id,
                 });
             }
             seen += 1;

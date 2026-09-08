@@ -1,5 +1,7 @@
 use std::{collections::BTreeMap, sync::Arc};
 
+use regex::Regex;
+
 use crate::{
     BackendEndpoint, BackendRef, HttpMatch, HttpRule, Listener, MatchedHttpPath, RouteKind,
     RuntimeId, SelectedBackendRuntimeIds, Snapshot, default_http_path_match, hostname_matches,
@@ -18,28 +20,39 @@ pub struct HttpFastPathRequest<'a> {
 #[derive(Debug, Clone)]
 pub struct CompiledSelectedHttpBackend {
     pub route_kind: RouteKind,
-    pub route_name: String,
-    pub route_namespace: String,
+    pub route_name: Arc<str>,
+    pub route_namespace: Arc<str>,
     pub rule_index: Option<usize>,
     pub route_annotations: Arc<BTreeMap<String, String>>,
-    pub listener_name: String,
-    pub listener_protocol: String,
-    pub backend: BackendEndpoint,
-    pub backend_name: String,
-    pub matched_http_path: MatchedHttpPath,
+    pub listener_name: Arc<str>,
+    pub listener_protocol: Arc<str>,
+    pub backend: Arc<BackendEndpoint>,
+    pub backend_name: Arc<str>,
+    pub matched_http_path: Arc<MatchedHttpPath>,
     pub runtime_ids: SelectedBackendRuntimeIds,
 }
 
 #[derive(Debug, Clone, Default)]
 pub struct HttpFastPathPlan {
+    listeners: Vec<CompiledHttpFastListener>,
     routes: Vec<CompiledHttpFastRoute>,
     route_plan_indices: Vec<Option<usize>>,
     selection_safe: bool,
 }
 
 #[derive(Debug, Clone)]
+struct CompiledHttpFastListener {
+    name: Arc<str>,
+    protocol: Arc<str>,
+    runtime_id: Option<RuntimeId>,
+    has_backend_tls: bool,
+}
+
+#[derive(Debug, Clone)]
 struct CompiledHttpFastRoute {
     route_index: usize,
+    route_name: Arc<str>,
+    route_namespace: Arc<str>,
     route_annotations: Arc<BTreeMap<String, String>>,
     eligible_rules: Vec<CompiledHttpFastRule>,
 }
@@ -47,8 +60,20 @@ struct CompiledHttpFastRoute {
 #[derive(Debug, Clone)]
 struct CompiledHttpFastRule {
     rule_index: usize,
+    matches: Vec<CompiledHttpFastMatch>,
+    default_matched_http_path: Arc<MatchedHttpPath>,
     runtime_ids: SelectedBackendRuntimeIds,
     backend_refs: Vec<CompiledHttpFastBackendRef>,
+}
+
+#[derive(Debug, Clone)]
+struct CompiledHttpFastMatch {
+    path: Arc<str>,
+    path_type: Arc<str>,
+    method: Arc<str>,
+    compiled_path_regex: Option<Arc<Regex>>,
+    matched_http_path: Arc<MatchedHttpPath>,
+    score: FastHttpRuleScore,
 }
 
 #[derive(Debug, Clone)]
@@ -57,12 +82,18 @@ pub(crate) struct CompiledHttpFastBackendRef {
     pub(crate) backend_name: Arc<str>,
     pub(crate) weight: u32,
     pub(crate) backend_runtime_id: Option<RuntimeId>,
-    pub(crate) endpoint_runtime_ids: Vec<Option<RuntimeId>>,
+    pub(crate) endpoints: Vec<CompiledHttpFastEndpoint>,
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct CompiledHttpFastEndpoint {
+    pub(crate) endpoint: Arc<BackendEndpoint>,
+    pub(crate) runtime_id: Option<RuntimeId>,
 }
 
 #[derive(Debug, Clone)]
 pub(crate) struct CompiledHttpFastBackendSelection {
-    pub(crate) endpoint: BackendEndpoint,
+    pub(crate) endpoint: Arc<BackendEndpoint>,
     pub(crate) backend_name: Arc<str>,
     pub(crate) backend_runtime_id: Option<RuntimeId>,
     pub(crate) endpoint_runtime_id: Option<RuntimeId>,
@@ -96,16 +127,40 @@ struct FastMatchedListener {
 
 #[derive(Debug, Default)]
 struct FastCandidateListeners {
-    listeners: Vec<FastMatchedListener>,
+    first: Option<FastMatchedListener>,
+    additional: Vec<FastMatchedListener>,
     enforce_attachments: bool,
 }
 
+impl FastCandidateListeners {
+    fn clear_matches(&mut self) {
+        self.first = None;
+        self.additional.clear();
+    }
+
+    fn push_match(&mut self, matched: FastMatchedListener) {
+        if self.first.is_some() {
+            self.additional.push(matched);
+        } else {
+            self.first = Some(matched);
+        }
+    }
+
+    fn iter_matches(&self) -> impl Iterator<Item = FastMatchedListener> + '_ {
+        self.first
+            .into_iter()
+            .chain(self.additional.iter().copied())
+    }
+}
+
 struct FastCandidate {
-    route_index: usize,
+    route_name: Arc<str>,
+    route_namespace: Arc<str>,
     rule_index: usize,
     route_annotations: Arc<BTreeMap<String, String>>,
-    listener_index: Option<usize>,
-    matched_http_path: MatchedHttpPath,
+    listener_name: Arc<str>,
+    listener_protocol: Arc<str>,
+    matched_http_path: Arc<MatchedHttpPath>,
     selected: CompiledHttpFastBackendSelection,
     runtime_ids: SelectedBackendRuntimeIds,
     score: FastCandidateScore,
@@ -114,6 +169,16 @@ struct FastCandidate {
 impl HttpFastPathPlan {
     pub fn build(snapshot: &Snapshot) -> Self {
         let mut selection_safe = true;
+        let listeners = snapshot
+            .listeners
+            .iter()
+            .map(|listener| CompiledHttpFastListener {
+                name: Arc::from(listener.name.as_str()),
+                protocol: Arc::from(listener.protocol.as_str()),
+                runtime_id: snapshot.listener_runtime_id(&listener.name),
+                has_backend_tls: listener.backend_tls.is_some(),
+            })
+            .collect();
         let mut routes = Vec::new();
         let mut route_plan_indices = vec![None; snapshot.http_routes.len()];
 
@@ -137,6 +202,8 @@ impl HttpFastPathPlan {
 
                     Some(CompiledHttpFastRule {
                         rule_index,
+                        matches: compile_http_fast_matches(rule),
+                        default_matched_http_path: Arc::new(default_http_path_match()),
                         runtime_ids: SelectedBackendRuntimeIds {
                             route: snapshot.http_route_runtime_id(&route.namespace, &route.name),
                             rule: snapshot.http_rule_runtime_id(
@@ -158,12 +225,15 @@ impl HttpFastPathPlan {
             route_plan_indices[route_index] = Some(routes.len());
             routes.push(CompiledHttpFastRoute {
                 route_index,
+                route_name: Arc::from(route.name.as_str()),
+                route_namespace: Arc::from(route.namespace.as_str()),
                 route_annotations: Arc::new(route.annotations.clone()),
                 eligible_rules,
             });
         }
 
         Self {
+            listeners,
             routes,
             route_plan_indices,
             selection_safe,
@@ -247,9 +317,8 @@ impl HttpFastPathPlan {
             };
 
             for compiled_rule in &compiled_route.eligible_rules {
-                let rule = route.rules.get(compiled_rule.rule_index)?;
                 let Some((matched_http_path, rule_score)) =
-                    fast_best_http_rule_match(rule, request_path, request.method)
+                    fast_best_http_rule_match(compiled_rule, request_path, request.method)
                 else {
                     continue;
                 };
@@ -264,35 +333,37 @@ impl HttpFastPathPlan {
                 if best.as_ref().is_some_and(|current| score <= current.score) {
                     continue;
                 }
-                if listener_match
-                    .and_then(|listener_match| {
-                        snapshot.listeners.get(listener_match.listener_index)
-                    })
-                    .is_some_and(|listener| listener.backend_tls.is_some())
-                {
+
+                let listener_info = match listener_match {
+                    Some(listener_match) => {
+                        Some(self.listeners.get(listener_match.listener_index)?)
+                    }
+                    None => None,
+                };
+                if listener_info.is_some_and(|listener| listener.has_backend_tls) {
                     return None;
                 }
 
                 let selected =
                     snapshot.select_compiled_http_fast_backend(&compiled_rule.backend_refs)?;
                 let runtime_ids = SelectedBackendRuntimeIds {
-                    listener: listener_match.and_then(|listener_match| {
-                        snapshot
-                            .listeners
-                            .get(listener_match.listener_index)
-                            .and_then(|listener| snapshot.listener_runtime_id(&listener.name))
-                    }),
+                    listener: listener_info.and_then(|listener| listener.runtime_id),
                     route: compiled_rule.runtime_ids.route,
                     rule: compiled_rule.runtime_ids.rule,
                     backend: selected.backend_runtime_id,
                     endpoint: selected.endpoint_runtime_id,
                 };
+                let (listener_name, listener_protocol) = listener_info
+                    .map(|listener| (Arc::clone(&listener.name), Arc::clone(&listener.protocol)))
+                    .unwrap_or_else(|| (Arc::from(""), Arc::from("")));
 
                 best = Some(FastCandidate {
-                    route_index: compiled_route.route_index,
+                    route_name: Arc::clone(&compiled_route.route_name),
+                    route_namespace: Arc::clone(&compiled_route.route_namespace),
                     rule_index: compiled_rule.rule_index,
                     route_annotations: Arc::clone(&compiled_route.route_annotations),
-                    listener_index: listener_match.map(|item| item.listener_index),
+                    listener_name,
+                    listener_protocol,
                     matched_http_path,
                     selected,
                     runtime_ids,
@@ -302,27 +373,18 @@ impl HttpFastPathPlan {
             Some(())
         })?;
 
-        best.and_then(|candidate| {
-            let route = snapshot.http_routes.get(candidate.route_index)?;
-            let (listener_name, listener_protocol) = candidate
-                .listener_index
-                .and_then(|index| snapshot.listeners.get(index))
-                .map(|listener| (listener.name.clone(), listener.protocol.clone()))
-                .unwrap_or_default();
-
-            Some(CompiledSelectedHttpBackend {
-                route_kind: RouteKind::Http,
-                route_name: route.name.clone(),
-                route_namespace: route.namespace.clone(),
-                rule_index: Some(candidate.rule_index),
-                route_annotations: candidate.route_annotations,
-                listener_name,
-                listener_protocol,
-                backend: candidate.selected.endpoint,
-                backend_name: candidate.selected.backend_name.to_string(),
-                matched_http_path: candidate.matched_http_path,
-                runtime_ids: candidate.runtime_ids,
-            })
+        best.map(|candidate| CompiledSelectedHttpBackend {
+            route_kind: RouteKind::Http,
+            route_name: candidate.route_name,
+            route_namespace: candidate.route_namespace,
+            rule_index: Some(candidate.rule_index),
+            route_annotations: candidate.route_annotations,
+            listener_name: candidate.listener_name,
+            listener_protocol: candidate.listener_protocol,
+            backend: candidate.selected.endpoint,
+            backend_name: candidate.selected.backend_name,
+            matched_http_path: candidate.matched_http_path,
+            runtime_ids: candidate.runtime_ids,
         })
     }
 
@@ -378,6 +440,29 @@ fn http_rule_has_selectable_backend(rule: &HttpRule) -> bool {
         .any(|backend_ref| backend_ref.weight > 0)
 }
 
+fn compile_http_fast_matches(rule: &HttpRule) -> Vec<CompiledHttpFastMatch> {
+    rule.matches
+        .iter()
+        .map(|matcher| {
+            let matched_http_path = normalize_http_path_match(matcher);
+            let score = FastHttpRuleScore {
+                path_rank: fast_http_path_rank(&matched_http_path.path_type),
+                path_length: matched_http_path.path.len(),
+                method_specified: !matcher.method.is_empty(),
+            };
+
+            CompiledHttpFastMatch {
+                path: Arc::from(matcher.path.as_str()),
+                path_type: Arc::from(matcher.path_type.as_str()),
+                method: Arc::from(matcher.method.as_str()),
+                compiled_path_regex: matcher.compiled_path_regex.clone(),
+                matched_http_path: Arc::new(matched_http_path),
+                score,
+            }
+        })
+        .collect()
+}
+
 fn compile_http_fast_backend_refs(
     rule: &HttpRule,
     snapshot: &Snapshot,
@@ -421,7 +506,7 @@ fn fast_matched_listeners(
 ) -> FastCandidateListeners {
     let mut saw_candidate_listener = false;
     let mut best_score = None;
-    let mut listeners = Vec::with_capacity(snapshot.listeners.len());
+    let mut listeners = FastCandidateListeners::default();
 
     visit_fast_candidate_listeners(snapshot, request_port, |listener_index, listener| {
         saw_candidate_listener = true;
@@ -432,15 +517,15 @@ fn fast_matched_listeners(
         match best_score {
             Some(score) if host_score < score => {}
             Some(score) if host_score == score => {
-                listeners.push(FastMatchedListener {
+                listeners.push_match(FastMatchedListener {
                     listener_index,
                     host_score,
                 });
             }
             _ => {
                 best_score = Some(host_score);
-                listeners.clear();
-                listeners.push(FastMatchedListener {
+                listeners.clear_matches();
+                listeners.push_match(FastMatchedListener {
                     listener_index,
                     host_score,
                 });
@@ -448,10 +533,8 @@ fn fast_matched_listeners(
         }
     });
 
-    FastCandidateListeners {
-        listeners,
-        enforce_attachments: saw_candidate_listener,
-    }
+    listeners.enforce_attachments = saw_candidate_listener;
+    listeners
 }
 
 pub(crate) fn visit_fast_candidate_listeners<'a>(
@@ -496,19 +579,16 @@ fn fast_route_listener_match(
             .listeners_for_route(route_namespace, route_name)?;
 
         listeners
-            .listeners
-            .iter()
+            .iter_matches()
             .filter(|listener_match| {
                 attached_listener_indices
                     .binary_search(&listener_match.listener_index)
                     .is_ok()
             })
-            .copied()
             .max_by(|left, right| left.host_score.cmp(&right.host_score))
     } else {
         listeners
-            .listeners
-            .iter()
+            .iter_matches()
             .filter(|listener_match| {
                 snapshot
                     .listeners
@@ -519,7 +599,6 @@ fn fast_route_listener_match(
                         })
                     })
             })
-            .copied()
             .max_by(|left, right| left.host_score.cmp(&right.host_score))
     }
 }
@@ -563,41 +642,41 @@ fn fast_hostname_score(pattern: &str, request_host: &str) -> Option<FastHostname
 }
 
 fn fast_best_http_rule_match(
-    rule: &HttpRule,
+    rule: &CompiledHttpFastRule,
     request_path: &str,
     request_method: &str,
-) -> Option<(MatchedHttpPath, FastHttpRuleScore)> {
+) -> Option<(Arc<MatchedHttpPath>, FastHttpRuleScore)> {
     if rule.matches.is_empty() {
-        return Some((default_http_path_match(), FastHttpRuleScore::default()));
+        return Some((
+            Arc::clone(&rule.default_matched_http_path),
+            FastHttpRuleScore::default(),
+        ));
     }
 
     rule.matches
         .iter()
         .filter(|matcher| fast_matches_http_rule(matcher, request_path, request_method))
-        .map(|matcher| {
-            let matched_path = normalize_http_path_match(matcher);
-            let score = FastHttpRuleScore {
-                path_rank: fast_http_path_rank(&matched_path.path_type),
-                path_length: matched_path.path.len(),
-                method_specified: !matcher.method.is_empty(),
-            };
-            (matched_path, score)
-        })
+        .map(|matcher| (Arc::clone(&matcher.matched_http_path), matcher.score))
         .max_by(|(_, left), (_, right)| left.cmp(right))
 }
 
-fn fast_matches_http_rule(matcher: &HttpMatch, request_path: &str, request_method: &str) -> bool {
+fn fast_matches_http_rule(
+    matcher: &CompiledHttpFastMatch,
+    request_path: &str,
+    request_method: &str,
+) -> bool {
     fast_matches_http_path(matcher, request_path)
-        && (matcher.method.is_empty() || matcher.method.eq_ignore_ascii_case(request_method))
+        && (matcher.method.is_empty()
+            || matcher.method.as_ref().eq_ignore_ascii_case(request_method))
 }
 
-fn fast_matches_http_path(matcher: &HttpMatch, request_path: &str) -> bool {
+fn fast_matches_http_path(matcher: &CompiledHttpFastMatch, request_path: &str) -> bool {
     if matcher.path.is_empty() {
         return true;
     }
 
-    match matcher.path_type.as_str() {
-        "Exact" => request_path == matcher.path,
+    match matcher.path_type.as_ref() {
+        "Exact" => request_path == matcher.path.as_ref(),
         "RegularExpression" => matcher
             .compiled_path_regex
             .as_ref()

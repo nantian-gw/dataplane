@@ -9,8 +9,6 @@ pub const MAX_WASM_MODULE_BYTES: usize = 32 * 1024 * 1024;
 
 /// Maximum number of table elements a guest may grow to at runtime.
 pub const MAX_WASM_TABLE_ELEMENTS: usize = 10_000;
-/// Maximum number of Store objects to keep in the reuse pool.
-pub const STORE_POOL_MAX_SIZE: usize = 32;
 
 fn global_engine_config() -> Config {
     let mut config = Config::default();
@@ -49,26 +47,6 @@ pub struct PluginContext {
     pub memory_limit: usize,
     pub table_elements_limit: usize,
 }
-impl PluginContext {
-    /// Reset the context for reuse with new request data.
-    /// Used by the Store pool to avoid re-allocation.
-    pub fn reset(
-        &mut self,
-        config: Arc<serde_json::Value>,
-        request_headers: HashMap<String, String>,
-        body: Vec<u8>,
-        memory_limit: usize,
-        table_elements_limit: usize,
-    ) {
-        self.config = config;
-        self.request_headers = request_headers;
-        self.response_headers = HashMap::new();
-        self.body = body;
-        self.memory_limit = memory_limit;
-        self.table_elements_limit = table_elements_limit;
-    }
-}
-
 impl wasmtime::ResourceLimiter for PluginContext {
     fn memory_growing(
         &mut self,
