@@ -224,12 +224,21 @@ impl SemanticCache {
             return None;
         }
         let key = build_cache_key(request);
-        if let Some(entry) = self.backend.lookup(&key)
-            && !entry.is_expired()
-        {
-            return Some(entry.response);
+        self.lookup_key(&key)
+    }
+
+    /// Try to find a cached response by an already-computed cache key.
+    #[must_use]
+    pub fn lookup_key(&self, key: &str) -> Option<AIResponse> {
+        if !self.config.enabled {
+            return None;
         }
-        None
+        let entry = self.backend.lookup(key)?;
+        if entry.is_expired() {
+            self.backend.remove(key);
+            return None;
+        }
+        Some(entry.response)
     }
 
     /// Store a response in the cache with a pre-computed key.

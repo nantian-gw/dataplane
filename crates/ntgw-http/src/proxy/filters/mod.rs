@@ -851,7 +851,7 @@ pub(crate) async fn do_request_filter(
                     .map(|k| k.to_string())
             });
         match ai_filter
-            .pre_process(ctx.path.as_str(), &body, api_key.as_deref())
+            .pre_process_owned(ctx.path.as_str(), body, api_key.as_deref())
             .await
         {
             Ok(ai_ctx) => {
