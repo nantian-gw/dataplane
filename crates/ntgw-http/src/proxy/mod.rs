@@ -88,9 +88,9 @@ use self::request::{
     build_request_meta_with_headers, build_selection_request_meta,
     cache_access_log_connection_fields_for_requirements, cache_access_log_response_headers,
     cache_request_headers_if_needed, capture_request_context,
-    capture_request_context_from_view_for_limits, client_ip, inject_request_span_context,
-    record_request_span, request_header_bytes_for_limit, response_filters_need_request_headers,
-    server_port, start_request_span_if_enabled,
+    capture_request_context_from_view_for_limits, client_ip, fast_path_request_from_view,
+    inject_request_span_context, record_request_span, request_header_bytes_for_limit,
+    response_filters_need_request_headers, server_port, start_request_span_if_enabled,
 };
 use self::responses::{
     request_is_grpc, write_direct_response, write_grpc_no_route_response,
@@ -194,10 +194,7 @@ pub(crate) fn prepare_initial_request_state(
         );
         record_request_span(ctx);
         current
-            .select_http_fast_path(fast_path_request_from_header(
-                request_header,
-                request_server_port,
-            ))
+            .select_http_fast_path(fast_path_request_from_view(request_header, &request_view))
             .map(|selected| {
                 let config = selected_backend_config_cached_for_fast_path(
                     selected_backend_config_cache,
@@ -205,7 +202,7 @@ pub(crate) fn prepare_initial_request_state(
                     &selected,
                 )?;
                 let frontend_client_certificate_requirement = current
-                    .frontend_client_certificate_requirement(selected.listener_name.as_str());
+                    .frontend_client_certificate_requirement(selected.listener_name.as_ref());
                 Ok::<_, Box<Error>>(InitialFastPathSelection {
                     selected,
                     config,

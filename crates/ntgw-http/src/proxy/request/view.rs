@@ -55,6 +55,10 @@ impl<'a> RequestView<'a> {
         self.raw_host().map(normalize_authority_host_ref)
     }
 
+    pub(crate) fn port(&self) -> u32 {
+        self.port
+    }
+
     pub(crate) fn path(&self) -> &'a str {
         self.req.uri.path()
     }

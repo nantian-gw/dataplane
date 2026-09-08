@@ -39,9 +39,16 @@ pub(crate) fn fast_path_request_from_header(
     port: u32,
 ) -> ntgw_ir::HttpFastPathRequest<'_> {
     let view = RequestView::from_header_with_port(req, port);
+    fast_path_request_from_view(req, &view)
+}
+
+pub(crate) fn fast_path_request_from_view<'a>(
+    req: &RequestHeader,
+    view: &RequestView<'a>,
+) -> ntgw_ir::HttpFastPathRequest<'a> {
     ntgw_ir::HttpFastPathRequest {
         host: view.raw_host(),
-        port,
+        port: view.port(),
         path: view.path(),
         method: view.method(),
         is_grpc: req

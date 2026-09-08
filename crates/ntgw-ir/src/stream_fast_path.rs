@@ -142,7 +142,7 @@ impl StreamFastPathPlan {
                 let Some(selected) = snapshot
                     .select_compiled_http_fast_backend(&compiled_rule.backend_refs)
                     .map(|selected| CompiledStreamBackendSelection {
-                        endpoint: selected.endpoint,
+                        endpoint: selected.endpoint.as_ref().clone(),
                         backend_name: Arc::clone(&selected.backend_name),
                     })
                 else {

@@ -99,9 +99,10 @@ mod tests {
                 address: "127.0.0.1".to_string(),
                 port: 8080,
                 healthy: true,
-            },
+            }
+            .into(),
             backend_name: "default/echo:8080".into(),
-            matched_http_path: ntgw_ir::MatchedHttpPath::default(),
+            matched_http_path: ntgw_ir::MatchedHttpPath::default().into(),
             runtime_ids: SelectedBackendRuntimeIds::default(),
         };
         let mut ctx = RequestContext {

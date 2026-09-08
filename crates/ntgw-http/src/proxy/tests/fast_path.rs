@@ -181,12 +181,14 @@ fn cache_fast_selected_backend_state_fills_context_without_full_selected_backend
             address: "10.0.0.10".to_string(),
             port: 8080,
             healthy: true,
-        },
+        }
+        .into(),
         backend_name: "default/orders:8080".into(),
         matched_http_path: ntgw_ir::MatchedHttpPath {
             path: "/".to_string(),
             path_type: "PathPrefix".to_string(),
-        },
+        }
+        .into(),
         runtime_ids: SelectedBackendRuntimeIds::default(),
     };
     let mut ctx = RequestContext::default();
@@ -220,9 +222,10 @@ fn cache_fast_selected_backend_state_keeps_route_annotations_for_access_log() {
             address: "10.0.0.10".to_string(),
             port: 8080,
             healthy: true,
-        },
+        }
+        .into(),
         backend_name: "default/orders:8080".into(),
-        matched_http_path: ntgw_ir::MatchedHttpPath::default(),
+        matched_http_path: ntgw_ir::MatchedHttpPath::default().into(),
         runtime_ids: SelectedBackendRuntimeIds::default(),
     };
     let mut ctx = RequestContext {
@@ -256,9 +259,10 @@ fn cache_fast_selected_backend_state_can_skip_context_display_strings() {
             address: "10.0.0.10".to_string(),
             port: 8080,
             healthy: true,
-        },
+        }
+        .into(),
         backend_name: "default/orders:8080".into(),
-        matched_http_path: ntgw_ir::MatchedHttpPath::default(),
+        matched_http_path: ntgw_ir::MatchedHttpPath::default().into(),
         runtime_ids: SelectedBackendRuntimeIds::default(),
     };
     let mut ctx = RequestContext::default();
@@ -289,9 +293,10 @@ fn fast_path_state_builds_upstream_peer_from_cached_config() {
             address: "10.0.0.10".to_string(),
             port: 8080,
             healthy: true,
-        },
+        }
+        .into(),
         backend_name: "default/orders:8080".into(),
-        matched_http_path: ntgw_ir::MatchedHttpPath::default(),
+        matched_http_path: ntgw_ir::MatchedHttpPath::default().into(),
         runtime_ids: SelectedBackendRuntimeIds::default(),
     };
     let config = sample_fast_selected_backend_config("10.0.0.10", 8080);
