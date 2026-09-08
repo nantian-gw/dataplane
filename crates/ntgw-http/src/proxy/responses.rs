@@ -7,9 +7,14 @@ use pingora::{http::ResponseHeader, protocols::http::HttpTask, proxy::Session};
 use crate::extensions::build_direct_response;
 use crate::filters::apply_response_filters;
 use ntgw_ir::{Filter, RequestMeta};
-use ntgw_observability::AccessLogOptions;
+use ntgw_observability::{AccessLogOptions, AccessLogTemplateRequirements};
 
-use super::{RequestContext, request::cache_access_log_sent_response_headers_if_needed};
+use super::{
+    RequestContext,
+    request::{
+        access_log_response_requirements, cache_access_log_sent_response_headers_for_requirements,
+    },
+};
 
 pub(crate) async fn write_response_header_with_access_log_capture(
     session: &mut Session,
@@ -19,7 +24,25 @@ pub(crate) async fn write_response_header_with_access_log_capture(
     access_log: &AccessLogOptions,
     route_annotations: &BTreeMap<String, String>,
 ) -> pingora::Result<()> {
-    cache_access_log_sent_response_headers_if_needed(ctx, &response, access_log, route_annotations);
+    let requirements = access_log_response_requirements(access_log, route_annotations);
+    write_response_header_with_access_log_requirements(
+        session,
+        response,
+        end_of_stream,
+        ctx,
+        requirements.as_ref(),
+    )
+    .await
+}
+
+pub(crate) async fn write_response_header_with_access_log_requirements(
+    session: &mut Session,
+    response: ResponseHeader,
+    end_of_stream: bool,
+    ctx: &mut RequestContext,
+    requirements: Option<&AccessLogTemplateRequirements>,
+) -> pingora::Result<()> {
+    cache_access_log_sent_response_headers_for_requirements(ctx, &response, requirements);
     session
         .write_response_header(Box::new(response), end_of_stream)
         .await
