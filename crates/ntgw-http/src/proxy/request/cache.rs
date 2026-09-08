@@ -48,9 +48,20 @@ pub(crate) fn cache_access_log_request_headers_from_header_if_needed(
     access_log: &AccessLogOptions,
     route_annotations: &BTreeMap<String, String>,
 ) {
-    let Some(required_headers) =
-        access_log_request_header_requirements(access_log, route_annotations)
-    else {
+    let required_headers = access_log_request_header_requirements(access_log, route_annotations);
+    cache_access_log_request_headers_from_header_for_requirements(
+        ctx,
+        request,
+        required_headers.as_ref(),
+    );
+}
+
+pub(crate) fn cache_access_log_request_headers_from_header_for_requirements(
+    ctx: &mut RequestContext,
+    request: &pingora::http::RequestHeader,
+    required_headers: Option<&BTreeSet<String>>,
+) {
+    let Some(required_headers) = required_headers else {
         return;
     };
 
@@ -61,7 +72,7 @@ pub(crate) fn cache_access_log_request_headers_from_header_if_needed(
             .and_then(|value| value.to_str().ok())
         {
             ctx.access_log_request_headers
-                .insert(Arc::from(header_name), value.to_string());
+                .insert(Arc::from(header_name.as_str()), value.to_string());
         }
     }
 }
@@ -116,10 +127,22 @@ pub(crate) fn cache_access_log_connection_fields_if_needed(
     access_log: &AccessLogOptions,
     route_annotations: &BTreeMap<String, String>,
 ) {
-    cache_access_log_connection_fields_from_sources_if_needed(
+    let requirements = access_log_response_requirements(access_log, route_annotations);
+    cache_access_log_connection_fields_for_requirements(session, ctx, requirements.as_ref());
+}
+
+pub(crate) fn cache_access_log_connection_fields_for_requirements(
+    session: &Session,
+    ctx: &mut RequestContext,
+    requirements: Option<&AccessLogTemplateRequirements>,
+) {
+    let Some(requirements) = requirements else {
+        return;
+    };
+
+    cache_access_log_connection_fields_from_sources_for_requirements(
         ctx,
-        access_log,
-        route_annotations,
+        Some(requirements),
         session
             .as_downstream()
             .digest()
@@ -137,6 +160,7 @@ pub(crate) fn cache_access_log_connection_fields_if_needed(
     );
 }
 
+#[cfg(test)]
 pub(crate) fn cache_access_log_connection_fields_from_sources_if_needed(
     ctx: &mut RequestContext,
     access_log: &AccessLogOptions,
@@ -145,7 +169,24 @@ pub(crate) fn cache_access_log_connection_fields_from_sources_if_needed(
     client_remote_port: Option<u16>,
     digest_peer_remote_port: Option<u16>,
 ) {
-    let Some(requirements) = access_log_response_requirements(access_log, route_annotations) else {
+    let requirements = access_log_response_requirements(access_log, route_annotations);
+    cache_access_log_connection_fields_from_sources_for_requirements(
+        ctx,
+        requirements.as_ref(),
+        downstream_tls_present,
+        client_remote_port,
+        digest_peer_remote_port,
+    );
+}
+
+pub(crate) fn cache_access_log_connection_fields_from_sources_for_requirements(
+    ctx: &mut RequestContext,
+    requirements: Option<&AccessLogTemplateRequirements>,
+    downstream_tls_present: bool,
+    client_remote_port: Option<u16>,
+    digest_peer_remote_port: Option<u16>,
+) {
+    let Some(requirements) = requirements else {
         return;
     };
 
@@ -162,13 +203,23 @@ pub(crate) fn cache_access_log_connection_fields_from_sources_if_needed(
     }
 }
 
+#[cfg(test)]
 pub(crate) fn cache_access_log_sent_response_headers_if_needed(
     ctx: &mut RequestContext,
     response: &ResponseHeader,
     access_log: &AccessLogOptions,
     route_annotations: &BTreeMap<String, String>,
 ) {
-    let Some(requirements) = access_log_response_requirements(access_log, route_annotations) else {
+    let requirements = access_log_response_requirements(access_log, route_annotations);
+    cache_access_log_sent_response_headers_for_requirements(ctx, response, requirements.as_ref());
+}
+
+pub(crate) fn cache_access_log_sent_response_headers_for_requirements(
+    ctx: &mut RequestContext,
+    response: &ResponseHeader,
+    requirements: Option<&AccessLogTemplateRequirements>,
+) {
+    let Some(requirements) = requirements else {
         return;
     };
     if requirements.sent_response_headers.is_empty() {
@@ -258,7 +309,7 @@ pub(crate) fn access_log_route_annotations(ctx: &RequestContext) -> &BTreeMap<St
     &ctx.route_annotations
 }
 
-fn access_log_request_header_requirements(
+pub(crate) fn access_log_request_header_requirements(
     access_log: &AccessLogOptions,
     route_annotations: &BTreeMap<String, String>,
 ) -> Option<BTreeSet<String>> {

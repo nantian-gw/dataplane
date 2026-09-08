@@ -1,5 +1,13 @@
+use std::collections::BTreeSet;
+
+use ntgw_observability::AccessLogTemplateRequirements;
+
 use super::super::super::request::{
+    access_log_request_header_requirements,
+    cache_access_log_connection_fields_from_sources_for_requirements,
     cache_access_log_connection_fields_from_sources_if_needed,
+    cache_access_log_request_headers_from_header_for_requirements,
+    cache_access_log_sent_response_headers_for_requirements,
     cache_access_log_sent_response_headers_from_written_response_if_needed,
     cache_access_log_sent_response_headers_if_needed,
     cache_access_log_upstream_response_headers_if_needed,
@@ -43,6 +51,100 @@ fn cache_access_log_response_headers_only_captures_named_headers() {
     assert_eq!(
         ctx.access_log_upstream_response_headers,
         BTreeMap::from([(Arc::from("server"), "orders-upstream".to_string())])
+    );
+}
+
+#[test]
+fn cache_access_log_request_headers_uses_precomputed_requirements() {
+    let access_log = AccessLogOptions {
+        enabled: true,
+        mode: ntgw_observability::AccessLogMode::Text,
+        format: "$status".to_string(),
+        ..AccessLogOptions::default()
+    };
+    let route_annotations = BTreeMap::from([(
+        "gateway.nantian.dev/access-log-format".to_string(),
+        "$http_user_agent $http_referer".to_string(),
+    )]);
+    let required_headers =
+        access_log_request_header_requirements(&access_log, &route_annotations)
+            .expect("route format should require request headers");
+    let mut request = RequestHeader::build("GET", b"/orders", None).expect("request");
+    request
+        .insert_header("user-agent", "ntgw-test")
+        .expect("user-agent");
+    request
+        .insert_header("referer", "https://example.test/orders")
+        .expect("referer");
+    request
+        .insert_header("authorization", "secret")
+        .expect("authorization");
+    let mut ctx = RequestContext::default();
+
+    cache_access_log_request_headers_from_header_for_requirements(
+        &mut ctx,
+        &request,
+        Some(&required_headers),
+    );
+
+    assert_eq!(
+        ctx.access_log_request_headers,
+        BTreeMap::from([
+            (Arc::from("referer"), "https://example.test/orders".to_string()),
+            (Arc::from("user-agent"), "ntgw-test".to_string()),
+        ])
+    );
+}
+
+#[test]
+fn cache_access_log_connection_fields_uses_precomputed_requirements() {
+    let mut ctx = RequestContext::default();
+    let requirements = AccessLogTemplateRequirements {
+        needs_scheme: true,
+        needs_remote_port: true,
+        ..AccessLogTemplateRequirements::default()
+    };
+
+    cache_access_log_connection_fields_from_sources_for_requirements(
+        &mut ctx,
+        Some(&requirements),
+        true,
+        None,
+        Some(61234),
+    );
+
+    assert_eq!(ctx.access_log_scheme, "https");
+    assert_eq!(ctx.access_log_remote_port, Some(61234));
+}
+
+#[test]
+fn cache_access_log_sent_response_headers_uses_precomputed_requirements() {
+    let mut ctx = RequestContext {
+        access_log_sent_response_headers: BTreeMap::from([(
+            Arc::from("server"),
+            "stale".to_string(),
+        )]),
+        ..RequestContext::default()
+    };
+    let mut response = ResponseHeader::build(200, None).expect("response");
+    response
+        .insert_header("content-type", "application/json")
+        .expect("content-type");
+    response.insert_header("server", "pingora").expect("server");
+    let requirements = AccessLogTemplateRequirements {
+        sent_response_headers: BTreeSet::from(["content-type".to_string()]),
+        ..AccessLogTemplateRequirements::default()
+    };
+
+    cache_access_log_sent_response_headers_for_requirements(
+        &mut ctx,
+        &response,
+        Some(&requirements),
+    );
+
+    assert_eq!(
+        ctx.access_log_sent_response_headers,
+        BTreeMap::from([(Arc::from("content-type"), "application/json".to_string())])
     );
 }
 

@@ -6,7 +6,7 @@ use crate::cache::CacheManager;
 
 use super::super::{
     GatewayProxy, RequestContext, record_request_span,
-    write_response_header_with_access_log_capture,
+    write_response_header_with_access_log_requirements,
 };
 
 pub(super) fn ai_request_body_limit_exceeded(
@@ -30,19 +30,26 @@ pub(super) fn cache_fast_path_access_log_fields(
         return;
     }
 
-    let route_access_log_annotations =
-        super::super::request::access_log_route_annotations(ctx).clone();
-    super::super::request::cache_access_log_connection_fields_if_needed(
+    let access_log_requirements = {
+        let route_access_log_annotations = super::super::request::access_log_route_annotations(ctx);
+        super::super::request::access_log_response_requirements(
+            &proxy.access_log,
+            route_access_log_annotations,
+        )
+    };
+    let request_header_requirements = access_log_requirements.as_ref().and_then(|requirements| {
+        (!requirements.request_headers.is_empty()).then_some(&requirements.request_headers)
+    });
+
+    super::super::request::cache_access_log_connection_fields_for_requirements(
         session,
         ctx,
-        &proxy.access_log,
-        &route_access_log_annotations,
+        access_log_requirements.as_ref(),
     );
-    super::super::request::cache_access_log_request_headers_from_header_if_needed(
+    super::super::request::cache_access_log_request_headers_from_header_for_requirements(
         ctx,
         session.req_header(),
-        &proxy.access_log,
-        &route_access_log_annotations,
+        request_header_requirements,
     );
 }
 
@@ -83,15 +90,20 @@ pub(super) async fn try_cache_hit(
             http_cache.cache_found(meta, hit_handler, HitStatus::Fresh);
 
             let status = cached_header.status.as_u16();
-            let route_access_log_annotations =
-                super::super::request::access_log_route_annotations(ctx).clone();
-            write_response_header_with_access_log_capture(
+            let response_requirements = {
+                let route_access_log_annotations =
+                    super::super::request::access_log_route_annotations(ctx);
+                super::super::request::access_log_response_requirements(
+                    &proxy.access_log,
+                    route_access_log_annotations,
+                )
+            };
+            write_response_header_with_access_log_requirements(
                 session,
                 cached_header,
                 false,
                 ctx,
-                &proxy.access_log,
-                &route_access_log_annotations,
+                response_requirements.as_ref(),
             )
             .await?;
 
