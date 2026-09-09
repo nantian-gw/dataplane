@@ -172,18 +172,22 @@ impl SharedTrafficStats {
         state.max_latency_ms = state.max_latency_ms.max(observation.latency_ms);
         let protocol = canonical_protocol_label_cow(observation.protocol);
         if is_request_protocol(protocol.as_ref()) {
-            let response_flag = response_flag_label_cow(observation.response_flags);
             state.total_request_events = state.total_request_events.saturating_add(1);
+            let status_class = status_class_label(observation.status);
+            let response_flag = response_flag_label_cow(observation.response_flags);
+            let latency_label_hash =
+                latency_label_hash_for_observation(&observation, topology, protocol.as_ref());
             observe_request_latency_ref(
                 &mut state,
                 TrafficLatencyLabelRef {
                     listener: listener_name.as_ref(),
                     protocol: protocol.as_ref(),
                     route_kind: topology.route_kind,
-                    status_class: status_class_label(observation.status),
+                    status_class,
                     response_flag: response_flag.as_ref(),
                 },
                 observation.latency_ms,
+                latency_label_hash,
             );
             match observation.status {
                 Some(100..=199) => state.status_1xx += 1,
@@ -572,12 +576,28 @@ fn hash_latency_label_owned(labels: &TrafficLatencyLabels) -> u64 {
     )
 }
 
+fn latency_label_hash_for_observation(
+    observation: &TrafficObservationRef<'_>,
+    topology: TrafficTopologyRef<'_>,
+    protocol: &str,
+) -> Option<u64> {
+    if matches!(observation.status, Some(200..=299))
+        && observation.response_flags.is_empty()
+        && protocol == "HTTP"
+    {
+        Some(topology.http_2xx_no_flag_latency_hash)
+    } else {
+        None
+    }
+}
+
 fn observe_request_latency_ref(
     state: &mut TrafficState,
     labels: TrafficLatencyLabelRef<'_>,
     latency_ms: u64,
+    label_hash: Option<u64>,
 ) {
-    let hash = hash_latency_label_ref(labels);
+    let hash = label_hash.unwrap_or_else(|| hash_latency_label_ref(labels));
     match state.request_latency_ms_histograms.entry(
         hash,
         |(existing, _)| existing.matches_ref(labels),

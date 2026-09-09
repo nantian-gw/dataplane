@@ -241,6 +241,10 @@ fn traffic_topology_precomputes_stable_shard_key() {
     );
 
     assert_eq!(first.as_ref().shard_key, second.as_ref().shard_key);
+    assert_eq!(
+        first.as_ref().http_2xx_no_flag_latency_hash,
+        hash_latency_labels("default/gw/http", "HTTP", "HTTPRoute", "2xx", "none")
+    );
     assert_ne!(
         first.as_ref().shard_key,
         different_backend.as_ref().shard_key

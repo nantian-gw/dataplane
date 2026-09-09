@@ -100,6 +100,52 @@ fn write_options_borrow_base_when_route_annotations_do_not_override_access_log()
 }
 
 #[test]
+fn write_options_borrow_base_when_route_annotations_match_base_access_log_options() {
+    let options = AccessLogOptions {
+        enabled: true,
+        sample_rate: 1.0,
+        mode: AccessLogMode::Json,
+        ..AccessLogOptions::default()
+    };
+    let mut annotations = BTreeMap::new();
+    annotations.insert(
+        "gateway.nantian.dev/access-log-enabled".to_string(),
+        "true".to_string(),
+    );
+    annotations.insert(
+        "gateway.nantian.dev/access-log-format".to_string(),
+        options.format.clone(),
+    );
+    annotations.insert(
+        "gateway.nantian.dev/access-log-mode".to_string(),
+        "json".to_string(),
+    );
+    annotations.insert(
+        "gateway.nantian.dev/access-log-sample-rate".to_string(),
+        "1.0".to_string(),
+    );
+    let key = AccessLogSampleKey {
+        event: "http_request",
+        listener: "listener-a",
+        listener_runtime_id: None,
+        request_id: "request-1",
+        route_namespace: "default",
+        route_name: "orders",
+        route_runtime_id: None,
+        backend: "default/orders:8080",
+        backend_runtime_id: None,
+        start_time_unix_ms: 42,
+    };
+
+    let resolved = resolve_access_log_write_options(&options, &annotations, &key);
+
+    assert!(
+        matches!(resolved, Some(std::borrow::Cow::Borrowed(_))),
+        "route annotations matching the base options should not clone base log options"
+    );
+}
+
+#[test]
 fn write_options_sampling_prefers_runtime_ids_over_display_names() {
     let rate = 0.5;
     let options = AccessLogOptions {
