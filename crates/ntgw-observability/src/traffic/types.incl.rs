@@ -1,15 +1,40 @@
 pub fn upstream_connect_latency_ms_bucket_index(latency_ms: u64) -> usize {
-    UPSTREAM_CONNECT_LATENCY_MS_BUCKET_BOUNDS
-        .iter()
-        .position(|bound| latency_ms <= *bound)
-        .unwrap_or(UPSTREAM_CONNECT_LATENCY_MS_BUCKET_BOUNDS.len())
+    match latency_ms {
+        0..=1 => 0,
+        2..=5 => 1,
+        6..=10 => 2,
+        11..=25 => 3,
+        26..=50 => 4,
+        51..=100 => 5,
+        101..=250 => 6,
+        251..=500 => 7,
+        501..=1_000 => 8,
+        1_001..=2_500 => 9,
+        2_501..=5_000 => 10,
+        _ => 11,
+    }
 }
 
 pub fn traffic_latency_ms_bucket_index(latency_ms: u64) -> usize {
-    TRAFFIC_LATENCY_MS_BUCKET_BOUNDS
-        .iter()
-        .position(|bound| latency_ms <= *bound)
-        .unwrap_or(TRAFFIC_LATENCY_MS_BUCKET_BOUNDS.len())
+    match latency_ms {
+        0..=1 => 0,
+        2..=5 => 1,
+        6..=10 => 2,
+        11..=25 => 3,
+        26..=50 => 4,
+        51..=100 => 5,
+        101..=250 => 6,
+        251..=500 => 7,
+        501..=1_000 => 8,
+        1_001..=2_500 => 9,
+        2_501..=5_000 => 10,
+        5_001..=10_000 => 11,
+        10_001..=30_000 => 12,
+        30_001..=60_000 => 13,
+        60_001..=120_000 => 14,
+        120_001..=300_000 => 15,
+        _ => 16,
+    }
 }
 
 #[derive(Debug, Clone, Default)]
@@ -91,6 +116,7 @@ impl<'a> TrafficObservationRef<'a> {
 pub struct TrafficTopology {
     pub route_kind: Cow<'static, str>,
     pub shard_key: u64,
+    pub http_2xx_no_flag_latency_hash: u64,
     pub listener_node_id: String,
     pub route_node_id: String,
     pub backend_node_id: Option<String>,
@@ -105,6 +131,7 @@ pub struct TrafficTopology {
 pub struct TrafficTopologyRef<'a> {
     pub route_kind: &'a str,
     pub shard_key: u64,
+    pub http_2xx_no_flag_latency_hash: u64,
     pub listener_node_id: &'a str,
     pub route_node_id: &'a str,
     pub backend_node_id: Option<&'a str>,
@@ -140,10 +167,18 @@ impl TrafficTopology {
             .as_ref()
             .zip(endpoint_set_id.as_ref())
             .map(|(backend_id, endpoint_set_id)| edge_id(backend_id, endpoint_set_id));
+        let http_2xx_no_flag_latency_hash = hash_latency_labels(
+            listener_name,
+            "HTTP",
+            route_kind.as_ref(),
+            "2xx",
+            NORMAL_RESPONSE_FLAG,
+        );
 
         Self {
             route_kind,
             shard_key: topology_shard_key(&listener_id, &route_id, backend_name),
+            http_2xx_no_flag_latency_hash,
             dataplane_to_listener_edge_id: edge_id("plane:dataplane", &listener_id),
             listener_to_route_edge_id: edge_id(&listener_id, &route_id),
             listener_node_id: listener_id,
@@ -169,6 +204,7 @@ impl TrafficTopology {
         TrafficTopologyRef {
             route_kind: self.route_kind.as_ref(),
             shard_key: self.shard_key,
+            http_2xx_no_flag_latency_hash: self.http_2xx_no_flag_latency_hash,
             listener_node_id: self.listener_node_id.as_str(),
             route_node_id: self.route_node_id.as_str(),
             backend_node_id: self.backend_node_id.as_deref(),

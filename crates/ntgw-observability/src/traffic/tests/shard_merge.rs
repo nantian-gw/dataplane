@@ -455,8 +455,8 @@ fn traffic_latency_histogram_hot_path_reuses_existing_series() {
         response_flag: "none",
     };
 
-    observe_request_latency_ref(&mut state, labels, 10);
-    observe_request_latency_ref(&mut state, labels, 30);
+    observe_request_latency_ref(&mut state, labels, 10, None);
+    observe_request_latency_ref(&mut state, labels, 30, None);
 
     assert_eq!(state.request_latency_ms_histograms.len(), 1);
     let (_, histogram) = state

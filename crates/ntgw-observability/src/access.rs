@@ -412,7 +412,11 @@ fn resolve_access_log_options_cow<'a>(
 
         match suffix {
             "enabled" => match parse_bool(value) {
-                Some(enabled) => mutable_access_log_options(base, &mut resolved).enabled = enabled,
+                Some(enabled) => {
+                    if enabled != base.enabled {
+                        mutable_access_log_options(base, &mut resolved).enabled = enabled;
+                    }
+                }
                 None => {
                     warn!(value = %value, "ignored invalid route access log enabled annotation");
                 }
@@ -422,16 +426,23 @@ fn resolve_access_log_options_cow<'a>(
                 // them redirect dataplane-local file writes.
             }
             "format" => {
-                if let Some(format) = trimmed_non_empty(value) {
+                if let Some(format) = trimmed_non_empty(value)
+                    && format != base.format
+                {
                     mutable_access_log_options(base, &mut resolved).format = format.to_string();
                 }
             }
             "mode" => {
-                mutable_access_log_options(base, &mut resolved).mode = AccessLogMode::parse(value);
+                let mode = AccessLogMode::parse(value);
+                if mode != base.mode {
+                    mutable_access_log_options(base, &mut resolved).mode = mode;
+                }
             }
             "sample-rate" => match value.trim().parse::<f64>() {
                 Ok(rate) if (0.0..=1.0).contains(&rate) => {
-                    mutable_access_log_options(base, &mut resolved).sample_rate = rate;
+                    if rate != base.sample_rate {
+                        mutable_access_log_options(base, &mut resolved).sample_rate = rate;
+                    }
                 }
                 _ => {
                     warn!(value = %value, "ignored invalid route access log sample-rate annotation");
