@@ -42,9 +42,10 @@ pub enum AccessLogMode {
 
 impl AccessLogMode {
     pub fn parse(raw: &str) -> Self {
-        match raw.trim().to_ascii_lowercase().as_str() {
-            "json" => Self::Json,
-            _ => Self::Text,
+        if raw.trim().eq_ignore_ascii_case("json") {
+            Self::Json
+        } else {
+            Self::Text
         }
     }
 }
@@ -482,10 +483,21 @@ fn parse_runtime_id_hex(value: Option<&str>) -> Option<u64> {
 }
 
 fn parse_bool(raw: &str) -> Option<bool> {
-    match raw.trim().to_ascii_lowercase().as_str() {
-        "true" | "1" | "yes" | "on" => Some(true),
-        "false" | "0" | "no" | "off" => Some(false),
-        _ => None,
+    let raw = raw.trim();
+    if raw == "1"
+        || raw.eq_ignore_ascii_case("true")
+        || raw.eq_ignore_ascii_case("yes")
+        || raw.eq_ignore_ascii_case("on")
+    {
+        Some(true)
+    } else if raw == "0"
+        || raw.eq_ignore_ascii_case("false")
+        || raw.eq_ignore_ascii_case("no")
+        || raw.eq_ignore_ascii_case("off")
+    {
+        Some(false)
+    } else {
+        None
     }
 }
 

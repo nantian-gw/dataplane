@@ -26,6 +26,37 @@ fn resolves_route_overrides_from_annotations() {
 }
 
 #[test]
+fn resolves_route_overrides_without_allocating_for_case_normalization() {
+    let mut annotations = BTreeMap::new();
+    annotations.insert(
+        "gateway.nantian.dev/access-log-enabled".to_string(),
+        " TrUe ".to_string(),
+    );
+    annotations.insert(
+        "gateway.nantian.dev/access-log-mode".to_string(),
+        " JsOn ".to_string(),
+    );
+
+    let resolved = resolve_access_log_options(
+        &AccessLogOptions {
+            enabled: false,
+            mode: AccessLogMode::Text,
+            ..AccessLogOptions::default()
+        },
+        &annotations,
+    );
+
+    assert!(resolved.enabled);
+    assert_eq!(resolved.mode, AccessLogMode::Json);
+}
+
+#[test]
+fn access_log_mode_unknown_values_still_default_to_text() {
+    assert_eq!(AccessLogMode::parse(" text "), AccessLogMode::Text);
+    assert_eq!(AccessLogMode::parse("unknown"), AccessLogMode::Text);
+}
+
+#[test]
 fn detects_whether_access_log_can_emit_for_route() {
     let disabled = AccessLogOptions {
         enabled: false,
