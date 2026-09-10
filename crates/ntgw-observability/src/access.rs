@@ -333,13 +333,17 @@ pub fn write_access_log(
     {
         let resolved = resolved.as_ref();
         let line = render_access_log(resolved, record)?;
-        emit_access_log(&resolved.path, &line)?;
+        emit_access_log_owned(&resolved.path, line)?;
     }
     Ok(())
 }
 
 pub fn emit_access_log(path: &str, line: &str) -> Result<()> {
-    emit_access_log_line(path, line.to_string())
+    emit_access_log_owned(path, line.to_string())
+}
+
+pub fn emit_access_log_owned(path: &str, line: String) -> Result<()> {
+    emit_access_log_line(path, line)
 }
 
 pub fn snapshot_access_log_writers() -> AccessLogWriterSnapshot {
