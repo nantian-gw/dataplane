@@ -32,6 +32,21 @@ fn writes_access_logs_via_background_worker() {
 }
 
 #[test]
+fn owned_access_log_lines_queue_without_borrowed_api() {
+    let path = temp_log_path("access-log-owned");
+    let path_string = path.display().to_string();
+
+    emit_access_log_owned(&path_string, "owned-line".to_string())
+        .expect("owned log line should queue");
+    flush_access_log(&path_string).expect("log writer should flush");
+
+    let contents = fs::read_to_string(&path).expect("log file");
+    assert!(contents.contains("owned-line"));
+
+    let _ = fs::remove_file(path);
+}
+
+#[test]
 fn drops_access_logs_when_queue_is_full_without_failing_callers() {
     let (tx, _rx) = mpsc::sync_channel(1);
     let writer = AccessLogWriter::new(tx);

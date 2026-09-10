@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use ntgw_observability::{
     AccessLogOptions, AccessLogRecord, AccessLogSampleKey, SharedTrafficStats,
-    TrafficObservationRef, TrafficRuntimeIds, current_timestamp, emit_access_log,
+    TrafficObservationRef, TrafficRuntimeIds, current_timestamp, emit_access_log_owned,
     render_access_log, resolve_access_log_write_options,
 };
 use tracing::error;
@@ -137,7 +137,7 @@ pub(crate) fn observe_completed_request(
             remote_port: ctx.access_log_remote_port,
         };
         render_access_log(&resolved_access_log, &record)
-            .and_then(|line| emit_access_log(&resolved_access_log.path, &line))
+            .and_then(|line| emit_access_log_owned(&resolved_access_log.path, line))
     };
     if let Err(err) = write_result {
         error!(error = %err, "failed to emit access log");

@@ -9,8 +9,9 @@ use std::{
 use super::writer::AccessLogCommand;
 use super::{
     AccessLogMode, AccessLogOptions, AccessLogRecord, AccessLogSampleKey,
-    access_log_enabled_for_route, flush_access_log, render_access_log, resolve_access_log_options,
-    resolve_access_log_write_options, should_emit_sample, write_access_log,
+    access_log_enabled_for_route, emit_access_log_owned, flush_access_log, render_access_log,
+    resolve_access_log_options, resolve_access_log_write_options, should_emit_sample,
+    write_access_log,
 };
 use super::{
     template::{
