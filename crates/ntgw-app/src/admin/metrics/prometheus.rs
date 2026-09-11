@@ -1,5 +1,23 @@
 use std::fmt::Write as _;
 
+const LEGACY_DATAPLANE_METRIC_PREFIX: &str = "nantian_gateway_dataplane_";
+const CANONICAL_DATAPLANE_METRIC_PREFIX: &str = "nantian_gw_dataplane_";
+
+pub(super) fn append_canonical_metric_aliases(out: &mut String) {
+    let mut aliases = String::new();
+    for line in out.lines() {
+        if line.contains(LEGACY_DATAPLANE_METRIC_PREFIX) {
+            let alias = line.replace(
+                LEGACY_DATAPLANE_METRIC_PREFIX,
+                CANONICAL_DATAPLANE_METRIC_PREFIX,
+            );
+            aliases.push_str(&alias);
+            aliases.push('\n');
+        }
+    }
+    out.push_str(&aliases);
+}
+
 pub(super) fn append_gauge(out: &mut String, name: &str, help: &str, value: u64) {
     let _ = writeln!(out, "# HELP {name} {help}");
     let _ = writeln!(out, "# TYPE {name} gauge");

@@ -12,6 +12,7 @@ use context::MetricsContext;
 use listeners::append_listener_metrics;
 use node_info::append_node_info_metrics;
 use overview::append_overview_metrics;
+use prometheus::append_canonical_metric_aliases;
 
 pub(super) fn render_metrics(state: &AppState) -> String {
     let ctx = MetricsContext::from_state(state);
@@ -21,6 +22,7 @@ pub(super) fn render_metrics(state: &AppState) -> String {
     append_listener_metrics(&mut out, &ctx);
     append_node_info_metrics(&mut out, &ctx);
     append_admin_request_metrics(&mut out, &ctx);
+    append_canonical_metric_aliases(&mut out);
 
     out
 }
