@@ -75,6 +75,49 @@ fn render_metrics_does_not_emit_duplicate_metric_families() {
 }
 
 #[test]
+fn render_metrics_exposes_canonical_prefix_aliases() {
+    let state = test_state(None);
+    state.xds.observe_snapshot_applied("v-test");
+    state.xds.observe_apply_stage_duration("decode", 7);
+    state.traffic.observe(TrafficObservation {
+        listener_name: "web".to_string(),
+        protocol: "HTTP".to_string(),
+        route_namespace: "default".to_string(),
+        route_name: "web".to_string(),
+        route_kind: "Http".to_string(),
+        backend_name: "default/api:80".to_string(),
+        status: Some(200),
+        latency_ms: 42,
+        bytes_received: 10,
+        bytes_sent: 20,
+        response_flags: String::new(),
+        ..TrafficObservation::default()
+    });
+
+    let metrics = render_metrics(&state);
+
+    for expected in [
+        "nantian_gateway_dataplane_ready 1",
+        "nantian_gw_dataplane_ready 1",
+        "nantian_gateway_dataplane_traffic_events_total 1",
+        "nantian_gw_dataplane_traffic_events_total 1",
+        "nantian_gateway_dataplane_http_listener_inflight_current{listener=\"web\"} 0",
+        "nantian_gw_dataplane_http_listener_inflight_current{listener=\"web\"} 0",
+        "nantian_gateway_dataplane_traffic_request_latency_ms_count{listener=\"web\",protocol=\"HTTP\",route_kind=\"HTTPRoute\",status_class=\"2xx\",response_flag=\"none\"} 1",
+        "nantian_gw_dataplane_traffic_request_latency_ms_count{listener=\"web\",protocol=\"HTTP\",route_kind=\"HTTPRoute\",status_class=\"2xx\",response_flag=\"none\"} 1",
+        "nantian_gateway_dataplane_xds_apply_stage_duration_ms_count{stage=\"decode\"} 1",
+        "nantian_gw_dataplane_xds_apply_stage_duration_ms_count{stage=\"decode\"} 1",
+    ] {
+        assert!(
+            metrics.contains(expected),
+            "missing metric sample: {expected}"
+        );
+    }
+
+    assert_eq!(duplicate_metric_families(&metrics), Vec::<String>::new());
+}
+
+#[test]
 fn runtime_metrics_include_tls_plane_reload_state() {
     let state = test_state(None);
     state.runtime.observe_tls_runtime_started();
