@@ -109,7 +109,7 @@ jobs:
           exit-code: '0' # DRAFT: report-only; set '1' to fail the release on findings
 
       - name: Upload supply-chain artifacts
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: supply-chain-${{ matrix.arch }}
           path: |
@@ -118,7 +118,7 @@ jobs:
       # ---- end P2-3 DRAFT ----
 
       - name: Upload binary artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: ntgw-app-${{ matrix.arch }}
           path: |
